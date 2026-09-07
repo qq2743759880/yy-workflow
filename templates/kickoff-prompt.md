@@ -28,6 +28,53 @@
 
 ---
 
+# 按簇注入本 task 资产清单（通用段，全簇适用）
+
+> 本段覆盖 T1-T5 全簇。任务经 `scripts/lib/matrix.mjs` CLUSTERS 路由后，按下表注入**本 task 所属簇**的 candidates 具名路径 + preconditions（与 matrix.mjs 逐条一致，不缩水不杜撰）。前端任务另需加载下方「T4_FRONTEND 专用开工 prompt」作为深化层。
+
+## 域声明要求（agent 开工首行，硬约束）
+开工首行必须声明：
+- **域标签**：`本 task 属 <域>`（T1 数据库 / T2 后端 / T3 AI-RAG-MCP / T4 前端 / T5 运维；bug 修复按缺陷定位归属对应簇并标注 `bugfix`）
+- **必用资产清单**：具名列出下方本簇 candidates 路径
+
+未声明 → 验收抽查（`scripts/asset-call-rate.mjs` assetConsumed 字段）记 warning，并要求补充，不静默放行。owner 如需在 Prompt 指定资产，直接写「本 task 必须消费 <具名资产路径>」类指令即可被本清单承接（清单与 Prompt 用词同源）。
+
+## 各簇 candidates + preconditions（数据源：matrix.mjs CLUSTERS）
+
+### T1 数据库
+candidates：`$SKILL_DIR/vendor/be-architect/be-architect.md`、`$SKILL_DIR/vendor/implementation/implementation.md`、`$SKILL_DIR/vendor/be-validator/be-validator.md`、`$SKILL_DIR/vendor/be-provider/be-provider.md`、`$SKILL_DIR/vendor/sdlc/SKILL.md`
+preconditions：
+1. be-architect 数据库 schema/数据契约产物须先冻结（contracts/\<planId\>.json 或 --contract），下游 implementation/be-provider 才开工
+2. 每子任务产物须含资产消费锚点 + ≥1 内核词（D-1 机验，缺则 assetConsumed=false）
+
+### T2 后端
+candidates：`$SKILL_DIR/vendor/be-architect/be-architect.md`、`$SKILL_DIR/vendor/implementation/implementation.md`、`$SKILL_DIR/vendor/be-provider/be-provider.md`、`$SKILL_DIR/vendor/be-resilience/be-resilience.md`、`$SKILL_DIR/vendor/sdlc/SKILL.md`、`$SKILL_DIR/vendor/security/SKILL.md`、`$SKILL_DIR/vendor/review/SKILL.md`、`$SKILL_DIR/vendor/be-validator/be-validator.md`
+preconditions：
+1. be-architect 接口/错误契约产物须先冻结（contracts/\<planId\>.json 或 --contract OpenAPI），下游才放行
+2. 实现类子任务须经 --exec 宿主真实执行，禁纯 prompt 兜底（requireExec）
+3. 每子任务产物须含资产消费锚点 + ≥1 内核词（D-1）；上游 done 且 assetConsumed=true 后下游才派单
+
+### T3 AI-RAG-MCP
+candidates：`$SKILL_DIR/vendor/be-provider/be-provider.md`、`$SKILL_DIR/vendor/implementation/implementation.md`、`$SKILL_DIR/vendor/agent-research/SKILL.md`、`$SKILL_DIR/vendor/be-validator/be-validator.md`、`$SKILL_DIR/vendor/dev-planner/dev-planner.md`
+preconditions：
+1. 模型/工具选型契约（be-provider/agent-research 调研结论）须先产出冻结，implementation 后行
+2. 每子任务产物须含资产消费锚点 + ≥1 内核词（D-1 机验）
+
+### T4 前端
+candidates：`$SKILL_DIR/vendor/frontend-design/SKILL.md`、`$SKILL_DIR/vendor/frontend-visual-validation/SKILL.md`、`$SKILL_DIR/vendor/agent-vision-toolkit/SKILL.md`、`$SKILL_DIR/vendor/colorize/SKILL.md`、`$SKILL_DIR/vendor/planning/SKILL.md`、`$SKILL_DIR/vendor/review/SKILL.md`、`$SKILL_DIR/vendor/security/SKILL.md`
+preconditions：
+1. 后端接口契约先冻结（FR-3：contractMode:'frozen'，缺契约 CONTRACT_NOT_FROZEN skip）
+2. Gate A 用户 APPROVED + PARITY_CHECK 冻结 token 先于组件实现
+3. 每子任务产物须含资产消费锚点 + ≥1 内核词（D-1 机验）
+
+### T5 运维
+candidates：`$SKILL_DIR/vendor/be-resilience/be-resilience.md`、`$SKILL_DIR/vendor/security/SKILL.md`、`$SKILL_DIR/vendor/skill-sentinel/SKILL.md`、`$SKILL_DIR/vendor/be-validator/be-validator.md`、`$SKILL_DIR/vendor/review/SKILL.md`
+preconditions：
+1. 加固/扫描产物（be-resilience/security/skill-sentinel）须先于验收子任务（be-validator/review）
+2. 每子任务产物须含资产消费锚点 + ≥1 内核词（D-1 机验）
+
+---
+
 # T4_FRONTEND 专用开工 prompt（前端页面任务，FR-1/FR-2 强制化）
 
 > 仅当任务经 `matrix.mjs` 路由到 `T4_FRONTEND` cluster 时使用本模板；其余 cluster 用上方通用模板。
