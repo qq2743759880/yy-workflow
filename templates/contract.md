@@ -9,6 +9,8 @@ contract_version: 1
 
 # 契约单
 
+> owner 审核指引：templates/owner-review/contract-review.md
+
 ## 端点/接口
 | 方法 | 路径 | 请求 | 响应 |
 |------|------|------|------|

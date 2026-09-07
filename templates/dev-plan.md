@@ -1,5 +1,7 @@
 # dev-plan（任务总纲）
 
+> owner 审核指引：templates/owner-review/premise-challenge.md
+
 > 由 dev-planner 生成 · 版本 v0.0 · 更新日期
 
 ## 设计文档前置链（FR-301）

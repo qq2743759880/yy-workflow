@@ -1,5 +1,7 @@
 # taskNN 完工报告
 
+> owner 审核指引：templates/owner-review/acceptance-report.md
+
 - 任务: taskNN · 执行者: <平台/agent> · 日期:
 
 ## 资产消费证据（硬约束，必填）
