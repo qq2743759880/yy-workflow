@@ -1,0 +1,289 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SkillScannerReport",
+  "description": "Final security report for an Agent Skill package scan. All agents MUST produce output conforming to this schema.",
+  "type": "object",
+  "required": [
+    "validated_findings",
+    "false_positives",
+    "priority_order",
+    "correlations",
+    "recommendations",
+    "references",
+    "overall_risk_assessment"
+  ],
+  "properties": {
+    "validated_findings": {
+      "type": "array",
+      "description": "True positive security findings, validated and prioritized.",
+      "items": {
+        "type": "object",
+        "required": [
+          "_index",
+          "id",
+          "category",
+          "severity",
+          "title",
+          "description",
+          "file_path",
+          "line_number",
+          "snippet",
+          "remediation",
+          "confidence",
+          "confidence_reason",
+          "exploitability",
+          "impact",
+          "priority_rank"
+        ],
+        "properties": {
+          "_index": {
+            "type": "integer",
+            "description": "Sequential index of this finding (0-based)."
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for this finding (e.g., 'data_exfil_ssh_key')."
+          },
+          "category": {
+            "type": "string",
+            "description": "Threat category from the canonical threat_categories list.",
+            "enum": [
+              "prompt_injection",
+              "transitive_trust_abuse",
+              "data_exfiltration",
+              "command_injection",
+              "hardcoded_secrets",
+              "obfuscation",
+              "unauthorized_tool_use",
+              "skill_discovery_abuse",
+              "tool_chaining_abuse",
+              "resource_abuse",
+              "autonomy_abuse",
+              "over_collection",
+              "cross_context_bridging",
+              "dependency_risk",
+              "malware"
+            ]
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
+          },
+          "title": {
+            "type": "string",
+            "description": "Short human-readable title for this finding."
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed explanation of what was found and why it is a threat."
+          },
+          "file_path": {
+            "type": ["string", "null"],
+            "description": "Relative path to the file where the threat was found, or null if manifest-level."
+          },
+          "line_number": {
+            "type": ["integer", "null"],
+            "description": "Line number where the threat was found, or null if not applicable."
+          },
+          "snippet": {
+            "type": ["string", "null"],
+            "description": "Code snippet or text evidence, or null if not applicable."
+          },
+          "remediation": {
+            "type": "string",
+            "description": "Specific, actionable fix for this finding."
+          },
+          "confidence": {
+            "type": "string",
+            "description": "Confidence that this is a true positive.",
+            "enum": ["HIGH", "MEDIUM", "LOW"]
+          },
+          "confidence_reason": {
+            "type": "string",
+            "description": "Explanation of why this confidence level was assigned."
+          },
+          "exploitability": {
+            "type": "string",
+            "description": "How easy it is to exploit this threat (e.g., 'Trivial - no auth required')."
+          },
+          "impact": {
+            "type": "string",
+            "description": "What damage could result (e.g., 'Critical - full credential theft')."
+          },
+          "priority_rank": {
+            "type": "integer",
+            "description": "Priority rank (1 = highest priority, fix first)."
+          },
+          "owasp_risk": {
+            "type": "string",
+            "description": "Optional OWASP risk reference (e.g., 'LLM01:2025 Prompt Injection, ASI01 Agent Goal Hijack')."
+          }
+        }
+      }
+    },
+    "false_positives": {
+      "type": "array",
+      "description": "Findings from earlier analysis stages that were determined to be false positives.",
+      "items": {
+        "type": "object",
+        "required": [
+          "_index",
+          "original_title",
+          "original_severity",
+          "false_positive_reason",
+          "confidence"
+        ],
+        "properties": {
+          "_index": {
+            "type": "integer",
+            "description": "Original index of the finding being dismissed."
+          },
+          "original_title": {
+            "type": "string"
+          },
+          "original_severity": {
+            "type": "string",
+            "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
+          },
+          "false_positive_reason": {
+            "type": "string",
+            "description": "Detailed explanation of why this is NOT a real threat."
+          },
+          "confidence": {
+            "type": "string",
+            "enum": ["HIGH", "MEDIUM", "LOW"]
+          }
+        }
+      }
+    },
+    "priority_order": {
+      "type": "array",
+      "description": "Array of validated_findings _index values sorted by fix urgency (most urgent first).",
+      "items": {
+        "type": "integer"
+      }
+    },
+    "correlations": {
+      "type": "array",
+      "description": "Groups of related findings that form a single attack chain or issue.",
+      "items": {
+        "type": "object",
+        "required": [
+          "group_name",
+          "finding_indices",
+          "relationship",
+          "combined_severity",
+          "consolidated_remediation"
+        ],
+        "properties": {
+          "group_name": {
+            "type": "string",
+            "description": "Human-readable name for this correlation group (e.g., 'Credential Theft Chain')."
+          },
+          "finding_indices": {
+            "type": "array",
+            "items": { "type": "integer" },
+            "description": "Array of validated_findings _index values that belong to this group."
+          },
+          "relationship": {
+            "type": "string",
+            "description": "How the findings in this group relate to each other."
+          },
+          "combined_severity": {
+            "type": "string",
+            "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
+          },
+          "consolidated_remediation": {
+            "type": "string",
+            "description": "Single fix that addresses all related findings in this group."
+          }
+        }
+      }
+    },
+    "recommendations": {
+      "type": "array",
+      "description": "Actionable fix items ordered by priority.",
+      "items": {
+        "type": "object",
+        "required": [
+          "priority",
+          "title",
+          "description",
+          "affected_findings",
+          "fix",
+          "effort",
+          "impact"
+        ],
+        "properties": {
+          "priority": {
+            "type": "integer",
+            "description": "Priority rank (1 = most important)."
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "affected_findings": {
+            "type": "array",
+            "items": { "type": "integer" },
+            "description": "Array of validated_findings _index values this recommendation addresses."
+          },
+          "fix": {
+            "type": "string",
+            "description": "Specific, copy-paste-ready fix or clear instructions."
+          },
+          "effort": {
+            "type": "string",
+            "enum": ["LOW", "MEDIUM", "HIGH"]
+          },
+          "impact": {
+            "type": "string",
+            "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+          }
+        }
+      }
+    },
+    "references": {
+      "type": "array",
+      "description": "List of reference URLs relevant to the scan (e.g., VirusTotal scan links for binary files). Always present; empty array if no references.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "overall_risk_assessment": {
+      "type": "object",
+      "description": "Final verdict on the skill package.",
+      "required": [
+        "risk_level",
+        "summary",
+        "top_priority",
+        "skill_verdict",
+        "verdict_reasoning"
+      ],
+      "properties": {
+        "risk_level": {
+          "type": "string",
+          "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW", "SAFE"]
+        },
+        "summary": {
+          "type": "string",
+          "description": "One-sentence overall assessment."
+        },
+        "top_priority": {
+          "type": "string",
+          "description": "The single most important thing to fix."
+        },
+        "skill_verdict": {
+          "type": "string",
+          "enum": ["SAFE", "SUSPICIOUS", "MALICIOUS"]
+        },
+        "verdict_reasoning": {
+          "type": "string",
+          "description": "Why this verdict was chosen."
+        }
+      }
+    }
+  }
+}

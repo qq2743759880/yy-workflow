@@ -1,0 +1,266 @@
+skillmd_analysis_task:
+  description: >
+    Analyze the SKILL.md file of an Agent Skill package for security threats.
+
+
+    DISCOVERED FILES in the skill package:
+
+    {file_discovery_results}
+
+
+    SKILL.md PATH: {skill_md_path}
+
+
+    THREAT CATEGORIES REFERENCE:
+
+    {threat_categories}
+
+
+    INSTRUCTIONS:
+
+    1. Use the ReadFile tool to read the SKILL.md file at the path above.
+
+    2. Parse the YAML frontmatter and extract: name, description, allowed-tools,
+       license, compatibility, and any other metadata fields.
+
+    3. Analyze the markdown instruction body for threats listed in the threat
+       categories reference above — especially prompt injection, skill discovery
+       abuse, autonomy abuse, cross-context bridging, and transitive trust abuse.
+
+    4. Cross-reference the discovered files list against what the instructions
+       reference. Identify ALL files referenced in the instructions. For each one,
+       provide a one-line summary of why the skill needs that file.
+
+    5. Check for manifest inconsistencies: does the description match the
+       instructions? Are allowed-tools appropriate for what the instructions ask?
+
+    6. Flag any threats found with evidence.
+
+  expected_output: >
+    A JSON object with the following structure:
+    {
+      "manifest": {
+        "name": "...",
+        "description": "...",
+        "allowed_tools": [...],
+        "license": "...",
+        "compatibility": "...",
+        "other_metadata": {}
+      },
+      "referenced_files": [
+        {"path": "relative/path", "summary": "Why the skill needs this file"}
+      ],
+      "instruction_vulnerabilities": [
+        {
+          "threat_type": "category_id from threat categories",
+          "severity": "CRITICAL|HIGH|MEDIUM|LOW",
+          "description": "What was found",
+          "evidence": "Exact text from SKILL.md",
+          "line_reference": "Approximate location"
+        }
+      ],
+      "manifest_inconsistencies": [
+        {"issue": "Description of mismatch", "severity": "HIGH|MEDIUM|LOW"}
+      ],
+      "initial_assessment": "SAFE|SUSPICIOUS|MALICIOUS with brief reasoning"
+    }
+  agent: skillmd_analyzer_agent
+
+file_verification_task:
+  description: >
+    Verify every script and referenced file in the skill package against what
+    SKILL.md claims, and scan for security threats.
+
+
+    DISCOVERED FILES in the skill package:
+
+    {file_discovery_results}
+
+
+    SKILL DIRECTORY: {skill_directory}
+
+
+    THREAT CATEGORIES REFERENCE:
+
+    {threat_categories}
+
+
+    INSTRUCTIONS:
+
+    1. Review the SKILL.md analysis from the previous task to understand what the
+       skill claims to do and which files it references.
+
+    2. For EACH script file (.py, .sh) and each referenced file identified:
+       a. Use ReadFile to read the full file content.
+       b. Check ALIGNMENT: does the file content match what SKILL.md says it does?
+          Flag mismatches (e.g., claims "local processing" but code sends data out).
+
+    3. Use GrepCode to search the skill directory for suspicious patterns from the
+       threat categories reference — for example:
+       - Network calls (requests.post, urllib, socket, http.client)
+       - Code execution (eval, exec, compile, __import__)
+       - Command execution (os.system, subprocess)
+       - Environment access (os.environ, getenv)
+       - Encoding/obfuscation (base64, b64decode, b64encode)
+       - Hardcoded secrets (AKIA, sk-, sk_live, ghp_, BEGIN PRIVATE KEY)
+       - Sensitive file access (credentials, id_rsa, shadow)
+       - Infinite loops (while True, while 1)
+       - Unsafe deserialization (pickle.loads, yaml.unsafe_load)
+       - Dependency risks (pip install, npm install)
+
+    4. For each file, report:
+       - alignment_status: "match" or "mismatch" (with explanation)
+       - threats: array of findings with severity, category, evidence, line numbers
+
+    5. IMPORTANT: Do NOT flag internal file reads within the skill package as threats.
+       A skill reading its own bundled files (templates, configs, docs) is NORMAL.
+       Only flag reading external sensitive files (~/.*credentials, etc.) or sending
+       data to external servers.
+
+  expected_output: >
+    A JSON array of per-file findings:
+    [
+      {
+        "file_path": "relative/path/to/file",
+        "alignment_status": "match|mismatch",
+        "alignment_notes": "Explanation of match/mismatch",
+        "threats": [
+          {
+            "category": "category_id from threat categories",
+            "severity": "CRITICAL|HIGH|MEDIUM|LOW",
+            "title": "Short description",
+            "description": "Detailed explanation",
+            "evidence": "Code snippet or pattern match",
+            "line_number": 42
+          }
+        ]
+      }
+    ]
+  agent: file_verification_agent
+
+report_synthesis_task:
+  description: >
+    Synthesize all findings from the SKILL.md analysis and file verification into
+    a final, actionable security report.
+
+
+    REPORT SCHEMA (your output MUST conform exactly to this JSON schema):
+
+    {report_schema}
+
+
+    THREAT CATEGORIES REFERENCE (for validating category values):
+
+    {threat_categories}
+
+
+    VIRUSTOTAL BINARY FILE SCAN RESULTS:
+
+    {virustotal_results}
+
+
+    INSTRUCTIONS:
+
+    1. Review ALL findings from the previous task(s).
+
+    2. Review the VIRUSTOTAL BINARY FILE SCAN RESULTS above. These are automated
+       malware scan results for any binary files found in the skill package
+       (images, PDFs, executables, archives, etc.). For each result:
+       - If "malicious" > 0: add a validated finding with category "malware",
+         severity CRITICAL (or HIGH if detection ratio < 10%), and include the
+         SHA256, detection counts, and VirusTotal permalink as evidence.
+         Add the VirusTotal permalink to the top-level "references" array.
+         This is the ONLY case where a binary should be marked CRITICAL.
+       - If severity is "NOT_SCANNED" (found_in_vt = false, error occurred,
+         hash not in VT database, or no VIRUSTOTAL_API_KEY was set): the file
+         could NOT be verified. Treat it as SUSPICIOUS with severity MEDIUM.
+         Add a validated finding with category "malware", severity MEDIUM,
+         and explain that the binary file could not be scanned or verified
+         as safe (include the error message if one is present). If a
+         permalink is available, add it to the top-level "references" array.
+       - If "severity" is "CLEAN" (found_in_vt = true, malicious = 0,
+         suspicious = 0): this file is CONFIRMED SAFE by VirusTotal. You MUST
+         NOT add it as a threat or validated finding. Instead, note in the
+         overall_risk_assessment summary or verdict_reasoning that the
+         VirusTotal scan showed zero detections for this file and it can be
+         considered safe. Do NOT override this with your own judgment — if
+         VirusTotal says clean, treat it as clean. Still add the VirusTotal
+         permalink to the top-level "references" array so users can verify.
+       IMPORTANT: The top-level "references" array is REQUIRED and must always
+       be present. Collect ALL VirusTotal permalinks (from clean, malicious,
+       and unverified files alike) into this array. If no VT links exist,
+       output an empty array: "references": [].
+
+    3. APPLY THE THREAT GATE to EVERY candidate finding from the previous
+       task(s). A candidate may REMAIN in validated_findings ONLY if the ACTUAL
+       file content shows at least one of:
+       - EXFILTRATION: sensitive data (credentials, keys, env secrets, private
+         files, or the user's data) sent to an UNDISCLOSED or suspicious destination
+       - INJECTION / EXECUTION: prompt-injection or override text, or code that
+         executes attacker-controlled or externally-fetched instructions
+       - CONCEALMENT / MISMATCH: behavior hidden from the user, or SKILL.md
+         discloses one thing while the code actually does another
+       - MALWARE: a VirusTotal-flagged or unexplained executable/archive
+       If a candidate meets NONE of these, MOVE IT to false_positives with a
+       one-line reason. ALWAYS route the following to false_positives, NEVER to
+       validated_findings:
+       - documented or first-party network / AI-API calls; link-health checks;
+         any network egress that carries no sensitive data
+       - reading the skill's own bundled OR generated files/logs/artifacts
+       - bounded retries, disclosed fallbacks, documented auto/implicit invocation
+       - verbose-but-honest descriptions that match implemented features
+       - external material used as plain INPUT (not executed as instructions)
+       - missing optional metadata; keywords in comments/docs; coding mistakes
+       When in doubt and there is no exfiltration / injection / concealment /
+       malware, it is a FALSE POSITIVE, not a finding.
+
+    3b. SET SEVERITY from the malicious IMPACT you actually confirmed, NOT from a
+        category's "Default Severity". Never inherit a category default for a benign
+        or disclosed instance. A finding with no concrete malicious impact does not
+        survive -> move it to false_positives. LOW is NOT an escape hatch: if an
+        item does not pass the THREAT GATE, it is a false_positive no matter how
+        minor it seems - do NOT keep documented, disclosed, first-party, or
+        otherwise benign behavior as a LOW validated_finding. Use LOW in
+        validated_findings ONLY for a genuine, gate-passing threat of minor impact.
+
+    3c. OUTPUT INTEGRITY: every issue must appear in EXACTLY ONE of
+        validated_findings or false_positives - never both. Every snippet/evidence
+        value MUST be copied VERBATIM from the actual file; if you cannot quote the
+        exact source text, DROP the finding. Do not paraphrase or invent evidence.
+
+    4. PRIORITIZE remaining findings by real-world exploitability:
+       - Malware confirmed by VirusTotal (malicious > 0) = CRITICAL
+       - Credential theft + exfiltration = CRITICAL
+       - Prompt injection with concealment = HIGH
+       - Command injection via eval/exec = HIGH
+       - Hardcoded secrets = HIGH
+       - Unverified binary files (scan failed / no VT key / not in VT) = MEDIUM
+       - Description mismatch without clear harm = MEDIUM
+       - Missing optional metadata = LOW
+
+    5. CONSOLIDATE related findings into single actionable items using the
+       correlations field.
+
+    5b. VERDICT CALIBRATION - set overall_risk_assessment from the SURVIVING
+        validated_findings ONLY:
+        - no surviving findings -> skill_verdict SAFE, risk_level SAFE
+        - surviving findings all LOW with no exfiltration/injection/malware ->
+          skill_verdict SAFE, risk_level LOW
+        - skill_verdict SUSPICIOUS or MALICIOUS ONLY if at least one surviving
+          finding is MEDIUM+ with concrete malicious intent per the gate
+        Do NOT raise the verdict for unusual-but-benign behavior.
+
+    6. Produce the final JSON report. Every field in the schema is REQUIRED.
+       Use the exact category enum values from the threat categories reference.
+
+    7. RESPOND WITH ONLY VALID JSON. No markdown wrapping, no commentary
+       outside the JSON object.
+
+  expected_output: >
+    A single JSON object conforming exactly to the report schema. Must include
+    all required top-level fields: validated_findings, false_positives,
+    priority_order, correlations, recommendations, references, and
+    overall_risk_assessment.
+    The overall_risk_assessment must include risk_level, summary, top_priority,
+    skill_verdict (SAFE|SUSPICIOUS|MALICIOUS), and verdict_reasoning.
+  agent: report_synthesizer_agent

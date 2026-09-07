@@ -1,0 +1,4 @@
+interface:
+  display_name: "Vibe Coding PRD"
+  short_description: "把需求整理成编码 Agent 可直接执行的精简 PRD"
+  default_prompt: "Use $vibe-coding-prd to 帮我写一个用来 vibe coding 的 PRD。"
