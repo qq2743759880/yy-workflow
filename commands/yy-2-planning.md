@@ -17,6 +17,8 @@ prereq-gates: [step1, concept-signed]
 
 **产物路径**：`docs/yy-dev-plan.md`（任务总纲）；前提通过后 `node scripts/tt-journey.mjs --update --step 3 --gate premise-signed`。
 
+**owner 审阅**：产出 gate 产物后，读取 	emplates/owner-review/premise-challenge.md，按其四段结构向 owner 呈现审阅要点（审什么/看哪几字段/PASS-FAIL/常见坑）——owner 不懂术语也能做判断。
+
 **关键**：你确认前提，错的是方向；任务怎么拆，错的是可改细节。
 
 **指针**：`docs/TT-USER-PROMPT-GUIDE.md` §3 阶段 2（L63）；`SKILL.md` §3 任务拆解。

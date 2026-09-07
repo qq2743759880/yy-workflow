@@ -17,6 +17,8 @@ prereq-gates: [step0]
 
 **产物路径**：`docs/`（概念版 / PRD 草案）；签收后 `node scripts/tt-journey.mjs --update --step 1 --gate concept-signed`。
 
+**owner 审阅**：产出 gate 产物后，读取 	emplates/owner-review/concept-signoff.md，按其四段结构向 owner 呈现审阅要点（审什么/看哪几字段/PASS-FAIL/常见坑）——owner 不懂术语也能做判断。
+
 **反例**：跳过需求 gate 直接按想象拆任务。
 
 **指针**：`docs/TT-USER-PROMPT-GUIDE.md` §2 阶段 1（L48）；`SKILL.md` §2.1 需求挖掘 gate。

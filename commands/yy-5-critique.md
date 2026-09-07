@@ -17,6 +17,8 @@ prereq-gates: [step7]
 
 **产物路径**：`plans/critique-backlog-tracker.md`（批判登记）；`node scripts/tt-journey.mjs --update --step 8`。
 
+**owner 审阅**：产出 gate 产物后，读取 	emplates/owner-review/acceptance-report.md，按其四段结构向 owner 呈现审阅要点（审什么/看哪几字段/PASS-FAIL/常见坑）——owner 不懂术语也能做判断。
+
 **回跳指针**：怀疑结果/防幻觉（guide 阶段 7）用独立复现 + 禁自证打假。
 
 **指针**：`docs/TT-USER-PROMPT-GUIDE.md` §6 阶段 5（L109）+ §8 阶段 7（L139）；`SKILL.md` §7 强制技术批判 + 优化修改。
