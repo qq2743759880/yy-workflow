@@ -1,0 +1,84 @@
+{
+  "generatedAt": "2026-09-08T07:04:58.823Z",
+  "files": {
+    "SKILL.md": {
+      "lines": 60,
+      "chars": 1899,
+      "cjk": 453,
+      "tokens": 701
+    },
+    "commands/yy-0-init.md": {
+      "lines": 22,
+      "chars": 729,
+      "cjk": 305,
+      "tokens": 335
+    },
+    "commands/yy-1-requirement.md": {
+      "lines": 24,
+      "chars": 789,
+      "cjk": 276,
+      "tokens": 335
+    },
+    "commands/yy-2-planning.md": {
+      "lines": 24,
+      "chars": 901,
+      "cjk": 304,
+      "tokens": 377
+    },
+    "commands/yy-3-contract.md": {
+      "lines": 26,
+      "chars": 1010,
+      "cjk": 357,
+      "tokens": 431
+    },
+    "commands/yy-4-execute.md": {
+      "lines": 22,
+      "chars": 818,
+      "cjk": 253,
+      "tokens": 331
+    },
+    "commands/yy-5-critique.md": {
+      "lines": 24,
+      "chars": 938,
+      "cjk": 356,
+      "tokens": 413
+    },
+    "templates/owner-review/acceptance-report.md": {
+      "lines": 23,
+      "chars": 628,
+      "cjk": 367,
+      "tokens": 341
+    },
+    "templates/owner-review/concept-signoff.md": {
+      "lines": 22,
+      "chars": 541,
+      "cjk": 320,
+      "tokens": 295
+    },
+    "templates/owner-review/contract-review.md": {
+      "lines": 24,
+      "chars": 556,
+      "cjk": 325,
+      "tokens": 302
+    },
+    "templates/owner-review/html-approved.md": {
+      "lines": 24,
+      "chars": 566,
+      "cjk": 327,
+      "tokens": 305
+    },
+    "templates/owner-review/premise-challenge.md": {
+      "lines": 21,
+      "chars": 567,
+      "cjk": 326,
+      "tokens": 305
+    }
+  },
+  "totals": {
+    "files": 12,
+    "lines": 316,
+    "chars": 9942,
+    "cjk": 3969,
+    "tokens": 4471
+  }
+}

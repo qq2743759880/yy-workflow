@@ -379,6 +379,27 @@ if (fs.existsSync(trackerPath)) {
   assertHard("H8 批判落地率 ≥" + dynamicThreshold + "%（动态：基线 50% + 每新增批判 +2%）", rate >= dynamicThreshold, `落地率 ${rate}% (${closed}/${total} ✅) 阈值 ${dynamicThreshold}%`);
 }
 
+// ── 断言 H9：SKILL.md token 预算（C-30 收尾机验口径，对齐 B0-② token-audit 量尺）──
+// token ≈ CJK×0.75 + 非CJK÷4（CJK 范围 \u4e00-\u9fff\u3000-\u303f\uff00-\uffef），与 scripts/token-audit.mjs 公式一致。
+{
+  const rawSkill = fs.readFileSync(SKILL, "utf8").replace(/\r\n/g, "\n");
+  const h9Lines = rawSkill.split("\n").length - (rawSkill.endsWith("\n") ? 1 : 0);
+  let h9Cjk = 0, h9Other = 0;
+  for (const ch of rawSkill) {
+    const c = ch.codePointAt(0);
+    if ((c >= 0x4e00 && c <= 0x9fff) || (c >= 0x3000 && c <= 0x303f) || (c >= 0xff00 && c <= 0xffef)) h9Cjk += 1;
+    else h9Other += 1;
+  }
+  const h9Tok = Math.round(h9Cjk * 0.75 + h9Other / 4);
+  const overLine = h9Lines > 60;
+  const overTok = h9Tok > 1500;
+  assertHard(
+    "H9 SKILL.md ≤60 行 且 CJK 加权 token ≤1500（CJK×0.75+其余÷4，对齐 token-audit 量尺）",
+    !overLine && !overTok,
+    `实测 ${h9Lines} 行 / ${h9Tok} tok${overLine ? "（超行数预算）" : ""}${overTok ? "（超 token 预算）" : ""}`
+  );
+}
+
 // 硬性断言输出（独立于 --verbose，任何 FAIL → exit 1）
 console.log("\n[M2-R2 硬性协议断言]");
 for (const a of hardAssertions) {

@@ -13,6 +13,7 @@
  *   S7 review-gate self-test      —— 批判能力代码级闸门（有效批判≥3/URL+日期/tracker）
  *   S8 资产消费证据（D-1）        —— 锚点 + 内核词双断言（exec 全 true；仅锚点 → assetConsumed=false）
  *   S9 域声明机验（C-27）         —— test-domain-declared：false→DOMAIN_DECL_MISSING / true→ok / 旧数据→N/A
+ *   S10 token 量尺 gate（B0-②）   —— token-audit --gate：快照对比，token 回退 ≥10% → FAIL（C-30 收尾口径）
  *
  * 注：S4-S6 在临时 workspace 中运行（os.tmpdir），结束后清理，不污染仓库。
  *
@@ -187,6 +188,11 @@ async function main() {
   // 具名 warning（缺声明检出 100%）；true → ok；全部无字段（旧数据）→ N/A 不误伤。任一断言失败计 FAIL。
   const s9 = await run(process.execPath, ['scripts/test-domain-declared.mjs']);
   section('S9 域声明机验', s9.ok, s9.ok ? 'missing→DOMAIN_DECL_MISSING ✓ true→ok ✓ 旧数据→N/A ✓' : 'exit=' + s9.code + '（详见 test-domain-declared 输出）');
+
+  // S10 token 机验量尺（B0-② / C-35）：token-audit --gate 对比快照，任一文件 token 回退 ≥10% → FAIL。
+  // 快照缺失（exit 2）同样计 FAIL——先跑 node scripts/token-audit.mjs 生成基线。
+  const s10 = await run(process.execPath, ['scripts/token-audit.mjs', '--gate']);
+  section('S10 token 量尺 gate（B0-②）', s10.ok, s10.ok ? '快照对比 PASS ✓' : 'exit=' + s10.code + '（快照缺失先跑 node scripts/token-audit.mjs，回退则查 TOKEN_REGRESSION 输出）');
 
   console.log('\n结果: ' + pass + ' PASS / ' + fail + ' FAIL');
   if (failures.length) { for (const f of failures) console.log('  FAILED: ' + f); process.exitCode = 1; }
