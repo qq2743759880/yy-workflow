@@ -41,6 +41,8 @@
 
 ## 各簇 candidates + preconditions（数据源：matrix.mjs CLUSTERS）
 
+<!-- 生成物勿手改（数据源 scripts/lib/matrix.mjs CLUSTERS，漂移由 scripts/kickoff-drift-check.mjs 机验） -->
+
 ### T1 数据库
 candidates：`$SKILL_DIR/vendor/be-architect/be-architect.md`、`$SKILL_DIR/vendor/implementation/implementation.md`、`$SKILL_DIR/vendor/be-validator/be-validator.md`、`$SKILL_DIR/vendor/be-provider/be-provider.md`、`$SKILL_DIR/vendor/sdlc/SKILL.md`
 preconditions：

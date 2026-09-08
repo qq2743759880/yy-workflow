@@ -5,5 +5,31 @@ export const CLUSTERS = [
   { id: 'T4_FRONTEND', label: 'frontend', keywords: ['frontend', 'page', 'web', 'responsive', 'component', 'landing', 'ui', 'ux', '\u524d\u7aef', '\u9875\u9762'], candidates: ['frontend-design', 'frontend-visual-validation', 'agent-vision-toolkit', 'colorize', 'planning', 'review', 'security'], phases: [['frontend-design'], ['frontend-visual-validation', 'colorize', 'planning'], ['review', 'security', 'agent-vision-toolkit']], contract: 'frontend interaction contract', preconditions: ['后端接口契约先冻结（FR-3：contractMode:\'frozen\'，缺契约 CONTRACT_NOT_FROZEN skip）', 'Gate A 用户 APPROVED + PARITY_CHECK 冻结 token 先于组件实现', '每子任务产物须含资产消费锚点 + ≥1 内核词（D-1 机验）'] },
   { id: 'T5_OPS', label: 'ops', keywords: ['ops', 'deploy', 'monitor', 'log', 'ci', 'docker', '\u8fd0\u7ef4'], candidates: ['be-resilience', 'security', 'skill-sentinel', 'be-validator', 'review'], phases: [['be-resilience', 'security', 'skill-sentinel'], ['be-validator', 'review']], contract: 'operations contract', preconditions: ['加固/扫描产物（be-resilience/security/skill-sentinel）须先于验收子任务（be-validator/review）', '每子任务产物须含资产消费锚点 + ≥1 内核词（D-1 机验）'] },
 ]; 
-export const PRIORITY = ['T2_BACKEND', 'T4_FRONTEND', 'T1_DATABASE', 'T3_AI_RAG_MCP', 'T5_OPS']; 
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+export const PRIORITY = ['T2_BACKEND', 'T4_FRONTEND', 'T1_DATABASE', 'T3_AI_RAG_MCP', 'T5_OPS'];
 export function getCluster(id) { return CLUSTERS.find(function(cluster) { return cluster.id === id; }); }
+
+// C-26：kickoff 五簇清单的唯一事实源就是 CLUSTERS，下面 renderKickoffClusters() 从数据生成，
+// 消灭 templates/kickoff-prompt.md 的手抄第二事实源（漂移由 scripts/kickoff-drift-check.mjs 机验）。
+const VENDOR_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'vendor');
+/** 簇 id → kickoff 段展示名（仅展示用，资产数据仍取自 CLUSTERS）。 */
+const CLUSTER_DISPLAY = { T1_DATABASE: '数据库', T2_BACKEND: '后端', T3_AI_RAG_MCP: 'AI-RAG-MCP', T4_FRONTEND: '前端', T5_OPS: '运维' };
+/** 资产文件名按 vendor 实际布局探测（<name>/<name>.md 优先，退 <name>/SKILL.md），不做手抄映射。 */
+function assetRef(name) {
+  for (const file of [name + '.md', 'SKILL.md']) {
+    if (fs.existsSync(path.join(VENDOR_DIR, name, file))) return '$SKILL_DIR/vendor/' + name + '/' + file;
+  }
+  return '$SKILL_DIR/vendor/' + name + '/SKILL.md';
+}
+/** 生成与 templates/kickoff-prompt.md「## 各簇 candidates + preconditions」段同构的清单（纯数据驱动）。 */
+export function renderKickoffClusters() {
+  return CLUSTERS.map(function (cluster) {
+    const title = '### ' + cluster.id.split('_')[0] + ' ' + (CLUSTER_DISPLAY[cluster.id] || cluster.label);
+    const candidates = 'candidates：' + cluster.candidates.map(assetRef).join('、');
+    const preconditions = 'preconditions：\n' + cluster.preconditions.map(function (p, i) { return (i + 1) + '. ' + p; }).join('\n');
+    return title + '\n' + candidates + '\n' + preconditions;
+  }).join('\n\n');
+}
