@@ -1,3 +1,5 @@
+<!-- 阶段机验: (由编排者填写：--prereq-check --step N 通过时间戳，或 N/A(非编排内核产物)) -->
+
 # HTML APPROVED · owner 审核指引（Gate A）
 
 > 用途：前端页面开工前，HTML 原型必须先由你（owner）审美签收，才准写框架代码。

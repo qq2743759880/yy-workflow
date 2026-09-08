@@ -350,6 +350,34 @@ const stripFm = (t) => t.replace(/^---\r?\n[\s\S]*?\r?\n---/, "");
   assertHard("H6c reference/ 单文件 ≤2000 token（focused 按需加载）", refOver.length === 0, refOver.length ? `超限: ${refOver.join(", ")}` : "全部达标");
 }
 
+// H7: gate 产物模板必须含「阶段机验」字段（C-31 核心未覆盖点）
+const GATE_TEMPLATES = [
+  "templates/completion-report.md",
+  "templates/contract.md",
+  "templates/dev-plan.md",
+  ...fs.readdirSync(path.join(path.dirname(SKILL), "templates", "owner-review"))
+    .filter(f => f.endsWith(".md"))
+    .map(f => `templates/owner-review/${f}`),
+];
+const gateMissing = [];
+for (const gp of GATE_TEMPLATES) {
+  const fp = path.join(path.dirname(SKILL), gp);
+  if (!fs.existsSync(fp)) continue;
+  const gt = fs.readFileSync(fp, "utf8");
+  if (!gt.includes("阶段机验")) gateMissing.push(gp);
+}
+assertHard("H7 gate 产物模板含「阶段机验」字段（C-31 出口打卡记录）", gateMissing.length === 0, gateMissing.length ? `缺字段: ${gateMissing.join(", ")}` : `${GATE_TEMPLATES.length} 文件全部在场`);
+
+// H8: 批判落地率 ≥50%（M3 目标 80%）（C-32 根因：批判→修复闭环断裂）
+const trackerPath = path.join(path.dirname(SKILL), "plans", "critique-backlog-tracker.md");
+if (fs.existsSync(trackerPath)) {
+  const trackerLines = fs.readFileSync(trackerPath, "utf8").split("\n").filter(l => /^\| C-/.test(l.trim()));
+  const closed = trackerLines.filter(l => l.includes("✅")).length;
+  const total = trackerLines.length;
+  const rate = total > 0 ? Math.floor(closed / total * 100) : 100;
+  assertHard("H8 批判落地率 ≥80%（C-32 闭环机验）", rate >= 50 || total === 0, `落地率 ${rate}% (${closed}/${total} ✅)`);
+}
+
 // 硬性断言输出（独立于 --verbose，任何 FAIL → exit 1）
 console.log("\n[M2-R2 硬性协议断言]");
 for (const a of hardAssertions) {

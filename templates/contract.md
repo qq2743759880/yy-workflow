@@ -7,6 +7,8 @@ status: 待验收
 contract_version: 1
 ---
 
+
+<!-- 阶段机验: (由编排者填写：--prereq-check --step N 通过时间戳，或 N/A(非编排内核产物)) -->
 # 契约单
 
 > owner 审核指引：templates/owner-review/contract-review.md
