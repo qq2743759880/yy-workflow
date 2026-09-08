@@ -6,6 +6,9 @@
  * 任一未过 → exit 1。用法：
  *   node scripts/review-gate.mjs [--dir PATH] [--id taskNN] [--self-test]
  *   node scripts/review-gate.mjs --plan <dev-plan.md路径>
+ *   node scripts/review-gate.mjs --gate <gate产物.md路径>
+ *     （C-31③：--gate <产物.md> 核对产物「阶段机验」已回填——占位 FAIL 具名 / 回填 PASS / 删字段 FAIL 具名；
+ *      --gate 无参 = 6 个 gate 模板「阶段机验」字段在场检查（模板合法态即占位，与 validate H7 同向））
  * 竞品 URL 真实性机验（--verify-urls，E1）：对批判文档每条 URL 做真实可达性探测
  *   （GET/HEAD，短超时）；网络可用时 HTTP 200/301/302 → PASS 真实对标，不可达/超时/404 → FAIL
  *   （该条 URL 不计有效）；整网不可用（整体失败）→ 诚实标注 VERIFY_SKIPPED（不因断网误杀，也不假装验证过）。
@@ -562,6 +565,26 @@ export function checkReview({ critiqueText, fixText, trackerText, id }) {
   return { ok: checks.every((c) => c.pass), checks };
 }
 
+/* ===== C-31③：gate 产物「阶段机验」字段验收核对（三态：缺失 / 未回填 / 已回填）=====
+ * 产物 = 按 gate 模板（templates/owner-review/*.md 5 份 + templates/completion-report.md）填写的文本。
+ * 模板默认注释行含占位提示（由编排者填写/待回填/TODO/空）→ 未回填；删字段 → 缺失；实跑回填 → 已回填。 */
+const STAGE_VERIFY_LABEL = '阶段机验';
+const STAGE_VERIFY_PLACEHOLDER_RE = /待回填|TODO|由编排者填写|注入前必跑/;
+
+/** 核对一份 gate 产物文本的「阶段机验」字段。返回 { ok, state: 'filled'|'unfilled'|'missing', name, detail }。 */
+export function checkStageVerify(artifactText) {
+  const lines = String(artifactText || '').replace(/\r\n/g, '\n').split('\n');
+  const idx = lines.findIndex((l) => l.includes(STAGE_VERIFY_LABEL));
+  if (idx === -1) {
+    return { ok: false, state: 'missing', name: STAGE_VERIFY_LABEL + '字段缺失', detail: '产物中未找到「' + STAGE_VERIFY_LABEL + '」字段（gate 模板必填，删字段不得验收通过）' };
+  }
+  let value = (lines[idx].split(STAGE_VERIFY_LABEL)[1] || '').replace(/^[:：]/, '').replace(/<!--|-->/g, '').trim();
+  if (!value || STAGE_VERIFY_PLACEHOLDER_RE.test(value)) {
+    return { ok: false, state: 'unfilled', name: STAGE_VERIFY_LABEL + '字段未回填', detail: '字段在场但为空/占位（注入前须实跑 --prereq-check 并回填）：' + truncate(value || '（空）', 48) };
+  }
+  return { ok: true, state: 'filled', name: STAGE_VERIFY_LABEL + '字段已回填', detail: truncate(value, 64) };
+}
+
 /* ===== E1 URL 真验三态自测：真 URL PASS / 假 URL FAIL / 断网 SKIPPED（临时 HTTP server） ===== */
 function testVerifyUrlTriState() {
   // server1: 可达真站（临时 HTTP server 返回 200）；server2: 不可达（对端直接关 socket / 不存在路由）；
@@ -711,6 +734,46 @@ export function selfTest() {
   if (emptyPlanR.ok) throw new Error('self-test FAIL: 空区块的 plan 应被拦截');
   if (boilerPlanR.ok) throw new Error('self-test FAIL: 未填占位（___）的 plan 应被拦截');
   if (barePlanR.ok) throw new Error('self-test FAIL: 裸 CEO/Eng/Design 关键词（无 finding）的 plan 应被拦截');
+  // C-31③：gate 产物「阶段机验」验收核对三态——占位/空 FAIL 具名 / 回填 PASS / 删字段 FAIL 具名
+  const svTemplate = '阶段机验: (由编排者填写：--prereq-check --step N 通过时间戳，或 N/A(非编排内核产物))';
+  const svUnfilled = '# 验收报告\n\n' + svTemplate + '\n\n## GWT\n';
+  const svEmpty = '# 验收报告\n\n阶段机验:\n\n## GWT\n';
+  const svTodo = '# 验收报告\n\n阶段机验: TODO\n\n## GWT\n';
+  const svFilled = '# 验收报告\n\n阶段机验: [x] node scripts/tt-journey.mjs --prereq-check --step 5 → exit 0（2026-09-08T12:00:00+08:00）\n\n## GWT\n';
+  const svMissing = '# 验收报告\n\n## GWT\n';
+  const svUnfilledR = checkStageVerify(svUnfilled);
+  const svEmptyR = checkStageVerify(svEmpty);
+  const svTodoR = checkStageVerify(svTodo);
+  const svFilledR = checkStageVerify(svFilled);
+  const svMissingR = checkStageVerify(svMissing);
+  if (svUnfilledR.ok || svUnfilledR.state !== 'unfilled') throw new Error('self-test FAIL: 占位字段应判未回填 FAIL，实得 ' + JSON.stringify(svUnfilledR));
+  if (svUnfilledR.name !== '阶段机验字段未回填') throw new Error('self-test FAIL: 占位字段 FAIL 应具名「阶段机验字段未回填」，实得 ' + svUnfilledR.name);
+  if (svEmptyR.ok || svEmptyR.state !== 'unfilled') throw new Error('self-test FAIL: 空字段应判未回填 FAIL，实得 ' + JSON.stringify(svEmptyR));
+  if (svTodoR.ok || svTodoR.state !== 'unfilled') throw new Error('self-test FAIL: TODO 占位应判未回填 FAIL，实得 ' + JSON.stringify(svTodoR));
+  if (!svFilledR.ok || svFilledR.state !== 'filled') throw new Error('self-test FAIL: 回填实文应 PASS，实得 ' + JSON.stringify(svFilledR));
+  if (svMissingR.ok || svMissingR.state !== 'missing') throw new Error('self-test FAIL: 删字段应判缺失 FAIL，实得 ' + JSON.stringify(svMissingR));
+  if (svMissingR.name !== '阶段机验字段缺失') throw new Error('self-test FAIL: 删字段 FAIL 应具名「阶段机验字段缺失」，实得 ' + svMissingR.name);
+  // 仓库 6 个 gate 模板（owner-review×5 + completion-report）逐份实文核对：模板占位 → unfilled；但字段必须在场（防模板被删字段）
+  const gateTpls = [...fs.readdirSync(path.join(ROOT, 'templates', 'owner-review')).filter((f) => f.endsWith('.md')).map((f) => path.join(ROOT, 'templates', 'owner-review', f)), path.join(ROOT, 'templates', 'completion-report.md')];
+  for (const gt of gateTpls) {
+    const r = checkStageVerify(fs.readFileSync(gt, 'utf8'));
+    if (r.state === 'missing') throw new Error('self-test FAIL: 仓库 gate 模板缺「阶段机验」字段: ' + gt);
+  }
+  // --gate 模式语义：无参 = 模板字段在场检查（模板合法态即占位，不跑回填核对）；指定产物 = 回填三态核对
+  for (const gt of gateTpls) {
+    if (!fs.readFileSync(gt, 'utf8').includes(STAGE_VERIFY_LABEL)) throw new Error('self-test FAIL: --gate 无参模板在场模式应 PASS 6/6，实有模板缺字段: ' + gt);
+  }
+  { // --gate 指定占位 fixture 应 FAIL（unfilled 三态核对只作用于产物，不作用于模板）
+    const tmpGate = fs.mkdtempSync(path.join(os.tmpdir(), 'tt-gate-'));
+    try {
+      const fixture = path.join(tmpGate, 'placeholder-artifact.md');
+      fs.writeFileSync(fixture, '# 验收报告\n\n<!-- 阶段机验: (由编排者填写：--prereq-check --step N 通过时间戳，或 N/A(非编排内核产物)) -->\n', 'utf8');
+      const r = checkStageVerify(fs.readFileSync(fixture, 'utf8'));
+      if (r.ok || r.state !== 'unfilled') throw new Error('self-test FAIL: --gate 指定占位产物 fixture 应 FAIL（unfilled），实得 ' + JSON.stringify(r));
+    } finally {
+      fs.rmSync(tmpGate, { recursive: true, force: true });
+    }
+  }
   selfTestAutoRegister();
   return { good: goodR, bad: badR, goodPlan: goodPlanR, badPlan: badPlanR, emptyPlan: emptyPlanR, boilerPlan: boilerPlanR, barePlan: barePlanR };
 }
@@ -719,7 +782,7 @@ export function selfTest() {
 export async function mainSelfTest() {
   try {
     selfTest();
-    console.log('PASS review-gate 核心断言 self-test（格式/规划闸门/登记解析）');
+    console.log('PASS review-gate 核心断言 self-test（格式/规划闸门/登记解析/阶段机验核对）');
   } catch (e) {
     console.error('FAIL ' + e.message);
     return 1;
@@ -858,6 +921,33 @@ async function main() {
     for (const c of result.checks) console.log((c.pass ? 'PASS' : 'FAIL') + ' ' + c.name + '  ' + c.detail);
     console.log(result.ok ? '\n[OK] dev-plan 规划闸门通过（前提挑战 + 规划自审齐备）' : '\n[FAIL] dev-plan 规划闸门未过（需「需求前提挑战」「规划自审」区块）');
     return result.ok ? 0 : 1;
+  }
+  // C-31③：gate「阶段机验」核对（--gate <产物.md> 产物三态核对；无参 = 模板字段在场检查，与 validate H7 同向）
+  const gi = args.indexOf('--gate');
+  if (gi !== -1) {
+    if (args[gi + 1] && !args[gi + 1].startsWith('--')) {
+      // 指定产物模式：按模板填写后的实例才需回填核对（占位 FAIL / 回填 PASS / 删字段 FAIL）
+      const gf = path.resolve(args[gi + 1]);
+      let text = null;
+      try { text = fs.readFileSync(gf, 'utf8'); } catch (e) { console.error('FAIL 读取 gate 产物: ' + e.message); return 1; }
+      const r = checkStageVerify(text);
+      console.log((r.ok ? 'PASS' : 'FAIL') + ' ' + r.name + '  ' + gf + '  ' + r.detail);
+      console.log(r.ok ? '\n[OK] gate 产物「阶段机验」验收核对通过' : '\n[FAIL] gate 产物「阶段机验」未回填/缺失（注入前须实跑 --prereq-check 并回填）');
+      return r.ok ? 0 : 1;
+    }
+    // 无参模板模式：模板是空白框架，合法态即占位——只查「阶段机验」字样在场（缺失 FAIL 具名），与 validate H7 同向
+    const tplMissing = [];
+    const tplAll = [...fs.readdirSync(path.join(ROOT, 'templates', 'owner-review')).filter((f) => f.endsWith('.md')).map((f) => path.join(ROOT, 'templates', 'owner-review', f)), path.join(ROOT, 'templates', 'completion-report.md')];
+    for (const tf of tplAll) {
+      const t = fs.readFileSync(tf, 'utf8');
+      if (!t.includes(STAGE_VERIFY_LABEL)) tplMissing.push(path.relative(ROOT, tf));
+    }
+    for (const tf of tplAll) {
+      const rel = path.relative(ROOT, tf);
+      console.log((tplMissing.includes(rel) ? 'FAIL' : 'PASS') + ' 模板「阶段机验」字段' + (tplMissing.includes(rel) ? '缺失' : '在场') + '  ' + rel);
+    }
+    console.log(tplMissing.length ? '\n[FAIL] ' + tplMissing.length + '/' + tplAll.length + ' gate 模板缺「阶段机验」字段: ' + tplMissing.join(', ') : '\n[OK] ' + tplAll.length + '/' + tplAll.length + ' gate 模板「阶段机验」字段全部在场');
+    return tplMissing.length ? 1 : 0;
   }
   let dir = ROOT;
   const di = args.indexOf('--dir'); if (di !== -1 && args[di + 1]) dir = path.resolve(args[di + 1]);
