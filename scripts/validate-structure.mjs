@@ -368,14 +368,15 @@ for (const gp of GATE_TEMPLATES) {
 }
 assertHard("H7 gate 产物模板含「阶段机验」字段（C-31 出口打卡记录）", gateMissing.length === 0, gateMissing.length ? `缺字段: ${gateMissing.join(", ")}` : `${GATE_TEMPLATES.length} 文件全部在场`);
 
-// H8: 批判落地率 ≥50%（M3 目标 80%）（C-32 根因：批判→修复闭环断裂）
+// H8: 批判落地率动态阈值（C-32：基线 50%，超 20 条后每条 +2%，上限 80%）
 const trackerPath = path.join(path.dirname(SKILL), "plans", "critique-backlog-tracker.md");
 if (fs.existsSync(trackerPath)) {
   const trackerLines = fs.readFileSync(trackerPath, "utf8").split("\n").filter(l => /^\| C-/.test(l.trim()));
   const closed = trackerLines.filter(l => l.includes("✅")).length;
   const total = trackerLines.length;
   const rate = total > 0 ? Math.floor(closed / total * 100) : 100;
-  assertHard("H8 批判落地率 ≥80%（C-32 闭环机验）", rate >= 50 || total === 0, `落地率 ${rate}% (${closed}/${total} ✅)`);
+  const dynamicThreshold = Math.min(80, 50 + Math.max(0, total - 20) * 2);
+  assertHard("H8 批判落地率 ≥" + dynamicThreshold + "%（动态：基线 50% + 每新增批判 +2%）", rate >= dynamicThreshold, `落地率 ${rate}% (${closed}/${total} ✅) 阈值 ${dynamicThreshold}%`);
 }
 
 // 硬性断言输出（独立于 --verbose，任何 FAIL → exit 1）

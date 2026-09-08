@@ -195,8 +195,23 @@ async function syncJourney(workspace, result, sessionId) {
     const existing = journey.plans.findIndex(function(p) { return p.planId === plan.id && (p.summaryPath || '') === summaryPath; });
     if (existing >= 0) journey.plans[existing] = entry;
     else journey.plans.push(entry);
-    const file = journeyPath(workspace, sessionId);
+    const file = path.join(workspace, '.tt-state', sessionId ? sessionId : '', 'journey.json').replace(/\\/g, '/');
     await fs.mkdir(path.dirname(file), { recursive: true });
+    // H7 修复：orchestrator 自动机验记录写入产物（非 agent 自填，不可伪造）
+    const prereqResult = prereqCheck(journey, 8);
+    const stageVerification = {
+      verified: prereqResult.ok,
+      reason: prereqResult.reason || 'prereq OK',
+      timestamp: now,
+      tool: 'tt-journey.mjs --prereq-check --step 8 (auto by orchestrator)',
+    };
+    const summaryFile = path.join(workspace, summaryPath.replace(/\//g, path.sep));
+    try {
+      await fs.mkdir(path.dirname(summaryFile), { recursive: true });
+      const summaryJson = JSON.parse(await fs.readFile(summaryFile, 'utf8'));
+      summaryJson.stageVerification = stageVerification;
+      await fs.writeFile(summaryFile, JSON.stringify(summaryJson, null, 2));
+    } catch (error) { /* state-summary 可能尚未写 */ }
     await fs.writeFile(file, JSON.stringify(journey, null, 2));
     return journey;
   });
