@@ -17,7 +17,7 @@ prereq-gates: [step3]
 
 **产物路径**：`contracts/<planId>.json`（冻结契约）；审完 `node scripts/tt-journey.mjs --update --step 5 --gate contract-frozen`。
 
-**owner 审阅**：产出 gate 产物后，读取 	emplates/owner-review/contract-review.md，按其四段结构向 owner 呈现审阅要点（审什么/看哪几字段/PASS-FAIL/常见坑）——owner 不懂术语也能做判断。
+**owner 审阅**：产出 gate 产物后，读取 templates/owner-review/contract-review.md，按其四段结构向 owner 呈现审阅要点（审什么/看哪几字段/PASS-FAIL/常见坑）——owner 不懂术语也能做判断。
 
 **棕地补充**：老系统无 OpenAPI 用 contract-reverse 反推草案 → 后端确认 → 冻结；前端可凭草案先开工（--contract-draft）。
 
