@@ -14,6 +14,7 @@
  *   S8 资产消费证据（D-1）        —— 锚点 + 内核词双断言（exec 全 true；仅锚点 → assetConsumed=false）
  *   S9 域声明机验（C-27）         —— test-domain-declared：false→DOMAIN_DECL_MISSING / true→ok / 旧数据→N/A
  *   S10 token 量尺 gate（B0-②）   —— token-audit --gate：快照对比，token 回退 ≥10% → FAIL（C-30 收尾口径）
+ *   S11 引用链机验（C-25/C-33）    —— owner-review-linkcheck：templates/owner-review 文件级引用悬空 → FAIL 具名；tab 损坏残留（\t emplates/）→ FAIL 具名
  *
  * 注：S4-S6 在临时 workspace 中运行（os.tmpdir），结束后清理，不污染仓库。
  *
@@ -193,6 +194,12 @@ async function main() {
   // 快照缺失（exit 2）同样计 FAIL——先跑 node scripts/token-audit.mjs 生成基线。
   const s10 = await run(process.execPath, ['scripts/token-audit.mjs', '--gate']);
   section('S10 token 量尺 gate（B0-②）', s10.ok, s10.ok ? '快照对比 PASS ✓' : 'exit=' + s10.code + '（快照缺失先跑 node scripts/token-audit.mjs，回退则查 TOKEN_REGRESSION 输出）');
+
+  // S11 引用链机验（C-25/C-33）：owner-review-linkcheck——templates/owner-review/ 文件级引用悬空
+  // 与 tab 损坏残留（\t emplates/）0 容忍；悬空/损坏 → 脚本具名输出 + exit 1，此处计 FAIL。
+  // 反向用例（fixture 植入假引用 FAIL / 还原 PASS）由脚本 --self-test 内置，维护时可单独跑。
+  const s11 = await run(process.execPath, ['scripts/owner-review-linkcheck.mjs']);
+  section('S11 引用链机验（C-25/C-33）', s11.ok, s11.ok ? '悬空引用 0 / tab 损坏 0 ✓' : 'exit=' + s11.code + '（详见 linkcheck DANGLING/TAB-CORRUPT 具名输出）');
 
   console.log('\n结果: ' + pass + ' PASS / ' + fail + ' FAIL');
   if (failures.length) { for (const f of failures) console.log('  FAILED: ' + f); process.exitCode = 1; }
