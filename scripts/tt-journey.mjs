@@ -143,6 +143,26 @@ export async function updateJourney({ workspace, sessionId, step, gate, artifact
       journey.plans.push({ planId: '__manual__', status: 'prereq-bypassed', updatedAt: nowIso(), reason: chk.reason });
     }
     await writeJourneyFile(workspace, journey, sessionId);
+    console.log('[DEBUG] reached stageVerification block, workspace=' + workspace);
+    // H7 补全：--update 路径自动写 stageVerification（与 orchestrator syncJourney 同级，非 agent 自填）
+    const stageVerification = {
+      verified: chk.ok,
+      reason: chk.ok ? 'prereq OK' : chk.reason,
+      timestamp: nowIso(),
+      tool: 'tt-journey.mjs --update --step ' + n + (gate ? ' --gate ' + gate : '') + (bypassed ? ' --force' : ''),
+    };
+    // 写入 workspace 的 state-summary.json（如果存在）
+    const ssDir = path.join(workspace, 'artifacts');
+    try {
+      for (const planDir of fs.readdirSync(ssDir)) {
+        const ssPath = path.join(ssDir, planDir, 'state-summary.json');
+        if (fs.existsSync(ssPath)) {
+          const ss = JSON.parse(fs.readFileSync(ssPath, 'utf8'));
+          if (!ss.stageVerification) ss.stageVerification = stageVerification;
+          fs.writeFileSync(ssPath, JSON.stringify(ss, null, 2));
+        }
+      }
+    } catch (e) { /* 无 artifacts 目录时跳过 */ }
     return journey;
   });
 }

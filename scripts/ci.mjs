@@ -77,6 +77,20 @@ async function main() {
     }
     console.log('[PASS] ' + seg.name);
   }
+
+  // S5 P0 硬闸门（用户要求：P0 未清零，M3 不得开始）
+  const trackerPath = path.join(ROOT, 'plans', 'critique-backlog-tracker.md');
+  if (fs.existsSync(trackerPath)) {
+    const trackerLines = fs.readFileSync(trackerPath, 'utf8').split('\n').filter(l => /^\| C-/.test(l.trim()));
+    const p0Open = trackerLines.filter(l => l.includes('| P0 |') && l.includes('⬜')).length;
+    console.log('\n=== S5 P0 硬闸门 ===');
+    console.log(`  P0 未闭环: ${p0Open}`);
+    if (p0Open > 0) {
+      console.log('\n[FAIL] P0 批判未清零（' + p0Open + ' 条 ⬜）——P0 修复前 M3 不得开始');
+      process.exit(1);
+    }
+    console.log('[PASS] S5 P0 硬闸门（0 条 P0 ⬜）');
+  }
   cleanup(reportFile);
   // F4 资产质量评分（MUSE 评估模式融合）：跑 asset-call-rate，输出质量分（信息段，非 blocking）
   console.log('\n=== S5 资产质量评分（asset-call-rate）===');
