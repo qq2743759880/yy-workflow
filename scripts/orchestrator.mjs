@@ -230,6 +230,9 @@ async function syncJourney(workspace, result, sessionId) {
   const callRate = subs.length > 0 ? (consumedN / subs.length * 100).toFixed(1) : '0.0';
   const briefOnlyN = subs.filter(function(s) { return s.mode === 'prompt' && s.assetConsumed !== true; }).length;
   const depPreconditionN = subs.filter(function(s) { return s.error === 'DEP_PRECONDITION'; }).length;
+  // C-27 域声明机验（FR-5 GWT）：subtask 条目 domainDeclared===false 计为缺失；字段不存在（旧数据）不算缺失（N/A 不误伤）；true 正常。
+  // 仅聚合落字段，不改退出行为（summary.total>0 且缺失>0 时同样只落字段）。
+  const domainDeclaredMissingN = subs.filter(function(s) { return s.domainDeclared === false; }).length;
   const blocked = [];
   for (const s of subs) if (s.status === 'skipped' || s.status === 'failed') { if (!blocked.includes(s.asset)) blocked.push(s.asset); }
   const seen = new Set();
@@ -264,6 +267,7 @@ async function syncJourney(workspace, result, sessionId) {
       assetCallRate: callRate + '%',
       requireExecViolation: plan.requireExec === true ? briefOnlyN : 0,
       depPrecondition: depPreconditionN,
+      domainDeclaredMissing: domainDeclaredMissingN,
       blockedSubtasks: blocked,
       contractFrozen,
       recovery,

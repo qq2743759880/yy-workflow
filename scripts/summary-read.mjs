@@ -11,6 +11,8 @@
  *
  * 零外部依赖（node: 内建）。critiqueBacklog 缺省/为 null 时尝试从本机 plans/critique-backlog-tracker.md
  * 补算；读不到 tracker（如 workspace ≠ SKILL_DIR 且本机 tracker 缺失）→ 保持 null + note，不报错。
+ * C-27 透传：summary.domainDeclaredMissing（缺域声明条数）与计算出的三态状态（missing/ok/N/A 旧数据无字段）
+ * 随 --all 输出透传；旧摘要无该字段 → domainDeclared 为 'N/A（旧数据无字段，不判定）'，不误伤。
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -113,6 +115,12 @@ function collectSummaries(workspace) {
   out.sort(function(a, b) { return b.mtimeMs - a.mtimeMs; });
   return out;
 }
+/** C-27 域声明三态（由 summary.domainDeclaredMissing 计算）：>0=missing；=0=ok；字段缺失（旧摘要）=N/A 不判定。 */
+function domainDeclaredStatus(sm) {
+  const n = sm.domainDeclaredMissing;
+  if (typeof n !== 'number') return 'N/A（旧数据无字段，不判定）';
+  return n > 0 ? 'missing(' + n + ')' : 'ok';
+}
 function blockOf(data) {
   const blocked = Array.isArray(data.summary && data.summary.blockedSubtasks) ? data.summary.blockedSubtasks : [];
   return blocked.length ? blocked.join(',') : '无';
@@ -125,6 +133,7 @@ function listRow(it) {
     '|', d.task || '?',
     '|', d.status || '?', d.degraded === true ? '(degraded)' : '',
     '|', sm.assetCallRate || '?',
+    '|', 'domainDeclared:', domainDeclaredStatus(sm),
     '|', 'blocked:', blockOf(d),
     '|', it.rel,
   ].filter(function(s) { return s !== ''; }).join(' ');
@@ -170,6 +179,8 @@ export function main(args = process.argv.slice(2)) {
         assetCallRate: sm.assetCallRate,
         requireExecViolation: sm.requireExecViolation,
         depPrecondition: sm.depPrecondition,
+        domainDeclaredMissing: sm.domainDeclaredMissing,
+        domainDeclared: domainDeclaredStatus(sm),
         blockedSubtasks: sm.blockedSubtasks || [],
         contractFrozen: sm.contractFrozen,
         recovery: sm.recovery || [],

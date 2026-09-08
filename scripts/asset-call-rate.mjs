@@ -7,6 +7,10 @@
  *   ② 建议降级：auto-actions.json 历史跨 ≥2 次触发 → 「建议降级为 optional」（不自动改 SKILL，留人审）
  *   ③ 自动登记：--apply 时登记进 plans/critique-backlog-tracker.md（新 C-xx 行，来源标注 asset-call-rate，
  *      幂等按 资产名+触发日期 查重；缺省 dry-run 只打印待登记）
+ * C-27 域声明机验（FR-5 GWT）：增读 state.json subtasks 的 domainDeclared 字段——
+ *   false → 报告头部 `- domainDeclared: N missing` + 每条 `DOMAIN_DECL_MISSING` warning（含 subtask id/asset 名）；
+ *   true → `- domainDeclared: ok`；全部条目无该字段（旧数据）→ `- domainDeclared: N/A（旧数据无字段，不判定）`。
+ *   仅增报告行，不改 exit code 语义（exit 1 = 有需审查资产，维持不变）。
  * 用法：node scripts/asset-call-rate.mjs --state <state.json> | --task <任务文本> [--apply]
  */
 import fs from 'node:fs';
@@ -126,6 +130,15 @@ function main() {
   const state = JSON.parse(fs.readFileSync(statePath, 'utf8'));
   const subs = state.subtasks || [];
   const total = subs.length;
+  // C-27 域声明机验三态：domainDeclared===false 计缺失（检出 100%）；字段不存在（旧数据）不误伤 → N/A；true → ok。
+  const declMissing = subs.filter(function (s) { return s.domainDeclared === false; });
+  const declKnown = subs.filter(function (s) { return s.domainDeclared === true || s.domainDeclared === false; });
+  const domainLine = declMissing.length
+    ? '- domainDeclared: ' + declMissing.length + ' missing'
+    : (declKnown.length ? '- domainDeclared: ok' : '- domainDeclared: N/A（旧数据无字段，不判定）');
+  const domainWarnLines = declMissing.map(function (s) {
+    return '  ⚠ DOMAIN_DECL_MISSING [' + s.id + '/' + (s.asset || '-') + '] warning——subtask 未做域声明（domainDeclared=false）';
+  });
   let routed = 0, briefBody = 0, consumed = 0;
   const rows = [];
   for (const s of subs) {
@@ -137,7 +150,7 @@ function main() {
     rows.push({ asset: s.asset, mode: s.mode, routed: !!s.asset, briefBody: hasBody, consumed: s.assetConsumed === true });
   }
   const rate = (n) => total > 0 ? (n / total * 100).toFixed(1) + '%' : '0%';
-  const lines = ['# asset-call-rate report', '', '- plan: ' + state.id + ' · cluster: ' + state.cluster + ' · subtasks: ' + total, '- 路由率: ' + rate(routed) + ' | 正文进上下文: ' + rate(briefBody) + ' | 消费证据: ' + rate(consumed), '', '## 逐资产'];
+  const lines = ['# asset-call-rate report', domainLine].concat(domainWarnLines, ['', '- plan: ' + state.id + ' · cluster: ' + state.cluster + ' · subtasks: ' + total, '- 路由率: ' + rate(routed) + ' | 正文进上下文: ' + rate(briefBody) + ' | 消费证据: ' + rate(consumed), '', '## 逐资产']);
   const needReview = [];
   for (const r of rows) {
     const callRate = ((r.routed ? 1 : 0) + (r.briefBody ? 1 : 0) + (r.consumed ? 1 : 0) / 3 * 100).toFixed(0);

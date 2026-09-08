@@ -11,6 +11,8 @@
  *   S5 宿主执行 smoke             —— 宿主执行（BE-14）：--exec 真实输出 → mode=exec；空输出 → mode=prompt 降级
  *   S6 资产缓存 smoke             —— 资产正文缓存（BE-15）：缓存文件生成 + 二次运行复用
  *   S7 review-gate self-test      —— 批判能力代码级闸门（有效批判≥3/URL+日期/tracker）
+ *   S8 资产消费证据（D-1）        —— 锚点 + 内核词双断言（exec 全 true；仅锚点 → assetConsumed=false）
+ *   S9 域声明机验（C-27）         —— test-domain-declared：false→DOMAIN_DECL_MISSING / true→ok / 旧数据→N/A
  *
  * 注：S4-S6 在临时 workspace 中运行（os.tmpdir），结束后清理，不污染仓库。
  *
@@ -180,6 +182,11 @@ async function main() {
   const s8nFalse = s8nState ? s8nState.subtasks.filter(function (s) { return s.assetConsumed === false; }).length : -1;
   fs.rmSync(s8ws, { recursive: true, force: true });
   section('S8 资产消费证据', s8.ok && s8execCount > 0 && s8notConsumed === 0 && s8nFalse > 0, 'exec=' + s8execCount + ' false(正)=0 false(负)=>' + s8nFalse + '（kernel 资产仅锚点 → false，强化生效）');
+
+  // S9 域声明机验（C-27 / FR-5 GWT）：test-domain-declared 三态断言——domainDeclared:false → DOMAIN_DECL_MISSING
+  // 具名 warning（缺声明检出 100%）；true → ok；全部无字段（旧数据）→ N/A 不误伤。任一断言失败计 FAIL。
+  const s9 = await run(process.execPath, ['scripts/test-domain-declared.mjs']);
+  section('S9 域声明机验', s9.ok, s9.ok ? 'missing→DOMAIN_DECL_MISSING ✓ true→ok ✓ 旧数据→N/A ✓' : 'exit=' + s9.code + '（详见 test-domain-declared 输出）');
 
   console.log('\n结果: ' + pass + ' PASS / ' + fail + ' FAIL');
   if (failures.length) { for (const f of failures) console.log('  FAILED: ' + f); process.exitCode = 1; }
