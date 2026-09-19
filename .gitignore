@@ -3,3 +3,5 @@ node_modules/
 .tt-state/
 artifacts/
 contracts/
+
+test-reports/**/.sandbox/
