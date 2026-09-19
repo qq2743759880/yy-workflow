@@ -1,0 +1,120 @@
+{
+  "pass": [
+    "p01",
+    "p02",
+    "p03",
+    "p04",
+    "p05",
+    "p06",
+    "p07",
+    "p08",
+    "p09",
+    "p10",
+    "p11",
+    "p12",
+    "p13",
+    "p14",
+    "p15",
+    "p16"
+  ],
+  "fail": [],
+  "results": [
+    {
+      "probe": "p01",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "shell 统一（键集成败一致）: keys=true successCodeNull=true fiveCodes=true unknownOp=true warningsArr=true evidence=true noInvent=true noSuccessLiteral=true"
+    },
+    {
+      "probe": "p02",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "projection truth: ok=true display=AUTHORIZED phaseAuth=true step7=done/AUTHORIZED log旁证仅双列=true discWarn=true evidence=[state,receipts,logs] logMarkedInferred=true"
+    },
+    {
+      "probe": "p03",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "PARTIAL: display=PARTIAL reason具名=true warn具名=true 渐进补源仍PARTIAL=true 四源齐→AUTHORIZED"
+    },
+    {
+      "probe": "p04",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "STALE: journey落后→code=JOURNEY_STALE body保留=true reason/源=true; journey领先→不占码 ok=true/code=null; 全对齐→AUTHORIZED"
+    },
+    {
+      "probe": "p05",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "SOURCE_INVALID: project磁盘=PROJECTION_SOURCE_INVALID inline=PROJECTION_SOURCE_INVALID schema=PROJECTION_SOURCE_INVALID; read→PARTIAL具名=true 不渲染成功=true"
+    },
+    {
+      "probe": "p06",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "CONFLICT: code=PROJECTION_CONFLICT node=true 不静默=true; 词汇差异不算冲突=true; 跨维分归并warn=true 最坏态=FAILED"
+    },
+    {
+      "probe": "p07",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "INVALID: json=true shape=true session=true(无逃逸=true) mode=true ws=true 合法仍可读=true"
+    },
+    {
+      "probe": "p08",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "NOT_FOUND: code=true diag=true §8.1待补充标注=true render-core消费=true/true compat-probe口径 r1.ok=true(PARTIAL) r2=JOURNEY_NOT_FOUND"
+    },
+    {
+      "probe": "p09",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "session隔离: A只读A=true B只读B=true legacy根=true session回声=true evidence随session=true"
+    },
+    {
+      "probe": "p10",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "9节点: nodes=9 current=5 next=7 evidence=1 gates passed=1/pending=3 summaryPhase/progress/next=true npTarget=7"
+    },
+    {
+      "probe": "p11",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "INFERRED: display=INFERRED step7=done/INFERRED source标注=true 未落盘=true/true failed→不显示完成=true"
+    },
+    {
+      "probe": "p12",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "诚实归并: skipped=SKIPPED done缺receipt=UNRESOLVED failed=FAILED 全Verified→done/AUTHORIZED unknown→UNRESOLVED=true"
+    },
+    {
+      "probe": "p13",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "nextPrompt: A.target=1 B.target=7 派生=true hashEcho=true 结构化=true gate/step前置=true copy=快照引用不重算=true"
+    },
+    {
+      "probe": "p14",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "只读+writer: read不改写=true project落盘=true 源字节不动=true tt-journey兼容读取+9节点=true gates/留痕保留=true/true additive=faade1d7a76f38cbb4f07cf40144814594f566a01a05db1a66c3d0539548386a legacy不落盘=true INFERRED不落盘=true"
+    },
+    {
+      "probe": "p15",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "evidence: n=3 shape=true kinds=true sha256字节一致=true logs标inferred=true session回声=true ns路径=true shell同构=true count=true summary无全量=true"
+    },
+    {
+      "probe": "p16",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "namespace一致: session只读session=true evidence全在ns=true 健康=AUTHORIZED 落点同ns=true legacy根可读=true"
+    }
+  ],
+  "total": 16
+}
