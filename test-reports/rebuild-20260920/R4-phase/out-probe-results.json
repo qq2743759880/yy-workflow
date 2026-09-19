@@ -1,0 +1,92 @@
+{
+  "pass": [
+    "p01-gwt-r4-01-no-unauthorized-skip",
+    "p02-gwt-r4-02-owner-confirmation-gate",
+    "p03-gwt-r4-03-session-isolation",
+    "p04-gwt-r4-04-lock-failure",
+    "p05-gwt-r4-05-ci-truthfulness",
+    "p06-state-version",
+    "p07-override-receipt-valid",
+    "p08-override-receipt-invalid",
+    "p09-session-modes-flags",
+    "p10-lock-takeover-semantics",
+    "p11-fail-closed-defaults",
+    "p12-prereq-mapping"
+  ],
+  "fail": [],
+  "results": [
+    {
+      "probe": "p01-gwt-r4-01-no-unauthorized-skip",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "gwt-r4-01: 10/10 "
+    },
+    {
+      "probe": "p02-gwt-r4-02-owner-confirmation-gate",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "gwt-r4-02: 10/10 "
+    },
+    {
+      "probe": "p03-gwt-r4-03-session-isolation",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "gwt-r4-03: 11/11 "
+    },
+    {
+      "probe": "p04-gwt-r4-04-lock-failure",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "gwt-r4-04: 9/9 "
+    },
+    {
+      "probe": "p05-gwt-r4-05-ci-truthfulness",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "gwt-r4-05: 14/14 "
+    },
+    {
+      "probe": "p06-state-version",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "state-version: 9/9 "
+    },
+    {
+      "probe": "p07-override-receipt-valid",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "override-receipt-valid: 14/14 "
+    },
+    {
+      "probe": "p08-override-receipt-invalid",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "override-receipt-invalid: 44/44 "
+    },
+    {
+      "probe": "p09-session-modes-flags",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "session-modes-flags: 13/13 "
+    },
+    {
+      "probe": "p10-lock-takeover-semantics",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "lock-takeover: 8/8 "
+    },
+    {
+      "probe": "p11-fail-closed-defaults",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "fail-closed-defaults: 20/20 "
+    },
+    {
+      "probe": "p12-prereq-mapping",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "prereq-mapping: 15/15 "
+    }
+  ],
+  "total": 12
+}
