@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>YY journey widget — 原型 v0.1（Gate A 审批稿）</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+    font-size: 12px; color: #333;
+    background:
+      repeating-conic-gradient(#ececec 0 25%, #f5f5f5 0 50%) 0 0 / 24px 24px;
+    display: flex; justify-content: center; align-items: flex-start;
+    padding-top: 60px;
+  }
+  #win {
+    width: 300px; height: 420px; background: #fff;
+    border: 1px solid #d0d0d0; border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.12);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  #titlebar {
+    height: 32px; background: #fafafa; border-bottom: 1px solid #e5e5e5;
+    display: flex; align-items: center; padding: 0 10px;
+    cursor: move; user-select: none; flex-shrink: 0;
+  }
+  #titlebar span { font-weight: 600; flex: 1; }
+  #close {
+    border: 1px solid #ccc; background: #fff; border-radius: 4px;
+    width: 18px; height: 18px; line-height: 15px; text-align: center;
+    cursor: pointer; font-size: 11px; color: #666;
+  }
+  #body { padding: 10px; display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 0; }
+  #entry {
+    border: 1px dashed #bbb; border-radius: 6px; padding: 8px;
+    text-align: center; color: #888; cursor: pointer; line-height: 1.5;
+  }
+  #entry:hover { border-color: #888; }
+  #entry textarea {
+    width: 100%; height: 44px; margin-top: 6px; font-size: 11px;
+    border: 1px solid #ddd; border-radius: 4px; padding: 4px;
+    font-family: inherit; resize: none; display: none;
+  }
+  #fileInput { display: none; }
+  #parseMsg { color: #d00; display: none; }
+  .sec { border: 1px solid #eee; border-radius: 6px; padding: 8px; }
+  .sec b { display: block; margin-bottom: 6px; color: #555; font-size: 11px; font-weight: 600; }
+  #curLine { font-size: 13px; font-weight: 600; }
+  #dots { display: flex; gap: 8px; }
+  .dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    border: 2px solid #bbb; background: transparent; cursor: default;
+  }
+  .dot.done { background: #2e9e44; border-color: #2e9e44; }
+  .dot.active { background: #2f6fed; border-color: #2f6fed; outline: 2px solid #b9cef7; outline-offset: 1px; }
+  .dot.pending { border-color: #bbb; }
+  .dot.blocked { border-color: #d33; }
+  #gateList { display: flex; flex-direction: column; gap: 4px; }
+  #checks { display: flex; gap: 14px; }
+  .chk { display: flex; align-items: center; gap: 4px; }
+  .chk i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: #2e9e44; }
+  .chk i.bad { background: #d33; }
+  #copyBtn {
+    border: 1px solid #2f6fed; background: #fff; color: #2f6fed;
+    border-radius: 6px; padding: 7px 0; cursor: pointer; font-size: 12px;
+    font-family: inherit;
+  }
+  #copyBtn:hover { background: #f0f5ff; }
+</style>
+</head>
+<body>
+<div id="win">
+  <div id="titlebar"><span>YY journey</span><button id="close" title="关闭">×</button></div>
+  <div id="body">
+    <div id="entry">粘贴 journey.json 内容 或 点击选择文件
+      <textarea id="pasteBox" placeholder="在此粘贴 journey.json …"></textarea>
+    </div>
+    <div id="parseMsg">解析失败：请检查 JSON 格式</div>
+    <div class="sec" id="secCur"><b>当前行</b><div id="curLine"></div></div>
+    <div class="sec"><b>阶段进度</b><div id="dots"></div></div>
+    <div class="sec"><b>待办 gate</b><div id="gateList"></div></div>
+    <div class="sec"><b>机器体检</b><div id="checks"></div></div>
+    <button id="copyBtn">复制下一阶段提示</button>
+  </div>
+  <input type="file" id="fileInput" accept=".json,application/json">
+</div>
+<script>
+var SAMPLE = {
+  current: 4,
+  phases: [
+    { name: "资产整合", status: "done" }, { name: "需求文档化", status: "done" },
+    { name: "任务拆解", status: "done" }, { name: "并行派单", status: "active" },
+    { name: "契约冻结", status: "pending" }, { name: "验收批判", status: "pending" },
+    { name: "返工闭环", status: "blocked" }, { name: "复盘反哺", status: "pending" }
+  ],
+  gates: [
+    { name: "派单前契约冻结 gate", verified: true, time: "2026-09-08T10:00Z" },
+    { name: "下一阶段验收 gate", verified: false, time: "" }
+  ],
+  checks: { validate: "ok", regression: "ok", P0: "ok" },
+  nextPrompt: "下一阶段（5/8 契约冻结）：请按已冻结的接口契约推进，产出契约变更清单并提交机验。"
+};
+
+function render(d) {
+  document.getElementById("curLine").textContent =
+    "阶段 " + d.current + "/8 · " + d.phases[d.current - 1].name;
+  var dots = document.getElementById("dots"); dots.innerHTML = "";
+  d.phases.forEach(function (p, i) {
+    var el = document.createElement("i");
+    el.className = "dot " + p.status;
+    el.title = "阶段 " + (i + 1) + " " + p.name + "（" + p.status + "）";
+    dots.appendChild(el);
+  });
+  var gl = document.getElementById("gateList"); gl.innerHTML = "";
+  d.gates.slice(0, 2).forEach(function (g) {
+    var row = document.createElement("div");
+    row.textContent = g.name + " · " +
+      (g.verified ? "✅机验 " + g.time : "⬜未机验");
+    gl.appendChild(row);
+  });
+  var ck = document.getElementById("checks"); ck.innerHTML = "";
+  ["validate", "regression", "P0"].forEach(function (k) {
+    var s = document.createElement("span"); s.className = "chk";
+    var dot = document.createElement("i");
+    if (d.checks[k] !== "ok") dot.className = "bad";
+    var t = document.createElement("span"); t.textContent = k;
+    s.appendChild(dot); s.appendChild(t); ck.appendChild(s);
+  });
+}
+render(SAMPLE);
+
+var entry = document.getElementById("entry"),
+    box = document.getElementById("pasteBox"),
+    msg = document.getElementById("parseMsg"),
+    fileInput = document.getElementById("fileInput");
+
+function tryParse(text) {
+  try {
+    var d = JSON.parse(text);
+    if (d && d.phases && d.phases.length === 8 && d.current) {
+      render(d); msg.style.display = "none"; entry.style.display = "none";
+    } else { msg.style.display = "block"; }
+  } catch (e) { msg.style.display = "block"; }
+}
+box.addEventListener("paste", function () {
+  setTimeout(function () { if (box.value.trim()) tryParse(box.value); }, 0);
+});
+entry.addEventListener("click", function (e) {
+  if (e.target !== box) { box.style.display = "block"; box.focus(); }
+});
+entry.addEventListener("dblclick", function () { fileInput.click(); });
+fileInput.addEventListener("change", function () {
+  var f = fileInput.files[0];
+  if (!f) return;
+  var r = new FileReader();
+  r.onload = function () { tryParse(r.result); };
+  r.readAsText(f);
+});
+
+/* 拖拽：标题栏 mousedown 起步，document 层 mousemove/mouseup 收尾 */
+(function () {
+  var win = document.getElementById("win"), sx, sy, ox, oy, drag = false;
+  var bar = document.getElementById("titlebar");
+  bar.addEventListener("mousedown", function (e) {
+    if (e.target.id === "close") return;
+    drag = true; sx = e.clientX; sy = e.clientY;
+    var r = win.getBoundingClientRect(); ox = r.left; oy = r.top;
+    e.preventDefault();
+  });
+  document.addEventListener("mousemove", function (e) {
+    if (!drag) return;
+    win.style.position = "fixed";
+    win.style.left = ox + e.clientX - sx + "px";
+    win.style.top = oy + e.clientY - sy + "px";
+  });
+  document.addEventListener("mouseup", function () { drag = false; });
+})();
+
+document.getElementById("close").addEventListener("click", function () {
+  this.textContent = "演示：关闭不可用"; var b = this;
+  setTimeout(function () { b.textContent = "×"; }, 1500);
+});
+
+document.getElementById("copyBtn").addEventListener("click", function () {
+  var btn = this, old = "复制下一阶段提示", text = SAMPLE.nextPrompt;
+  function done() {
+    btn.textContent = "已复制，请自行粘贴到对话";
+    setTimeout(function () { btn.textContent = old; }, 1500);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done, function () { fallback(); });
+  } else fallback();
+  function fallback() {
+    var ta = document.createElement("textarea");
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); done(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+});
+</script>
+</body>
+</html>
