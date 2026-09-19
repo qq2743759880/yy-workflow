@@ -1,0 +1,92 @@
+{
+  "pass": [
+    "f01",
+    "f02",
+    "f03",
+    "f04",
+    "f05",
+    "f06",
+    "f07",
+    "f08",
+    "f09",
+    "f10",
+    "f11",
+    "f12"
+  ],
+  "fail": [],
+  "results": [
+    {
+      "fixture": "f01",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "propose ok=true code=null candidateId=cnd-20260917T025555Z-e0755918 stored=true"
+    },
+    {
+      "fixture": "f02",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "propose expected INVALID got ok=false code=CANDIDATE_INVALID reason=候选缺少十项不变量字段: trigger（§2.1 fail-closed）"
+    },
+    {
+      "fixture": "f03",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "propose expected INVALID(whitelist) got ok=false code=CANDIDATE_INVALID"
+    },
+    {
+      "fixture": "f04",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "propose expected BASELINE_MISSING got ok=false code=BASELINE_MISSING"
+    },
+    {
+      "fixture": "f05",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "propose expected VERSION_CONFLICT got ok=false code=ASSET_VERSION_CONFLICT"
+    },
+    {
+      "fixture": "f06",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "idem r1=cnd-20260917T025555Z-d5b2d6cf r2=cnd-20260917T025555Z-d5b2d6cf warnings=DUPLICATE_REPLAY: evolution.propose 已存在同 idempotencyKey 候选，返回原 candidateId cnd-20260917T025555Z-d5b2d6cf"
+    },
+    {
+      "fixture": "f07",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "accept expected self-verify fail got ok=false code=INDEPENDENT_VERIFICATION_REQUIRED reason=验收方身份与 proposedBy 相同（producer 自验，§6.1 禁止）"
+    },
+    {
+      "fixture": "f08",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "accept expected NOT_ALLOWED got ok=false code=PROMOTION_NOT_ALLOWED verdict=UNRESOLVED unresolved="
+    },
+    {
+      "fixture": "f09",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "accept expected REGRESSION got ok=false code=EVOLUTION_REGRESSION verdict=REJECTED"
+    },
+    {
+      "fixture": "f10",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "accept ok=true code=null verdict=PROMOTED receipt=true rollback=true"
+    },
+    {
+      "fixture": "f11",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "accept expected PROVISIONAL→UNRESOLVED got ok=false code=PROMOTION_NOT_ALLOWED verdict=UNRESOLVED"
+    },
+    {
+      "fixture": "f12",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "rows=16 aggregate={\"UNCHANGED\":14,\"REJECTED\":1,\"PROMOTED\":1}"
+    }
+  ],
+  "total": 12
+}

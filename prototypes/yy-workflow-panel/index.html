@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="data:,">
+  <title>YY Workflow Panel / Gate A</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+    :root {
+      font-family: "IBM Plex Sans", "Microsoft YaHei", sans-serif;
+      color-scheme: light dark;
+      --bg: #dfe7e2; --panel: #f6f8f6; --surface: #fff; --surface-2: #eef3ef;
+      --ink: #14201a; --muted: #66736b; --line: #d5ddd7; --accent: #147d52;
+      --accent-soft: #dcefe5; --info: #2e67a4; --info-soft: #e4eef9; --warn: #986a11;
+      --warn-soft: #f8edcf; --danger: #b33b32; --danger-soft: #f8e5e2; --shadow: 0 18px 48px rgba(24,45,34,.14);
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #0b110e; --panel: #111814; --surface: #17201b; --surface-2: #1c2821;
+      --ink: #eef5f0; --muted: #9baaa1; --line: #2b3931; --accent: #5fc995;
+      --accent-soft: #183829; --info: #78ade7; --info-soft: #172d43; --warn: #e0b455;
+      --warn-soft: #392f18; --danger: #ed8178; --danger-soft: #3d211f; --shadow: 0 18px 48px rgba(0,0,0,.36);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0b110e; --panel: #111814; --surface: #17201b; --surface-2: #1c2821;
+        --ink: #eef5f0; --muted: #9baaa1; --line: #2b3931; --accent: #5fc995;
+        --accent-soft: #183829; --info: #78ade7; --info-soft: #172d43; --warn: #e0b455;
+        --warn-soft: #392f18; --danger: #ed8178; --danger-soft: #3d211f; --shadow: 0 18px 48px rgba(0,0,0,.36);
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-width: 320px; min-height: 100%; background: var(--bg); color: var(--ink); }
+    body { overflow: hidden; }
+    button, input, select, textarea { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .stage { min-height: 100dvh; }
+    .workspace { min-height: 100dvh; background: radial-gradient(circle at 72% 18%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 28%), var(--bg); }
+    .panel { position: relative; width: 420px; max-width: 100vw; height: 100dvh; background: var(--panel); border-right: 1px solid var(--line); box-shadow: var(--shadow); display: grid; grid-template-rows: auto 1fr auto; overflow: hidden; animation: enter .22s ease-out; }
+    @keyframes enter { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
+    .topbar { padding: 14px 16px 11px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--panel) 94%, transparent); }
+    .topline, .row, .section-head, .metric-row, .decision-head, .status-row { display: flex; align-items: center; gap: 8px; }
+    .topline { justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 9px; min-width: 0; }
+    .brand-mark { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: var(--ink); color: var(--panel); font: 600 12px/1 "JetBrains Mono"; }
+    .brand strong { font-size: 14px; letter-spacing: -.01em; }
+    .icon-btn { width: 44px; height: 44px; border: 0; border-radius: 10px; background: transparent; cursor: pointer; display: grid; place-items: center; }
+    .icon-btn:hover { background: var(--surface-2); }
+    .projectline { margin-top: 10px; display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+    .project-select { width: 100%; height: 44px; padding: 0 34px 0 10px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--ink); font-size: 13px; }
+    .demo-tag, .pill, .status { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; border-radius: 999px; font-size: 12px; line-height: 1; }
+    .demo-tag { height: 28px; padding: 0 8px; color: var(--info); background: var(--info-soft); }
+    .contextline { margin-top: 9px; color: var(--muted); font-size: 12px; display: flex; justify-content: space-between; gap: 8px; }
+    .bridge { display: inline-flex; align-items: center; gap: 5px; color: var(--danger); }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .content { overflow-y: auto; overscroll-behavior: contain; padding: 16px 16px 100px; scrollbar-width: thin; }
+    .eyebrow { margin: 0 0 5px; color: var(--accent); font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: 23px; line-height: 1.2; letter-spacing: -.025em; }
+    h2 { margin: 0; font-size: 15px; letter-spacing: -.01em; }
+    h3 { margin: 0; font-size: 14px; }
+    p { margin: 0; }
+    .lede { margin-top: 7px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .section { margin-top: 20px; }
+    .section-head { justify-content: space-between; margin-bottom: 10px; }
+    .section-head small { color: var(--muted); }
+    .card { padding: 13px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+    .card + .card { margin-top: 8px; }
+    .card.accent { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 34%, var(--line)); }
+    .card.warn { background: var(--warn-soft); border-color: color-mix(in srgb, var(--warn) 28%, var(--line)); }
+    .card.danger { background: var(--danger-soft); border-color: color-mix(in srgb, var(--danger) 25%, var(--line)); }
+    .card-title { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+    .card p, .list-copy p { margin-top: 4px; color: var(--muted); font-size: 12.5px; line-height: 1.45; }
+    .status { min-height: 24px; padding: 0 8px; background: var(--surface-2); color: var(--muted); }
+    .status.success { color: var(--accent); background: var(--accent-soft); }
+    .status.warn { color: var(--warn); background: var(--warn-soft); }
+    .status.danger { color: var(--danger); background: var(--danger-soft); }
+    .status.info { color: var(--info); background: var(--info-soft); }
+    .btn { min-height: 44px; border: 1px solid var(--line); border-radius: 10px; padding: 0 13px; background: var(--surface); color: var(--ink); font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+    .btn:hover { border-color: color-mix(in srgb, var(--accent) 48%, var(--line)); }
+    .btn.primary { border-color: var(--accent); background: var(--accent); color: #fff; }
+    :root[data-theme="dark"] .btn.primary { color: #08110c; }
+    .btn.danger { border-color: var(--danger); color: var(--danger); background: transparent; }
+    .btn.ghost { border-color: transparent; background: transparent; color: var(--muted); }
+    .btn[disabled] { opacity: .48; cursor: not-allowed; }
+    .btn-block { width: 100%; }
+    .actions { display: flex; gap: 8px; margin-top: 12px; }
+    .actions > * { flex: 1; }
+    .journey { position: relative; margin-top: 12px; }
+    .journey::before { content: ""; position: absolute; left: 13px; top: 15px; bottom: 16px; width: 1px; background: var(--line); }
+    .step { position: relative; min-height: 44px; padding: 4px 0 9px 38px; display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .step-dot { position: absolute; left: 3px; top: 5px; width: 21px; height: 21px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line); background: var(--panel); color: var(--muted); font: 500 10px/1 "JetBrains Mono"; }
+    .step.done .step-dot { background: var(--accent); border-color: var(--accent); color: white; }
+    .step.active .step-dot { border: 5px solid var(--accent); background: var(--surface); color: transparent; }
+    .step strong { font-size: 13px; }
+    .step small { display: block; margin-top: 2px; color: var(--muted); }
+    .progress-track { height: 7px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--accent); border-radius: inherit; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .metric { min-height: 82px; padding: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+    .metric strong { display: block; font: 600 20px/1.2 "JetBrains Mono"; }
+    .metric span { display: block; margin-top: 5px; color: var(--muted); font-size: 12px; }
+    .list { border-top: 1px solid var(--line); }
+    .list-item { width: 100%; min-height: 58px; padding: 9px 0; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: inherit; text-align: left; cursor: pointer; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; }
+    .list-item:hover .list-copy strong { color: var(--accent); }
+    .list-icon { width: 31px; height: 31px; border-radius: 8px; display: grid; place-items: center; background: var(--surface-2); color: var(--muted); font: 500 12px/1 "JetBrains Mono"; }
+    .list-copy { min-width: 0; }
+    .list-copy strong { display: block; font-size: 13px; }
+    .list-copy p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .chevron { color: var(--muted); font-size: 17px; }
+    .queue { counter-reset: queue; }
+    .queue .card { position: relative; padding-left: 45px; }
+    .queue .card::before { counter-increment: queue; content: counter(queue); position: absolute; left: 13px; top: 13px; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 7px; background: var(--ink); color: var(--panel); font: 500 11px/1 "JetBrains Mono"; }
+    .session { display: grid; grid-template-columns: 9px 1fr auto; gap: 9px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+    .session:last-child { border-bottom: 0; }
+    .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+    .session strong { display: block; font: 500 12px/1.4 "JetBrains Mono"; }
+    .session small { color: var(--muted); }
+    .log { margin: 0; padding: 11px; border-radius: 9px; background: #0d1511; color: #c6d8cc; font: 11px/1.55 "JetBrains Mono"; overflow: auto; white-space: pre-wrap; }
+    .decision { padding: 13px 0; border-bottom: 1px solid var(--line); }
+    .decision:last-child { border-bottom: 0; }
+    .decision-head { justify-content: space-between; align-items: flex-start; }
+    .decision p { margin-top: 6px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .riskbar { display: grid; grid-template-columns: repeat(4,1fr); gap: 4px; margin-top: 11px; }
+    .riskbar span { height: 5px; border-radius: 999px; background: var(--line); }
+    .riskbar span.on { background: var(--warn); }
+    .nav { position: relative; z-index: 2; min-height: 72px; padding: 6px 8px max(6px,env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: color-mix(in srgb, var(--panel) 96%, transparent); display: grid; grid-template-columns: repeat(5,1fr); }
+    .nav-btn { min-height: 56px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); cursor: pointer; font-size: 11px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+    .nav-btn span:first-child { font: 600 14px/1 "JetBrains Mono"; }
+    .nav-btn:hover { background: var(--surface-2); }
+    .nav-btn.active { color: var(--accent); background: var(--accent-soft); }
+    .detail-scrim { position: fixed; inset: 0; z-index: 20; background: rgba(5,10,7,.46); opacity: 0; pointer-events: none; transition: opacity .2s ease-out; }
+    .detail-scrim.open { opacity: 1; pointer-events: auto; }
+    .detail { position: fixed; z-index: 21; top: 0; bottom: 0; left: min(420px,100vw); width: min(880px,calc(100vw - 420px)); min-width: 620px; background: var(--panel); border-left: 1px solid var(--line); box-shadow: var(--shadow); transform: translateX(100%); opacity: 0; transition: transform .22s ease-out, opacity .22s ease-out; display: grid; grid-template-rows: auto 1fr; }
+    .detail.open { transform: translateX(0); opacity: 1; }
+    .detail-head { min-height: 68px; padding: 12px 18px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .detail-body { overflow-y: auto; padding: 18px 20px 72px; }
+    .detail-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(260px,.72fr); gap: 14px; }
+    .field { display: grid; gap: 5px; margin-top: 11px; }
+    .field label { color: var(--muted); font-size: 12px; }
+    .field input, .field select, .field textarea { width: 100%; min-height: 44px; border: 1px solid var(--line); border-radius: 9px; padding: 9px 10px; background: var(--surface); color: var(--ink); }
+    .field textarea { min-height: 88px; resize: vertical; }
+    .code { padding: 11px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface-2); color: var(--ink); font: 11px/1.55 "JetBrains Mono"; white-space: pre-wrap; overflow-wrap: anywhere; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { padding: 9px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { color: var(--muted); font-weight: 500; }
+    .state-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+    .state-card { padding: 12px; min-height: 86px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); }
+    .state-card strong { display: block; }
+    .state-card p { margin-top: 5px; color: var(--muted); font-size: 12px; }
+    .modal-wrap { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 18px; background: rgba(5,10,7,.6); opacity: 0; pointer-events: none; transition: opacity .18s ease-out; }
+    .modal-wrap.open { opacity: 1; pointer-events: auto; }
+    .modal { width: min(520px,100%); max-height: min(720px,calc(100dvh - 36px)); overflow-y: auto; padding: 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); box-shadow: var(--shadow); transform: translateY(8px); transition: transform .18s ease-out; }
+    .modal-wrap.open .modal { transform: translateY(0); }
+    .modal h2 { font-size: 18px; }
+    .impact { margin: 13px 0; padding: 11px; border-radius: 9px; background: var(--warn-soft); color: var(--warn); font-size: 13px; line-height: 1.5; }
+    .check { margin-top: 12px; display: flex; align-items: flex-start; gap: 9px; font-size: 13px; line-height: 1.45; }
+    .check input { width: 18px; height: 18px; flex: none; accent-color: var(--accent); }
+    .toast { position: fixed; z-index: 50; left: 16px; bottom: 88px; width: min(388px,calc(100vw - 32px)); padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--ink); color: var(--panel); box-shadow: var(--shadow); transform: translateY(12px); opacity: 0; pointer-events: none; transition: transform .2s ease-out, opacity .2s ease-out; font-size: 13px; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .result { margin-top: 10px; padding: 9px 10px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); font: 11px/1.5 "JetBrains Mono"; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    .proto-picker { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 2147483647; display: flex; align-items: center; gap: 2px; padding: 4px; border-radius: 999px; background: rgba(10,10,10,.82); -webkit-backdrop-filter: blur(12px) saturate(1.4); backdrop-filter: blur(12px) saturate(1.4); box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset,0 8px 24px rgba(0,0,0,.24),0 2px 6px rgba(0,0,0,.12); font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size: 13px; line-height: 1; -webkit-font-smoothing: antialiased; user-select: none; -webkit-user-select: none; }
+    .proto-picker-highlight { position: absolute; top: 4px; left: 0; height: 28px; border-radius: 999px; background: rgba(255,255,255,.12); will-change: transform; }
+    .proto-picker[data-ready] .proto-picker-highlight { transition: transform 250ms cubic-bezier(.23,1,.32,1),width 250ms cubic-bezier(.23,1,.32,1); }
+    .proto-picker-item { position: relative; display: flex; align-items: center; height: 28px; padding: 0 12px; border: 0; border-radius: 999px; background: transparent; color: rgba(255,255,255,.55); font: inherit; cursor: pointer; transition: color 150ms ease-out; }
+    .proto-picker-item:hover { color: rgba(255,255,255,.85); }
+    .proto-picker-item:active { transform: scale(.97); }
+    .proto-picker-item:focus-visible { outline: 2px solid rgba(255,255,255,.4); outline-offset: 2px; }
+    .proto-picker-item[data-active] { color: #fff; }
+    .proto-picker-divider { width: 1px; height: 16px; margin: 0 4px; background: rgba(255,255,255,.12); }
+    .proto-picker-replay { padding: 0 10px; font-size: 14px; }
+    .proto-picker[data-position="top"] { bottom: auto; top: 24px; }
+    @media (max-width: 899px) {
+      .panel { width: min(420px,100vw); margin: 0 auto; border-left: 1px solid var(--line); }
+      .detail { inset: 0; width: 100vw; min-width: 0; }
+      .detail-grid { grid-template-columns: 1fr; }
+      .proto-picker { bottom: auto; top: 8px; transform: translateX(-50%) scale(.9); transform-origin: top center; }
+      .topbar { padding-top: 49px; }
+    }
+    @media (max-width: 390px) {
+      .content { padding-inline: 12px; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .proto-picker-item { padding-inline: 9px; }
+      .state-grid { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+      .proto-picker[data-ready] .proto-picker-highlight { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <main id="stage" class="stage"></main>
+  <div id="detailScrim" class="detail-scrim" aria-hidden="true"></div>
+  <aside id="detail" class="detail" aria-hidden="true" aria-labelledby="detailTitle">
+    <header class="detail-head"><div><p class="eyebrow">YY DETAIL LAYER</p><h2 id="detailTitle">详情</h2></div><button class="icon-btn" data-close-detail aria-label="关闭详情">✕</button></header>
+    <div id="detailBody" class="detail-body"></div>
+  </aside>
+  <div id="confirmWrap" class="modal-wrap" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-hidden="true">
+    <div class="modal">
+      <p class="eyebrow">OWNER CONFIRMATION</p><h2 id="confirmTitle">确认高影响操作</h2>
+      <div id="confirmImpact" class="impact"></div>
+      <p style="margin:12px 0 6px;font-size:12px;color:var(--muted)">完整命令</p><div id="confirmCommand" class="code"></div>
+      <label class="check"><input id="confirmCheck" type="checkbox">我已理解影响范围，并以 owner 身份批准本次示例执行。</label>
+      <div class="actions"><button class="btn" data-cancel-confirm>取消</button><button id="confirmExecute" class="btn primary" data-confirm-execute disabled>确认并执行</button></div>
+    </div>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <nav class="proto-picker" data-position="top" aria-label="Prototype variants">
+    <span class="proto-picker-highlight" aria-hidden="true"></span>
+    <button class="proto-picker-item" data-active aria-current="true">Journey</button>
+    <button class="proto-picker-item">Queue</button>
+    <button class="proto-picker-item">Owner</button>
+    <span class="proto-picker-divider" aria-hidden="true"></span>
+    <button class="proto-picker-item proto-picker-replay" aria-label="Replay animation (R)">↻</button>
+  </nav>
+  <script>
+    const stageNames = ['立项','需求','拆解','契约','派单','开发','验收','批判','交付'];
+    const navItems = [['progress','进度','00'],['plan','规划','01'],['run','执行','02'],['evidence','证据','03'],['more','更多','04']];
+    const highImpact = {
+      force: ['强制越过将跳过阶段 3 的契约冻结前置，并写入审计记录。','node scripts/tt-journey.mjs advance --to 4 --force --reason "owner-approved prototype exception"'],
+      freeze: ['冻结契约会生成不可变 hash，并解锁下游派单；后续变更必须提交变更单。','node scripts/contract-freeze.mjs --contract contracts/api.yaml --owner shitt'],
+      dispatch: ['正式派单会创建 3 个隔离 session，并在选定宿主上启动执行进程。','node scripts/orchestrator.mjs --workspace D:\\\\.ai-hub\\\\skills\\\\yy --task M3 --backend auto --hosts codex,claude --parallel 3 --session yy-m3 --exec'],
+      sync: ['记忆同步会更新项目 handoff 与共享 memory，请确认方向和影响文件。','node scripts/sync.mjs --direction project-to-memory --session yy-m3'],
+      critique: ['自动登记会把 3 条批判写入 backlog 并生成 C-xx 承接任务。','node scripts/critique-backlog-next.mjs --source artifacts/critique.md --register'],
+      baseline: ['更新视觉基线会替换后续回归比较的事实来源。','node scripts/visual-regression.mjs --update-baseline --suite yy-panel']
+    };
+    const tools = [
+      ['结构校验','validate-structure.mjs','node scripts/validate-structure.mjs'],['链接检查','link-check.mjs','node scripts/link-check.mjs'],['平台探测','detect-platforms.mjs','node scripts/detect-platforms.mjs'],['宿主探针','exec-host-probe.mjs','node scripts/exec-host-probe.mjs'],['依赖审计','audit-deps.mjs','node scripts/audit-deps.mjs'],['依赖漂移','dependency-drift.mjs','node scripts/dependency-drift.mjs'],['规划审查','plan-review.mjs','node scripts/plan-review.mjs --plan docs/dev-plan.md'],['审查 Gate','review-gate.mjs','node scripts/review-gate.mjs --plan docs/dev-plan.md'],['契约反推','contract-reverse.mjs','node scripts/contract-reverse.mjs --source . --out contracts/draft.yaml'],['契约变更','contract-change-detect.mjs','node scripts/contract-change-detect.mjs --baseline contracts/baseline.yaml'],['契约差异','contract-discrepancy.mjs','node scripts/contract-discrepancy.mjs --contract contracts/api.yaml'],['前端质量','frontend-quality-gate.mjs','node scripts/frontend-quality-gate.mjs --prototype prototypes/yy-workflow-panel'],['原型一致性','prototype-parity-check.mjs','node scripts/prototype-parity-check.mjs'],['视觉回归','visual-regression.mjs','node scripts/visual-regression.mjs --suite yy-panel'],['CI 验证','ci.mjs','node scripts/ci.mjs'],['安全扫描','security-scan.mjs','node scripts/security-scan.mjs'],['集成 E2E','integration-e2e.mjs','node scripts/integration-e2e.mjs'],['完整回归','regression-all.mjs','node scripts/regression-all.mjs'],['资产调用率','asset-call-rate.mjs','node scripts/asset-call-rate.mjs'],['摘要读取','summary-read.mjs','node scripts/summary-read.mjs --all']
+    ];
+    let currentTab = 'progress', pendingAction = null, themeMode = localStorage.getItem('yy-theme') || 'system', toastTimer;
+
+    function topbar() {
+      return `<header class="topbar"><div class="topline"><div class="brand"><span class="brand-mark">YY</span><div><strong>Workflow Panel</strong></div></div><button class="icon-btn" data-action="theme" aria-label="切换主题" title="主题：${themeMode}">${themeMode === 'dark' ? '☾' : themeMode === 'light' ? '☀' : '◐'}</button></div><div class="projectline"><select class="project-select" aria-label="当前工作区"><option>YY / M3 prototype</option><option>选择其他工作区…</option></select><span class="demo-tag">示例运行</span></div><div class="contextline"><span>D:\\.ai-hub\\skills\\yy</span><span class="bridge"><span class="dot"></span>Bridge 未连接</span></div></header>`;
+    }
+    function nav() {
+      return `<nav class="nav" aria-label="主导航">${navItems.map(([id,label,code]) => `<button class="nav-btn ${currentTab === id ? 'active' : ''}" data-nav="${id}" ${currentTab === id ? 'aria-current="page"' : ''}><span>${code}</span><span>${label}</span></button>`).join('')}</nav>`;
+    }
+    function shell(variant, body) { return `<div class="workspace"><section class="panel" data-variant="${variant}">${topbar()}<div class="content">${body}</div>${nav()}</section></div>`; }
+    function hero(eyebrow,title,copy) { return `<p class="eyebrow">${eyebrow}</p><h1>${title}</h1><p class="lede">${copy}</p>`; }
+    function detailButton(id,title,desc,code='→') { return `<button class="list-item" data-detail="${id}"><span class="list-icon">${code}</span><span class="list-copy"><strong>${title}</strong><p>${desc}</p></span><span class="chevron">›</span></button>`; }
+    function status(label,type='') { return `<span class="status ${type}">${label}</span>`; }
+    function sharedPlan() {
+      return hero('PLAN / STAGES 1–3','把意图变成可派单契约','从逐轮需求到任务 DAG，再到可冻结的 API 契约。') + `<div class="section"><div class="list">${detailButton('requirements','需求与概念签收','逐轮问题 · 证据标签 · PRD','R')}${detailButton('premise','前提挑战与 GWT','四问挑战 · Given / When / Then','P')}${detailButton('matrix','任务 DAG 与 T1–T5','三视角审查 · session 建议','T')}${detailButton('contract','契约中心','OpenAPI · draft · hash · discrepancy','C')}</div></div><div class="section"><div class="card warn"><div class="card-title"><h3>契约尚未冻结</h3>${status('Gate blocked','warn')}</div><p>下游正式派单被阻止。可先审阅 2 项差异，再由 owner 冻结。</p><div class="actions"><button class="btn" data-detail="contract">审阅差异</button><button class="btn primary" data-high-impact="freeze">冻结契约</button></div></div></div>`;
+    }
+    function sharedRun() {
+      return hero('RUN / STAGES 4–5','调度与恢复','先预览，再执行；session、分支和日志保持隔离。') + `<div class="section"><div class="card"><div class="card-title"><h3>运行配置</h3>${status('auto','info')}</div><p>Codex 主宿主 · Claude 备用 · 并行度 3 · 重试 2</p><div class="actions"><button class="btn" data-action="dryrun">Dry run</button><button class="btn primary" data-high-impact="dispatch">正式派单</button></div></div><div class="card"><div class="card-title"><h3>yy-m3-ui</h3>${status('running','success')}</div><p>Stage 5 · 2/5 tasks · branch codex/yy-panel</p><div class="progress-track" style="margin-top:10px"><div class="progress-fill" style="width:40%"></div></div></div></div><div class="section"><div class="list">${detailButton('run','运行控制台','宿主、模型、重试、resume、TUI','>')}${detailButton('integration','跨分支集成','summary · changed-files · handoff','∑')}</div></div>`;
+    }
+    function sharedEvidence() {
+      return hero('EVIDENCE / STAGES 6–8','声明不等于实证','独立验收、前端 Gate、批判与记忆各自保留证据链。') + `<div class="section grid-2"><div class="metric"><strong>12/12</strong><span>独立回归通过</span></div><div class="metric"><strong>80%</strong><span>批判落地率</span></div><div class="metric"><strong>16</strong><span>可用资产</span></div><div class="metric"><strong>L3</strong><span>当前验收层级</span></div></div><div class="section"><div class="list">${detailButton('frontendGate','前端 Gate A / B','HTML · tokens · parity · visual','F')}${detailButton('acceptance','L0–L4 独立验收','声明 / 实证分栏 · CI · 安全','✓')}${detailButton('critique','技术批判与 backlog','3 条有效批判 · C-xx','C')}${detailButton('artifacts','产物与记忆','PRD · plan · report · sync','A')}</div></div>`;
+    }
+    function sharedMore() {
+      return hero('SYSTEM / TOOLS','环境与高级工具','低频能力集中管理，仍保留参数、命令、状态和产物链接。') + `<div class="section"><div class="list">${detailButton('environment','项目环境','工作区 · 平台 · 宿主 · 模型','E')}${detailButton('assets','资产盘点','16 项核心 / 增强 / 外部资产','A')}${detailButton('states','状态矩阵','loading 至 disconnected','S')}${detailButton('tools','高级工具抽屉',`${tools.length} 个结构化脚本动作`,'>')}</div></div><div class="section"><button class="btn btn-block" data-action="reprobe">重新探测环境</button></div>`;
+    }
+    function stageFirst() {
+      if (currentTab === 'plan') return shell('stage-first',sharedPlan()); if (currentTab === 'run') return shell('stage-first',sharedRun()); if (currentTab === 'evidence') return shell('stage-first',sharedEvidence()); if (currentTab === 'more') return shell('stage-first',sharedMore());
+      const steps = stageNames.map((name,i) => `<div class="step ${i < 3 ? 'done' : i === 3 ? 'active' : ''}"><span class="step-dot">${i < 3 ? '✓' : i}</span><div><strong>${i}. ${name}</strong><small>${i < 3 ? '产物已就绪' : i === 3 ? '等待 owner 冻结契约' : '前置未满足'}</small></div>${i === 3 ? `<button class="btn ghost" style="padding:0 8px" data-detail="contract">查看</button>` : ''}</div>`).join('');
+      return shell('stage-first', hero('DIRECTION 01 / JOURNEY','下一步：冻结契约','9 个阶段中已完成 3 个。契约冻结后，阶段 4 正式派单才会解锁。') + `<div class="section"><div class="card accent"><div class="card-title"><h3>Stage 3 · 契约</h3>${status('owner required','warn')}</div><p>2 项字段差异待审阅。冻结后生成 hash，并把事实源交给 T1–T5。</p><div class="actions"><button class="btn" data-detail="contract">审阅 2 项差异</button><button class="btn primary" data-high-impact="freeze">冻结并解锁</button></div></div></div><div class="section"><div class="section-head"><h2>0–8 Journey</h2><small>3 / 9</small></div><div class="journey">${steps}</div></div><div class="section"><button class="btn danger btn-block" data-high-impact="force">强制越过当前 Gate</button></div>`);
+    }
+    function runFirst() {
+      if (currentTab === 'plan') return shell('run-first',sharedPlan()); if (currentTab === 'run') return shell('run-first',sharedRun()); if (currentTab === 'evidence') return shell('run-first',sharedEvidence()); if (currentTab === 'more') return shell('run-first',sharedMore());
+      return shell('run-first', hero('DIRECTION 02 / QUEUE','3 个动作等待处理','优先处理会阻塞流水线的动作，活跃 session 与事件紧随其后。') + `<div class="section"><div class="section-head"><h2>调度队列</h2>${status('1 blocked','warn')}</div><div class="queue"><div class="card warn"><h3>冻结 API 契约</h3><p>阻塞 5 个下游域 · 需要 owner 确认</p><div class="actions"><button class="btn" data-detail="contract">预览</button><button class="btn primary" data-high-impact="freeze">处理</button></div></div><div class="card"><h3>复核 T3 前端 brief</h3><p>Design finding D-02 已有处置建议</p><div class="actions"><button class="btn btn-block" data-detail="matrix">打开任务</button></div></div><div class="card"><h3>同步 session 摘要</h3><p>3 个 lane 已生成最新 summary</p><div class="actions"><button class="btn btn-block" data-detail="integration">查看汇总</button></div></div></div></div><div class="section"><div class="section-head"><h2>活跃 Session</h2><button class="btn ghost" data-detail="run">全部</button></div><div class="card"><div class="session"><span class="pulse"></span><div><strong>yy-m3-ui</strong><small>T3 · Codex · running</small></div>${status('40%','success')}</div><div class="session"><span class="pulse"></span><div><strong>yy-m3-contract</strong><small>T2 · Claude · waiting</small></div>${status('blocked','warn')}</div><div class="session"><span class="dot" style="color:var(--muted)"></span><div><strong>yy-m3-quality</strong><small>T5 · local · queued</small></div>${status('queued')}</div></div></div><div class="section"><div class="section-head"><h2>最新事件</h2><small>示例</small></div><pre class="log">20:41:12  T3  artifact ready\n20:41:15  T2  contract gate blocked\n20:41:18  SYS awaiting owner</pre></div>`);
+    }
+    function ownerFirst() {
+      if (currentTab === 'plan') return shell('owner-first',sharedPlan()); if (currentTab === 'run') return shell('owner-first',sharedRun()); if (currentTab === 'evidence') return shell('owner-first',sharedEvidence()); if (currentTab === 'more') return shell('owner-first',sharedMore());
+      return shell('owner-first', hero('DIRECTION 03 / OWNER','今天需要你做 2 个决定','技术过程已压缩为影响、证据和可逆性；细节按需展开。') + `<div class="section"><div class="card warn"><div class="decision"><div class="decision-head"><div><p class="eyebrow">DECISION 01 · BLOCKING</p><h3>是否冻结当前 API 契约？</h3></div>${status('中风险','warn')}</div><p>冻结后 5 个执行域可以开工；代价是后续字段变化必须走变更单。目前 2 项差异都不影响用户主流程。</p><div class="riskbar" aria-label="风险 2/4"><span class="on"></span><span class="on"></span><span></span><span></span></div><div class="actions"><button class="btn" data-detail="contract">看证据</button><button class="btn primary" data-high-impact="freeze">批准冻结</button></div></div><div class="decision"><div class="decision-head"><div><p class="eyebrow">DECISION 02</p><h3>接受前端 Gate A 方向？</h3></div>${status('待比较','info')}</div><p>三稿功能覆盖一致。选择只决定默认工作重心，不会删减高级工具。</p><div class="actions"><button class="btn btn-block" data-detail="frontendGate">比较三稿</button></div></div></div></div><div class="section"><div class="section-head"><h2>可自行推进</h2><small>无需签字</small></div><div class="list">${detailButton('acceptance','运行 L0–L3 独立验收','预计 4 分钟 · 只读/生成报告','✓')}${detailButton('critique','验证 3 个竞品 URL','更新验证日期，不登记 backlog','↗')}</div></div><div class="section"><div class="card danger"><div class="card-title"><h3>1 个阻塞</h3>${status('契约未冻结','danger')}</div><p>若今天不处理，3 个 session 将保持 waiting，不会自动越级。</p></div></div>`);
+    }
+    const variants = [stageFirst,runFirst,ownerFirst];
+
+    const detailViews = {
+      requirements: ['需求与概念签收', () => `<div class="detail-grid"><section><div class="card"><h3>逐轮需求 · 示例</h3><div class="field"><label>用户目标</label><textarea>作为 YY owner，我需要在一个紧凑面板中完成从立项到交付的全部工作流操作。</textarea></div><div class="field"><label>证据标签</label><select><option>Confirmed · 内部文档</option><option>Assumption · 待验证</option></select></div><div class="actions"><button class="btn" data-action="prompt">生成 /yy 1 Prompt</button><button class="btn primary" data-action="signoff">概念签收</button></div></div></section><aside><div class="card"><h3>PRD 状态</h3><p>目标、边界、角色、验收标准已齐备。</p><div class="result">docs/PRD.md · 示例产物</div></div><div class="card warn"><h3>待确认</h3><p>Bridge v1 不注入宿主聊天，仅使用现有 orchestrator/CLI。</p></div></aside></div>`],
+      premise: ['前提挑战与 GWT', () => `<div class="detail-grid"><section><div class="card"><h3>前提四问</h3><table><tr><th>前提</th><th>反证</th><th>处置</th></tr><tr><td>所有能力要同屏</td><td>420px 不可用</td><td>主入口 + 详情层</td></tr><tr><td>报告通过即完成</td><td>声明可失真</td><td>独立实证分栏</td></tr></table></div><div class="card"><h3>Given / When / Then</h3><div class="field"><textarea>Given 契约未冻结\nWhen 用户尝试正式派单\nThen 阻止执行并显示缺失 Gate</textarea></div><button class="btn primary btn-block" data-action="gwt">保存验收场景</button></div></section><aside><div class="card"><h3>规划审查</h3><p>CEO: 1 · Engineering: 2 · Design: 2</p><button class="btn btn-block" data-action="planreview" style="margin-top:10px">运行三视角审查</button></div></aside></div>`],
+      matrix: ['任务 DAG 与 T1–T5', () => `<div class="card"><div class="section-head"><h3>执行域矩阵 · 示例</h3>${status('14 tasks','info')}</div><table><tr><th>域</th><th>职责</th><th>Agent / Skill</th><th>前置</th></tr><tr><td>T1</td><td>编排与状态</td><td>Codex · yy</td><td>Contract</td></tr><tr><td>T2</td><td>契约与数据</td><td>Claude · planning</td><td>PRD</td></tr><tr><td>T3</td><td>前端体验</td><td>Codex · frontend-design</td><td>Gate A</td></tr><tr><td>T4</td><td>集成与 Bridge</td><td>Codex · security</td><td>T1–T3</td></tr><tr><td>T5</td><td>验收与批判</td><td>Local · review</td><td>T4</td></tr></table></div><div class="detail-grid" style="margin-top:14px"><div class="card"><h3>Session 建议</h3><p>3 lanes：contract、ui、quality。共享契约，不共享可变状态。</p><button class="btn primary btn-block" data-action="sessionplan" style="margin-top:10px">生成拆 Session Prompt</button></div><div class="card"><h3>依赖摘要</h3><pre class="code">T1 ─┬─ T3 ─┐\nT2 ─┘      ├─ T4 ─ T5\nContract ──┘</pre></div></div>`],
+      contract: ['契约中心', () => `<div class="detail-grid"><section><div class="card"><div class="section-head"><h3>contracts/api.yaml</h3>${status('draft · 2 diffs','warn')}</div><table><tr><th>字段</th><th>Draft</th><th>实现</th></tr><tr><td>RunEvent.type</td><td>enum</td><td>string</td></tr><tr><td>ArtifactRef.size</td><td>required</td><td>optional</td></tr></table><div class="actions"><button class="btn" data-action="contractreview">逐项审阅</button><button class="btn primary" data-high-impact="freeze">冻结 hash</button></div></div><div class="card"><h3>导入或反推</h3><div class="field"><label>OpenAPI / source</label><input value="contracts/api.yaml"></div><div class="actions"><button class="btn" data-action="importapi">导入 OpenAPI</button><button class="btn" data-action="reverse">反推 draft</button></div></div></section><aside><div class="card"><h3>下游锁</h3><p>T1–T5 等待契约 hash。冻结后自动生成 discrepancy handoff。</p></div><div class="card"><h3>变更检测</h3><button class="btn btn-block" data-action="contractdiff">对比 baseline</button><div class="result">baseline: 7f2c…a91 · 示例</div></div></aside></div>`],
+      run: ['运行控制台', () => `<div class="detail-grid"><section><div class="card"><h3>执行参数</h3><div class="grid-2"><div class="field"><label>Backend</label><select><option>auto</option><option>prompt</option><option>cli</option></select></div><div class="field"><label>Host</label><select><option>Codex → Claude</option><option>Codex only</option></select></div><div class="field"><label>并行度</label><input type="number" min="1" max="5" value="3"></div><div class="field"><label>重试</label><input type="number" min="0" max="3" value="2"></div></div><div class="field"><label>Session namespace</label><input value="yy-m3"></div><div class="actions"><button class="btn" data-action="dryrun">Dry run</button><button class="btn primary" data-high-impact="dispatch">正式执行</button></div></div><div class="card"><h3>实时日志 · 示例</h3><pre class="log">[T3] artifact saved\n[T2] waiting: contract hash\n[SYS] retries 0/2 · elapsed 02:14</pre></div></section><aside><div class="card"><h3>恢复与观察</h3><div class="actions"><button class="btn" data-action="resume">Resume</button><button class="btn" data-action="tui">打开 TUI</button></div></div><div class="card"><h3>当前结果</h3><p id="actionResult">尚未在原型中执行动作。</p></div></aside></div>`],
+      integration: ['跨分支集成', () => `<div class="card"><h3>3 个 session 摘要</h3><table><tr><th>Session</th><th>Changed files</th><th>Gate</th></tr><tr><td>yy-m3-contract</td><td>3</td><td>blocked</td></tr><tr><td>yy-m3-ui</td><td>5</td><td>ready</td></tr><tr><td>yy-m3-quality</td><td>2</td><td>queued</td></tr></table></div><div class="actions"><button class="btn" data-action="summaryall">读取 latest / all</button><button class="btn primary" data-action="handoff">生成集成 handoff</button></div>`],
+      frontendGate: ['前端 Gate A / B', () => `<div class="detail-grid"><section><div class="card"><div class="section-head"><h3>Gate A · 产品签收</h3>${status('in review','warn')}</div><p>HTML 三稿已使用同一功能模型。等待 owner 选择方向并回复 APPROVED。</p><table><tr><th>方向</th><th>重心</th><th>状态</th></tr><tr><td>阶段导航型</td><td>首次使用</td><td>Ready</td></tr><tr><td>调度队列型</td><td>高频执行</td><td>Ready</td></tr><tr><td>Owner 决策型</td><td>签收治理</td><td>Ready</td></tr></table></div><div class="card"><h3>Gate B · 技术验收</h3><p>Gate A 前保持锁定，不提前创建 React 或 Bridge。</p><button class="btn" disabled style="margin-top:10px">等待 Gate A</button></div></section><aside><div class="card"><h3>一致性链</h3><p>Design tokens → HTML → implementation → visual baseline</p><button class="btn btn-block" data-action="parity" style="margin-top:10px">运行 parity check</button></div><div class="card warn"><h3>更新基线</h3><p>高影响：会替换视觉事实来源。</p><button class="btn danger btn-block" data-high-impact="baseline" style="margin-top:10px">更新视觉基线</button></div></aside></div>`],
+      acceptance: ['L0–L4 独立验收', () => `<div class="detail-grid"><section><div class="card"><h3>报告声明 vs 独立实证</h3><table><tr><th>层级</th><th>报告声明</th><th>独立实证</th></tr><tr><td>L0 Changed files</td><td>Pass</td><td>Pass</td></tr><tr><td>L1 CDC</td><td>Pass</td><td>Pass</td></tr><tr><td>L2 Integration</td><td>Pass</td><td>Pass</td></tr><tr><td>L3 E2E</td><td>Pass</td><td>Pass</td></tr><tr><td>L4 Regression</td><td>Pending</td><td>12/12 Pass</td></tr></table><button class="btn primary btn-block" data-action="verify" style="margin-top:12px">重新运行独立实证</button></div></section><aside><div class="card"><h3>质量工具</h3><div class="status-row" style="margin-top:9px">${status('CI success','success')}${status('Security clear','success')}</div><div class="status-row" style="margin-top:7px">${status('Deps degraded','warn')}${status('Assets 16','info')}</div><button class="btn btn-block" data-detail="tools" style="margin-top:12px">打开全部工具</button></div></aside></div>`],
+      critique: ['技术批判与 Backlog', () => `<div class="detail-grid"><section><div class="card"><div class="section-head"><h3>有效批判 3/3</h3>${status('URLs verified','success')}</div><table><tr><th>ID</th><th>批判</th><th>承接</th></tr><tr><td>C-01</td><td>Gate 解释仍偏技术化</td><td>T3-04</td></tr><tr><td>C-02</td><td>恢复路径缺少耗时预估</td><td>T1-06</td></tr><tr><td>C-03</td><td>移动端日志筛选成本高</td><td>T3-05</td></tr></table></div><div class="card"><h3>竞品验证</h3><p>GitHub Actions · Linear · Raycast，URL 与验证日期已记录。</p><button class="btn btn-block" data-action="verifyurls" style="margin-top:10px">重新验证 URL</button></div></section><aside><div class="card"><h3>落地率</h3><strong style="display:block;font:600 28px/1.2 'JetBrains Mono';margin-top:8px">80%</strong><p>4 / 5 承接项已关闭。</p></div><button class="btn danger btn-block" data-high-impact="critique" style="margin-top:10px">自动登记 C-xx</button></aside></div>`],
+      artifacts: ['产物与记忆', () => `<div class="detail-grid"><section><div class="card"><h3>产物索引 · 示例</h3><table><tr><th>类型</th><th>路径</th><th>状态</th></tr><tr><td>PRD</td><td>docs/PRD.md</td><td>Ready</td></tr><tr><td>Plan</td><td>docs/yy-dev-plan.md</td><td>14/14</td></tr><tr><td>Contract</td><td>contracts/api.yaml</td><td>Draft</td></tr><tr><td>Report</td><td>test-reports/</td><td>12/12</td></tr><tr><td>Screenshot</td><td>test-reports/screenshots/</td><td>Ready</td></tr></table><button class="btn btn-block" data-action="artifact" style="margin-top:10px">打开选中产物</button></div></section><aside><div class="card"><h3>Latest / All</h3><p>state-summary、handoff 与失败恢复建议。</p><button class="btn btn-block" data-action="summaryall" style="margin-top:10px">刷新摘要</button></div><div class="card warn"><h3>记忆同步</h3><p>方向：project → memory</p><button class="btn danger btn-block" data-high-impact="sync" style="margin-top:10px">预览并同步</button></div></aside></div>`],
+      environment: ['项目环境', () => `<div class="detail-grid"><section><div class="card"><h3>工作区</h3><div class="field"><label>Workspace whitelist</label><input value="D:\\.ai-hub\\skills\\yy"></div><div class="grid-2"><div class="field"><label>Primary host</label><select><option>Codex</option></select></div><div class="field"><label>Fallback</label><select><option>Claude</option></select></div></div><div class="actions"><button class="btn" data-action="reprobe">探测平台</button><button class="btn primary" data-action="saveconfig">保存示例配置</button></div></div></section><aside><div class="card"><h3>探测结果</h3><p>Windows · Node 18+ · 2 hosts · 16 assets</p><div class="status-row" style="margin-top:10px">${status('CLI ready','success')}${status('Bridge disconnected','danger')}</div></div></aside></div>`],
+      assets: ['16 项资产盘点', () => `<div class="card"><div class="section-head"><h3>Vendor assets</h3>${status('16 available','success')}</div><table><tr><th>级别</th><th>数量</th><th>示例</th><th>状态</th></tr><tr><td>核心</td><td>6</td><td>frontend-design, planning, review</td><td>Ready</td></tr><tr><td>增强</td><td>7</td><td>security, sdlc, research</td><td>Ready</td></tr><tr><td>外部</td><td>3</td><td>host adapters</td><td>Degraded</td></tr></table></div><div class="actions"><button class="btn" data-action="assetaudit">运行依赖审计</button><button class="btn primary" data-action="assetcall">检查资产调用率</button></div>`],
+      states: ['状态矩阵', () => `<div class="state-grid"><div class="state-card"><strong>Loading</strong><p>骨架保留布局，不阻塞全局导航。</p></div><div class="state-card"><strong>Empty</strong><p>无 session 时解释如何创建。</p></div><div class="state-card"><strong>Error</strong><p>保留退出码、原始日志与重试。</p></div><div class="state-card"><strong>Blocked</strong><p>显示缺失 step / gate 与 owner 动作。</p></div><div class="state-card"><strong>Degraded</strong><p>标出备用宿主和能力降级。</p></div><div class="state-card"><strong>Success</strong><p>同时链接实证与产物。</p></div><div class="state-card"><strong>Bridge disconnected</strong><p>浏览仍可用，执行切换为复制 Prompt。</p></div></div><button class="btn btn-block" data-action="simulate" style="margin-top:12px">轮播状态反馈</button>`],
+      tools: ['高级工具抽屉', () => `<div class="card"><div class="section-head"><div><h3>结构化动作</h3><p style="margin-top:4px;color:var(--muted);font-size:12px">每项均提供参数、命令预览、退出码、日志与产物链接。</p></div>${status(`${tools.length} tools`,'info')}</div><table><tr><th>动作</th><th>脚本</th><th></th></tr>${tools.map((t,i) => `<tr><td>${t[0]}</td><td><code>${t[1]}</code></td><td><button class="btn" style="padding:0 10px" data-tool="${i}">配置</button></td></tr>`).join('')}</table></div><div id="toolPreview" class="card" style="margin-top:12px"><h3>命令预览</h3><p>选择工具后在此显示 typed args、运行状态和结果。</p></div>`]
+    };
+
+    function applyTheme() {
+      if (themeMode === 'system') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme',themeMode);
+      localStorage.setItem('yy-theme',themeMode);
+    }
+    function showToast(message) { const el = document.getElementById('toast'); el.textContent = message; el.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'),2200); }
+    function openDetail(id) {
+      const view = detailViews[id]; if (!view) return;
+      document.getElementById('detailTitle').textContent = view[0]; document.getElementById('detailBody').innerHTML = view[1]();
+      document.getElementById('detail').classList.add('open'); document.getElementById('detail').setAttribute('aria-hidden','false'); document.getElementById('detailScrim').classList.add('open');
+      bindInteractive(document.getElementById('detailBody')); document.querySelector('[data-close-detail]').focus();
+    }
+    function closeDetail() { document.getElementById('detail').classList.remove('open'); document.getElementById('detail').setAttribute('aria-hidden','true'); document.getElementById('detailScrim').classList.remove('open'); }
+    function openConfirm(id) {
+      pendingAction = id; const [impact,command] = highImpact[id]; document.getElementById('confirmImpact').textContent = impact; document.getElementById('confirmCommand').textContent = command;
+      document.getElementById('confirmCheck').checked = false; document.getElementById('confirmExecute').disabled = true; document.getElementById('confirmWrap').classList.add('open'); document.getElementById('confirmWrap').setAttribute('aria-hidden','false'); document.getElementById('confirmCheck').focus();
+    }
+    function closeConfirm() { document.getElementById('confirmWrap').classList.remove('open'); document.getElementById('confirmWrap').setAttribute('aria-hidden','true'); pendingAction = null; }
+    function normalAction(id) {
+      const messages = { theme:'主题已切换',dryrun:'Dry run 完成：3 个 session，0 个写操作',reprobe:'探测完成：2 个宿主，16 项资产',prompt:'已生成 /yy 1 Prompt（示例）',signoff:'概念签收已记录（示例）',gwt:'GWT 场景已保存（示例）',planreview:'三视角审查完成：5 条 finding',sessionplan:'已生成 3-lane Session Prompt',contractreview:'已标记 2 项差异为已审阅',importapi:'OpenAPI 已导入为 draft（示例）',reverse:'已反推契约 draft（示例）',contractdiff:'变更检测完成：2 项 discrepancy',resume:'恢复点校验通过，等待执行',tui:'TUI 预览已打开（示例）',summaryall:'已读取 3 个 session 的 latest / all',handoff:'集成 handoff 已生成（示例）',parity:'Parity check：导航与组件 100% 对齐',verify:'独立实证完成：12 PASS / 0 FAIL',verifyurls:'3 个竞品 URL 验证有效',artifact:'已定位白名单内产物（示例）',saveconfig:'示例配置已保存到本地状态',assetaudit:'依赖审计完成：0 critical',assetcall:'资产调用率检查完成',simulate:'状态：degraded → fallback host ready' };
+      if (id === 'theme') { themeMode = themeMode === 'system' ? 'light' : themeMode === 'light' ? 'dark' : 'system'; applyTheme(); mount(current); }
+      showToast(messages[id] || `动作 ${id} 已响应（示例）`);
+      const result = document.getElementById('actionResult'); if (result) result.innerHTML = `<span class="result">${messages[id] || id}</span>`;
+    }
+    function bindInteractive(root=document) {
+      root.querySelectorAll('[data-detail]').forEach(el => el.addEventListener('click',() => openDetail(el.dataset.detail)));
+      root.querySelectorAll('[data-high-impact]').forEach(el => el.addEventListener('click',() => openConfirm(el.dataset.highImpact)));
+      root.querySelectorAll('[data-action]').forEach(el => el.addEventListener('click',() => normalAction(el.dataset.action)));
+      root.querySelectorAll('[data-tool]').forEach(el => el.addEventListener('click',() => { const t=tools[Number(el.dataset.tool)]; document.getElementById('toolPreview').innerHTML=`<div class="section-head"><h3>${t[0]}</h3>${status('ready','success')}</div><div class="field"><label>参数</label><input value="默认安全参数"></div><p style="margin:10px 0 6px;color:var(--muted);font-size:12px">完整命令</p><div class="code">${t[2]}</div><div class="actions"><button class="btn" data-action="copycmd">复制命令</button><button class="btn primary" data-action="runtool">执行示例</button></div><div class="result">Exit code: — · Logs: waiting · Artifact: —</div>`; bindInteractive(document.getElementById('toolPreview')); }));
+    }
+
+    const stage = document.getElementById('stage');
+    const picker = document.querySelector('.proto-picker');
+    const highlight = picker.querySelector('.proto-picker-highlight');
+    const items = [...picker.querySelectorAll('.proto-picker-item:not(.proto-picker-replay)')];
+    const replay = picker.querySelector('.proto-picker-replay');
+    let current = 0;
+    function moveHighlight() { const el=items[current]; highlight.style.width=el.offsetWidth+'px'; highlight.style.transform=`translateX(${el.offsetLeft}px)`; }
+    function mount(i) { stage.innerHTML=''; requestAnimationFrame(() => { stage.innerHTML=variants[i](); bindInteractive(stage); stage.querySelectorAll('[data-nav]').forEach(el => el.addEventListener('click',() => { currentTab=el.dataset.nav; mount(current); })); }); }
+    function setActive(i) { if(i<0||i>=variants.length)return; current=i; currentTab='progress'; items.forEach((el,j)=>{el.toggleAttribute('data-active',j===i);if(j===i)el.setAttribute('aria-current','true');else el.removeAttribute('aria-current');}); moveHighlight(); const url=new URL(location);url.searchParams.set('v',i+1);history.replaceState(null,'',url);mount(i); }
+    items.forEach((el,i)=>el.addEventListener('click',()=>setActive(i))); replay.addEventListener('click',()=>mount(current)); window.addEventListener('resize',moveHighlight);
+    document.querySelector('[data-close-detail]').addEventListener('click',closeDetail); document.getElementById('detailScrim').addEventListener('click',closeDetail);
+    document.querySelector('[data-cancel-confirm]').addEventListener('click',closeConfirm); document.getElementById('confirmCheck').addEventListener('change',e => document.getElementById('confirmExecute').disabled=!e.target.checked);
+    document.querySelector('[data-confirm-execute]').addEventListener('click',() => { const id=pendingAction; closeConfirm(); showToast(`已确认：${id}（原型仅模拟，未执行真实命令）`); const result=document.getElementById('actionResult'); if(result) result.innerHTML=`<span class="result">Run status: success · exit code 0 · 示例</span>`; });
+    document.addEventListener('keydown',e=>{if(/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)||e.target.isContentEditable)return;if(e.metaKey||e.ctrlKey||e.altKey)return;const num=parseInt(e.key,10);if(num>=1&&num<=variants.length)setActive(num-1);else if(e.key==='ArrowRight')setActive((current+1)%variants.length);else if(e.key==='ArrowLeft')setActive((current-1+variants.length)%variants.length);else if(e.key==='r'||e.key==='R')mount(current);else if(e.key==='Escape'){closeDetail();closeConfirm();}});
+    applyTheme(); setActive((parseInt(new URLSearchParams(location.search).get('v'),10)||1)-1); requestAnimationFrame(()=>requestAnimationFrame(()=>picker.setAttribute('data-ready','')));
+  </script>
+</body>
+</html>

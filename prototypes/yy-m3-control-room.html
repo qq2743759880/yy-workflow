@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' fill='%2317212b'/%3E%3Ctext x='9' y='43' font-family='monospace' font-size='30' font-weight='700' fill='%23f3f4ef'%3EYY%3C/text%3E%3C/svg%3E" />
+  <title>YY M3 多分支编排原型</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@400;500;600;700&display=swap');
+
+    :root {
+      --ink: #17212b;
+      --muted-ink: #536170;
+      --paper: #f3f4ef;
+      --surface: #fbfcf8;
+      --surface-2: #e9ede8;
+      --line: #b8c0ba;
+      --line-strong: #78867d;
+      --run: #1d9b5e;
+      --run-soft: #d5f1e1;
+      --warn: #c25a23;
+      --warn-soft: #f9dfcd;
+      --danger: #b63e45;
+      --info: #356f91;
+      --shadow: 0 18px 55px rgba(45, 58, 49, 0.12);
+      --radius: 8px;
+      --sans: "Fira Sans", "Segoe UI", sans-serif;
+      --mono: "Fira Code", "Cascadia Code", monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--paper); color: var(--ink); }
+    body { font-family: var(--sans); min-height: 100dvh; }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible { outline: 3px solid rgba(53, 111, 145, 0.45); outline-offset: 2px; }
+
+    .stage { min-height: 100dvh; padding: 24px 24px 96px; }
+    .shell { max-width: 1480px; margin: 0 auto; min-height: calc(100dvh - 120px); }
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      min-height: 64px;
+      border-bottom: 1px solid var(--line-strong);
+      gap: 24px;
+    }
+    .brand { display: flex; align-items: baseline; gap: 14px; }
+    .brand strong { font: 700 24px/1 var(--mono); letter-spacing: -0.06em; }
+    .brand span { color: var(--muted-ink); font-size: 13px; }
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .stamp {
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      padding: 7px 10px;
+      font: 600 11px/1 var(--mono);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: var(--surface);
+    }
+    .stamp.ok { color: #0d6e42; border-color: #71b892; background: var(--run-soft); }
+    .stamp.warn { color: #8c3d18; border-color: #d59b78; background: var(--warn-soft); }
+    .action {
+      border: 1px solid var(--ink);
+      border-radius: var(--radius);
+      color: var(--paper);
+      background: var(--ink);
+      min-height: 42px;
+      padding: 0 16px;
+      font-weight: 700;
+      transition: transform 160ms ease-out, background 160ms ease-out;
+    }
+    .action:hover { background: #2b3944; }
+    .action:active { transform: scale(0.98); }
+    .action.secondary { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+    .action.secondary:hover { background: var(--surface-2); }
+    .action.approve { background: var(--run); border-color: var(--run); color: #071b11; }
+
+    .eyebrow { font: 600 11px/1.3 var(--mono); letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted-ink); }
+    .lede { color: var(--muted-ink); max-width: 62ch; line-height: 1.55; }
+    .metric { font: 700 24px/1 var(--mono); letter-spacing: -0.04em; }
+    .status-line { display: inline-flex; align-items: center; gap: 8px; font: 600 12px/1 var(--mono); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line-strong); }
+    .dot.ok { background: var(--run); box-shadow: 0 0 0 4px var(--run-soft); }
+    .dot.warn { background: var(--warn); box-shadow: 0 0 0 4px var(--warn-soft); }
+    .dot.fail { background: var(--danger); }
+    .mono { font-family: var(--mono); }
+
+    /* Variant 1: Dispatch desk */
+    .dispatch-head {
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      align-items: end;
+      gap: 42px;
+      padding: 48px 0 30px;
+    }
+    .dispatch-head h1 { margin: 10px 0 16px; font-size: clamp(40px, 5vw, 72px); line-height: 0.92; letter-spacing: -0.055em; max-width: 10ch; }
+    .dispatch-score { border-left: 1px solid var(--line-strong); padding-left: 24px; display: grid; gap: 16px; }
+    .score-row { display: flex; justify-content: space-between; gap: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+    .score-row:last-child { border-bottom: 0; padding-bottom: 0; }
+    .score-row small { color: var(--muted-ink); }
+    .ops-grid { display: grid; grid-template-columns: minmax(210px, 0.58fr) minmax(0, 1.9fr) minmax(250px, 0.78fr); border: 1px solid var(--line-strong); background: var(--surface); box-shadow: var(--shadow); }
+    .rail { padding: 18px; border-right: 1px solid var(--line); }
+    .rail h2, .side-panel h2 { font-size: 13px; margin: 0 0 18px; }
+    .milestone { display: grid; grid-template-columns: 28px 1fr; gap: 10px; position: relative; min-height: 70px; }
+    .milestone::before { content: ""; position: absolute; left: 11px; top: 22px; bottom: -4px; width: 1px; background: var(--line); }
+    .milestone:last-child::before { display: none; }
+    .milestone-mark { width: 23px; height: 23px; border: 1px solid var(--run); background: var(--run-soft); border-radius: 50%; display: grid; place-items: center; color: #0d6e42; font: 700 12px var(--mono); }
+    .milestone b { font-size: 13px; }
+    .milestone small { display: block; color: var(--muted-ink); margin-top: 3px; line-height: 1.4; }
+    .lanes { min-width: 0; }
+    .lane-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 58px; padding: 0 18px; border-bottom: 1px solid var(--line); }
+    .lane-toolbar b { font-size: 14px; }
+    .segmented { display: flex; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+    .segmented button { border: 0; background: transparent; min-height: 34px; padding: 0 11px; color: var(--muted-ink); }
+    .segmented button.active { background: var(--ink); color: var(--paper); }
+    .lane-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .lane-table th { height: 40px; text-align: left; padding: 0 14px; color: var(--muted-ink); font: 600 10px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; border-bottom: 1px solid var(--line); }
+    .lane-table td { padding: 15px 14px; border-bottom: 1px solid var(--line); vertical-align: top; font-size: 13px; }
+    .lane-table tr:last-child td { border-bottom: 0; }
+    .lane-table tr:hover td { background: #f1f5ef; }
+    .lane-name { display: flex; align-items: flex-start; gap: 10px; }
+    .lane-name b { display: block; margin-bottom: 4px; }
+    .lane-name small { color: var(--muted-ink); }
+    .path { font: 500 11px/1.5 var(--mono); color: #3d4b57; word-break: break-word; }
+    .side-panel { border-left: 1px solid var(--line); padding: 18px; display: flex; flex-direction: column; gap: 20px; }
+    .notice { padding: 14px; border: 1px solid #d59b78; background: var(--warn-soft); border-radius: var(--radius); }
+    .notice strong { display: block; font-size: 13px; margin-bottom: 6px; }
+    .notice p { margin: 0; color: #713718; font-size: 12px; line-height: 1.5; }
+    .summary-list { display: grid; gap: 0; border-top: 1px solid var(--line); }
+    .summary-list div { padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .summary-list b { display: block; font-size: 12px; margin-bottom: 4px; }
+    .summary-list small { color: var(--muted-ink); line-height: 1.4; }
+    .side-actions { display: grid; gap: 8px; margin-top: auto; }
+
+    /* Variant 2: Branch map */
+    .map-shell { background: #e8ece6; border: 1px solid var(--line-strong); min-height: 790px; position: relative; overflow: hidden; box-shadow: var(--shadow); }
+    .map-shell::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(23,33,43,.055) 1px, transparent 1px), linear-gradient(90deg, rgba(23,33,43,.055) 1px, transparent 1px); background-size: 24px 24px; pointer-events: none; }
+    .map-bar { position: relative; z-index: 2; min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 20px; background: rgba(251,252,248,.94); border-bottom: 1px solid var(--line-strong); }
+    .map-canvas { position: relative; z-index: 1; min-height: 724px; padding: 52px 38px; display: grid; grid-template-columns: 0.6fr 1.45fr 0.72fr; align-items: center; gap: 54px; }
+    .node { background: var(--surface); border: 1px solid var(--ink); border-radius: var(--radius); padding: 16px; position: relative; }
+    .node h3 { font-size: 14px; margin: 0 0 8px; }
+    .node p { margin: 0; color: var(--muted-ink); font-size: 12px; line-height: 1.45; }
+    .node.root { box-shadow: 9px 9px 0 rgba(23,33,43,.13); }
+    .node.root::after { content: ""; position: absolute; top: 50%; left: 100%; width: 54px; border-top: 2px solid var(--ink); }
+    .branch-stack { display: grid; gap: 24px; position: relative; }
+    .branch-stack::before { content: ""; position: absolute; left: -28px; top: 48px; bottom: 48px; border-left: 2px solid var(--ink); }
+    .node.branch::before { content: ""; position: absolute; right: 100%; top: 50%; width: 28px; border-top: 2px solid var(--ink); }
+    .node.branch::after { content: ""; position: absolute; left: 100%; top: 50%; width: 54px; border-top: 2px solid var(--ink); }
+    .node.merge { border-width: 2px; background: #eff8f2; box-shadow: 9px 9px 0 rgba(29,155,94,.16); }
+    .branch-meta { display: grid; grid-template-columns: 1fr auto; align-items: start; gap: 12px; }
+    .branch-bars { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 14px; }
+    .branch-bars span { height: 5px; background: var(--surface-2); border-radius: 3px; }
+    .branch-bars span.done { background: var(--run); }
+    .map-float { position: absolute; z-index: 3; left: 20px; bottom: 18px; right: 20px; display: flex; justify-content: space-between; gap: 12px; align-items: center; background: var(--ink); color: var(--paper); border-radius: var(--radius); padding: 12px 14px; }
+    .map-float small { color: #c8d0ca; }
+    .map-float .action { border-color: var(--paper); }
+
+    /* Variant 3: Owner view */
+    .owner-wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 0.42fr); gap: 56px; padding: 54px 0; }
+    .owner-main h1 { font-size: clamp(44px, 6vw, 84px); line-height: 0.9; letter-spacing: -0.06em; margin: 12px 0 26px; max-width: 9ch; }
+    .owner-main > .lede { font-size: 17px; margin-bottom: 34px; }
+    .decision {
+      display: grid;
+      grid-template-columns: 112px 1fr auto;
+      gap: 18px;
+      align-items: center;
+      padding: 18px 0;
+      border-top: 1px solid var(--line-strong);
+    }
+    .decision:last-of-type { border-bottom: 1px solid var(--line-strong); }
+    .decision-id { font: 700 12px var(--mono); color: var(--muted-ink); }
+    .decision h3 { margin: 0 0 5px; font-size: 16px; }
+    .decision p { margin: 0; color: var(--muted-ink); font-size: 13px; line-height: 1.45; }
+    .decision .state { font: 600 12px var(--mono); white-space: nowrap; }
+    .owner-side { align-self: start; position: sticky; top: 24px; }
+    .owner-card { border: 1px solid var(--ink); border-radius: var(--radius); background: var(--surface); box-shadow: 10px 10px 0 rgba(23,33,43,.12); }
+    .owner-card header { padding: 18px; border-bottom: 1px solid var(--line); }
+    .owner-card header h2 { margin: 4px 0 0; font-size: 22px; }
+    .owner-card .body { padding: 18px; display: grid; gap: 18px; }
+    .question { padding: 14px; background: var(--surface-2); border-radius: var(--radius); }
+    .question strong { font-size: 14px; }
+    .question p { margin: 6px 0 0; font-size: 12px; color: var(--muted-ink); line-height: 1.5; }
+    .approve-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .truth-box { margin-top: 34px; border-left: 4px solid var(--warn); padding: 2px 0 2px 16px; }
+    .truth-box b { display: block; margin-bottom: 6px; }
+    .truth-box p { margin: 0; color: var(--muted-ink); font-size: 13px; line-height: 1.5; }
+
+    .toast { position: fixed; right: 24px; top: 84px; width: min(360px, calc(100vw - 48px)); background: var(--ink); color: var(--paper); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); z-index: 100; transform: translateY(-14px); opacity: 0; pointer-events: none; transition: transform 220ms cubic-bezier(.22,1,.36,1), opacity 180ms ease-out; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast b { display: block; margin-bottom: 4px; }
+    .toast small { color: #cad2cc; }
+
+    .enter { animation: rise 420ms cubic-bezier(.22,1,.36,1) both; }
+    .enter:nth-child(2) { animation-delay: 55ms; }
+    .enter:nth-child(3) { animation-delay: 110ms; }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 0.001ms !important; }
+    }
+
+    @media (max-width: 980px) {
+      .stage { padding: 16px 16px 92px; }
+      .dispatch-head, .owner-wrap { grid-template-columns: 1fr; }
+      .dispatch-score { border-left: 0; border-top: 1px solid var(--line-strong); padding: 20px 0 0; }
+      .ops-grid { grid-template-columns: 1fr; }
+      .rail, .side-panel { border: 0; }
+      .rail { border-bottom: 1px solid var(--line); }
+      .side-panel { border-top: 1px solid var(--line); }
+      .map-canvas { grid-template-columns: 1fr; gap: 24px; padding-bottom: 110px; }
+      .node.root::after, .node.branch::before, .node.branch::after, .branch-stack::before { display: none; }
+      .owner-side { position: static; }
+    }
+
+    @media (max-width: 620px) {
+      .topbar { grid-template-columns: 1fr; padding: 14px 0; }
+      .top-actions { flex-wrap: wrap; }
+      .dispatch-head { padding-top: 34px; }
+      .lane-table th:nth-child(3), .lane-table td:nth-child(3) { display: none; }
+      .decision { grid-template-columns: 1fr; gap: 8px; }
+      .decision .state { justify-self: start; }
+      .map-bar { align-items: flex-start; padding: 14px; flex-direction: column; }
+      .map-float { position: static; margin: 0 20px 20px; flex-direction: column; align-items: stretch; }
+      .map-canvas { min-height: auto; }
+    }
+
+    .proto-picker {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2147483647;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      padding: 4px;
+      border-radius: 999px;
+      background: rgba(10, 10, 10, 0.82);
+      -webkit-backdrop-filter: blur(12px) saturate(1.4);
+      backdrop-filter: blur(12px) saturate(1.4);
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+        0 8px 24px rgba(0, 0, 0, 0.24),
+        0 2px 6px rgba(0, 0, 0, 0.12);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 13px;
+      line-height: 1;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .proto-picker-highlight {
+      position: absolute;
+      top: 4px;
+      left: 0;
+      height: 28px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      will-change: transform;
+    }
+
+    .proto-picker[data-ready] .proto-picker-highlight {
+      transition:
+        transform 250ms cubic-bezier(0.23, 1, 0.32, 1),
+        width 250ms cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .proto-picker[data-ready] .proto-picker-highlight { transition: none; }
+    }
+
+    .proto-picker-item {
+      position: relative;
+      display: flex;
+      align-items: center;
+      height: 28px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.55);
+      font: inherit;
+      cursor: pointer;
+      transition: color 150ms ease-out;
+    }
+
+    .proto-picker-item:hover { color: rgba(255, 255, 255, 0.85); }
+    .proto-picker-item:active { transform: scale(0.97); }
+    .proto-picker-item:focus-visible { outline: 2px solid rgba(255, 255, 255, 0.4); outline-offset: 2px; }
+    .proto-picker-item[data-active] { color: #fff; }
+    .proto-picker-divider { width: 1px; height: 16px; margin: 0 4px; background: rgba(255, 255, 255, 0.12); }
+    .proto-picker-replay { padding: 0 10px; font-size: 14px; }
+    .proto-picker[data-position="top"] { bottom: auto; top: 24px; }
+  </style>
+</head>
+<body>
+  <main id="stage" class="stage" aria-live="polite"></main>
+  <div id="toast" class="toast" role="status" aria-atomic="true"></div>
+
+  <nav class="proto-picker" aria-label="Prototype variants">
+    <span class="proto-picker-highlight" aria-hidden="true"></span>
+    <button class="proto-picker-item" data-active aria-current="true">调度台</button>
+    <button class="proto-picker-item">拓扑图</button>
+    <button class="proto-picker-item">Owner 视图</button>
+    <span class="proto-picker-divider" aria-hidden="true"></span>
+    <button class="proto-picker-item proto-picker-replay" aria-label="Replay animation (R)">↻</button>
+  </nav>
+
+  <script>
+    const topbar = (mode) => `
+      <header class="topbar">
+        <div class="brand"><strong>YY</strong><span>M3 多分支编排 · ${mode}</span></div>
+        <div class="top-actions">
+          <span class="stamp warn">运行态未初始化</span>
+          <span class="stamp ok">代码里程碑完成</span>
+          <button class="action secondary" data-toast="已复制 summary-read 命令">复制断点命令</button>
+        </div>
+      </header>`;
+
+    const dispatch = () => `
+      <section class="shell">
+        ${topbar('调度台')}
+        <div class="dispatch-head">
+          <div class="enter">
+            <div class="eyebrow">Milestone 03 / Branch orchestration</div>
+            <h1>把并行变成可驾驶的工作。</h1>
+            <p class="lede">M3 的建议、隔离、汇总三件套已经落地。当前没有 journey 运行实例，因此界面同时呈现代码事实与运行事实。</p>
+          </div>
+          <div class="dispatch-score enter">
+            <div class="score-row"><small>M3 tasks</small><span class="metric">4 / 4</span></div>
+            <div class="score-row"><small>Regression</small><span class="metric">12 / 12</span></div>
+            <div class="score-row"><small>Critique adoption</small><span class="metric">80%</span></div>
+          </div>
+        </div>
+
+        <div class="ops-grid enter">
+          <aside class="rail">
+            <h2>里程碑轨迹</h2>
+            <div class="milestone"><span class="milestone-mark">✓</span><div><b>M1 导航与注入</b><small>journey + 6 个阶段命令</small></div></div>
+            <div class="milestone"><span class="milestone-mark">✓</span><div><b>M2 可读化与透明化</b><small>owner 指引 + 域声明</small></div></div>
+            <div class="milestone"><span class="milestone-mark">✓</span><div><b>M3 多分支编排</b><small>建议 + 隔离 + 汇总</small></div></div>
+          </aside>
+
+          <section class="lanes">
+            <div class="lane-toolbar">
+              <b>建议的三路并行</b>
+              <div class="segmented"><button aria-pressed="true">运行</button><button aria-pressed="false">路径</button><button aria-pressed="false">冲突</button></div>
+            </div>
+            <table class="lane-table">
+              <thead><tr><th style="width:34%">分支</th><th style="width:20%">状态</th><th>隔离命名空间</th></tr></thead>
+              <tbody>
+                <tr><td><div class="lane-name"><span class="dot ok"></span><div><b>branch-ui</b><small>Owner 控制台与状态可视化</small></div></div></td><td><span class="status-line">准备就绪</span></td><td class="path">.tt-state/branch-ui/<br>artifacts/branch-ui/</td></tr>
+                <tr><td><div class="lane-name"><span class="dot ok"></span><div><b>branch-runtime</b><small>session 隔离与路径断言</small></div></div></td><td><span class="status-line">已验证</span></td><td class="path">.tt-state/branch-runtime/<br>contracts/branch-runtime/</td></tr>
+                <tr><td><div class="lane-name"><span class="dot warn"></span><div><b>branch-integration</b><small>跨分支断点与冲突合并</small></div></div></td><td><span class="status-line">等待 owner</span></td><td class="path">artifacts/branch-integration/<br>changed-files scan</td></tr>
+              </tbody>
+            </table>
+          </section>
+
+          <aside class="side-panel">
+            <div>
+              <h2>本次拆分建议</h2>
+              <div class="notice"><strong>建议不自动执行</strong><p>3 条 lane 满足拆会话判据。批准权仍在 owner，系统只准备命名空间与交接要素。</p></div>
+            </div>
+            <div class="summary-list">
+              <div><b>断点汇总</b><small>逐分支读取 state-summary，不加工失败与跳过项。</small></div>
+              <div><b>合并检查</b><small>changed-files 有交集时阻断集成。</small></div>
+              <div><b>下一步</b><small>初始化 journey 后再创建实际执行会话。</small></div>
+            </div>
+            <div class="side-actions"><button class="action approve" data-toast="拆分建议已批准，尚未自动派发">批准三路拆分</button><button class="action secondary" data-toast="已打开命名空间检查清单">检查命名空间</button></div>
+          </aside>
+        </div>
+      </section>`;
+
+    const map = () => `
+      <section class="shell">
+        ${topbar('拓扑图')}
+        <div style="padding: 34px 0 18px" class="enter"><div class="eyebrow">Branch topology / Explicit merge</div><h1 style="font-size:clamp(36px,5vw,64px);letter-spacing:-.055em;line-height:.95;margin:10px 0 14px">分开运行，带着证据汇合。</h1><p class="lede">每条线拥有自己的 state、contract 与 artifact 路径。汇总节点只读证据，不美化中断状态。</p></div>
+        <div class="map-shell enter">
+          <div class="map-bar"><div><b>F4 多分支拓扑</b><div class="status-line" style="margin-left:14px"><span class="dot ok"></span>路径规则已机验</div></div><div class="top-actions"><span class="stamp">lane ≥ 3</span><button class="action secondary" data-toast="拓扑已按依赖重新排布">自动排布</button></div></div>
+          <div class="map-canvas">
+            <article class="node root"><div class="eyebrow">Source plan</div><h3>YY M3 execution</h3><p>4 个任务，3 个实现面，1 个独立验收。</p><div class="branch-bars"><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span></div></article>
+            <div class="branch-stack">
+              <article class="node branch"><div class="branch-meta"><div><div class="eyebrow">branch-ui</div><h3>建议与交接</h3></div><span class="stamp ok">PASS</span></div><p>逐 lane 输出范围、前置、产物路径与交接 prompt。</p></article>
+              <article class="node branch"><div class="branch-meta"><div><div class="eyebrow">branch-runtime</div><h3>session 命名空间</h3></div><span class="stamp ok">PASS</span></div><p>非法 id 被拒绝，全部落盘路径包含 session 前缀。</p></article>
+              <article class="node branch"><div class="branch-meta"><div><div class="eyebrow">branch-summary</div><h3>嵌套断点扫描</h3></div><span class="stamp ok">PASS</span></div><p>summary-read 同时兼容旧单层与新两层结构。</p></article>
+            </div>
+            <article class="node merge"><div class="eyebrow">Evidence merge</div><h3>集成开工点</h3><p>只有断点齐全且 changed-files 无冲突时才生成集成任务。</p><div style="margin-top:16px" class="status-line"><span class="dot warn"></span>等待 owner 初始化运行态</div></article>
+          </div>
+          <div class="map-float"><div><b>命令已准备</b><br><small class="mono">node scripts/summary-read.mjs --workspace &lt;branch&gt; --all</small></div><button class="action" data-toast="命令已复制到剪贴板模拟区">复制命令</button></div>
+        </div>
+      </section>`;
+
+    const owner = () => `
+      <section class="shell">
+        ${topbar('Owner 视图')}
+        <div class="owner-wrap">
+          <div class="owner-main enter">
+            <div class="eyebrow">You keep the steering wheel</div>
+            <h1>先看懂，再批准。</h1>
+            <p class="lede">M3 不会替你擅自拆会话。它只在并行规模变大时给出清楚建议，并保证每个分支互不覆盖。</p>
+
+            <div class="decision"><div class="decision-id">01 / 建议</div><div><h3>是否值得拆成三个会话？</h3><p>当前示例有 3 条独立 lane，符合建议阈值。</p></div><div class="state" style="color:var(--run)">已具备</div></div>
+            <div class="decision"><div class="decision-id">02 / 隔离</div><div><h3>分支会互相覆盖文件吗？</h3><p>state、contract、artifact 都按 session id 隔离。</p></div><div class="state" style="color:var(--run)">已机验</div></div>
+            <div class="decision"><div class="decision-id">03 / 汇总</div><div><h3>中断的分支会被藏起来吗？</h3><p>不会。failed 与 skipped 直接进入断点清单。</p></div><div class="state" style="color:var(--run)">不美化</div></div>
+            <div class="decision"><div class="decision-id">04 / 开工</div><div><h3>现在能自动派发吗？</h3><p>不能。当前运行态未初始化，而且 owner 尚未批准。</p></div><div class="state" style="color:var(--warn)">等待你</div></div>
+
+            <div class="truth-box"><b>两种进度，别混在一起</b><p>代码进度：M1、M2、M3 已完成且回归通过。运行进度：当前 workspace 没有 journey 实例，因此仍是 INFERRED 空态。</p></div>
+          </div>
+
+          <aside class="owner-side enter">
+            <div class="owner-card">
+              <header><div class="eyebrow">Owner decision</div><h2>批准三路拆分？</h2></header>
+              <div class="body">
+                <div class="question"><strong>你批准的是什么</strong><p>只批准创建三个隔离会话与对应交接单，不批准自动执行代码。</p></div>
+                <div class="question"><strong>系统将保留什么</strong><p>每条分支的状态、契约、产物与失败原因都会独立保存。</p></div>
+                <div class="question"><strong>什么会阻止合并</strong><p>changed-files 出现交集，或任何分支没有可复现证据。</p></div>
+                <div class="approve-row"><button class="action secondary" data-toast="保持单会话，不创建分支">暂不拆分</button><button class="action approve" data-toast="已批准建议，下一步仍需初始化 journey">批准</button></div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>`;
+
+    const variants = [dispatch, map, owner];
+    const stage = document.getElementById('stage');
+    const picker = document.querySelector('.proto-picker');
+    const highlight = picker.querySelector('.proto-picker-highlight');
+    const items = [...picker.querySelectorAll('.proto-picker-item:not(.proto-picker-replay)')];
+    const replay = picker.querySelector('.proto-picker-replay');
+    const toast = document.getElementById('toast');
+    let current = 0;
+    let toastTimer;
+
+    function moveHighlight() {
+      const el = items[current];
+      highlight.style.width = el.offsetWidth + 'px';
+      highlight.style.transform = `translateX(${el.offsetLeft}px)`;
+    }
+
+    function bindPrototypeActions() {
+      stage.querySelectorAll('[data-toast]').forEach((button) => {
+        button.addEventListener('click', () => {
+          clearTimeout(toastTimer);
+          toast.innerHTML = `<b>已记录</b><small>${button.dataset.toast}</small>`;
+          toast.classList.add('show');
+          toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+        });
+      });
+      stage.querySelectorAll('.segmented button').forEach((button) => {
+        button.addEventListener('click', () => {
+          stage.querySelectorAll('.segmented button').forEach((item) => item.setAttribute('aria-pressed', 'false'));
+          button.setAttribute('aria-pressed', 'true');
+        });
+      });
+    }
+
+    function mount(i) {
+      stage.innerHTML = '';
+      requestAnimationFrame(() => {
+        stage.innerHTML = variants[i]();
+        bindPrototypeActions();
+      });
+    }
+
+    function setActive(i) {
+      if (i < 0 || i >= variants.length) return;
+      current = i;
+      items.forEach((el, j) => {
+        el.toggleAttribute('data-active', j === i);
+        if (j === i) el.setAttribute('aria-current', 'true');
+        else el.removeAttribute('aria-current');
+      });
+      moveHighlight();
+      const url = new URL(location);
+      url.searchParams.set('v', i + 1);
+      history.replaceState(null, '', url);
+      mount(i);
+    }
+
+    items.forEach((el, i) => el.addEventListener('click', () => setActive(i)));
+    replay?.addEventListener('click', () => mount(current));
+    window.addEventListener('resize', moveHighlight);
+
+    document.addEventListener('keydown', (e) => {
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const num = parseInt(e.key, 10);
+      if (num >= 1 && num <= variants.length) setActive(num - 1);
+      else if (e.key === 'ArrowRight') setActive((current + 1) % variants.length);
+      else if (e.key === 'ArrowLeft') setActive((current - 1 + variants.length) % variants.length);
+      else if (e.key === 'r' || e.key === 'R') mount(current);
+    });
+
+    setActive((parseInt(new URLSearchParams(location.search).get('v'), 10) || 1) - 1);
+    requestAnimationFrame(() => requestAnimationFrame(() => picker.setAttribute('data-ready', '')));
+  </script>
+</body>
+</html>

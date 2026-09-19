@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<!--
+  C-R5-ui 原型预览（Owner 评审用，非交付物）
+  依据：prototypes/yy-workflow-panel/design-spec.md + contracts/drafts/C-R5-ui.draft.md (38fcbfa8…)
+  数据：全部 mock（journey@1 形状），页面内统一标「示例运行」
+  预览控制条（顶部）仅用于切换七态/主题，不是产品 UI
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Journey Control Room — 原型预览</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root, [data-theme="light"] {
+  color-scheme: light;
+  --bg:#dfe7e2; --panel:#f6f8f6; --surface:#fff; --surface-2:#eef3ef;
+  --ink:#14201a; --muted:#66736b; --line:#d5ddd7; --accent:#147d52;
+  --accent-soft:#dcefe5; --info:#2e67a4; --info-soft:#e4eef9; --warn:#986a11; --warn-soft:#f7ecd4;
+  --fail:#b3261e; --fail-soft:#fbe4e2;
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg:#0b110e; --panel:#111814; --surface:#17201b; --surface-2:#1c2821;
+  --ink:#eef5f0; --muted:#9baaa1; --line:#2b3931; --accent:#5fc995;
+  --accent-soft:#183829; --info:#78ade7; --info-soft:#172d43; --warn:#e0b455; --warn-soft:#3a2f14;
+  --fail:#e89790; --fail-soft:#3d1b19;
+}
+* { box-sizing: border-box; }
+html, body { margin:0; min-height:100%; background:var(--bg); color:var(--ink);
+  font:14px/1.5 "IBM Plex Sans", system-ui, sans-serif; }
+code, .mono { font-family:"JetBrains Mono", ui-monospace, monospace; font-size:12px; }
+button { font:inherit; color:inherit; cursor:pointer; }
+button:focus-visible, input:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+
+/* ---- 预览控制条（非产品 UI） ---- */
+.preview-bar { position:sticky; top:0; z-index:50; display:flex; flex-wrap:wrap; gap:8px; align-items:center;
+  padding:8px 12px; background:#222; color:#eee; font-size:12px; border-bottom:2px dashed #888; }
+.preview-bar .tag { background:#000; color:#7fe7ae; padding:1px 8px; border-radius:999px; font-weight:600; }
+.preview-bar select, .preview-bar button { min-height:32px; border:1px solid #666; border-radius:8px; background:#333; color:#eee; padding:0 10px; }
+.preview-bar .hint { color:#aaa; }
+
+/* ---- 面板壳 ---- */
+.stage-wrap { min-height:calc(100dvh - 49px); display:grid; place-items:start center; padding:24px 12px 48px; }
+.panel { width:420px; min-width:360px; max-width:100%; min-height:78dvh; display:flex; flex-direction:column;
+  background:var(--panel); border:1px solid var(--line); border-radius:14px; overflow:hidden;
+  box-shadow:0 10px 34px rgba(20,32,26,.14); position:relative; }
+.topbar { padding:12px 13px 10px; border-bottom:1px solid var(--line); background:var(--surface); }
+.topbar-row { display:flex; gap:8px; align-items:center; }
+.project-select { flex:1; height:44px; padding:0 10px; border:1px solid var(--line); border-radius:10px;
+  background:var(--panel); color:var(--ink); font-weight:600; }
+.icon-btn { width:44px; height:44px; flex:none; border:1px solid var(--line); border-radius:10px; background:var(--panel); }
+.icon-btn:hover { background:var(--surface-2); }
+.context-line { margin:8px 0 0; color:var(--muted); font-size:12px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.stage { flex:1; overflow-y:auto; padding:13px; display:flex; flex-direction:column; gap:12px; }
+.nav { display:grid; grid-template-columns:repeat(5,1fr); gap:4px; padding:8px; border-top:1px solid var(--line); background:var(--surface); }
+.nav-btn { min-height:44px; border:0; border-radius:10px; background:transparent; color:var(--muted);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; font-size:12px; }
+.nav-btn .code-no { font-size:10px; font-family:"JetBrains Mono",monospace; opacity:.7; }
+.nav-btn.active { color:var(--accent); background:var(--accent-soft); font-weight:600; }/* ---- 组件 ---- */
+.eyebrow { margin:0 0 4px; color:var(--accent); font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; }
+h1 { margin:0 0 4px; font-size:19px; line-height:1.3; }
+.lede { margin:0; color:var(--muted); font-size:13px; }
+.card { padding:13px; background:var(--surface); border:1px solid var(--line); border-radius:10px; }
+.card.accent { background:var(--accent-soft); border-color:color-mix(in srgb, var(--accent) 34%, var(--line)); }
+.card h3 { margin:0 0 8px; font-size:13px; }
+.row { display:flex; gap:8px; align-items:center; }
+.between { justify-content:space-between; }
+.wrap { flex-wrap:wrap; }
+.status { display:inline-flex; align-items:center; gap:6px; min-height:24px; padding:0 8px; border-radius:999px;
+  background:var(--surface-2); color:var(--muted); font-size:12px; font-weight:600; }
+.status::before { content:""; width:8px; height:8px; border-radius:50%; background:currentColor; }
+.status.success { color:var(--accent); background:var(--accent-soft); }
+.status.info { color:var(--info); background:var(--info-soft); }
+.status.warn { color:var(--warn); background:var(--warn-soft); }
+.status.fail { color:var(--fail); background:var(--fail-soft); }
+.pill-demo { display:inline-flex; align-items:center; min-height:20px; padding:0 8px; border-radius:999px;
+  border:1px dashed var(--warn); color:var(--warn); font-size:11px; font-weight:600; }
+.btn { min-height:44px; border:1px solid var(--line); border-radius:10px; padding:0 13px; background:var(--surface); font-weight:600; }
+.btn:hover { border-color:color-mix(in srgb, var(--accent) 48%, var(--line)); }
+.btn.primary { border-color:var(--accent); background:var(--accent); color:#fff; }
+.btn[disabled] { opacity:.55; cursor:not-allowed; }
+.btn.small { min-height:32px; padding:0 10px; font-size:12px; }
+.step { display:grid; grid-template-columns:26px 1fr auto; gap:10px; align-items:center; min-height:44px; padding:4px 0; }
+.step + .step { border-top:1px solid var(--line); }
+.step-dot { width:22px; height:22px; border-radius:50%; border:2px solid var(--line); background:var(--surface);
+  display:grid; place-items:center; font-size:11px; color:var(--muted); font-family:"JetBrains Mono",monospace; }
+.step.done .step-dot { background:var(--accent); border-color:var(--accent); color:#fff; }
+.step.active .step-dot { border:5px solid var(--accent); background:var(--surface); color:transparent; }
+.step.blocked .step-dot { border-color:var(--fail); background:var(--fail-soft); color:var(--fail); }
+.step-name { font-weight:600; }
+.step.active .step-name { color:var(--accent); }
+.step-meta { font-size:12px; color:var(--muted); }
+.progress-track { height:7px; border-radius:999px; background:var(--surface-2); overflow:hidden; }
+.progress-fill { height:100%; background:var(--accent); border-radius:inherit; transition:width .22s ease-out; }
+.code { padding:10px; border:1px solid var(--line); border-radius:9px; background:var(--surface-2);
+  font-family:"JetBrains Mono",monospace; font-size:12px; word-break:break-all; white-space:pre-wrap; }
+.list-item { display:grid; grid-template-columns:31px 1fr auto; gap:10px; align-items:center; min-height:44px;
+  padding:8px 0; border:0; background:none; text-align:left; width:100%; }
+.list-item + .list-item { border-top:1px solid var(--line); }
+.list-icon { width:31px; height:31px; border-radius:8px; display:grid; place-items:center;
+  background:var(--surface-2); color:var(--muted); font-size:13px; }
+.list-item strong { display:block; font-size:13px; }
+.list-item small { color:var(--muted); font-size:12px; }
+.banner { display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border-radius:10px; font-size:13px;
+  border:1px solid var(--line); background:var(--surface); }
+.banner.warn { border-color:color-mix(in srgb, var(--warn) 45%, var(--line)); background:var(--warn-soft); color:var(--warn); }
+.banner.fail { border-color:color-mix(in srgb, var(--fail) 45%, var(--line)); background:var(--fail-soft); color:var(--fail); }
+.banner.info { border-color:color-mix(in srgb, var(--info) 45%, var(--line)); background:var(--info-soft); color:var(--info); }
+.skeleton { border-radius:8px; background:linear-gradient(90deg, var(--surface-2) 25%, var(--surface) 50%, var(--surface-2) 75%);
+  background-size:200% 100%; animation:shimmer 1.4s infinite; }
+@keyframes shimmer { to { background-position:-200% 0; } }
+.metric { min-height:74px; padding:12px; background:var(--surface); border:1px solid var(--line); border-radius:10px; }
+.metric b { display:block; font-size:20px; }
+.metric span { color:var(--muted); font-size:12px; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.divider { border:0; border-top:1px solid var(--line); margin:2px 0; }
+.kv { display:grid; grid-template-columns:88px 1fr; gap:4px 10px; font-size:12px; }
+.kv dt { color:var(--muted); }
+.kv dd { margin:0; }
+.toast { position:absolute; left:13px; right:13px; bottom:74px; padding:10px 12px; border-radius:10px;
+  background:var(--ink); color:var(--panel); font-size:13px; opacity:0; transform:translateY(8px);
+  transition:opacity .2s ease-out, transform .2s ease-out; pointer-events:none; }
+.toast.show { opacity:1; transform:none; }
+.modal-scrim { position:absolute; inset:0; background:rgba(10,16,13,.45); display:none; align-items:flex-end; }
+.modal-scrim.open { display:flex; }
+.modal { width:100%; background:var(--panel); border-top:1px solid var(--line); border-radius:14px 14px 0 0; padding:14px;
+  display:flex; flex-direction:column; gap:10px; }
+.check { display:flex; gap:8px; align-items:flex-start; font-size:13px; }
+.check input { width:18px; height:18px; flex:none; accent-color:var(--accent); margin-top:1px; }
+.muted { color:var(--muted); }
+.small { font-size:12px; }
+@media (prefers-reduced-motion: reduce) { * { animation:none !important; transition:none !important; } }
+</style>
+</head>
+<body data-theme="dark">
+<div class="preview-bar">
+  <span class="tag">预览控制条 · 非产品 UI</span>
+  <label>数据态 <select id="stateSel">
+    <option value="success">success（投影健康）</option>
+    <option value="loading">loading</option>
+    <option value="empty">empty（JOURNEY_NOT_FOUND）</option>
+    <option value="error">error（JOURNEY_INVALID）</option>
+    <option value="blocked">blocked（缺 gate）</option>
+    <option value="degraded-partial">degraded · partial</option>
+    <option value="degraded-inferred">degraded · inferred</option>
+    <option value="degraded-warn">degraded · warn（STALE）</option>
+  </select></label>
+  <label><input id="bridgeChk" type="checkbox" style="vertical-align:-2px"> Bridge disconnected（正交叠加）</label>
+  <label>主题 <select id="themeSel"><option value="dark">深色</option><option value="light">浅色</option></select></label>
+  <span class="hint">数据全部 mock，页面内统一标「示例运行」</span>
+</div>
+<div class="stage-wrap">
+  <section class="panel" aria-label="Journey Control Room 预览">
+    <header class="topbar">
+      <div class="topbar-row">
+        <select class="project-select" aria-label="项目"><option>yy · skill-loading v3</option></select>
+        <button class="icon-btn" title="会话" aria-label="会话">⌘</button>
+        <button class="icon-btn" title="设置" aria-label="设置">⚙</button>
+      </div>
+      <p class="context-line"><span class="mono" id="ctxSchema">yy/journey@1</span><span>·</span><span id="ctxSession">s-20260917-demo</span><span>·</span><span id="ctxUpdated" class="muted">—</span><span class="pill-demo">示例运行</span></p>
+    </header>
+    <main id="stage" class="stage"></main>
+    <nav class="nav" id="nav" aria-label="主导航"></nav>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="modal-scrim" id="modalScrim">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <p class="eyebrow">OWNER CONFIRMATION</p>
+        <h3 id="modalTitle" style="margin:0">确认高影响操作</h3>
+        <div class="banner warn" id="modalImpact">影响说明：将按冻结契约重跑 41 条路由样本并回写验收基线。</div>
+        <p class="small muted" style="margin:0">完整命令</p>
+        <div class="code">node scripts/regression-all.mjs --samples 41 --write-baseline</div>
+        <label class="check"><input id="modalCheck" type="checkbox"><span>我已理解影响范围，并以 Owner 身份批准本次示例执行。</span></label>
+        <div class="row" style="justify-content:flex-end">
+          <button class="btn" id="modalCancel">取消</button>
+          <button class="btn primary" id="modalRun" disabled>执行（示例）</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div><script>
+/* mock 投影（journey@1 形状） */
+const P = {
+  schema:'yy/journey@1', mode:'prompt', sessionId:'s-20260917-demo',
+  updatedAt:'2026-09-17 11:20',
+  progress:{ allDone:false, gate:'dispatch', gates:{ pending:['dispatch','verify'] } },
+  steps:[
+    {id:0,name:'立项',state:'done'},{id:1,name:'需求',state:'done'},{id:2,name:'拆解',state:'done'},
+    {id:3,name:'契约',state:'done'},{id:4,name:'派单',state:'active',gate:'dispatch'},
+    {id:5,name:'开发',state:'pending'},{id:6,name:'验收',state:'pending'},
+    {id:7,name:'批判',state:'pending',gate:'review'},{id:8,name:'交付',state:'pending'}
+  ],
+  nextPrompt:{ text:'对 yy 工作流执行 R5b 派单：按冻结契约 C-R5-ui 实现 Journey 控制室，fixtures 覆盖 GWT-R5B-01…04。', snapshotRef:{ sha256:'38fcbfa8' } },
+  evidence:[
+    { sourceKind:'report', path:'test-reports/R4-acceptance-20260915/REPORT.md', sha256:'a3563277b1c37e2d…', updatedAt:'2026-09-15 22:41', sessionId:'s-0915-r4', inferred:false },
+    { sourceKind:'logs', path:'artifacts/s-0915/logs.txt', sha256:'9f3b5c4674a05d4a…', updatedAt:'2026-09-15 21:02', sessionId:'s-0915-r4', inferred:true },
+    { sourceKind:'receipt', path:'artifacts/s-0916/receipt.json', sha256:'9f3b5c4674a05d4a…', updatedAt:'2026-09-16 09:12', sessionId:'s-0916', inferred:false }
+  ],
+  displayStatus:'healthy'
+};
+const NAV = [['progress','进度','00'],['plan','规划','01'],['run','执行','02'],['evidence','证据','03'],['more','更多','04']];
+const S = { view:'progress', state:'success', bridge:false };
+
+const $ = s => document.querySelector(s);
+const stage = $('#stage');
+
+function pill(t){ return '<span class="pill-demo">'+t+'</span>'; }
+function sha(t){ return '<span class="mono">'+t+'</span>'; }
+
+function bridgeBanner(){
+  if(!S.bridge) return '';
+  return '<div class="banner info"><span>⚡</span><div><b>Bridge disconnected（正交叠加）</b><br><span class="small">展示为最近已知快照 '+P.updatedAt+'；执行类操作已降级为只读，数据态不被覆盖。</span></div></div>';
+}
+function degradedBanner(){
+  if(S.state==='degraded-partial') return '<div class="banner warn"><span>◐</span><div><b>degraded · partial</b><br><span class="small">部分源缺失（PARTIAL）：规划/证据键不齐，缺失段如实标注，不静默补全。</span></div></div>';
+  if(S.state==='degraded-inferred') return '<div class="banner warn"><span>◌</span><div><b>degraded · inferred</b><br><span class="small">含推断数据（INFERRED）：推断项逐条标注；<b>授权类动作在此子态下禁用</b>。</span></div></div>';
+  if(S.state==='degraded-warn') return '<div class="banner warn"><span>⏱</span><div><b>degraded · warn（STALE）</b><br><span class="small">投影陈旧：journeyTime 2026-09-17 09:00 / newestAuth 2026-09-17 11:05（evidence.staleReason）。</span></div></div>';
+  return '';
+}
+function completionNote(){
+  return '<p class="small muted" style="margin:0">投影健康可读（success = 投影状态，非完成态）；完成度：9 步已完成 4 步。</p>';
+}
+
+function heroBlock(){
+  const cur = P.steps.find(s=>s.state==='active') || P.steps[0];
+  let actionBtn;
+  if(S.state==='blocked'){
+    actionBtn = '<button class="btn primary" disabled>继续派单</button>'
+      + '<p class="small" style="margin:0;color:var(--fail)">已禁用：缺少 gate — <b>'+P.progress.gates.pending.join('、')+'</b>（step 级 blocker 暂只显示 gate 名）</p>';
+  } else if(S.state==='degraded-inferred' || S.bridge){
+    actionBtn = '<button class="btn primary" disabled>继续派单</button>'
+      + '<p class="small muted" style="margin:0">执行类操作在当前叠加/子态下降级。</p>';
+  } else {
+    actionBtn = '<button class="btn primary" id="ctaRun">继续派单</button>';
+  }
+  return '<div class="card accent">'
+    + '<p class="eyebrow">当前阶段 · 0'+cur.id+'</p><h1>'+cur.name+'</h1>'
+    + '<p class="lede">下一步：完成 '+cur.name+' 派单并进入 0'+(cur.id+1)+' '+(P.steps[cur.id+1]?P.steps[cur.id+1].name:'—')+'。</p>'
+    + '<div class="row" style="margin-top:10px;gap:10px">'+actionBtn+pill('示例运行')+'</div></div>';
+}
+function trackBlock(){
+  const done = P.steps.filter(s=>s.state==='done').length;
+  const rows = P.steps.map(s=>{
+    let meta = s.state==='done'?'完成':(s.state==='active'?'进行中':(s.state==='blocked'?'阻塞':'待办'));
+    if(s.gate && s.state!=='done') meta += ' · gate '+s.gate;
+    return '<div class="step '+s.state+'"><span class="step-dot">'+(s.state==='done'?'✓':s.id)+'</span>'
+      + '<div><div class="step-name">'+s.id+' '+s.name+'</div><div class="step-meta">'+meta+'</div></div>'
+      + '<span class="small muted">'+ (s.state==='active'?'<span class="status info">active</span>':'') +'</span></div>';
+  }).join('');
+  return '<div class="card"><div class="row between"><h3>0–8 阶段轨道</h3><span class="small muted">'+done+'/9</span></div>'
+    + '<div class="progress-track" style="margin-bottom:8px"><div class="progress-fill" style="width:'+Math.round(done/9*100)+'%"></div></div>'
+    + rows + '</div>';
+}
+function nextPromptBlock(){
+  return '<div class="card"><div class="row between"><h3>下一步 Prompt（nextPrompt）</h3>'+pill('示例运行')+'</div>'
+    + '<p style="margin:0 0 8px">'+P.nextPrompt.text+'</p>'
+    + '<div class="row between"><span class="small muted">复制 = 快照引用 · snapshotRef '+sha(P.nextPrompt.snapshotRef.sha256)+'</span>'
+    + '<button class="btn small" data-copy="'+P.nextPrompt.text+'">复制</button></div></div>';
+}
+function evidenceSummary(){
+  const rows = P.evidence.slice(0,2).map(e=>evRow(e)).join('');
+  return '<div class="card"><div class="row between"><h3>展示态与证据</h3><span class="status success">healthy</span></div>'
+    + rows
+    + '<button class="btn small" data-goto="evidence" style="margin-top:8px">查看全部证据 →</button></div>';
+}
+function highImpactBlock(){
+  const dis = (S.state==='degraded-inferred'||S.bridge||S.state==='blocked') ? 'disabled' : '';
+  return '<div class="card"><h3>高影响动作</h3>'
+    + '<p class="small muted" style="margin:0 0 8px">固定流程：影响说明 → 完整命令 → Owner 确认 → 结果/错误。</p>'
+    + '<button class="btn" id="btnHighImpact" '+dis+'>重跑 41 样本并回写基线…</button></div>';
+}
+function evRow(e){
+  const inf = e.inferred ? ' <span class="status warn" style="min-height:20px">inferred</span>' : '';
+  return '<div class="list-item"><span class="list-icon">'+({report:'📄',logs:'🧾',receipt:'🧷'}[e.sourceKind]||'📎')+'</span>'
+    + '<div><strong>'+e.path+'</strong><small class="mono">'+e.sha256+'</small><br><small class="muted">'+e.updatedAt+' · '+e.sessionId+'</small></div>'
+    + '<div style="text-align:right">'+inf+'<br><button class="btn small" data-copy="'+e.sha256+'">复制哈希</button></div></div>';
+}function viewProgress(){
+  return bridgeBanner()+degradedBanner()+heroBlock()+trackBlock()+nextPromptBlock()+evidenceSummary()+highImpactBlock()+completionNote();
+}
+function viewPlan(){
+  const gates = P.progress.gates.pending.map(g=>'<div class="list-item"><span class="list-icon">⛳</span><div><strong>gate · '+g+'</strong><small class="muted">未满足时禁用对应主动作（fail-closed）</small></div><span class="status warn">pending</span></div>').join('');
+  return bridgeBanner()+degradedBanner()
+    +'<div class="card"><p class="eyebrow">规划</p><h1>阶段计划与 gate</h1><p class="lede">规划数据由 journey.read 投影消费；缺源时本区显示「字段未定义（OQ 编号）」。</p></div>'
+    +'<div class="card"><h3>待满足 gate</h3>'+gates+'</div>'
+    +'<div class="card"><h3>规划摘要</h3><dl class="kv"><dt>当前 gate</dt><dd class="mono">'+P.progress.gate+'</dd><dt>模式</dt><dd class="mono">'+P.mode+'</dd><dt>完成度</dt><dd>9 步已完成 4 步</dd></dl></div>'
+    +pill('示例运行');
+}
+function viewRun(){
+  const rows = [
+    ['t-1842 · R5b fixtures','VERIFIED','success'],
+    ['t-1841 · C-R5-ui 修订','VERIFIED','success'],
+    ['t-1839 · 41 样本回归','UNRESOLVED','warn']
+  ].map(r=>'<div class="list-item"><span class="list-icon">▶</span><div><strong>'+r[0]+'</strong><small class="muted">receipt 终态：'+r[1]+'</small></div><span class="status '+r[2]+'">'+r[1]+'</span></div>').join('');
+  return bridgeBanner()+degradedBanner()
+    +'<div class="card"><p class="eyebrow">执行</p><h1>派单与收据终态</h1><p class="lede">FAILED / SKIPPED / UNRESOLVED 永不渲染为成功态。</p></div>'
+    +'<div class="card"><h3>最近派单</h3>'+rows+'</div>'
+    +'<div class="card"><h3>报告声明 vs 独立实证</h3><div class="grid2"><div class="metric"><span>报告声明</span><b>12/12 PASS</b><span class="small muted">实现方自报</span></div><div class="metric"><span>独立实证</span><b>exit 0 复跑</b><span class="small muted">编排者复跑</span></div></div><p class="small muted" style="margin:8px 0 0">两列并列展示，不用单一绿色状态混合表达。</p></div>'
+    +pill('示例运行');
+}
+function viewEvidence(){
+  const rows = P.evidence.map(e=>evRow(e)).join('');
+  return bridgeBanner()+degradedBanner()
+    +'<div class="card"><p class="eyebrow">证据</p><h1>证据链</h1><p class="lede">每条含 sourceKind / path / sha256（前 8，可复制全值）/ updatedAt / sessionId；logs 类必须标 inferred，不得作为完成态唯一证据。</p></div>'
+    +'<div class="card"><h3>evidence[]（3）</h3>'+rows+'</div>'
+    +'<div class="card"><h3>16 资产盘点（节选）</h3><div class="list-item"><span class="list-icon">◈</span><div><strong>frontend-design</strong><small class="muted">metadata status / eligibility / token estimate</small></div><span class="status info">字段未定义(OQ)</span></div><div class="list-item"><span class="list-icon">◈</span><div><strong>agent-research</strong><small class="muted">metadata status / eligibility / token estimate</small></div><span class="status info">字段未定义(OQ)</span></div><p class="small muted" style="margin:8px 0 0">权威键不可得时如实显示「字段未定义（OQ 编号）」，禁止前端聚合冒充权威（U-B=a）。</p></div>'
+    +pill('示例运行');
+}
+function viewMore(){
+  return bridgeBanner()+degradedBanner()
+    +'<div class="card"><p class="eyebrow">更多</p><h1>工作区与宿主</h1></div>'
+    +'<div class="card"><h3>上下文</h3><dl class="kv"><dt>schema</dt><dd class="mono">yy/journey@1</dd><dt>mode</dt><dd class="mono">prompt</dd><dt>session</dt><dd class="mono">s-20260917-demo</dd><dt>宿主探测</dt><dd>codex desktop · 平台降级已记录</dd></dl></div>'
+    +'<div class="card"><h3>工具抽屉（低频）</h3><div class="row wrap"><button class="btn small">导出投影 JSON</button><button class="btn small">查看 discrepancy</button><button class="btn small">主题：跟随系统</button></div></div>'
+    +pill('示例运行');
+}
+function renderState(){
+  if(S.state==='loading'){
+    return '<div class="card"><div class="skeleton" style="height:22px;width:40%"></div><div class="skeleton" style="height:64px;margin-top:10px"></div></div>'
+      +'<div class="card"><div class="skeleton" style="height:16px;width:30%"></div>'+'<div class="skeleton" style="height:44px;margin-top:10px"></div>'.repeat(4)+'</div>'
+      +'<p class="small muted">loading：骨架屏，不显示任何数据态措辞。</p>';
+  }
+  if(S.state==='empty'){
+    return bridgeBanner()+'<div class="card" style="text-align:center;padding:32px 16px"><p class="eyebrow" style="color:var(--muted)">EMPTY</p><h1>本会话暂无旅程投影</h1><p class="lede">JOURNEY_NOT_FOUND 走 data 通道（非错误横幅）。</p><div class="row" style="justify-content:center;margin-top:12px"><button class="btn primary" disabled>开始（待后端就绪）</button></div></div>'+pill('示例运行');
+  }
+  if(S.state==='error'){
+    return bridgeBanner()+'<div class="banner fail"><span>✕</span><div><b>error · JOURNEY_INVALID</b><br><span class="small">投影源损坏。恢复路径：重新读取；若为 PROJECTION_CONFLICT 则双通道并列呈现双方 evidence，不静默选边，走 discrepancy change order（GWT-R5B-04）。</span></div></div>'
+      +'<div class="card"><button class="btn">重新读取</button></div>'+pill('示例运行');
+  }
+  return ({progress:viewProgress,plan:viewPlan,run:viewRun,evidence:viewEvidence,more:viewMore})[S.view]();
+}
+function render(){
+  $('#ctxUpdated').textContent = P.updatedAt + (S.state==='degraded-warn' ? '（STALE）' : '');
+  stage.innerHTML = renderState();
+  $('#nav').innerHTML = NAV.map(n=>'<button class="nav-btn '+(S.view===n[0]?'active':'')+'" data-view="'+n[0]+'"><span class="code-no">'+n[2]+'</span>'+n[1]+'</button>').join('');
+}
+document.addEventListener('click', e=>{
+  const v = e.target.closest('[data-view]'); if(v){ S.view=v.dataset.view; render(); return; }
+  const g = e.target.closest('[data-goto]'); if(g){ S.view=g.dataset.goto; render(); return; }
+  const c = e.target.closest('[data-copy]'); if(c){ navigator.clipboard && navigator.clipboard.writeText(c.dataset.copy); toast('已复制（示例）'); return; }
+  if(e.target.id==='btnHighImpact' || e.target.id==='ctaRun'){ $('#modalScrim').classList.add('open'); return; }
+  if(e.target.id==='modalCancel'){ $('#modalScrim').classList.remove('open'); return; }
+  if(e.target.id==='modalRun'){ $('#modalScrim').classList.remove('open'); toast('示例运行结果：41/41 PASS（非真实执行）'); return; }
+});
+$('#modalCheck').addEventListener('change', e=>{ $('#modalRun').disabled = !e.target.checked; });
+$('#stateSel').addEventListener('change', e=>{ S.state=e.target.value; render(); });
+$('#bridgeChk').addEventListener('change', e=>{ S.bridge=e.target.checked; render(); });
+$('#themeSel').addEventListener('change', e=>{ document.body.dataset.theme=e.target.value; });
+let toastTimer;
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2200); }
+render();
+</script>
+</body>
+</html>

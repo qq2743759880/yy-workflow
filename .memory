@@ -1,0 +1,78 @@
+# .memory — YY skill-loading v3 项目进度记忆同步（供 DeepSeek 批判者校准）
+
+> 用途：批判者（DeepSeek 网页版）在开始任何批判/审核前必须先读本文件，把记忆与本文件对齐；禁止基于过期或臆测的项目状态做批判。本文件由编排者维护，随每个里程碑更新。最后更新：2026-09-16。
+
+## 0. 项目一句话
+
+YY skill-loading v3 棕地修复：把 16 个技能资产的装载流水线从"提示词驱动"改造为"契约 / 状态 / 收据驱动"。终点是 R6 迁移与 release gate（Gate B）。仓库 `D:\.ai-hub\skills\yy`，冻结 commit `240f3fbdb4ee757dffc4d5ab80407d1b2c84863c`，全部工作在未提交脏工作树上；`contracts/` 与多数 `plans/tasks/` 被 gitignore，审计线 = SHA256 对。
+
+## 1. 当前真实状态（2026-09-16 快照）
+
+### 已完成（DONE，均有验收证据）
+
+| 节点 | 状态 | 关键证据 |
+|---|---|---|
+| R1 baseline | DONE | 16 资产基线，schema hash 8db3278d |
+| R2 catalog/router | DONE | 实现+发布双 ACCEPTED；41 样本机制；AMBIGUOUS ≤ 5/41 |
+| R3 activation/receipt | DONE | C-R3 FROZEN；remediation 后独立复验 ACCEPTED；kit 26/26 |
+| R4 phase/gate/CI | DONE | C-R4 FROZEN；phase.mjs 单一入口；10 fixtures 全过；C5 修复后回归 PASS |
+| R5a journey 后端投影 | DONE | journey.mjs 只读读模型；诚实投影；session 命名空间修 D-1 |
+| R7 change-loop | DONE | change.mjs；change.record；幂等 + 审批消费 R4 |
+| R8 remediation | DONE | remediation.mjs；remediation.register；证据门 fail-closed；自批禁止 |
+
+### 契约冻结状态
+
+FROZEN：C-R2-catalog / C-R3-activation / C-R4-control / C-R5-journey / C-R7-change-loop / C-R8-remediation。
+DRAFT（未冻结）：C-R10-evolution（OQ-R10-1…6 已裁 = A，冻结派单进行中）。
+未起草：C-R5-ui / C-R9-integration / C-R6-migration。
+
+### 闸门与阻塞
+
+- UI-GA = **APPROVED（Journey 方向）**，2026-09-16 Owner 批准。R5b 的 Gate A 已解除，仅欠 C-R5-ui 契约冻结。
+- C2 = **UNRESOLVED**（punctuationKeywordCount 9 vs 16，node -e 转义伪影）——硬阻塞 R9 与 R6，只能由同快照第三方复现或 Owner 重发布解除。
+- READY = {}（无 execution-READY 节点，等 C-R10 冻结）。
+
+### 待办队列（按依赖）
+
+1. C-R10-evolution 冻结（OQ 已裁）→ R10 READY。
+2. C-R5-ui 契约起草（本次任务）→ R5b READY → 前后端联调。
+3. C2 处置 → 解锁 R9。
+4. R10 实现 → R6 前置。
+5. R6 收口：迁移 + rollback + 最终独立验收；**R6 放行前执行第三方复验包（焦点 A=R4 行为面，焦点 B=L1 回归+CI+三份新实现交叉破坏面）**。
+
+## 2. 技术事实（批判者引用时不得违背）
+
+- **A/B 状态面权威**：A 面（plan 7 态 state.mjs）为执行权威，B 面（journey 9 step + 4 闸）为里程碑 gate 权威（C-R4 §3.1 已决）。journey 是只读投影，不授权。
+- **receipt 生命周期**：discovered → eligible → selected → instructions_delivered → execution_observed → behavior_verified（C-R3 §7）；负向 not_consumed / verification_failed / unresolved。裸布尔 assetConsumed 为 telemetry-only，永不满足 phase gate。
+- **R4 行为**：phase.check/phase.transition 单一入口；终态不可追加；override 需 ownerApprovalReceipt（批准先于执行）；锁 `takeover := pid dead OR (mtime>30s AND pid not alive)`，耗尽 LOCK_ACQUIRE_FAILED；stateVersion=1，高版本 STATE_VERSION_UNSUPPORTED。
+- **CI 真实性**：分类矩阵 BLOCKING_FAIL / QUALITY_WARN / QUALITY_FAIL；资产质量段 exit 1 = QUALITY_WARN（信息不阻断）；成功字面仅在全部 mandatory 段 exit 0 时打印（C7 已修）。
+- **R5a 投影**：四类源（state 权威 / receipts 资产佐证 / logs inferred-only / session 隔离键）；observed/inferred/authorized 字段级映射；failed/skipped 永不渲染 done；JOURNE_NOT_FOUND 走 data 通道；evidence links = {sourceKind, path, sha256, updatedAt, sessionId}；nextPrompt 结构化 + 快照哈希回声。
+- **journey.mjs 已暴露接口**：JOURNE_SCHEMA='yy/journey@1'、STEPS(0-8)、GATE_VOCAB、FORWARD_LINE、readJsonSource、evidenceLink、projectNegative、分维归并。
+
+## 3. UI 方向（Journey，已定）
+
+`prototypes/yy-workflow-panel/` 三方向中选定 **Journey（阶段导航型）**：journey 与下一步居首，阶段卡片按 0–8 顺序展开。设计令牌见 `design-spec.md`（布局 420px 面板/760–1040px 详情层、系统主题、运行绿强调色、IBM Plex Sans + JetBrains Mono、44px 控件、10px 圆角、180–240ms ease-out、reduced-motion 关闭、七态状态模型 loading/empty/error/blocked/degraded/success/Bridge disconnected、示例数据必标"示例运行"）。**禁止紫蓝渐变、霓虹、玻璃拟态、纯黑纯白、装饰性 sparkline。**
+
+## 4. 批判纪律（批判者必须遵守）
+
+1. 先读本文件再批判；与本文件冲突的项目状态认知视为批判者幻觉，须以自我修正为先。
+2. 不得把"草案"当"冻结"、把"推荐"当"裁决"、把"REPRODUCED"当"已修复"、把"邻接 fixture"当"完整闭环"（除已被本文件标注为已闭环者）。
+3. 批判须落到可复现锚点（file:line / 命令 + exit code / sha256）；无锚点的批判标记为"观点"而非"缺陷"。
+4. UI 批判范围：页面信息架构、视觉交互、状态模型覆盖、前后端接口匹配、可达性；不得批判后端已实现且已验收的行为语义。
+5. 已知边界（批判不得误报为缺陷）：
+   - contracts/ 与 plans/tasks/ 被 gitignore，审计线 = SHA256（非 git 历史）。
+   - C2 仍 UNRESOLVED 是已知阻塞，非新发现。
+   - R8 冻结清单命名为 C-R8-review-checklist.md（无 remediation 中缀），系已接受的命名例外。
+   - 挂账 3/4（提交时机、第三方复验）为已登记待办，非未识别风险。
+
+## 5. 关键文件索引（批判者自查用）
+
+- 任务图：plans/tasks/G2.2-task-graph-20260911.md（当前 READY/UI-GA/C2 状态权威）
+- 主契约 PRD：plans/tasks/PRD0-contract-revision-v3.md
+- 冻结契约：contracts/C-R2…/C-R3…/C-R4-control.md/C-R5-journey.md/C-R7-change-loop.md/C-R8-remediation.md
+- R10 草案：contracts/drafts/C-R10-evolution.draft.md
+- 前端原型：prototypes/yy-workflow-panel/{index.html, design-spec.md, coverage-matrix.md, validate.mjs}
+- 后端投影：scripts/lib/journey.mjs（R5a）
+- 验收证据：test-reports/（各实现与验收报告）
+
+> 本文件随里程碑更新。批判者若发现本文件与仓库现状不符，应报告该差异而非基于记忆批判。

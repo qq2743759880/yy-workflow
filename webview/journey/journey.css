@@ -1,0 +1,52 @@
+/* Journey Control Room — webview plugin page (R5b). Frozen tokens: C-R5-ui v2 + design-spec.
+   10px radius uniform (pill 999px separate, status marker circle); 44px min controls;
+   light: cold gray-green bg / dark: green-black; accent = running green; blue=info, amber=pending, red=fail;
+   every state has text + color (never color alone). */
+:root {
+  --radius: 10px; --radius-pill: 999px;
+  --bg: #eef1ee; --surface: #f7f9f7; --surface-2: #ffffff;
+  --text: #1c241f; --text-dim: #5c6b60; --line: #d6ded7;
+  --accent: #1d7a4f; --accent-weak: #e2f0e8;
+  --info: #2456a8; --warn: #a86a14; --fail: #a82626; --fail-weak: #f7e3e3;
+  --stale-bg: #f2ecdd; --stale-text: #6b5a1e;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #10160f; --surface: #17201a; --surface-2: #1d2820;
+    --text: #e6efe8; --text-dim: #9fb2a4; --line: #2c3a30;
+    --accent: #3fae76; --accent-weak: #17301f;
+    --info: #7aa7e8; --warn: #d9a44a; --fail: #e06a6a; --fail-weak: #3a1b1b;
+    --stale-bg: #2e2a1a; --stale-text: #d9c88a;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, "Segoe UI", sans-serif; }
+main { max-width: 880px; margin: 0 auto; padding: 16px; }
+h1 { font-size: 18px; margin: 0 0 4px; }
+h2 { font-size: 15px; margin: 0 0 8px; color: var(--text-dim); font-weight: 600; }
+.card { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; margin: 10px 0; }
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 600; min-height: 24px; }
+.badge .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.badge.AUTHORIZED, .badge.DONE { background: var(--accent-weak); color: var(--accent); } .badge.AUTHORIZED .dot, .badge.DONE .dot { background: var(--accent); }
+.badge.OBSERVED { background: var(--surface); color: var(--text-dim); border: 1px solid var(--line); } .badge.OBSERVED .dot { background: var(--text-dim); }
+.badge.INFERRED { background: var(--surface); color: var(--info); border: 1px dashed var(--info); } .badge.INFERRED .dot { background: var(--info); }
+.badge.PARTIAL { background: var(--stale-bg); color: var(--warn); } .badge.PARTIAL .dot { background: var(--warn); }
+.badge.STALE { background: var(--stale-bg); color: var(--stale-text); } .badge.STALE .dot { background: var(--stale-text); }
+.badge.ERROR, .badge.FAILED, .badge.UNRESOLVED, .badge.SKIPPED { background: var(--fail-weak); color: var(--fail); } .badge.ERROR .dot, .badge.FAILED .dot, .badge.UNRESOLVED .dot, .badge.SKIPPED .dot { background: var(--fail); }
+nav { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0; }
+nav button { min-height: 44px; padding: 0 16px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); color: var(--text); font-size: 14px; cursor: pointer; }
+nav button[aria-selected="true"] { background: var(--accent-weak); border-color: var(--accent); color: var(--accent); font-weight: 700; }
+.view { display: none; } .view.active { display: block; }
+.muted { color: var(--text-dim); font-size: 13px; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-size: 13px; }
+.kv dt { color: var(--text-dim); } .kv dd { margin: 0; }
+.steps { list-style: none; padding: 0; margin: 0; }
+.steps li { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.steps li:last-child { border-bottom: 0; }
+.stepnum { width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; background: var(--surface); border: 1px solid var(--line); flex: none; }
+.ev { font-size: 12px; color: var(--text-dim); word-break: break-all; }
+button.primary { min-height: 44px; padding: 0 18px; border-radius: var(--radius-pill); border: 0; background: var(--accent); color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; }
+code { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; font-size: 12px; }
+.overlay { position: fixed; inset: 0; background: color-mix(in srgb, var(--bg) 80%, transparent); display: flex; align-items: center; justify-content: center; z-index: 10; }
+.overlay .box { background: var(--surface-2); border: 2px solid var(--fail); border-radius: var(--radius); padding: 24px; max-width: 420px; text-align: center; }
+.warn { border-left: 3px solid var(--warn); padding: 6px 10px; margin: 6px 0; background: var(--stale-bg); border-radius: 6px; font-size: 13px; }

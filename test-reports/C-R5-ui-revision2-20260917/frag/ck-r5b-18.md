@@ -1,0 +1,2 @@
+
+| R5B-18 | Gate A 记录动作（GWT-R5B-03） | 静态原型在约定视口用例下送 Owner 评审 | Owner 记录 `APPROVED` 或**有界变更清单**（bounded change list）；`APPROVED` 前**没有任何 React/Bridge 任务变 READY**（GWT-R5B-03 原文 `[计划输入 R5 doc:57]`）。v2 注：Gate A 评审对象仍为静态原型（GWT 原文不改）；"React/Bridge 任务"按 `cr-20260917T035212Z-c2026fdf` 收窄为 React/通用新 Bridge 任务——**最小 YY 宿主 webview 桥接**（数据注入 + 生命周期）为例外（§I R5B-43） | Gate A 结论未记录；未 APPROVED 已派框架任务；变更清单无边界（无限返工）；桥接层超出数据注入/生命周期范围 | |

@@ -1,0 +1,2 @@
+
+3. **无框架（v2 收窄）**：不引入 React/Vue/构建链；Gate A 前只改 HTML 原型，PARITY_CHECK 通过后才允许框架实现（`[计划输入 dev-plan:194-195 / R5 doc:9 / reference/frontend-gate.md §6.1]`）。**例外**`[Owner 决断 2026-09-17: host=YY webview]`：允许**最小 YY 宿主 webview 桥接**（范围 = 数据注入 + 生命周期，§3.2）；**完整 React 框架 / 通用目的新 Bridge 仍禁止（Gate A 前）**。G2.2:158 / dev-plan:23,194 / R5 doc:9 的 "React/Bridge" 非目标为 pre-gate 冻结措辞，与本例外的规范对齐需求已登记 discrepancy（D-11/D-12/D-13），不修改冻结/计划文件。

@@ -1,0 +1,2 @@
+
+3. **无外部运行时依赖（v2 收窄）**：不引入框架（React/Vue 等，`[计划输入 R5 doc:9 / dev-plan:194]`，Gate A 前只改 HTML 原型）、不引入 CDN 运行时依赖；字体按 `[design-spec]` 原文"原型可 CDN 加载，**生产版自托管**"，生产页不得依赖外网字体请求；页面不引入新的 server runtime / 通用 Bridge 协议（PRD0 MVP 边界）。**例外**`[Owner 决断 2026-09-17: host=YY webview]`：允许**最小 YY 宿主 webview 桥接**，范围仅限**数据注入 + 生命周期**（§3.2 / §5.2-3）；**完整 React 框架 / 通用目的新 Bridge 仍禁止（Gate A 前）**。该例外与 G2.2:158 / dev-plan:23,194 / R5 doc:9 的 pre-gate 非目标措辞存在规范对齐需求，已登记 discrepancy（D-11/D-12/D-13，`test-reports/C-R5-ui-revision2-20260917/REPORT.md`）；冻结/计划文件不修改。
