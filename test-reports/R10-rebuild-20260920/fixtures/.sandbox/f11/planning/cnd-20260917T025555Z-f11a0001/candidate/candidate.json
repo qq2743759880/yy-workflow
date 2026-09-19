@@ -1,0 +1,30 @@
+{
+  "candidateId": "cnd-20260917T025555Z-f11a0001",
+  "assetId": "planning",
+  "sourceVersion": "v2",
+  "proposedBy": "sess_producer",
+  "idempotencyKey": null,
+  "status": "UNRESOLVED",
+  "candidate": {
+    "assetScope": "planning",
+    "trigger": "C7 quality finding: asset freshness gap",
+    "rationale": "compress stale section, no behavior change",
+    "acceptanceCriteria": "three-dim non-regression vs baseline; independent verdict exit 0",
+    "changeset": [
+      "vendor/frontend-design/SKILL.md#L40-60 rewrite"
+    ],
+    "riskAssessment": "low; rollback target pinned; no route surface",
+    "baselineRef": "baseline-20260917T025500Z",
+    "rollbackTarget": "vendor/frontend-design@base-240f3fb",
+    "evidenceRefs": [
+      "R3 receipt:rcpt-base",
+      "R8 finding:none"
+    ],
+    "proposerSession": "sess_producer",
+    "proposerLimitations": [
+      "同会话执行，平台降级"
+    ]
+  },
+  "createdAt": "2026-09-17T02:55:55.000Z",
+  "statusAt": "2026-09-19T15:25:37.960Z"
+}

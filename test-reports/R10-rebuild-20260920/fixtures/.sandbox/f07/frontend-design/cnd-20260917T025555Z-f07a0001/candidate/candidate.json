@@ -1,0 +1,27 @@
+{
+  "candidateId": "cnd-20260917T025555Z-f07a0001",
+  "assetId": "frontend-design",
+  "sourceVersion": "v9",
+  "proposedBy": "sess_producer",
+  "idempotencyKey": null,
+  "status": "CANDIDATE",
+  "candidate": {
+    "assetScope": "frontend-design",
+    "trigger": "C7 quality finding: asset freshness gap",
+    "rationale": "compress stale section, no behavior change",
+    "acceptanceCriteria": "three-dim non-regression vs baseline; independent verdict exit 0",
+    "changeset": [
+      "vendor/frontend-design/SKILL.md#L40-60 rewrite"
+    ],
+    "riskAssessment": "low; rollback target pinned; no route surface",
+    "baselineRef": "baseline-20260917T025500Z",
+    "rollbackTarget": "vendor/frontend-design@base-240f3fb",
+    "evidenceRefs": [
+      "R3 receipt:rcpt-base",
+      "R8 finding:none"
+    ],
+    "proposerSession": "sess_producer",
+    "proposerLimitations": []
+  },
+  "createdAt": "2026-09-17T02:55:55.000Z"
+}

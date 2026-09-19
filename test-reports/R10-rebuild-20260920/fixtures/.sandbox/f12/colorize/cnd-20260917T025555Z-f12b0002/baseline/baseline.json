@@ -1,0 +1,7 @@
+{
+  "structure": "validate-structure PASS (baseline run, candidate excluded)",
+  "manifest": "16 entries, nestedSkillCount=46",
+  "receiptTerminal": "last accepted receipt rcpt-base",
+  "ciSection": "S1-S12 PASS (baseline)",
+  "rollbackTarget": "vendor-all@base-240f3fb"
+}

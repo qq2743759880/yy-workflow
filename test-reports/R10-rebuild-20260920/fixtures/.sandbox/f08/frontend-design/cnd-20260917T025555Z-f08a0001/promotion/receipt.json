@@ -1,0 +1,19 @@
+{
+  "promotionId": "prm-20260917T025555Z-d1067407",
+  "candidateId": "cnd-20260917T025555Z-f08a0001",
+  "baselineRef": "baseline-20260917T025500Z",
+  "verdict": "UNRESOLVED",
+  "promotionDecision": {
+    "behaviorResult": {
+      "ok": true
+    },
+    "compatibilityResult": {
+      "ok": true
+    }
+  },
+  "rollbackTarget": "vendor/frontend-design@base-240f3fb",
+  "executedAt": "2026-09-17T02:55:55.000Z",
+  "approvedBy": "verifier-1",
+  "canonicalHash": "8853bfc4e3b7bec335f169136ac84463a374502f2f05b8af9cac5ac5cb0d6a4a",
+  "code": "PROMOTION_NOT_ALLOWED"
+}
