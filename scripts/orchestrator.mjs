@@ -17,45 +17,21 @@ import { runDeconstructFlow, normalizeDraft, validateDraft, formatErrors } from 
 import { approveDraft, printApprovalSummary, printDraft } from './lib/approve.mjs';
 import { createTui } from './lib/tui.mjs';
 import { readJourney, newJourney, ensureSteps, journeyPath, updateJourney, prereqCheck, withJourneyLock } from './tt-journey.mjs';
+// B7（T6 接线）：核心循环改用 lib/orchestrator.mjs 的 A2 纯逻辑（parseArgs/validateOpts/
+// isOpenApiSpec/parseBacklogRows/backlogIsPending 逐字等价，planDryRun 已差分验证）；
+// 删除顶层内联副本，单点维护。新路径（phase 门/change.record/--evolve）全部旗标制，默认 no-op。
+import { parseArgs as libParseArgs, validateOpts as libValidateOpts, isOpenApiSpec as libIsOpenApiSpec, parseBacklogRows as libParseBacklogRows, backlogIsPending as libBacklogIsPending } from './lib/orchestrator.mjs';
+const parseArgs = libParseArgs;
+const isOpenApiSpec = libIsOpenApiSpec;
+const parseBacklogRows = libParseBacklogRows;
+const backlogIsPending = libBacklogIsPending;
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_DIR = path.resolve(SCRIPT_DIR, '..');
 const VENDOR_DIR = path.join(SKILL_DIR, 'vendor');
 const EXIT_APPROVAL_ABORTED = 6;
-function parseArgs(args) {
-  const out = { task: '', workspace: '.', dryRun: false, verbose: false, help: false, resume: false, validate: false, plan: false, draft: null, backend: 'auto', maxRetries: undefined, exec: null, execTimeoutMs: undefined, parallel: undefined, contract: null, contractDraft: null, tui: false, noTui: false, hosts: null, configHosts: null, argError: null, session: undefined };
-  for (let i = 0; i < args.length; i += 1) {
-    const arg = args[i];
-    if (arg === '--help' || arg === '-h') out.help = true;
-    else if (arg === '--dry-run') out.dryRun = true;
-    else if (arg === '--verbose') out.verbose = true;
-    else if (arg === '--resume') out.resume = true;
-    else if (arg === '--validate') out.validate = true;
-    else if (arg === '--plan') out.plan = true;
-    else if (arg === '--tui') out.tui = true;
-    else if (arg === '--no-tui') out.noTui = true;
-    else if (arg === '--draft') { const v = args[i + 1]; if (v === undefined || v.startsWith('--')) out.argError = '--draft 需要一个值 (拆解草案 JSON 文件路径)'; else { out.draft = v; i += 1; } }
-    else if (arg === '--backend') { const v = args[i + 1]; if (v === undefined || v.startsWith('--')) out.argError = '--backend 需要一个值 (auto|prompt|cli)'; else { out.backend = v; i += 1; } }
-    else if (arg === '--max-retries') { out.maxRetries = Number(args[i + 1]); i += 1; }
-    else if (arg === '--exec-timeout') { out.execTimeoutMs = Number(args[i + 1]); i += 1; }
-    else if (arg === '--parallel') { const v = args[i + 1]; if (v === undefined || v.startsWith('--')) out.parallel = Infinity; else { out.parallel = Number(v); i += 1; } }
-    else if (arg === '--hosts') { const v = args[i + 1]; if (v === undefined || v.startsWith('--')) out.argError = '--hosts 需要一个值 (逗号分隔的备选宿主命令，如 "node host1.mjs,node host2.mjs --model gpt-5.6-luna")'; else { out.hosts = v; i += 1; } }
-    else if (arg === '--contract') { const v = args[i + 1]; if (v === undefined || v.startsWith('--')) out.argError = '--contract 需要一个值 (OpenAPI JSON 文件路径)'; else { out.contract = v; i += 1; } }
-    else if (arg === '--contract-draft') { const v = args[i + 1]; if (v === undefined || v.startsWith('--')) out.argError = '--contract-draft 需要一个值 (棕地契约草案 JSON 路径)'; else { out.contractDraft = v; i += 1; } }
-    else if (arg === '--exec') { const collected = []; const KNOWN = new Set(['--task', '--workspace', '--backend', '--max-retries', '--exec-timeout', '--parallel', '--contract', '--contract-draft', '--hosts', '--dry-run', '--verbose', '--resume', '--validate', '--plan', '--draft', '--tui', '--no-tui', '--help', '-h']); while (i + 1 < args.length && !KNOWN.has(args[i + 1])) { collected.push(args[i + 1]); i += 1; } out.exec = collected.length ? collected : null; }
-    else if (arg === '--task') { out.task = args[i + 1]; if (out.task === undefined) out.task = ''; i += 1; }
-    else if (arg === '--workspace') { out.workspace = args[i + 1]; if (out.workspace === undefined) out.workspace = '.'; i += 1; }
-    else if (arg === '--session') { const v = args[i + 1]; if (v === undefined || v.startsWith('--')) out.argError = '--session 需要一个值 (命名空间 id，仅 [A-Za-z0-9_-]+)'; else if (!/^[A-Za-z0-9_-]+$/.test(v)) out.argError = '--session 非法：仅允许 [A-Za-z0-9_-]+（防路径穿越）'; else { out.session = v; i += 1; } }
-  }
-  return out;
-}
 function usage() { console.log('Usage: node scripts/orchestrator.mjs --task TASK [--workspace PATH] [--backend auto|prompt|cli] [--exec PROG [ARGS...]] [--exec-timeout N] [--max-retries N] [--hosts "HOST1,HOST2..."] [--parallel [N]] [--contract OPENAPI.json] [--plan] [--draft DRAFT.json] [--tui] [--no-tui] [--dry-run] [--verbose] [--resume] [--validate]'); console.log('--plan: 自动拆解 + 逐 task 审批后冻结进编排（与 --resume 互斥；可组合 --exec 宿主拆解或 --draft 草案文件/手动粘贴）。--plan --dry-run 只打印草案与审批摘要，不写任何文件。'); console.log('--tui: 执行时叠加实时 DAG 视图（纯 ANSI 自绘，状态色 + 瓶颈反色；仅叠加渲染，不改变执行语义）。非 TTY 自动降级为一次性静态文本；TT_TUI=off 或 --no-tui 完全不渲染。独立复盘用 node scripts/tt-tui.mjs [--workspace PATH]。'); console.log('--exec 后的未知 --flag/值会原样透传给宿主（如 --model gpt-5.6-luna，供 exec-host-a6api.mjs 跨模型批判）；已知编排器参数（--task/--workspace 等）会结束透传段。'); console.log('--hosts: 逗号分隔的备选宿主命令（如 "node exec-host-openclaw.mjs,node exec-host-a6api.mjs --model gpt-5.6-luna"）；主宿主(--exec/config executor.command)失败时自动按序换宿主/换模型重试（失败自动恢复），全失败 → 诚实降级 degraded + warning。也可在 config.json 的 executor.hosts（数组，每项 command 数组）固化。'); }
 async function readConfig() {
   try { return JSON.parse(await fs.readFile(path.join(SKILL_DIR, 'config.json'), 'utf8')); } catch (error) { if (error.code === 'ENOENT') return null; throw error; }
-}
-/** 判定已解析 JSON 是否为可消费 OpenAPI 规范（v3 openapi / v2 swagger）。描述串/冻结文件不满足。 */
-function isOpenApiSpec(doc) {
-  return Boolean(doc) && typeof doc === 'object' && !Array.isArray(doc)
-    && (typeof doc.openapi === 'string' || typeof doc.swagger === 'string');
 }
 /**
  * FR-3 前端按契约实现（契约硬前置）：对「调用后端接口的前端实现」子任务，
@@ -104,56 +80,8 @@ async function freezeContract(plan, workspace, contractSource) {
   await fs.writeFile(file, JSON.stringify(payload, null, 2));
   return path.join('contracts', plan.id + '.json');
 }
-// IMP-1 批判 backlog tracker 解析（与 critique-backlog-next.mjs 同源语义：列对齐 + 待落地判定），
-// 内联副本以避免 import 脚本时顶层 main() 副作用；读不到 tracker 一律返回 null（不阻断）。
-const BL_COLS = { '#': 'serial', '批判': 'title', '级别': 'level', '修复': 'fix', '落点': 'ctx', '验收': 'accept', '状态': 'status' };
-const BL_PENDING_RE = /^[⬜◐]|(?:待落地|待复验|待[\u4e00-\u9fa5]*)/;
-function parseBacklogRows(text) {
-  const blocks = [];
-  let block = null;
-  const flush = function() { if (block) { blocks.push(block); block = null; } };
-  for (const raw of String(text || '').replace(/\r\n/g, '\n').split('\n')) {
-    const t = raw.trim();
-    if (/^\|\s*#/.test(t) && (t.includes('批判') || t.includes('落点'))) {
-      flush();
-      const cells = t.split('|').map(function(c) { return c.trim(); });
-      const col = {};
-      for (let i = 0; i < cells.length; i += 1) {
-        for (const [name, key] of Object.entries(BL_COLS)) {
-          if (cells[i] === name || (name !== '#' && name !== '状态' && cells[i].includes(name))) { if (!(key in col)) col[key] = i; }
-          else if (cells[i].includes('状态')) col.status = i;
-        }
-      }
-      block = { col, rows: [] };
-      continue;
-    }
-    if (block && /^\|/.test(t) && !/^\|[\s:-]+\|$/.test(t)) {
-      const cells = t.split('|').map(function(c) { return c.trim(); });
-      const get = function(k) { return cells[block.col[k]]; };
-      const serialRaw = get('serial') ?? cells[0];
-      const m = String(serialRaw || '').match(/C-(\d+)/);
-      if (m) block.rows.push({
-        serial: 'C-' + String(parseInt(m[1], 10)).padStart(2, '0'),
-        title: (get('title') ?? '').replace(/（来源：.+?）/, '').trim(),
-        fix: (get('fix') ?? '').trim(),
-        status: (get('status') ?? '').trim(),
-        raw: t,
-      });
-      continue;
-    }
-    if (/^#/.test(t) && !/^\|/.test(t)) flush();
-  }
-  flush();
-  const out = [];
-  for (const b of blocks) out.push(...b.rows);
-  return out;
-}
-function backlogIsPending(r) {
-  if (!r.status) return BL_PENDING_RE.test(r.raw);
-  if (/^✅/.test(r.status) || /^❌/.test(r.status)) return false;
-  if (/^[⬜◐]/.test(r.status)) return true;
-  return BL_PENDING_RE.test(r.status);
-}
+// IMP-1 批判 backlog tracker 解析：parseBacklogRows/backlogIsPending 现由 lib/orchestrator.mjs 单点提供（B7），
+// 读不到 tracker 一律返回 null（不阻断）。P2-4：BL_PENDING_RE 在 lib/ 与顶层曾各一份，B7 后顶层副本删除统一引用 lib。
 async function readCritiqueBacklog() {
   try {
     const text = await fs.readFile(path.join(SKILL_DIR, 'plans', 'critique-backlog-tracker.md'), 'utf8');
@@ -289,17 +217,71 @@ async function syncJourney(workspace, result, sessionId) {
   await syncJourney(workspace, result);
   return path.join('artifacts', planId, 'state-summary.json');
 }
+
+/**
+ * B7（T6 接线）旗标门钩子：phase.transition 权限门 / 契约改动走 change.record / --evolve。
+ * 全部旗标制——未传 --allow-out-of-order 且未传 --evolve 时为 no-op，不翻任何默认行为。
+ * 所有子调用 best-effort（try/catch），任何失败只 warn 不阻断主流程。
+ */
+async function maybeRunB7Hooks(result, opts, logger) {
+  if (!opts.allowOutOfOrder && !opts.evolve) return;
+  const plan = result && result.plan;
+  if (!plan) return;
+  // (a) phase.transition 权限门：owner override 仅 --allow-out-of-order 显式旗标。
+  //     此处以只读 checkPhase 观察并记录（不读 state 不写 transition），真正的 force+ownerReceipt
+  //     由 phase.mjs transitionPhase 承载——本编排器默认不推进 phase（保持旧行为）。
+  if (opts.allowOutOfOrder) {
+    try {
+      const { checkPhase } = await import('./lib/phase.mjs');
+      const chk = await checkPhase({ workspace: opts.workspace, session: opts.session });
+      logger.warn('[B7] phase gate (--allow-out-of-order owner override): ok=' + chk.ok + ' code=' + (chk.code || 'n/a'));
+    } catch (e) { logger.warn('[B7] phase gate 跳过（不阻断）: ' + e.message); }
+  }
+  // (b) 契约改动强制走 change.record：棕地草案/契约覆盖路径记录一条变更（best-effort）。
+  if (opts.contract || opts.contractDraft || opts.evolve) {
+    try {
+      const { recordChange } = await import('./lib/change.mjs');
+      const cr = await recordChange({
+        basePlan: plan.id,
+        reason: (opts.contractDraft ? 'brownfield contract draft override' : 'contract/evolve hook'),
+        impactClass: opts.contractDraft ? 'CONTRACT' : 'DOC_ONLY',
+        owner: 'orchestrator--evolve',
+        sourceEvidence: [opts.contract || opts.contractDraft || 'flag:--evolve'],
+      }, { workspace: opts.workspace, recordedBy: 'orchestrator-B7' });
+      logger.warn('[B7] change.record: ' + (cr && cr.ok ? 'OK ' + (cr.data && cr.data.changeId || '') : 'SKIPPED(' + (cr && cr.code) + ')'));
+    } catch (e) { logger.warn('[B7] change.record 跳过（不阻断）: ' + e.message); }
+  }
+  // (c) --evolve：对完成子任务生成 evolution.propose 候选（best-effort；形状不足时 evolution 返回 ok:false 壳，不抛）。
+  if (opts.evolve) {
+    try {
+      const { evolutionPropose } = await import('./lib/evolution.mjs');
+      const doneSubs = (plan.subtasks || []).filter(function(s) { return s.status === 'done' && s.asset; });
+      let proposed = 0;
+      for (const s of doneSubs) {
+        const ev = evolutionPropose({
+          assetId: s.asset,
+          sourceVersion: plan.id,
+          proposedBy: 'orchestrator--evolve',
+          baseline: { structure: plan.cluster || 'unknown', manifest: null, receiptTerminal: null, ciSection: null, rollbackTarget: null },
+          candidate: { status: 'proposed', summary: 'evolve candidate for ' + s.asset, motivation: 'flag:--evolve', diff: null, expectedGain: null, rollback: null, evidence: [], risk: null, next: null },
+          opts: { evidenceRoot: path.join(opts.workspace || '.', '.tt-state') },
+        });
+        if (ev && ev.ok) proposed += 1;
+      }
+      logger.warn('[B7] --evolve: proposed ' + proposed + '/' + doneSubs.length + ' candidates (best-effort shell)');
+    } catch (e) { logger.warn('[B7] --evolve 跳过（不阻断）: ' + e.message); }
+  }
+}
+
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
+  // B7：纯旗标（无值），单点扫描；不进 lib parseArgs（不改 adapters/lib）。
+  opts.allowOutOfOrder = process.argv.includes('--allow-out-of-order');
+  opts.evolve = process.argv.includes('--evolve');
   if (opts.help) { usage(); return EXIT.OK; }
-  if (opts.argError) { console.error(opts.argError); return EXIT.ARGS; }
-  if (opts.resume && opts.dryRun) { console.error('--resume 不能与 --dry-run 同时使用'); return EXIT.ARGS; }
-  if (opts.plan && opts.resume) { console.error('--plan 不能与 --resume 同时使用'); return EXIT.ARGS; }
-  if (!['auto', 'prompt', 'cli'].includes(opts.backend)) { console.error('--backend 仅支持 auto|prompt|cli'); return EXIT.ARGS; }
-  if (opts.maxRetries !== undefined && (!Number.isInteger(opts.maxRetries) || opts.maxRetries < 0)) { console.error('--max-retries 必须是非负整数'); return EXIT.ARGS; }
-  if (opts.execTimeoutMs !== undefined && (!Number.isInteger(opts.execTimeoutMs) || opts.execTimeoutMs < 1)) { console.error('--exec-timeout 必须是正整数（毫秒）'); return EXIT.ARGS; }
-  if (opts.parallel !== undefined && opts.parallel !== Infinity && (!Number.isInteger(opts.parallel) || opts.parallel < 1)) { console.error('--parallel 必须是正整数（缺省 = 全部并行）'); return EXIT.ARGS; }
-  if (!opts.task.trim() && !opts.resume) { console.error('任务不能为空（使用 --resume 恢复上次计划）'); return EXIT.ARGS; }
+  // B7：校验统一走 lib/orchestrator.mjs validateOpts（与原内联 if 链逐字等价）
+  const v = libValidateOpts(opts);
+  if (!v.ok) { console.error(v.error); return v.exitCode; }
   const logger = createLogger(opts.verbose);
   // workspace 落产物/状态；默认取 config.json 的 projectRoot，未配置则当前目录。vendor 资产始终用随包副本。
   const cfg = await readConfig();
@@ -442,6 +424,8 @@ async function main() {
   let result;
   try { result = await executePlan(plan, execOpts); } catch (error) { if (tui) tui.reset(); throw error; }
   await store.save(result.plan);
+  // B7 旗标门钩子（phase 门/change.record/--evolve）：默认 no-op，best-effort 不阻断
+  await maybeRunB7Hooks(result, opts, logger);
   logger.info('state: reviewing');
   const report = await writeReport(result, workspace);
   if (tui) tui.finish({ status: result.plan.status, reportPath: report.markdown });

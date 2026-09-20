@@ -1,0 +1,12 @@
+{
+  "task": "命令行 TODO 工具：Node.js CLI，增删改查，本地 JSON 持久化",
+  "stages": [
+    { "step": 0, "journeyStep": 0, "prompt": "盘点资产与平台，只做需求澄清不写代码" },
+    { "step": 1, "journeyStep": 1, "prompt": "逐轮挖掘需求产出概念版" },
+    { "step": 2, "journeyStep": 3, "prompt": "前提挑战后拆任务" },
+    { "step": 3, "journeyStep": 5, "prompt": "规划并冻结契约" },
+    { "step": 4, "journeyStep": 7, "prompt": "派单执行并独立实证验收" },
+    { "step": 5, "journeyStep": 8, "prompt": "强制技术批判对标竞品" }
+  ],
+  "runsPerStage": 3
+}

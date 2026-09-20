@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { runCommand } from './util.mjs';
+import { renderBrief } from '../activation.mjs';
 export const name = 'prompt';
 /**
  * 内置 Prompt 执行后端（P1-1 根治核心）。
@@ -31,32 +32,62 @@ export async function run(subtask, ctx, options = {}) {
   const preconditions = Array.isArray(subtask.preconditions) && subtask.preconditions.length
     ? subtask.preconditions
     : (Array.isArray(options.preconditions) && options.preconditions.length ? options.preconditions : []);
-  const brief = [
-    '# 子任务执行指令包 ' + subtask.id,
-    '',
-    '## 任务（父任务）',
-    subtask.task || '(无)',
-    '',
-    '## 本子任务',
-    '- asset: ' + subtask.asset,
-    '- 资产根目录: ' + assetRoot,
-    '- 说明: ' + (subtask.task || subtask.contract || '(无)'),
-    '- contract: ' + (subtask.contract || '(无)'),
-    '',
-    '## 上游产物引用',
-    prior.length ? prior.join('\n') : '(无上游产物)',
-    '',
-    '## 前置条件（硬约束）',
-    preconditions.length ? preconditions.map(function(p) { return '- ' + p; }).join('\n') : '(本子任务无显式前置条件；仍须产出资产消费证据，见「执行要求」)',
-    '',
-    '## 方法论正文（资产全文）',
-    '',
-    body,
-    '',
-    '---',
-    '执行要求：以「方法论正文」为指导，针对本子任务产出可直接执行的方案或文档（如设计说明、任务清单、验收要点）。',
-    '产出请写入本目录下的其他文件（如 plan.md / checklist.md / acceptance.md），并在最终产物中标明你消费了哪个资产的方法论。',
-  ].join('\n');
+  // B6：activation 产物组装路径（YY_ACTIVATION=lib 时由 runtime 注入 options.activationPackage）。
+  // legacy（无 activationPackage）保持逐字旧 brief；新路径用 activation.renderBrief 帧渲染，
+  // 并用运行期动态值（上游引用/前置/正文/资产根）覆盖静态帧，保证字段一一对应。
+  const useActivation = Boolean(options.activationPackage && options.activationPackage.briefFrame);
+  let brief;
+  if (useActivation) {
+    const frame = Object.assign({}, options.activationPackage.briefFrame);
+    frame.subtaskId = subtask.id;
+    frame.task = subtask.task || '(无)';
+    frame.asset = subtask.asset;
+    frame.assetRoot = assetRoot;
+    frame.description = subtask.task || subtask.contract || '(无)';
+    frame.contract = subtask.contract || '(无)';
+    frame.upstreamRefs = prior.map(function(p) { return p.replace(/^- /, ''); });
+    frame.preconditions = preconditions;
+    frame.bodyContent = body;
+    brief = renderBrief(frame);
+    // B6：journey copyNextPrompt 快照引用注入（仅在调用方显式提供 options.nextPrompt 时追加；
+    // 复制 = 快照引用不重算，recompute 恒 false——journey.copyNextPrompt 语义）。
+    if (options.nextPrompt && typeof options.nextPrompt === 'object') {
+      const np = options.nextPrompt;
+      const lines = ['', '---', '', '## 下一步提示（journey 快照引用，不重算）'];
+      if (np.actionHint) lines.push('- actionHint: ' + np.actionHint);
+      if (np.targetNode) lines.push('- targetNode: step ' + (np.targetNode.step === undefined ? '?' : np.targetNode.step) + ' ' + (np.targetNode.name || ''));
+      if (Array.isArray(np.requiredInputs) && np.requiredInputs.length) lines.push('- requiredInputs: ' + np.requiredInputs.join('; '));
+      if (np.snapshotRef) lines.push('- snapshotRef: ' + JSON.stringify(np.snapshotRef));
+      brief += '\n' + lines.join('\n');
+    }
+  } else {
+    brief = [
+      '# 子任务执行指令包 ' + subtask.id,
+      '',
+      '## 任务（父任务）',
+      subtask.task || '(无)',
+      '',
+      '## 本子任务',
+      '- asset: ' + subtask.asset,
+      '- 资产根目录: ' + assetRoot,
+      '- 说明: ' + (subtask.task || subtask.contract || '(无)'),
+      '- contract: ' + (subtask.contract || '(无)'),
+      '',
+      '## 上游产物引用',
+      prior.length ? prior.join('\n') : '(无上游产物)',
+      '',
+      '## 前置条件（硬约束）',
+      preconditions.length ? preconditions.map(function(p) { return '- ' + p; }).join('\n') : '(本子任务无显式前置条件；仍须产出资产消费证据，见「执行要求」)',
+      '',
+      '## 方法论正文（资产全文）',
+      '',
+      body,
+      '',
+      '---',
+      '执行要求：以「方法论正文」为指导，针对本子任务产出可直接执行的方案或文档（如设计说明、任务清单、验收要点）。',
+      '产出请写入本目录下的其他文件（如 plan.md / checklist.md / acceptance.md），并在最终产物中标明你消费了哪个资产的方法论。',
+    ].join('\n');
+  }
   const dir = path.join(workspace, 'artifacts', subtask.id);
   const briefPath = path.join(dir, 'brief.md');
   await fs.mkdir(dir, { recursive: true });

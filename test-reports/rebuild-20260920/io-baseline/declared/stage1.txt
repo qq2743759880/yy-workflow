@@ -1,0 +1,55 @@
+
+---STDERR---
+node:internal/errors:983
+  const err = new Error(message);
+              ^
+
+Error: Command failed: C:\Users\Administrator\AppData\Local\Doubao\User Data\sandbox_runtime\bases\c98c5042338ed152c6f10ecd8591889f\node\node.exe scripts/orchestrator.mjs --task 逐轮挖掘需求产出概念版 --workspace C:\Users\Administrator\AppData\Local\Temp\tt-rate-1789898954795
+[tt] no match: no matching asset
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:916:11)
+    at execFileSync (node:child_process:952:15)
+    at main (file:///D:/.ai-hub/skills/yy/scripts/asset-call-rate.mjs:123:5)
+    at file:///D:/.ai-hub/skills/yy/scripts/asset-call-rate.mjs:187:20
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  status: 5,
+  signal: null,
+  output: [
+    null,
+    Buffer(38) [Uint8Array] [
+       91, 116, 116,  93,  32, 115, 116,  97,
+      116, 101,  58,  32, 105, 100, 108, 101,
+       10,  91, 116, 116,  93,  32, 115, 116,
+       97, 116, 101,  58,  32, 112, 108,  97,
+      110, 110, 105, 110, 103,  10
+    ],
+    Buffer(33) [Uint8Array] [
+       91, 116, 116, 93,  32, 110, 111,  32,
+      109,  97, 116, 99, 104,  58,  32, 110,
+      111,  32, 109, 97, 116,  99, 104, 105,
+      110, 103,  32, 97, 115, 115, 101, 116,
+       10
+    ]
+  ],
+  pid: 24384,
+  stdout: Buffer(38) [Uint8Array] [
+     91, 116, 116,  93,  32, 115, 116,  97,
+    116, 101,  58,  32, 105, 100, 108, 101,
+     10,  91, 116, 116,  93,  32, 115, 116,
+     97, 116, 101,  58,  32, 112, 108,  97,
+    110, 110, 105, 110, 103,  10
+  ],
+  stderr: Buffer(33) [Uint8Array] [
+     91, 116, 116, 93,  32, 110, 111,  32,
+    109,  97, 116, 99, 104,  58,  32, 110,
+    111,  32, 109, 97, 116,  99, 104, 105,
+    110, 103,  32, 97, 115, 115, 101, 116,
+     10
+  ]
+}
+
+Node.js v22.23.2

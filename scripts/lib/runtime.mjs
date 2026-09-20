@@ -6,6 +6,33 @@ import { withRetry, retryAcrossHosts, resolveHosts } from './resilience.mjs';
 import { RetryableError, TimeoutError } from './errors.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// ---------------------------------------------------------------------------
+// B5（T6 接线）：adapter resolver 依赖注入（A0 修正案）+ activation.prepare 三级激活路由
+// ---------------------------------------------------------------------------
+// DI：默认指向静态 import 的 resolveAdapter；可由 setAdapterResolver(fn) 注入测试替身，
+// 或被单次 opts.resolveAdapter 覆盖——不改 adapters/index.mjs（接线序解耦）。
+const DEFAULT_VENDOR_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'vendor');
+let _adapterResolver = resolveAdapter;
+/** 注入/还原 adapter resolver；返回旧 resolver（便于测试还原）。 */
+export function setAdapterResolver(fn) {
+  const prev = _adapterResolver;
+  _adapterResolver = (typeof fn === 'function') ? fn : resolveAdapter;
+  return prev;
+}
+function resolveAdapterDI(asset, backend, opts) {
+  if (opts && typeof opts.resolveAdapter === 'function') return opts.resolveAdapter(asset, backend);
+  return _adapterResolver(asset, backend);
+}
+
+// YY_ACTIVATION=lib|legacy（默认 legacy，不改变旧行为）。与 activation.mjs 的 YY_RECEIPT_MODE 是两个变量。
+function resolveActivationMode(env = process.env) {
+  const v = String((env && env.YY_ACTIVATION) || '').trim().toLowerCase();
+  if (v === 'lib') return { mode: 'lib' };
+  if (v === 'legacy' || v === '') return { mode: 'legacy' };
+  return { mode: 'legacy', warning: 'YY_ACTIVATION=' + v + ' 非法，降级 legacy（不阻断）' };
+}
 export function createContextBus() {
   const values = new Map();
   return { set(key, value) { JSON.stringify(value); values.set(key, value); }, get(key) { return values.get(key); }, has(key) { return values.has(key); }, dump() { return Object.fromEntries(values); } };
@@ -33,8 +60,29 @@ export async function dispatch(subtask, ctx, opts = {}) {
   let logger = opts.logger;
   if (!logger) logger = createLogger(opts.verbose);
   if (opts.dryRun) { console.log('[dry-run] 将执行 ' + subtask.asset); return { ok: true, dryRun: true, artifactPath: null, error: null }; }
-  const adapter = resolveAdapter(subtask.asset, opts.backend);
+  const adapter = resolveAdapterDI(subtask.asset, opts.backend, opts);
   if (!adapter) { subtask.status = 'skipped'; subtask.mode = 'skipped'; subtask.adapter = 'none'; logger.warn('asset adapter unavailable: ' + subtask.asset); return { ok: true, skipped: true, artifactPath: null, error: 'ADAPTER_NOT_AVAILABLE' }; }
+  // B5: activation.prepare 三级激活（仅 YY_ACTIVATION=lib 且 prompt 后端时）；
+  // 任何失败/无 budget 字段均降级 legacy + warning，绝不 BLOCK 旧流程。
+  if (adapter === PROMPT_ADAPTER) {
+    const act = resolveActivationMode();
+    if (act.warning) logger.warn(act.warning);
+    if (act.mode === 'lib' && !opts.activationPackage) {
+      try {
+        const { activationPrepare } = await import('./activation.mjs');
+        const prep = await activationPrepare({
+          asset: subtask.asset,
+          subtask: { id: subtask.id, task: subtask.task, contract: subtask.contract, preconditions: subtask.preconditions || [] },
+          activationLevel: opts.activationLevel || 'body',
+          opts: { vendorDir: opts.vendorDir || DEFAULT_VENDOR_DIR, workspace: opts.workspace, useCache: false },
+        });
+        if (prep.ok) opts.activationPackage = prep.data.activationPackage;
+        else logger.warn('[YY_ACTIVATION=lib] activation.prepare 未通过(' + prep.code + ')，降级 legacy prompt 路径（不阻断）');
+      } catch (e) {
+        logger.warn('[YY_ACTIVATION=lib] activation.prepare 异常，降级 legacy（不阻断）: ' + e.message);
+      }
+    }
+  }
   try { await gate.before(subtask, opts); } catch (error) { logger.warn('gate.before skipped: ' + error.message); }
   let result;
   try {
