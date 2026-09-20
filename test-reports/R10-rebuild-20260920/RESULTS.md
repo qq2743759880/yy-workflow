@@ -1,4 +1,4 @@
-# R10 rebuild fixture results — 2026-09-19T15:25:37.974Z
+# R10 rebuild fixture results — 2026-09-20T09:47:02.905Z
 
 对照标准：`../R10-implementation-20260917/fixtures/README-recovered-semantics.md` + 幸存 `fixture-results.json` 摘要列。
 

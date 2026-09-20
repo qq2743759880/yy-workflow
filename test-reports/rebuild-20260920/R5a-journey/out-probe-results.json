@@ -101,7 +101,7 @@
       "probe": "p14",
       "exitCode": 0,
       "ok": true,
-      "summary": "只读+writer: read不改写=true project落盘=true 源字节不动=true tt-journey兼容读取+9节点=true gates/留痕保留=true/true additive=faade1d7a76f38cbb4f07cf40144814594f566a01a05db1a66c3d0539548386a legacy不落盘=true INFERRED不落盘=true"
+      "summary": "只读+writer: read不改写=true project落盘=true 源字节不动=true tt-journey兼容读取+9节点=true gates/留痕保留=true/true additive=bafb9531c45edc305b1685451aee314bf3584a55d2db8c885ab49bbc6bb0db23 legacy不落盘=true INFERRED不落盘=true"
     },
     {
       "probe": "p15",

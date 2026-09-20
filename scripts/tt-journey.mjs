@@ -499,6 +499,31 @@ async function main() {
     return;
   }
   const workspace = arg('workspace') || '.';
+
+  // B3（P3 阶段 B）：--read / --project 子命令，经 scripts/lib/journey.mjs 只读消费。
+  // 单写者纪律（C-R5）：journey.project 在 CLI 语境下以 writerMode=legacy 调用，**不落盘**；
+  // projection 落盘仍由 tt-journey --update 单写者完成。--now <ISO> 仅供自测做确定性差分。
+  // 动态导入：老命令（--prereq-check/--update/self-test/默认渲染）不加载 journey.mjs。
+  if (has('read') || has('project')) {
+    const { journeyRead, journeyProject } = await import('./lib/journey.mjs');
+    const opts = {};
+    const nowArg = arg('now');
+    if (nowArg) {
+      const d = new Date(nowArg);
+      if (Number.isNaN(d.getTime())) { console.error('--now 非 ISO 时间: ' + nowArg); process.exitCode = 2; return; }
+      opts.now = d;
+    }
+    if (has('project')) opts.writerMode = 'legacy'; // 只读消费：绝不落盘（C-R5 单写者）
+    const input = { workspace };
+    const sid = arg('session');
+    if (sid) input.sessionId = sid;
+    input.opts = opts;
+    const result = has('project') ? journeyProject(input) : journeyRead(input);
+    process.stdout.write(JSON.stringify(result, null, 2) + '\n');
+    process.exitCode = result.ok ? 0 : 1;
+    return;
+  }
+
   if (has('prereq-check')) {
     const n = Number(arg('step'));
     if (!Number.isInteger(n) || n < 0 || n > 8) { console.error('--prereq-check 需要 --step <0-8>'); process.exitCode = 2; return; }

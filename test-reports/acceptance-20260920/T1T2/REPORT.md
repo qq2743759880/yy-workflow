@@ -52,3 +52,40 @@ A0 发现接线序冲突：`lib/runtime.mjs` 直接 import `lib/adapters/index.m
 T1 报告主动申报 9 条偏差（Node v22 实测、matrix.mjs 实际在 lib/ 下、readdirSync 增量覆盖、
 自帧剔除等）——抽查全部属实，按"如实申报从宽"原则认可。A1/A2 的"未抽取部分"清单与
 实际代码位置核对一致。
+
+## 本轮修了什么（2026-09-20，T3 返工 P2-1/P2-2）
+
+**改动文件**：仅 `scripts/lib/io-audit-hook.mjs`（T1 三脚本之一）。新增自测探针两个。
+
+### P2-1：routing 子串误判 → 路径段边界精确匹配
+
+- **旧**：`ROUTING_RE = /(matrix\.mjs|asset-call-rate|ci\.mjs|io-audit)/` 子串匹配，
+  `callermatrix.mjs`（含 `matrix.mjs` 子串）、`official-ci.mjs`（含 `ci.mjs` 子串）被误判 routing。
+- **新**：改为 `ROUTING_BASENAMES = Set{matrix.mjs, asset-call-rate.mjs, ci.mjs, io-audit-hook.mjs}`。
+  `classifyTag()` 逐行扫描调用栈，先剔除本钩子自身帧（`io-audit-hook.mjs`），再用正则
+  `FILE_REF_RE` 提取每行中的文件路径引用，去掉 `:line:col` 和 `file://` 前缀后取 basename
+  （按 `/` `\` 切分取最后一段），与 Set 做精确比对。自帧剔除逻辑保留不变。
+- **效果**：`callermatrix.mjs` / `official-ci.mjs` → consumption；真 `matrix.mjs` / `ci.mjs` /
+  `asset-call-rate.mjs` → routing。盲测 H2 复现场景（bp3）不再误判。
+
+### P2-2：JSONL path 存原文（不折叠大小写）
+
+- **旧**：`record()` 调 `normalizePath(p)`（含 `.toLowerCase()`）后存入 `path` 字段，
+  `SKILL.md` 落盘成 `skill.md`。
+- **新**：`record()` 现在 `path.resolve(p).replace(/\\/g,'/')` 得到 `resolved`（保留原始大小写），
+  另算 `norm = resolved.toLowerCase()` 仅传给 `isUnderVendor(norm)` 做 vendor 前缀判定。
+  落盘 `path` 字段存 `resolved`（原文大小写）。`normalizePath()` 导出函数本身不变（仍折叠），
+  供 `isUnderVendor` / `extractAsset` / `cwdInRepo` 内部前缀匹配使用。
+- **效果**：`SKILL.md` 大写保留；即使 caller 传入大写 `VENDOR/` 路径，折叠后仍正确判定在 vendor 下，
+  落盘保留 caller 原始大小写。report 侧 `assetOf()` 按 `/vendor/` 段取第一段资产 id，
+  不受文件名大小写影响（实际 vendor 目录名均为小写）。
+
+### 新增自测探针（test-reports/rebuild-20260920/io-audit/probes/）
+
+- `p07-basename-boundary.mjs`：分别以 `callermatrix.mjs` / `official-ci.mjs` / `matrix.mjs`
+  为子脚本名读 vendor 文件，验证 tag = consumption / consumption / routing。**PASS**。
+- `p08-path-original-case.mjs`：读 `vendor/colorize/SKILL.md` 验证落盘 path 含大写 `SKILL.md`；
+  另传大写 `VENDOR/` 绝对路径验证前缀折叠仍记录、落盘保留 `VENDOR` 大写。**PASS**。
+- 运行器：`run-p07p08.mjs`（TOTAL 2/2 PASS）。既有 p01（hook 捕获）、p03（路径规范化纯函数）
+  复跑仍 PASS。旧 p02 探针未改（其 `fake-matrix.mjs` 依赖子串匹配行为，现已正确归 consumption——
+  这是 P2-1 修复的预期行为变更，非回归）。

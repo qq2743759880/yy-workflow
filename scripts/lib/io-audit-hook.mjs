@@ -10,8 +10,11 @@
  *
  * 记录形状（与 transcript 工具同构）：{ ts, pid, cwd, op, path, tag }
  *   - ts   ISO8601；pid 进程号；cwd 进程工作目录；op 被包动作名
- *   - path 规范化后的绝对路径（Windows 反斜杠转正斜杠、大小写折叠——win32 大小写不敏感）
- *   - tag  调用栈归类：含 matrix.mjs / asset-call-rate / ci.mjs / io-audit → routing；否则 consumption
+ *   - path 规范化后的绝对路径（Windows 反斜杠转正斜杠；保留原始大小写——大小写折叠仅用于
+ *           内部 vendor 前缀判定，不落盘）
+ *   - tag  调用栈归类：栈帧 basename 精确匹配 matrix.mjs / asset-call-rate.mjs / ci.mjs /
+ *           io-audit-hook.mjs → routing；否则 consumption（P2-1 修复：路径段边界精确比对，
+ *           callermatrix.mjs / official-ci.mjs 等子串不再误判）
  *
  * 作用域防护：仅当 process.cwd() 位于本仓库内才安装包装与记录——防止 NODE_OPTIONS 全局泄漏
  * 到无关进程后对其 fs 动刀、或把无关路径写进审计。本钩子自身绝不抛错进业务路径
@@ -43,8 +46,19 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = path.resolve(HERE, '..', '..');
 export const VENDOR_ROOT = path.join(REPO_ROOT, 'vendor');
 
-/** routing 调用栈特征串（caller 归类；本钩子自身帧在 classifyTag 中先剔除，见下）。 */
-const ROUTING_RE = /(matrix\.mjs|asset-call-rate|ci\.mjs|io-audit)/;
+/** routing 调用栈特征 basename 集合（caller 归类；本钩子自身帧在 classifyTag 中先剔除，见下）。
+ *  P2-1 修复：用路径段边界精确比对，不再用子串正则——callermatrix.mjs / official-ci.mjs
+ *  这类文件名包含 "matrix.mjs" / "ci.mjs" 子串但不是路由脚本，不能误判 routing。 */
+const ROUTING_BASENAMES = new Set([
+  'matrix.mjs',
+  'asset-call-rate.mjs',
+  'ci.mjs',
+  'io-audit-hook.mjs',
+]);
+
+/** 从栈帧行中提取文件路径引用的正则：匹配以 .mjs/.js/.cjs/.mts/.ts 结尾、
+ *  可选 :line:col 后缀的路径片段（含 file:// URL 和 Windows 反斜杠路径）。 */
+const FILE_REF_RE = /([^\s()'"`]+?\.(?:mjs|js|cjs|mts|ts))(?::\d+:\d+)?/g;
 
 /** 输出目录：YY_IO_AUDIT_DIR 覆盖，默认 <repo>/.tt-state/io-audit/。 */
 const OUT_DIR = process.env.YY_IO_AUDIT_DIR
@@ -85,14 +99,29 @@ export function extractAsset(normAbs) {
 
 /**
  * 调用栈归类。先剔除本钩子自身帧（io-audit-hook.mjs）——否则每个被包动作的栈里都含
- * 包装帧，会把"io-audit"特征误命中而把一切读都判成 routing。剔除后再匹配路由特征串。
+ * 包装帧，会把 io-audit-hook.mjs 特征误命中而把一切读都判成 routing。
+ * 剔除后，对每个剩余栈帧提取其中的文件 basename，与路由脚本 basename 集合精确比对
+ * （P2-1：路径段边界匹配，子串匹配不再误判 callermatrix.mjs / official-ci.mjs）。
  */
 export function classifyTag(stack) {
-  const cleaned = (stack || '')
-    .split('\n')
-    .filter((line) => !line.includes('io-audit-hook.mjs'))
-    .join('\n');
-  return ROUTING_RE.test(cleaned) ? 'routing' : 'consumption';
+  const lines = (stack || '').split('\n');
+  for (const line of lines) {
+    // 剔除本钩子自身帧
+    if (line.includes('io-audit-hook.mjs')) continue;
+
+    const refs = line.match(FILE_REF_RE);
+    if (!refs) continue;
+
+    for (const ref of refs) {
+      // 去掉 :line:col 后缀和 file:// 协议前缀，取 basename（最后一段路径）
+      const cleaned = ref.replace(/:\d+:\d+$/, '').replace(/^file:\/\//, '');
+      const basename = cleaned.split(/[\\/]/).pop();
+      if (basename && ROUTING_BASENAMES.has(basename)) {
+        return 'routing';
+      }
+    }
+  }
+  return 'consumption';
 }
 
 /** fs 第一个参数可能是 string / Buffer / URL；统一转成字符串路径。失败返回 null。 */
@@ -140,15 +169,18 @@ function record(op, pathArg) {
   try {
     const p = toPathString(pathArg);
     if (!p) return;
-    const norm = normalizePath(p);
-    if (!isUnderVendor(norm)) return; // 只关心 vendor 读取
+    // P2-2 修复：存原文路径（resolve 成绝对 + 反斜杠转正斜杠，但不做大小写折叠）。
+    // 大小写折叠仅用于 vendor 前缀判定（win32 大小写不敏感），不落盘。
+    const resolved = path.resolve(p).replace(/\\/g, '/');
+    const norm = resolved.toLowerCase();
+    if (!isUnderVendor(norm)) return; // 只关心 vendor 读取（用折叠后路径判定）
     const tag = classifyTag(new Error().stack);
     appendRecord({
       ts: new Date().toISOString(),
       pid: process.pid,
       cwd: process.cwd(),
       op,
-      path: norm,
+      path: resolved,
       tag,
     });
   } catch {
