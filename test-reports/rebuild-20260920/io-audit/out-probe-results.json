@@ -1,0 +1,50 @@
+{
+  "pass": [
+    "p01",
+    "p02",
+    "p03",
+    "p04",
+    "p05",
+    "p06"
+  ],
+  "fail": [],
+  "results": [
+    {
+      "probe": "p01",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "记录 4 条; ops=[createReadStream,readFile,readFileSync,readdir]; 全 vendor=true 四面齐=true 非vendor已滤=true"
+    },
+    {
+      "probe": "p02",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "routing 子(1 条 tag=routing) consumption 子(1 条 tag=consumption)"
+    },
+    {
+      "probe": "p03",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "{\"中文\":{\"name\":\"中文\",\"under\":true,\"asset\":\"implementation\"},\"空格\":{\"name\":\"空格\",\"under\":true,\"asset\":\"planning\"},\"混合斜杠\":{\"name\":\"混合斜杠\",\"under\":true,\"asset\":\"sdlc\"},\"大小写\":{\"name\":\"大小写\",\"under\":true,\"asset\":\"review\"},\"非vendor\":{\"name\":\"非vendor\",\"under\":false,\"asset\":null}}"
+    },
+    {
+      "probe": "p04",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "仓库外不记录=true；滚动 .1 存在=true（.1 字节=184）"
+    },
+    {
+      "probe": "p05",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "计数(routing=1, impl=1, sec=1) 零调用=13 阶段=[step0 资产整合|step1 文档化|step5 规划+契约] journey缺失全unknown=true 畸形抛错=true 渲染=true"
+    },
+    {
+      "probe": "p06",
+      "exitCode": 0,
+      "ok": true,
+      "summary": "采集 3 条 assets=[implementation,planning,security] ops=[read-tool,shell-read,read-tool] 全consumption=true"
+    }
+  ],
+  "total": 6
+}
