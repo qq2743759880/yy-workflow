@@ -24,6 +24,9 @@
  */
 
 import path from 'node:path';
+// S5 口径单点（消双口径，T7 收尾批①）：⬜◐ 标记集与"未清零"判定统一由 lib/ci.mjs 提供，
+// 本文件不再自持该字符类字面量（第三次分叉的入口）。见 plans/decision-s5-p0-semantics-20260920.md。
+import { OPEN_P0_MARKERS, OPEN_P0_MARKER_RE } from './ci.mjs';
 
 // ---------------------------------------------------------------------------
 // parseArgs — 逐字复制自 orchestrator.mjs（纯函数）
@@ -105,7 +108,9 @@ export function isOpenApiSpec(doc) {
 // ---------------------------------------------------------------------------
 
 const BL_COLS = { '#': 'serial', '批判': 'title', '级别': 'level', '修复': 'fix', '落点': 'ctx', '验收': 'accept', '状态': 'status' };
-const BL_PENDING_RE = /^[⬜◐]|(?:待落地|待复验|待[\u4e00-\u9fa5]*)/;
+// 待落地判定：⬜◐ 标记集自 lib/ci.mjs 单点派生（OPEN_P0_MARKERS），"待…" 措辞为本文件特有。
+// 行为与抽取前逐字等价（原字面量即本标记集，字符集相同）。
+const BL_PENDING_RE = new RegExp('^(?:' + OPEN_P0_MARKERS.join('|') + ')|(?:待落地|待复验|待[\\u4e00-\\u9fa5]*)');
 
 /**
  * 解析 critique-backlog-tracker.md 表格行。
@@ -154,13 +159,16 @@ export function parseBacklogRows(text) {
 }
 
 /**
+ * 行是否待落地。
+ * S5 严格口径单点（T7 收尾批①）：状态以 ⬜/◐ 开头即 pending —— OPEN_P0_MARKER_RE 由
+ * lib/ci.mjs 的 OPEN_P0_MARKERS 派生，与 S5 P0 硬闸门同一事实源（行为零变化，原本就含此二标记）。
  * @param {{status: string, raw: string}} r
  * @returns {boolean}
  */
 export function backlogIsPending(r) {
   if (!r.status) return BL_PENDING_RE.test(r.raw);
   if (/^✅/.test(r.status) || /^❌/.test(r.status)) return false;
-  if (/^[⬜◐]/.test(r.status)) return true;
+  if (OPEN_P0_MARKER_RE.test(r.status)) return true;
   return BL_PENDING_RE.test(r.status);
 }
 

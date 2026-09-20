@@ -18,7 +18,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { GATE_TOPOLOGY, GATE_MAP, buildTempReportContent, countOpenP0, classifyFailure, runGate } from '../../../scripts/lib/ci.mjs';
+import { GATE_TOPOLOGY, GATE_MAP, buildTempReportContent, countOpenP0, classifyOpenP0, OPEN_P0_MARKERS, classifyFailure, runGate } from '../../../scripts/lib/ci.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const ciSource = readFileSync(path.join(ROOT, 'scripts', 'ci.mjs'), 'utf8');
@@ -69,12 +69,23 @@ const twoP0 = [
 ].join('\n');
 check('组5: 2 条 P0 ⬜ → 2 (必失败组)', countOpenP0(twoP0), 2);
 
-// --- 组6: P0 ✅ 已闭环不计；◐ 也不计（ci.mjs S5 只查 ⬜，与 orchestrator backlogIsPending 的 [⬜◐] 不同）---
+// --- 组6: P0 ✅ 已闭环不计；◐ **计**（T7 收尾批①：S5 严格口径落地后 ⬜◐ 都算未清零，
+//          与 orchestrator backlogIsPending 同口径——原「只查 ⬜」期望已被 change record
+//          cr-20260920T112945Z-a6244b0c 取代；见 plans/decision-s5-p0-semantics-20260920.md）---
 const closedP0 = [
   '| C-01 | 问题1 | P0 | fix1 | loc1 | acc1 | ✅ |',
   '| C-02 | 问题2 | P0 | fix2 | loc2 | acc2 | ◐ |',
 ].join('\n');
-check('组6: P0 ✅ 和 ◐ 混合 → 0 (ci.mjs S5 只查 ⬜)', countOpenP0(closedP0), 0);
+check('组6: P0 ✅ 不计、◐ 计入 → 1（严格口径：⬜/◐ 皆未清零）', countOpenP0(closedP0), 1);
+
+// --- 组6b: 严格口径 + 证据卫生规则（防护 3）---
+const inProgressP0 = '| C-31 | 问题 | P0 | 落点 T7-closeout | test-reports/rebuild-20260920/T7-closeout/RESULTS.md | ◐ |';
+check('组6b: ◐ 带落点/收据引用 → 仍计 1（in-progress ≠ 清零）', countOpenP0(inProgressP0), 1);
+check('组6b: ◐ 无引用 → 归类 unbacked（按 ⬜ 处理）',
+  classifyOpenP0(closedP0).unbacked, ['C-02']);
+check('组6b: ◐ 带引用 → 归类 inProgress',
+  classifyOpenP0(inProgressP0).inProgress, ['C-31']);
+check('组6b: OPEN_P0_MARKERS 单点字符集', [...OPEN_P0_MARKERS], ['⬜', '◐']);
 
 // --- 组7: classifyFailure 全过 ---
 const allPass = [

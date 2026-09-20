@@ -23,98 +23,252 @@
       "probe": "p01-metadata-level",
       "exitCode": 0,
       "ok": true,
-      "summary": "p01 metadata 级激活：零正文零资源读取 + 占位行 + 壳/evidence 形状 | 13 checks PASS"
+      "summary": "p01 metadata 级激活：零正文零资源读取 + 占位行 + 壳/evidence 形状 | 13 checks PASS",
+      "retried": false,
+      "attempts": [
+        {
+          "attempt": 1,
+          "sandbox": "p01-metadata-level",
+          "ok": true,
+          "summary": "p01 metadata 级激活：零正文零资源读取 + 占位行 + 壳/evidence 形状 | 13 checks PASS"
+        }
+      ]
     },
     {
       "probe": "p02-body-level",
       "exitCode": 0,
       "ok": true,
-      "summary": "p02 body 级激活：stripFrontmatter 同构全文 + 回归量尺估算 + anchor/内核登记 | 12 checks PASS"
+      "summary": "p02 body 级激活：stripFrontmatter 同构全文 + 回归量尺估算 + anchor/内核登记 | 12 checks PASS",
+      "retried": false,
+      "attempts": [
+        {
+          "attempt": 1,
+          "sandbox": "p02-body-level",
+          "ok": true,
+          "summary": "p02 body 级激活：stripFrontmatter 同构全文 + 回归量尺估算 + anchor/内核登记 | 12 checks PASS"
+        }
+      ]
     },
     {
       "probe": "p03-resource-level",
       "exitCode": 0,
       "ok": true,
-      "summary": "p03 resource 级：显式请求投递 + resourceHashes + 缺失/逃逸 fail-closed | 10 checks PASS"
+      "summary": "p03 resource 级：显式请求投递 + resourceHashes + 缺失/逃逸 fail-closed | 10 checks PASS",
+      "retried": false,
+      "attempts": [
+        {
+          "attempt": 1,
+          "sandbox": "p03-resource-level",
+          "ok": true,
+          "summary": "p03 resource 级：显式请求投递 + resourceHashes + 缺失/逃逸 fail-closed | 10 checks PASS"
+        }
+      ]
     },
     {
       "probe": "p04-budget",
       "exitCode": 0,
       "ok": true,
-      "summary": "p04 预算纪律：首轮无拦截只估算 + 显式超限 block fail-closed + 无 truncate | 9 checks PASS"
+      "summary": "p04 预算纪律：首轮无拦截只估算 + 显式超限 block fail-closed + 无 truncate | 9 checks PASS",
+      "retried": false,
+      "attempts": [
+        {
+          "attempt": 1,
+          "sandbox": "p04-budget",
+          "ok": true,
+          "summary": "p04 预算纪律：首轮无拦截只估算 + 显式超限 block fail-closed + 无 truncate | 9 checks PASS"
+        }
+      ]
     },
     {
       "probe": "p05-body-missing",
       "exitCode": 0,
       "ok": true,
-      "summary": "p05 body 缺失：ASSET_BODY_MISSING fail-closed 不投递 + ASSET_NOT_FOUND 区分 | 5 checks PASS"
+      "summary": "p05 body 缺失：ASSET_BODY_MISSING fail-closed 不投递 + ASSET_NOT_FOUND 区分 | 5 checks PASS",
+      "retried": false,
+      "attempts": [
+        {
+          "attempt": 1,
+          "sandbox": "p05-body-missing",
+          "ok": true,
+          "summary": "p05 body 缺失：ASSET_BODY_MISSING fail-closed 不投递 + ASSET_NOT_FOUND 区分 | 5 checks PASS"
+        }
+      ]
     },
     {
       "probe": "p06-mode",
       "exitCode": 0,
       "ok": true,
-      "summary": "p06 三模式：YY_RECEIPT_MODE 复用 + 非法 mode fail-closed + legacy 无事件写入 | 7 checks PASS"
+      "summary": "p06 三模式：YY_RECEIPT_MODE 复用 + 非法 mode fail-closed + legacy 无事件写入 | 7 checks PASS",
+      "retried": false,
+      "attempts": [
+        {
+          "attempt": 1,
+          "sandbox": "p06-mode",
+          "ok": true,
+          "summary": "p06 三模式：YY_RECEIPT_MODE 复用 + 非法 mode fail-closed + legacy 无事件写入 | 7 checks PASS"
+        }
+      ]
     },
     {
       "probe": "p07-chain-terminal",
       "exitCode": 0,
       "ok": true,
-      "summary": "p07 全链 T1→T6：per-artifact 布局 + 重放=缓存 + canonicalHash 可复验 + vendor 零写入 | 15 checks PASS"
+      "summary": "p07 全链 T1→T6：per-artifact 布局 + 重放=缓存 + canonicalHash 可复验 + vendor 零写入 | 15 checks PASS",
+      "retried": false,
+      "attempts": [
+        {
+          "attempt": 1,
+          "sandbox": "p07-chain-terminal",
+          "ok": true,
+          "summary": "p07 全链 T1→T6：per-artifact 布局 + 重放=缓存 + canonicalHash 可复验 + vendor 零写入 | 15 checks PASS"
+        }
+      ]
     },
     {
       "probe": "p08-idempotency",
       "exitCode": 0,
       "ok": true,
-      "summary": "p08 幂等：同键等价幂等返回 + 同键异 payload INVALID + 重试新键正常追加 | 10 checks PASS"
+      "summary": "p08 幂等：同键等价幂等返回 + 同键异 payload INVALID + 重试新键正常追加 | 10 checks PASS",
+      "retried": false,
+      "attempts": [
+        {
+          "attempt": 1,
+          "sandbox": "p08-idempotency",
+          "ok": true,
+          "summary": "p08 幂等：同键等价幂等返回 + 同键异 payload INVALID + 重试新键正常追加 | 10 checks PASS"
+        }
+      ]
     },
     {
       "probe": "p09-invalid-events",
       "exitCode": 0,
       "ok": true,
-      "summary": "p09 事件违约面：枚举/跳步/证据/白名单/穿越/手改 receipt 全部拒收 | 22 checks PASS"
+      "summary": "p09 事件违约面：枚举/跳步/证据/白名单/穿越/手改 receipt 全部拒收 | 22 checks PASS",
+      "retried": false,
+      "attempts": [
+        {
+          "attempt": 1,
+          "sandbox": "p09-invalid-events",
+          "ok": true,
+          "summary": "p09 事件违约面：枚举/跳步/证据/白名单/穿越/手改 receipt 全部拒收 | 22 checks PASS"
+        }
+      ]
     },
     {
       "probe": "p10-hash-chain",
       "exitCode": 0,
       "ok": true,
-      "summary": "p10 hash 失效：追加/校验双通道 RECEIPT_HASH_MISMATCH + N2 FAILED + 历史不改写 | 7 checks PASS"
+      "summary": "p10 hash 失效：追加/校验双通道 RECEIPT_HASH_MISMATCH + N2 FAILED + 历史不改写 | 7 checks PASS",
+      "retried": false,
+      "attempts": [
+        {
+          "attempt": 1,
+          "sandbox": "p10-hash-chain",
+          "ok": true,
+          "summary": "p10 hash 失效：追加/校验双通道 RECEIPT_HASH_MISMATCH + N2 FAILED + 历史不改写 | 7 checks PASS"
+        }
+      ]
     },
     {
       "probe": "p11-c6-fixtures",
       "exitCode": 0,
       "ok": true,
-      "summary": "p11 C6 7case 回归：7/7 不 VERIFIED（5 FAILED/EVIDENCE_ECHO_ONLY + 2 UNRESOLVED）+ legacy 缺陷列重derive | 29 checks PASS"
+      "summary": "p11 C6 7case 回归：7/7 不 VERIFIED（5 FAILED/EVIDENCE_ECHO_ONLY + 2 UNRESOLVED）+ legacy 缺陷列重derive | 29 checks PASS",
+      "retried": false,
+      "attempts": [
+        {
+          "attempt": 1,
+          "sandbox": "p11-c6-fixtures",
+          "ok": true,
+          "summary": "p11 C6 7case 回归：7/7 不 VERIFIED（5 FAILED/EVIDENCE_ECHO_ONLY + 2 UNRESOLVED）+ legacy 缺陷列重derive | 29 checks PASS"
+        }
+      ]
     },
     {
       "probe": "p12-legacy-compat",
       "exitCode": 0,
       "ok": true,
-      "summary": "p12 legacy 裸布尔 telemetry-only + receipt 缺失/损坏优雅降级不崩溃 | 12 checks PASS"
+      "summary": "p12 legacy 裸布尔 telemetry-only + receipt 缺失/损坏优雅降级不崩溃 | 12 checks PASS",
+      "retried": false,
+      "attempts": [
+        {
+          "attempt": 1,
+          "sandbox": "p12-legacy-compat",
+          "ok": true,
+          "summary": "p12 legacy 裸布尔 telemetry-only + receipt 缺失/损坏优雅降级不崩溃 | 12 checks PASS"
+        }
+      ]
     },
     {
       "probe": "p13-positive-matrix",
       "exitCode": 0,
       "ok": true,
-      "summary": "p13 16 资产矩阵：逐行显式 VERIFIED + P4 正向控制 + GWT-R3-02 字段面 | 6 checks PASS"
+      "summary": "p13 16 资产矩阵：逐行显式 VERIFIED + P4 正向控制 + GWT-R3-02 字段面 | 6 checks PASS",
+      "retried": false,
+      "attempts": [
+        {
+          "attempt": 1,
+          "sandbox": "p13-positive-matrix",
+          "ok": true,
+          "summary": "p13 16 资产矩阵：逐行显式 VERIFIED + P4 正向控制 + GWT-R3-02 字段面 | 6 checks PASS"
+        }
+      ]
     },
     {
       "probe": "p14-selected-not-consumed",
       "exitCode": 0,
       "ok": true,
-      "summary": "p14 选中未消费：N1 not_consumed → UNRESOLVED/SELECTED_NOT_CONSUMED，非 consumed/PASS | 6 checks PASS"
+      "summary": "p14 选中未消费：N1 not_consumed → UNRESOLVED/SELECTED_NOT_CONSUMED，非 consumed/PASS | 6 checks PASS",
+      "retried": false,
+      "attempts": [
+        {
+          "attempt": 1,
+          "sandbox": "p14-selected-not-consumed",
+          "ok": true,
+          "summary": "p14 选中未消费：N1 not_consumed → UNRESOLVED/SELECTED_NOT_CONSUMED，非 consumed/PASS | 6 checks PASS"
+        }
+      ]
     },
     {
       "probe": "p15-prepare-idempotency",
       "exitCode": 0,
       "ok": true,
-      "summary": "p15 prepare 幂等：豁免时间戳 + 缓存不改返回数据 + vendor/artifacts 零写入 | 11 checks PASS"
+      "summary": "p15 prepare 幂等：豁免时间戳 + 缓存不改返回数据 + vendor/artifacts 零写入 | 11 checks PASS",
+      "retried": false,
+      "attempts": [
+        {
+          "attempt": 1,
+          "sandbox": "p15-prepare-idempotency",
+          "ok": true,
+          "summary": "p15 prepare 幂等：豁免时间戳 + 缓存不改返回数据 + vendor/artifacts 零写入 | 11 checks PASS"
+        }
+      ]
     },
     {
       "probe": "p16-p5-predicate",
       "exitCode": 0,
       "ok": true,
-      "summary": "p16 P5 证据类别：legacy 布尔/marker-presence 依据拒绝 + 悬空 refs + 干净链对照 | 6 checks PASS"
+      "summary": "p16 P5 证据类别：legacy 布尔/marker-presence 依据拒绝 + 悬空 refs + 干净链对照 | 6 checks PASS",
+      "retried": false,
+      "attempts": [
+        {
+          "attempt": 1,
+          "sandbox": "p16-p5-predicate",
+          "ok": true,
+          "summary": "p16 P5 证据类别：legacy 布尔/marker-presence 依据拒绝 + 悬空 refs + 干净链对照 | 6 checks PASS"
+        }
+      ]
     }
   ],
-  "total": 16
+  "total": 16,
+  "retried": [],
+  "hardening": {
+    "runSandboxRoot": "test-reports/rebuild-20260920/R3-activation-receipt/.sandbox/run-<stamp>-<pid>/",
+    "probeSandbox": "per-probe subdir under run root（运行级 + 探针级双层隔离）",
+    "fixedNow": "2026-09-20T00:00:00.000Z",
+    "rmRetry": "EBUSY/EPERM 有限重试（6 次，同步退避）",
+    "transientRetry": "仅对瞬态文件系统错误码重试一次（新沙箱 <pNN>-retry1），断言失败不重试；全程留痕 attempts",
+    "history": "out-probe-history.jsonl（只追加，历史结论不被覆盖）",
+    "prunedRuns": 1
+  }
 }

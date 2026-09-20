@@ -1,13 +1,14 @@
 {
   "pass": [
     "p01",
-    "p02",
     "p03",
     "p04",
     "p05",
     "p06"
   ],
-  "fail": [],
+  "fail": [
+    "p02"
+  ],
   "results": [
     {
       "probe": "p01",
@@ -17,9 +18,9 @@
     },
     {
       "probe": "p02",
-      "exitCode": 0,
-      "ok": true,
-      "summary": "routing 子(1 条 tag=routing) consumption 子(1 条 tag=consumption)"
+      "exitCode": 1,
+      "ok": false,
+      "summary": "routing 子(1 条 tag=consumption) consumption 子(1 条 tag=consumption)"
     },
     {
       "probe": "p03",
@@ -31,7 +32,7 @@
       "probe": "p04",
       "exitCode": 0,
       "ok": true,
-      "summary": "仓库外不记录=true；滚动 .1 存在=true（.1 字节=184）"
+      "summary": "仓库外不记录=true；滚动 .1 存在=true（.1 字节=188）"
     },
     {
       "probe": "p05",

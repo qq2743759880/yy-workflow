@@ -12,9 +12,15 @@
  *   - ts   ISO8601；pid 进程号；cwd 进程工作目录；op 被包动作名
  *   - path 规范化后的绝对路径（Windows 反斜杠转正斜杠；保留原始大小写——大小写折叠仅用于
  *           内部 vendor 前缀判定，不落盘）
- *   - tag  调用栈归类：栈帧 basename 精确匹配 matrix.mjs / asset-call-rate.mjs / ci.mjs /
- *           io-audit-hook.mjs → routing；否则 consumption（P2-1 修复：路径段边界精确比对，
- *           callermatrix.mjs / official-ci.mjs 等子串不再误判）
+ *   - tag  调用栈归类 **三分类**（T7 收尾批④，破坏性变更：取值集由 {routing, consumption}
+ *           扩为 {routing, system-load, consumption}，消费方按新取值集解析）：
+ *             · `routing`      —— matrix.mjs / asset-call-rate.mjs / ci.mjs（路由与评分面）
+ *             · `system-load`  —— manifest.mjs / asset.mjs（装载栈：编排器的 buildManifest /
+ *                                 loadAssets 把 16 资产**无差别全量装载**，是系统性 plumbing
+ *                                 而非 agent 消费——P2-1 实测结论；单列以剥离该基线噪声）
+ *             · `consumption`  —— 其余（agent/适配器面向使用的读取）
+ *           判定方式：栈帧 basename 精确匹配（路径段边界比对，callermatrix.mjs / official-ci.mjs
+ *           等子串不再误判）；本钩子自身帧先剔除（见 classifyTag）。
  *
  * 作用域防护：仅当 process.cwd() 位于本仓库内才安装包装与记录——防止 NODE_OPTIONS 全局泄漏
  * 到无关进程后对其 fs 动刀、或把无关路径写进审计。本钩子自身绝不抛错进业务路径
@@ -49,11 +55,22 @@ export const VENDOR_ROOT = path.join(REPO_ROOT, 'vendor');
 /** routing 调用栈特征 basename 集合（caller 归类；本钩子自身帧在 classifyTag 中先剔除，见下）。
  *  P2-1 修复：用路径段边界精确比对，不再用子串正则——callermatrix.mjs / official-ci.mjs
  *  这类文件名包含 "matrix.mjs" / "ci.mjs" 子串但不是路由脚本，不能误判 routing。 */
-const ROUTING_BASENAMES = new Set([
+export const ROUTING_BASENAMES = new Set([
   'matrix.mjs',
   'asset-call-rate.mjs',
   'ci.mjs',
   'io-audit-hook.mjs',
+]);
+
+/**
+ * system-load 调用栈特征 basename 集合（T7 收尾批④第三分类）。
+ * 装载栈：编排器/工具的 buildManifest、loadAssets 把 16 资产无差别全量读取，
+ * 属系统性 plumbing（P2-1 实测：每阶段 36 条记录、16/16 资产 consumption>0 全来自此栈）。
+ * 单列后 routing / system-load / consumption 三口径互不污染。
+ */
+export const SYSTEM_LOAD_BASENAMES = new Set([
+  'manifest.mjs',
+  'asset.mjs',
 ]);
 
 /** 从栈帧行中提取文件路径引用的正则：匹配以 .mjs/.js/.cjs/.mts/.ts 结尾、
@@ -98,10 +115,13 @@ export function extractAsset(normAbs) {
 }
 
 /**
- * 调用栈归类。先剔除本钩子自身帧（io-audit-hook.mjs）——否则每个被包动作的栈里都含
- * 包装帧，会把 io-audit-hook.mjs 特征误命中而把一切读都判成 routing。
- * 剔除后，对每个剩余栈帧提取其中的文件 basename，与路由脚本 basename 集合精确比对
- * （P2-1：路径段边界匹配，子串匹配不再误判 callermatrix.mjs / official-ci.mjs）。
+ * 调用栈归类（三分类，T7 收尾批④；取值集 = routing | system-load | consumption）。
+ *
+ * 先剔除本钩子自身帧（io-audit-hook.mjs）——否则每个被包动作的栈里都含包装帧，
+ * 会把 io-audit-hook.mjs 特征误命中而把一切读都判成 routing。
+ * 剔除后对每个剩余栈帧提取文件 basename，按 **routing → system-load → consumption** 顺序
+ * 精确比对（路径段边界匹配，子串匹配不再误判 callermatrix.mjs / official-ci.mjs）；
+ * 两类特征集都不命中 ⇒ consumption（默认桶，保持旧口径不变）。
  */
 export function classifyTag(stack) {
   const lines = (stack || '').split('\n');
@@ -118,6 +138,19 @@ export function classifyTag(stack) {
       const basename = cleaned.split(/[\\/]/).pop();
       if (basename && ROUTING_BASENAMES.has(basename)) {
         return 'routing';
+      }
+    }
+  }
+  // 第二遍扫 system-load（不改变 routing 的优先级：同栈两者皆有时仍归 routing）
+  for (const line of lines) {
+    if (line.includes('io-audit-hook.mjs')) continue;
+    const refs = line.match(FILE_REF_RE);
+    if (!refs) continue;
+    for (const ref of refs) {
+      const cleaned = ref.replace(/:\d+:\d+$/, '').replace(/^file:\/\//, '');
+      const basename = cleaned.split(/[\\/]/).pop();
+      if (basename && SYSTEM_LOAD_BASENAMES.has(basename)) {
+        return 'system-load';
       }
     }
   }
@@ -270,4 +303,4 @@ if (!hasHookApi) {
   install();
 }
 
-export default { normalizePath, isUnderVendor, extractAsset, classifyTag, install, REPO_ROOT, VENDOR_ROOT, OUT_FILE };
+export default { normalizePath, isUnderVendor, extractAsset, classifyTag, install, REPO_ROOT, VENDOR_ROOT, OUT_FILE, ROUTING_BASENAMES, SYSTEM_LOAD_BASENAMES };

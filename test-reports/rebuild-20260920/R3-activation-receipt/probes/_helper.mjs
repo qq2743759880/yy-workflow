@@ -67,9 +67,23 @@ export function copyAsset(sandboxVendor, assetId, opts = {}) {
   return dir;
 }
 
-/** activation.prepare 快捷封装。 */
+/**
+ * 固定时钟（T7 收尾批⑤ 去时钟依赖加固）。
+ *
+ * 背景：T5T6 独立验收记录过 1 次未复现的 15/16 波动（P2-3）。本批把探针内一切
+ * prepare/append 调用的 `now` 固定注入为同一常量，时间敏感断言不再依赖真实时钟
+ * （跨秒/跨天边界、机器时间漂移、时区差异都无法再改变探针结果）。
+ * 显式传入 opts.now 的探针（如 p15）保持自己的注入值——本包装仅在 `now === undefined` 时填充。
+ */
+let FIXED_NOW = new Date('2026-09-20T00:00:00.000Z');
+export function setFixedNow(d) { FIXED_NOW = (d instanceof Date) ? d : new Date(d); return FIXED_NOW; }
+export function fixedNow() { return FIXED_NOW; }
+
+/** activation.prepare 快捷封装（固定时钟注入）。 */
 export function prepare(input) {
-  return activationPrepare(input);
+  const opts = Object.assign({}, input && input.opts);
+  if (opts.now === undefined) opts.now = FIXED_NOW;
+  return activationPrepare(Object.assign({}, input, { opts }));
 }
 
 /** 渲染 brief 并写出（模拟适配器投递步骤——T4 触发条件，§7.2）；返回 {briefPath, briefText}。 */
@@ -97,8 +111,11 @@ export function makeEvent(activationPackage, subtaskId, transition, evidence, id
   };
 }
 
+/** receipt.append 快捷封装（固定时钟注入；T1-T6 事件 recordedAt 不再随真实时钟漂移）。 */
 export function append(event, opts) {
-  return receiptAppend({ event, opts });
+  const o = Object.assign({}, opts);
+  if (o.now === undefined) o.now = FIXED_NOW;
+  return receiptAppend({ event, opts: o });
 }
 
 /**

@@ -1,0 +1,21 @@
+
+=== S1 validate-structure ===
+stub validate-structure ok
+[PASS] S1 validate-structure
+
+=== S2 review-gate self-test ===
+stub review-gate ok
+[PASS] S2 review-gate self-test
+
+=== S3 plan-review --check ===
+stub plan-review ok
+[PASS] S3 plan-review --check
+
+=== S4 regression-all ===
+stub regression-all ok
+[PASS] S4 regression-all
+
+=== S5 P0 硬闸门 ===
+  P0 未闭环: 1
+
+[FAIL] P0 批判未清零（1 条 ⬜）——P0 修复前 M3 不得开始

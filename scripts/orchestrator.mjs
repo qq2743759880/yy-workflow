@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 import path from 'node:path';
 import fs from 'node:fs/promises';
+import fss from 'node:fs';
 import os from 'node:os';
+import crypto from 'node:crypto';
+import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { createLogger } from './lib/logger.mjs';
 import { buildManifest, loadManifest } from './lib/manifest.mjs';
@@ -222,7 +225,201 @@ async function syncJourney(workspace, result, sessionId) {
  * B7（T6 接线）旗标门钩子：phase.transition 权限门 / 契约改动走 change.record / --evolve。
  * 全部旗标制——未传 --allow-out-of-order 且未传 --evolve 时为 no-op，不翻任何默认行为。
  * 所有子调用 best-effort（try/catch），任何失败只 warn 不阻断主流程。
+ *
+ * --evolve（T7 收尾批③，P1-1 修复）：候选从**编排运行的实际产物**构造——
+ * 十项不变量（CANDIDATE_INVARIANT_FIELDS）逐项赋真实值，baseline 五键（BASELINE_REQUIRED_KEYS）
+ * 取运行实测（validate-structure 实跑 / buildManifest 摘要 / receipt 链终态 / CI 段结果 /
+ * 仓库 HEAD）。任一键无实测值 ⇒ 该候选**如实 ok:false + reason 指名缺什么**（fail-closed，不编造）；
+ * 候选/基线落 workspace 沙箱 `.tt-state/evolution/`，不污染仓库根 evidence/。
  */
+function sha256FileOrNull(file) {
+  try { return crypto.createHash('sha256').update(fss.readFileSync(file)).digest('hex'); } catch { return null; }
+}
+
+/** 记录一次脚本实跑（退出码 + 输出尾部），供 baseline 的 structure / ciSection 键取实测值。 */
+function spawnScriptCapture(script, args = []) {
+  return new Promise((resolve) => {
+    const child = spawn(process.execPath, [path.join(SKILL_DIR, 'scripts', script), ...args], {
+      cwd: SKILL_DIR, stdio: ['ignore', 'pipe', 'pipe'], shell: false,
+    });
+    let out = '';
+    child.stdout.on('data', (c) => { out += c.toString(); });
+    child.stderr.on('data', (c) => { out += c.toString(); });
+    child.on('error', (err) => resolve({ code: 1, out: 'spawn error: ' + err.message }));
+    child.on('exit', (code) => resolve({ code: code ?? 1, out }));
+  });
+}
+
+/** 只读解析 <root>/.git/HEAD（不执行任何 git 命令），返回 {ref, sha, measuredFrom} 或 null。 */
+function resolveGitHead(root) {
+  try {
+    const gitDir = path.join(root, '.git');
+    const headFile = path.join(gitDir, 'HEAD');
+    if (!fss.existsSync(headFile)) return null;
+    const head = fss.readFileSync(headFile, 'utf8').trim();
+    const m = head.match(/^ref:\s*(.+)$/);
+    if (!m) return { ref: null, sha: head, measuredFrom: headFile }; // detached HEAD
+    const ref = m[1].trim();
+    const refFile = path.join(gitDir, ref.replace(/\//g, path.sep));
+    if (fss.existsSync(refFile)) {
+      return { ref, sha: fss.readFileSync(refFile, 'utf8').trim(), measuredFrom: refFile };
+    }
+    // packed-refs 回落（依然纯文本只读）
+    const packed = path.join(gitDir, 'packed-refs');
+    if (fss.existsSync(packed)) {
+      const line = fss.readFileSync(packed, 'utf8').split('\n').find((l) => l.endsWith(' ' + ref));
+      if (line) return { ref, sha: line.split(' ')[0].trim(), measuredFrom: packed };
+    }
+    return null;
+  } catch { return null; }
+}
+
+/** 子任务产物目录下的真实产物文件（排除 brief.md / result.txt），返回 [{rel, sha256}]。 */
+function collectSubtaskArtifacts(workspace, subtaskId) {
+  const dir = path.join(workspace, 'artifacts', subtaskId);
+  const out = [];
+  try {
+    for (const name of fss.readdirSync(dir)) {
+      if (name === 'brief.md' || name === 'result.txt') continue;
+      const abs = path.join(dir, name);
+      let st;
+      try { st = fss.statSync(abs); } catch { continue; }
+      if (!st.isFile()) continue;
+      out.push({ rel: 'artifacts/' + subtaskId + '/' + name, sha256: sha256FileOrNull(abs) });
+    }
+  } catch { /* 目录不存在 = 无产物 */ }
+  return out;
+}
+
+/**
+ * --evolve baseline 五键实测（OQ-R10-2=A：结构 / manifest / receipt 终态 / CI 段 / rollback 目标）。
+ * @returns {Promise<{baseline: object, missing: string[]}>} missing 非空 ⇒ 调用方按 fail-closed 收口。
+ */
+async function measureEvolveBaseline(plan, opts, logger) {
+  const workspace = path.resolve(opts.workspace || '.');
+  const missing = [];
+  const at = new Date().toISOString();
+
+  // (1) structure：validate-structure.mjs 实跑（S1 同源脚本，只读校验）
+  const vs = await spawnScriptCapture('validate-structure.mjs', []);
+  const structure = { validator: 'validate-structure.mjs', exitCode: vs.code, ok: vs.code === 0, at };
+  if (vs.code !== 0) missing.push(`structure（validate-structure.mjs 退出码 ${vs.code}：结构基线不成立）`);
+
+  // (2) manifest：buildManifest 摘要（真实构建，不落盘）
+  let manifest = null;
+  try {
+    const m = await buildManifest({ vendorDir: VENDOR_DIR });
+    manifest = {
+      entries: Array.isArray(m.entries) ? m.entries.length : null,
+      sha256: crypto.createHash('sha256').update(JSON.stringify(m)).digest('hex'),
+      at,
+    };
+    if (!manifest.entries) missing.push('manifest（buildManifest 未返回 entries）');
+  } catch (e) {
+    missing.push(`manifest（buildManifest 异常：${e.message}）`);
+  }
+
+  // (3) CI 段结果：S1/S2 实跑 + S5 进程内（严格口径）；S4 regression-all 属重型段，如实标注未跑
+  const rg = await spawnScriptCapture('review-gate.mjs', ['--self-test']);
+  const { classifyOpenP0 } = await import('./lib/ci.mjs');
+  let s5 = null;
+  try {
+    const trackerText = await fs.readFile(path.join(SKILL_DIR, 'plans', 'critique-backlog-tracker.md'), 'utf8');
+    const cls = classifyOpenP0(trackerText);
+    s5 = { openP0: cls.openP0, unbacked: cls.unbacked.length, inProgress: cls.inProgress.length };
+    if (cls.openP0 > 0) missing.push(`ciSection（S5 P0 未清零 ${cls.openP0} 条 ⬜/◐：CI 基线不成立）`);
+  } catch (e) {
+    missing.push(`ciSection（S5 tracker 不可读：${e.message}）`);
+  }
+  if (vs.code !== 0) missing.push('ciSection（S1 validate-structure 未过）');
+  if (rg.code !== 0) missing.push(`ciSection（S2 review-gate --self-test 退出码 ${rg.code}）`);
+  const ciSection = {
+    sections: [
+      { id: 'S1', script: 'validate-structure.mjs', exitCode: vs.code },
+      { id: 'S2', script: 'review-gate.mjs --self-test', exitCode: rg.code },
+      { id: 'S5', kind: 'in-process', openP0: s5 ? s5.openP0 : null },
+    ],
+    s4: '未跑（regression-all 属重型段；CI 段结果如实标注不完整面）',
+    at,
+  };
+
+  // (4) rollbackTarget：只读解析 .git/HEAD（workspace 优先，回落代码仓根）
+  let head = resolveGitHead(workspace);
+  if (!head || !head.sha) head = resolveGitHead(SKILL_DIR);
+  const rollbackTarget = (head && head.sha)
+    ? { ref: head.ref, sha: head.sha, measuredFrom: head.measuredFrom, at }
+    : null;
+  if (!rollbackTarget) missing.push('rollbackTarget（workspace 与代码仓根均无可用 .git/HEAD）');
+
+  // (5) receiptTerminal：workspace 内 per-artifact receipt 链（R3 §7.6 artifacts/<subtaskId>/receipt.json）终态
+  const receiptMap = {};
+  let receiptFound = 0;
+  for (const s of (plan.subtasks || [])) {
+    const file = path.join(workspace, 'artifacts', s.id, 'receipt.json');
+    try {
+      const doc = JSON.parse(await fs.readFile(file, 'utf8'));
+      const events = Array.isArray(doc.events) ? doc.events : (Array.isArray(doc) ? doc : []);
+      const last = events.length ? events[events.length - 1] : null;
+      receiptMap[s.id] = { events: events.length, terminal: last ? last.transition : null };
+      receiptFound += 1;
+    } catch { /* 该子任务无 receipt 链 */ }
+  }
+  const receiptTerminal = receiptFound > 0
+    ? { chains: receiptFound, terminals: receiptMap, at }
+    : '[待补充]';
+  if (receiptFound === 0) missing.push('receiptTerminal（workspace 内未找到 artifacts/<subtaskId>/receipt.json 链：如实登记 [待补充]，不编造终态）');
+
+  return {
+    baseline: { structure, manifest, receiptTerminal, ciSection, rollbackTarget },
+    missing,
+  };
+}
+
+/** 候选十项不变量（CANDIDATE_INVARIANT_FIELDS）逐项赋运行实测真实值。 */
+async function buildEvolveCandidate(subtask, plan, opts, baseline, measured) {
+  const workspace = path.resolve(opts.workspace || '.');
+  let assetScope = plan.cluster || null;
+  try {
+    const { CLUSTERS } = await import('./lib/matrix.mjs');
+    const hit = CLUSTERS.find((c) => (c.candidates || []).includes(subtask.asset));
+    if (hit) assetScope = hit.id;              // 只读自 matrix CLUSTERS（唯一事实源）
+  } catch { /* 回落 plan.cluster */ }
+  const artifacts = collectSubtaskArtifacts(workspace, subtask.id);
+  const stateRel = '.tt-state/state.json';
+  const changeset = [stateRel, ...artifacts.map((a) => a.rel)];
+  const contractRel = 'contracts/' + plan.id + '.json';
+  const contractSha = sha256FileOrNull(path.join(workspace, contractRel));
+  const shaRefs = [
+    ...artifacts.filter((a) => a.sha256).map((a) => a.rel + '#' + a.sha256),
+    ...(contractSha ? [contractRel + '#' + contractSha] : []),
+  ];
+  const ci = baseline.ciSection;
+  return {
+    assetScope,
+    trigger: 'flag:--evolve',
+    rationale: subtask.desc || subtask.task || plan.task || ('evolve candidate for ' + subtask.asset),
+    acceptanceCriteria: [
+      'S1 validate-structure exit 0（实测 ' + ci.sections[0].exitCode + '）',
+      'S2 review-gate --self-test exit 0（实测 ' + ci.sections[1].exitCode + '）',
+      'S5 P0 未清零 = 0（实测 ' + (ci.sections[2].openP0 === null ? 'n/a' : ci.sections[2].openP0) + '）',
+      'S4 regression-all 12/12（基线未跑，升格前须补）',
+      '独立上下文验收 evolution.accept exit 0（producer 不得自验）',
+    ].join('；'),
+    changeset,
+    riskAssessment: {
+      level: 'low',
+      reasons: [
+        '本候选仅登记（evolution.propose），不直改 catalog（catalog 属 R6 复核面）',
+        'promotion 需独立上下文验收 + rollback 排练，未升格前无运行时影响',
+      ],
+    },
+    baselineRef: plan.id,
+    rollbackTarget: baseline.rollbackTarget ? baseline.rollbackTarget.sha : null,
+    evidenceRefs: [stateRel, ...shaRefs, 'measured@' + measured.baseline.structure.at],
+    proposerSession: opts.session || 'orchestrator--evolve',
+  };
+}
+
 async function maybeRunB7Hooks(result, opts, logger) {
   if (!opts.allowOutOfOrder && !opts.evolve) return;
   const plan = result && result.plan;
@@ -251,24 +448,50 @@ async function maybeRunB7Hooks(result, opts, logger) {
       logger.warn('[B7] change.record: ' + (cr && cr.ok ? 'OK ' + (cr.data && cr.data.changeId || '') : 'SKIPPED(' + (cr && cr.code) + ')'));
     } catch (e) { logger.warn('[B7] change.record 跳过（不阻断）: ' + e.message); }
   }
-  // (c) --evolve：对完成子任务生成 evolution.propose 候选（best-effort；形状不足时 evolution 返回 ok:false 壳，不抛）。
+  // (c) --evolve：对完成子任务生成 evolution.propose 候选（十项不变量齐备 + baseline 五键实测）。
+  //     P1-1 修复：候选从实际产物构造；任一 baseline 键无实测值 ⇒ 该候选如实 ok:false + reason 指名缺失。
   if (opts.evolve) {
     try {
-      const { evolutionPropose } = await import('./lib/evolution.mjs');
+      const { evolutionPropose, CANDIDATE_INVARIANT_FIELDS, BASELINE_REQUIRED_KEYS } = await import('./lib/evolution.mjs');
       const doneSubs = (plan.subtasks || []).filter(function(s) { return s.status === 'done' && s.asset; });
+      const measured = await measureEvolveBaseline(plan, opts, logger);
+      for (const k of BASELINE_REQUIRED_KEYS) {
+        if (measured.baseline[k] === undefined) measured.missing.push(k + '（键未构造）');
+      }
+      const evidenceRoot = path.join(opts.workspace || '.', '.tt-state', 'evolution');
       let proposed = 0;
+      const details = [];
       for (const s of doneSubs) {
+        if (measured.missing.length > 0) {
+          // fail-closed，不编造：baseline 不完整 ⇒ 不落候选，如实登记缺什么
+          details.push(`${s.asset}: ok:false BASELINE_MISSING 缺 ${measured.missing.join(' / ')}`);
+          continue;
+        }
+        const candidate = await buildEvolveCandidate(s, plan, opts, measured.baseline, measured);
+        const missingInv = CANDIDATE_INVARIANT_FIELDS.filter((k) => candidate[k] === undefined || candidate[k] === null || candidate[k] === '');
+        if (missingInv.length > 0) {
+          details.push(`${s.asset}: ok:false CANDIDATE_INVALID 缺 ${missingInv.join(', ')}`);
+          continue;
+        }
         const ev = evolutionPropose({
           assetId: s.asset,
           sourceVersion: plan.id,
           proposedBy: 'orchestrator--evolve',
-          baseline: { structure: plan.cluster || 'unknown', manifest: null, receiptTerminal: null, ciSection: null, rollbackTarget: null },
-          candidate: { status: 'proposed', summary: 'evolve candidate for ' + s.asset, motivation: 'flag:--evolve', diff: null, expectedGain: null, rollback: null, evidence: [], risk: null, next: null },
-          opts: { evidenceRoot: path.join(opts.workspace || '.', '.tt-state') },
+          idempotencyKey: 'evolve:' + plan.id + ':' + s.id + ':' + plan.id,
+          baseline: measured.baseline,
+          candidate,
+          opts: { evidenceRoot, now: new Date() },
         });
-        if (ev && ev.ok) proposed += 1;
+        if (ev && ev.ok) {
+          proposed += 1;
+          details.push(`${s.asset}: ok:true ${ev.data && ev.data.candidateId || ''}${ev.data && ev.data.duplicate ? '(replay)' : ''}`);
+        } else {
+          details.push(`${s.asset}: ok:false ${ev && ev.code} ${(ev && ev.data && ev.data.reason) || ''}`);
+        }
       }
-      logger.warn('[B7] --evolve: proposed ' + proposed + '/' + doneSubs.length + ' candidates (best-effort shell)');
+      logger.warn('[B7] --evolve: proposed ' + proposed + '/' + doneSubs.length
+        + ' candidates（evidenceRoot=' + path.relative(process.cwd(), evidenceRoot).replace(/\\/g, '/') + '）'
+        + (details.length ? ' | ' + details.join(' | ') : ''));
     } catch (e) { logger.warn('[B7] --evolve 跳过（不阻断）: ' + e.message); }
   }
 }

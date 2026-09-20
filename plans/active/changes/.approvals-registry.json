@@ -1,0 +1,10 @@
+{
+  "apr-20260920T104626Z-b3dc0c82": [
+    {
+      "changeRecordId": "cr-20260920T112945Z-a6244b0c",
+      "recordedAt": "2026-09-20T11:29:45.899Z",
+      "impactClass": "CONTRACT",
+      "basePlan": "contracts/C-R4-control.md"
+    }
+  ]
+}

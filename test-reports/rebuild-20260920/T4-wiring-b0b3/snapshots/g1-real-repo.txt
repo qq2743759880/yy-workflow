@@ -1,0 +1,112 @@
+
+=== S1 validate-structure ===
+
+[M2-R2 硬性协议断言]
+  [PASS] H1a SKILL.md ≤60 行 且 token ≤1200（CJK 加权字符级实测） — 实测 60 行 / 881 tok
+  [PASS] H1b commands/*.md 每文件 token 预算 ≤500 — 6 个命令文件全部达标
+  [PASS] H2 交叉引用完整性（owner-review 引用 + 「XX 段」段名 + tab 损坏模式） — 零悬空
+  [PASS] H3a commands/*.md 含 --prereq-check 字面量 — 6/6 命中
+  [PASS] H3b tt-journey.mjs 含 --update 分支 — grep: has('update') 分支在场
+  [PASS] H3c tt-journey.mjs --update 路径含 prereqCheck 调用（grep 源码） — prereqCheck( 在场（:101 定义 :132/:492 调用）
+  [PASS] H3d orchestrator.mjs 含 syncJourney（grep 源码） — syncJourney 定义/调用在场
+  [PASS] H3e syncJourney 路径含 journey 写入（grep 源码） — journey.steps= / writeFile(journey) 在场
+  [PASS] H4 kickoff-prompt 资产清单与 matrix.mjs CLUSTERS 一致（逐字对齐） — 30/30 资产名全部在场
+  [PASS] H5 SKILL.md 附 A 变量声明完整（6 核心变量）且正文 $VAR 全部已声明 — 6 核心变量全部登记，正文 6 个变量零未声明
+  [PASS] H6a reference/ 文件齐备（10 个） — 10/10 在场
+  [PASS] H6b SKILL.md 指针表覆盖全部 reference/ 文件（删指针 FAIL） — 10/10 指针在场
+  [PASS] H6c reference/ 单文件 ≤2000 token（focused 按需加载） — 全部达标
+  [PASS] H7 gate 产物模板含「阶段机验」字段（C-31 出口打卡记录） — 8 文件全部在场
+  [PASS] H8 批判落地率 ≥50%（动态：基线 50% + 每新增批判 +2%） — 落地率 80% (16/20 ✅) 阈值 50%
+  [PASS] H9 SKILL.md ≤60 行 且 CJK 加权 token ≤1500（CJK×0.75+其余÷4，对齐 token-audit 量尺） — 实测 60 行 / 701 tok
+[YY] validate D:\.ai-hub\skills\yy\SKILL.md
+  frontmatter: OK
+  章节数: 6, 闭环关键节 4 项检查中警告 0 项
+  变量使用: 6 个 (AIHUB_ROOT, MEMORY_ROOT, PLATFORMS, PROJECT_ROOT, SKILL_DIR, TT_HTTP_PROXY)
+  未声明变量: 无
+  随包 vendor 资产: 16/16 存在
+  接口漂移(vendor frontmatter): 无
+  可移植性泄露: 无
+  编码损坏(U+FFFD): 无
+  阶段命令防跳调用行(--prereq-check): 6/6 命中
+
+[OK] 结构校验通过 (0 项警告, 见 --verbose)
+[PASS] S1 validate-structure
+
+=== S2 review-gate self-test ===
+PASS review-gate 核心断言 self-test（格式/规划闸门/登记解析/阶段机验核对）
+PASS review-gate URL 真验 self-test（真 URL PASS / 假 URL FAIL / 断网 SKIPPED 三态）
+[PASS] S2 review-gate self-test
+
+=== S3 plan-review --check ===
+PASS ## CEO 范围视角 finding+处置
+PASS ## Eng 架构视角 finding+处置+confidence+引用行
+PASS ## Design 体验视角 finding+处置
+[PASS] S3 plan-review --check
+
+=== S4 regression-all ===
+# TT regression-all（一键回归卡点）
+
+PASS S1 validate-structure
+PASS S2 test-retry
+S3 Phase 2 替换清单（占位卡点，替换启动前须保持全绿）：
+  ✓ implementation — 实现簇(dev-backend+be-implementer) → opencode 执行内核 [vendor OK] [adapter 已接线] [kernel 段] [probe] [marker OK]
+  ✓ sdlc — sdlc → BMAD-METHOD + cline 执行层 [vendor OK] [adapter 已接线] [kernel 段] [probe] [marker OK]
+  ✓ be-validator — be-validator → portman/contracteer 契约校验 [vendor OK] [adapter 已接线] [kernel 段] [probe] [marker OK]
+  ✓ agent-research — 调研 hub → gpt-researcher 单点对标 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+  ✓ skill-sentinel — skill 安全扫描 → SkillSpector 对标 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+  ✓ security — 安全簇 → semgrep + gitleaks 扫描内核 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+  ✓ frontend-design — 前端设计簇 → shadcn-ui/ui + bolt.new 内核 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+  ✓ planning — 需求规划 → MetaGPT / crewAI 对标 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+  ✓ review — 评审簇 → qodo-ai/pr-agent + continue 内核 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+  ✓ be-architect — 架构设计 → system-design-template 对标 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+  ✓ be-provider — LLM provider → tsyringe / InversifyJS 对标 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+  ✓ be-resilience — 韧性 → cockatiel / Polly 对标 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+  ✓ colorize — 前端配色 → culori/chroma-js/poline 计算内核 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+  ✓ agent-vision-toolkit — 视觉质检 → OmniParser v2 + UI-TARS VLM 内核 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+PASS S3 Phase 2 替换清单  （3 个高杠杆目标现状契约完整）
+PASS S4 契约工作流 smoke  contracts/<planId>.json 冻结 ✓ resume 复用 ✓ 篡改→exit4 ✓
+PASS S5 宿主执行 smoke  stdout → exec ✓；写文件(无 stdout) → exec ✓；空输出 → prompt 降级 ✓
+PASS S6 资产缓存 smoke  assets-cache.json 生成 ✓ 二次运行复用 ✓
+PASS S7 review-gate  self-test ✓ 填好plan→PASS ✓ 模板未填→拦截 ✓
+PASS S8 资产消费证据  exec=8 false(正)=0 false(负)=>1（kernel 资产仅锚点 → false，强化生效）
+PASS S9 域声明机验  missing→DOMAIN_DECL_MISSING ✓ true→ok ✓ 旧数据→N/A ✓
+PASS S10 token 量尺 gate（B0-②）  快照对比 PASS ✓
+PASS S11 引用链机验（C-25/C-33）  悬空引用 0 / tab 损坏 0 ✓
+PASS S12 kickoff 漂移门（C-26）  五簇资产双向一致 ✓
+
+结果: 12 PASS / 0 FAIL
+回归基线通过。
+[PASS] S4 regression-all
+
+=== S5 P0 硬闸门 ===
+  P0 未闭环: 0
+[PASS] S5 P0 硬闸门（0 条 P0 ⬜）
+
+=== S5 资产质量评分（asset-call-rate）===
+# asset-call-rate report
+- domainDeclared: N/A（旧数据无字段，不判定）
+
+- plan: plan-RAND · cluster: T2_BACKEND · subtasks: 8
+- 路由率: 100.0% | 正文进上下文: 12.5% | 消费证据: 0.0%
+
+## 逐资产
+  ✗ be-architect: mode=prompt routed=true brief=true consumed=false (2%)
+  ⚠ implementation: mode=skipped routed=true brief=false consumed=false (1%)
+  ⚠ be-provider: mode=skipped routed=true brief=false consumed=false (1%)
+  ⚠ be-resilience: mode=skipped routed=true brief=false consumed=false (1%)
+  ⚠ sdlc: mode=skipped routed=true brief=false consumed=false (1%)
+  ⚠ security: mode=skipped routed=true brief=false consumed=false (1%)
+  ⚠ review: mode=skipped routed=true brief=false consumed=false (1%)
+  ⚠ be-validator: mode=skipped routed=true brief=false consumed=false (1%)
+
+## 需审查（消费率 < 50%）: be-architect
+  → 建议登记 tracker 审查/替换
+
+## 自动动作清单（阈值触发 · 消费率 < 50%）
+| 资产 | 消费率 | 动作建议 | 连续触发 | 触发日期 | tracker |
+|---|---|---|---|---|---|
+| be-architect | 0% | 建议重建（消费链审查） | 1 | 2026-09-20 | ⬜ 待登记（--apply 生效） |
+（缺省 dry-run：auto-actions.json 已生成（作触发历史），tracker 仅打印待登记）
+[INFO] 资产质量评分（exit 1）——exit 1 = 有需审查资产（信息，不阻断 CI）
+
+CI PASS

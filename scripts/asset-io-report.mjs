@@ -5,7 +5,9 @@
  * 输入：一个或多个 io-audit JSONL 文件（hook / transcript 产出同构记录
  *   { ts, pid, cwd, op, path, tag }）。
  * 输出：
- *   1) 每资产计数（routing / consumption 分列）
+ *   1) 每资产计数（routing / system-load / consumption 三列——T7 收尾批④：hook 第三分类
+ *      `system-load`（manifest.mjs / asset.mjs 装载栈）单列，剥离"机器层无差别全量装载"噪声，
+ *      其余未知 tag 一律归 consumption，保持旧口径不破坏）
  *   2) "阶段 × 资产"矩阵——读 .tt-state/journey.json 时间线把记录按 ts 对齐到阶段；
  *      journey 不存在/不可读/无时间戳时整表 stage=unknown 并以 warning 显式声明（不猜）
  *   3) 16 资产零调用清单（whitelist 取自 lib/evolution.mjs，唯一事实源）
@@ -133,20 +135,27 @@ function assetOf(normPath) {
   return seg || null;
 }
 
+/** 三类口径（T7 收尾批④）：routing / system-load / consumption；未知 tag 归 consumption（旧口径不破坏）。 */
+function tagKey(raw) {
+  if (raw === 'routing') return 'routing';
+  if (raw === 'system-load') return 'systemLoad';
+  return 'consumption';
+}
+
 /**
- * 聚合：每资产 routing/consumption 计数 + 阶段×资产矩阵 + 零调用清单。
+ * 聚合：每资产 routing/system-load/consumption 计数 + 阶段×资产矩阵 + 零调用清单。
  * records: loadRecords 输出；timeline: loadJourneyTimeline 输出。
  */
 export function aggregate(records, timeline) {
   const perAsset = new Map();
-  for (const a of ASSET_WHITELIST) perAsset.set(a, { routing: 0, consumption: 0, total: 0 });
+  for (const a of ASSET_WHITELIST) perAsset.set(a, { routing: 0, systemLoad: 0, consumption: 0, total: 0 });
   const otherVendor = []; // 命中 vendor/ 但不在 16 白名单
-  const stageSet = new Map(); // stage -> Map(asset -> "r/c")
+  const stageSet = new Map(); // stage -> Map(asset -> 三类计数)
 
   for (const rec of records) {
     const asset = assetOf(rec.path);
     if (asset === null) continue; // 非 vendor 路径（hook 已滤，transcript 兜底）
-    const tag = rec.tag === 'routing' ? 'routing' : 'consumption';
+    const tag = tagKey(rec.tag);
     if (!perAsset.has(asset)) {
       otherVendor.push(rec);
       continue;
@@ -158,7 +167,7 @@ export function aggregate(records, timeline) {
     const stage = bucketStage(ms, timeline.stages);
     if (!stageSet.has(stage)) stageSet.set(stage, new Map());
     const row = stageSet.get(stage);
-    const cell = row.get(asset) || { routing: 0, consumption: 0 };
+    const cell = row.get(asset) || { routing: 0, systemLoad: 0, consumption: 0 };
     cell[tag] += 1;
     row.set(asset, cell);
   }
@@ -193,18 +202,18 @@ export function renderReport(label, files, records, timeline, agg) {
   out.push('');
 
   // 1) 每资产计数
-  out.push('## 每资产计数（routing / consumption）');
+  out.push('## 每资产计数（routing / system-load / consumption）');
   out.push('');
-  out.push('| 资产 | routing | consumption | 合计 |');
-  out.push('|---|---|---|---|');
+  out.push('| 资产 | routing | system-load | consumption | 合计 |');
+  out.push('|---|---|---|---|---|');
   for (const a of ASSET_WHITELIST) {
     const c = agg.perAsset.get(a);
-    out.push(`| ${a} | ${c.routing} | ${c.consumption} | ${c.total} |`);
+    out.push(`| ${a} | ${c.routing} | ${c.systemLoad} | ${c.consumption} | ${c.total} |`);
   }
   out.push('');
 
-  // 2) 阶段 × 资产矩阵（单元格 routing/consumption）
-  out.push('## 阶段 × 资产矩阵（单元格 = routing/consumption）');
+  // 2) 阶段 × 资产矩阵（单元格 routing/system-load/consumption）
+  out.push('## 阶段 × 资产矩阵（单元格 = routing/system-load/consumption）');
   out.push('');
   const header = '| 阶段 | ' + ASSET_WHITELIST.join(' | ') + ' |';
   out.push(header);
@@ -213,7 +222,7 @@ export function renderReport(label, files, records, timeline, agg) {
     const row = agg.stageSet.get(stage);
     const cells = ASSET_WHITELIST.map((a) => {
       const c = row.get(a);
-      return c ? (c.routing + '/' + c.consumption) : '0/0';
+      return c ? (c.routing + '/' + c.systemLoad + '/' + c.consumption) : '0/0/0';
     });
     out.push('| ' + stage + ' | ' + cells.join(' | ') + ' |');
   }

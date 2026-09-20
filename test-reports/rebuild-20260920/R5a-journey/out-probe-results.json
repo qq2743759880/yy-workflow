@@ -14,11 +14,10 @@
     "p12",
     "p13",
     "p14",
-    "p15"
-  ],
-  "fail": [
+    "p15",
     "p16"
   ],
+  "fail": [],
   "results": [
     {
       "probe": "p01",
@@ -102,7 +101,7 @@
       "probe": "p14",
       "exitCode": 0,
       "ok": true,
-      "summary": "只读+writer: read不改写=true project落盘=true 源字节不动=true tt-journey兼容读取+9节点=true gates/留痕保留=true/true additive=bca605961810cbec592c646d2c9afcfb3c598586fb0b6ab0471b0f7cf6da6a90 legacy不落盘=true INFERRED不落盘=true"
+      "summary": "只读+writer: read不改写=true project落盘=true 源字节不动=true tt-journey兼容读取+9节点=true gates/留痕保留=true/true additive=07ec9d79a1eccd449adf3b524bec44e10866e0c7df4e4cc0fa2ab2a7e4e52b76 legacy不落盘=true INFERRED不落盘=true"
     },
     {
       "probe": "p15",
@@ -112,9 +111,9 @@
     },
     {
       "probe": "p16",
-      "exitCode": 1,
-      "ok": false,
-      "summary": "namespace一致: session只读session=true evidence全在ns=true 健康=STALE 落点同ns=false legacy根可读=true"
+      "exitCode": 0,
+      "ok": true,
+      "summary": "namespace一致: session只读session=true evidence全在ns=true 健康=AUTHORIZED 落点同ns=true legacy根可读=true"
     }
   ],
   "total": 16

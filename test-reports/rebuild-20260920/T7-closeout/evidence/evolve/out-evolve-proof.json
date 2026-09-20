@@ -1,0 +1,207 @@
+{
+  "ranAt": "2026-09-20T15:05:04.979Z",
+  "sandbox": "test-reports/rebuild-20260920/T7-closeout/.sandbox/evolve/run-20260920150502-20908",
+  "proposedLineP1": "[tt] [warn] [B7] --evolve: proposed 2/2 candidates（evidenceRoot=test-reports/rebuild-20260920/T7-closeout/.sandbox/evolve/run-20260920150502-20908/ws-happy/.tt-state/evolution） | planning: ok:true cnd-20260920T150503Z-8f4abb40 | review: ok:true cnd-20260920T150503Z-d7ef9871",
+  "proposedLineP2": "[tt] [warn] [B7] --evolve: proposed 0/2 candidates（evidenceRoot=test-reports/rebuild-20260920/T7-closeout/.sandbox/evolve/run-20260920150502-20908/ws-noreceipt/.tt-state/evolution） | planning: ok:false BASELINE_MISSING 缺 receiptTerminal（workspace 内未找到 artifacts/<subtaskId>/receipt.json 链：如实登记 [待补充]，不编造终态） | review: ok:false BASELINE_MISSING 缺 receiptTerminal（workspace 内未找到 artifacts/<subtaskId>/receipt.json 链：如实登记 [待补充]，不编造终态）",
+  "candidatesP1": [
+    {
+      "asset": "planning",
+      "candidateId": "cnd-20260920T150503Z-8f4abb40",
+      "candidateFile": ".tt-state/evolution/planning/cnd-20260920T150503Z-8f4abb40/candidate/candidate.json",
+      "baselineFile": ".tt-state/evolution/planning/cnd-20260920T150503Z-8f4abb40/baseline/baseline.json"
+    },
+    {
+      "asset": "review",
+      "candidateId": "cnd-20260920T150503Z-d7ef9871",
+      "candidateFile": ".tt-state/evolution/review/cnd-20260920T150503Z-d7ef9871/candidate/candidate.json",
+      "baselineFile": ".tt-state/evolution/review/cnd-20260920T150503Z-d7ef9871/baseline/baseline.json"
+    }
+  ],
+  "candidatesP2": [],
+  "candidateP1": {
+    "candidateId": "cnd-20260920T150503Z-8f4abb40",
+    "assetId": "planning",
+    "sourceVersion": "plan-t7evolve",
+    "proposedBy": "orchestrator--evolve",
+    "idempotencyKey": "evolve:plan-t7evolve:t7-ev-01:plan-t7evolve",
+    "status": "CANDIDATE",
+    "candidate": {
+      "assetScope": "T4_FRONTEND",
+      "trigger": "flag:--evolve",
+      "rationale": "已落地子任务：为 --evolve 提供 done 源与 receipt 终态",
+      "acceptanceCriteria": "S1 validate-structure exit 0（实测 0）；S2 review-gate --self-test exit 0（实测 0）；S5 P0 未清零 = 0（实测 0）；S4 regression-all 12/12（基线未跑，升格前须补）；独立上下文验收 evolution.accept exit 0（producer 不得自验）",
+      "changeset": [
+        ".tt-state/state.json",
+        "artifacts/t7-ev-01/output.md",
+        "artifacts/t7-ev-01/receipt.json"
+      ],
+      "riskAssessment": {
+        "level": "low",
+        "reasons": [
+          "本候选仅登记（evolution.propose），不直改 catalog（catalog 属 R6 复核面）",
+          "promotion 需独立上下文验收 + rollback 排练，未升格前无运行时影响"
+        ]
+      },
+      "baselineRef": "plan-t7evolve",
+      "rollbackTarget": "52ed690c81e5aca0227525aa2f4004065d5c3a9d",
+      "evidenceRefs": [
+        ".tt-state/state.json",
+        "artifacts/t7-ev-01/output.md#012768022e06af3d759927b32a25ed6b6d37b53f01517fd641737f011808d857",
+        "artifacts/t7-ev-01/receipt.json#24bdf0780fd33d64e0bc934bcb0f732ed1d517363d270638dc83c9dc427c9ed2",
+        "measured@2026-09-20T15:05:02.984Z"
+      ],
+      "proposerSession": "orchestrator--evolve"
+    },
+    "createdAt": "2026-09-20T15:05:03.783Z"
+  },
+  "baselineP1": {
+    "structure": {
+      "validator": "validate-structure.mjs",
+      "exitCode": 0,
+      "ok": true,
+      "at": "2026-09-20T15:05:02.984Z"
+    },
+    "manifest": {
+      "entries": 16,
+      "sha256": "774aaab183460fc85aedd7c55acd1febbf19e831a1bc3cb94b1ce6d509163a97",
+      "at": "2026-09-20T15:05:02.984Z"
+    },
+    "receiptTerminal": {
+      "chains": 1,
+      "terminals": {
+        "t7-ev-01": {
+          "events": 3,
+          "terminal": "execution_observed"
+        }
+      },
+      "at": "2026-09-20T15:05:02.984Z"
+    },
+    "ciSection": {
+      "sections": [
+        {
+          "id": "S1",
+          "script": "validate-structure.mjs",
+          "exitCode": 0
+        },
+        {
+          "id": "S2",
+          "script": "review-gate.mjs --self-test",
+          "exitCode": 0
+        },
+        {
+          "id": "S5",
+          "kind": "in-process",
+          "openP0": 0
+        }
+      ],
+      "s4": "未跑（regression-all 属重型段；CI 段结果如实标注不完整面）",
+      "at": "2026-09-20T15:05:02.984Z"
+    },
+    "rollbackTarget": {
+      "ref": "refs/heads/main",
+      "sha": "52ed690c81e5aca0227525aa2f4004065d5c3a9d",
+      "measuredFrom": "D:\\.ai-hub\\skills\\yy\\.git\\refs\\heads\\main",
+      "at": "2026-09-20T15:05:02.984Z"
+    }
+  },
+  "checks": [
+    {
+      "name": "P1 编排真跑到 B7 --evolve 段（非 dry-run 短路）",
+      "ok": true,
+      "detail": "[tt] [warn] [B7] --evolve: proposed 2/2 candidates（evidenceRoot=test-reports/rebuild-20260920/T7-closeout/.sandbox/evolve/run-20260920150502-20908/ws-happy/.tt-state/evolution） | planning: ok:true cnd-20260920T150503Z-8f4abb40 | review: ok:true cnd-20260920T150503Z-d7ef9871"
+    },
+    {
+      "name": "P1 日志出现 ok:true（正向路径不再必然失败）",
+      "ok": true,
+      "detail": "[tt] [warn] [B7] --evolve: proposed 2/2 candidates（evidenceRoot=test-reports/rebuild-20260920/T7-closeout/.sandbox/evolve/run-20260920150502-20908/ws-happy/.tt-state/evolution） | planning: ok:true cnd-20260920T150503Z-8f4abb40 | review: ok:true cnd-20260920T150503Z-d7ef9871"
+    },
+    {
+      "name": "P1 候选真实落盘 candidate.json",
+      "ok": true,
+      "detail": "[\".tt-state/evolution/planning/cnd-20260920T150503Z-8f4abb40/candidate/candidate.json\",\".tt-state/evolution/review/cnd-20260920T150503Z-d7ef9871/candidate/candidate.json\"]"
+    },
+    {
+      "name": "P1 baseline.json 一并落盘",
+      "ok": true,
+      "detail": ".tt-state/evolution/planning/cnd-20260920T150503Z-8f4abb40/baseline/baseline.json"
+    },
+    {
+      "name": "P1 落盘记录为 R10 包装形状（含 candidateId/status/candidate 体）",
+      "ok": true,
+      "detail": "keys=candidateId,assetId,sourceVersion,proposedBy,idempotencyKey,status,candidate,createdAt"
+    },
+    {
+      "name": "P1 十项不变量齐备（无缺失）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "P1 状态为 CANDIDATE（未越权升格）",
+      "ok": true,
+      "detail": "CANDIDATE"
+    },
+    {
+      "name": "P1 candidateId 命名合规（cnd-…）",
+      "ok": true,
+      "detail": "cnd-20260920T150503Z-8f4abb40"
+    },
+    {
+      "name": "P1 baseline 五键齐备",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "P1 baseline.structure 为实测退出码",
+      "ok": true,
+      "detail": "{\"validator\":\"validate-structure.mjs\",\"exitCode\":0,\"ok\":true,\"at\":\"2026-09-20T15:05:02.984Z\"}"
+    },
+    {
+      "name": "P1 baseline.manifest 为实测条目数",
+      "ok": true,
+      "detail": "{\"entries\":16,\"sha256\":\"774aaab183460fc85aedd7c55acd1febbf19e831a1bc3cb94b1ce6d509163a97\",\"at\":\"2026-09-20T15:05:02.984Z\"}"
+    },
+    {
+      "name": "P1 baseline.receiptTerminal 为实测 receipt 终态（非 [待补充]）",
+      "ok": true,
+      "detail": "{\"chains\":1,\"terminals\":{\"t7-ev-01\":{\"events\":3,\"terminal\":\"execution_observed\"}},\"at\":\"2026-09-20T15:05:02.984Z\"}"
+    },
+    {
+      "name": "P1 baseline.ciSection 为实测 CI 段（S1/S2 退出码 + S5 进程内）",
+      "ok": true,
+      "detail": "{\"sections\":[{\"id\":\"S1\",\"script\":\"validate-structure.mjs\",\"exitCode\":0},{\"id\":\"S2\",\"script\":\"review-gate.mjs --self-test\",\"exitCode\":0},{\"id\":\"S5\",\"kind\":\"in-process\",\"openP0\":0}],\"s4\":\"未跑（regression-all 属重型段；CI 段结果如实标注不完整面）\",\"at\":\"2026-09-20T15:05:02.984Z\"}"
+    },
+    {
+      "name": "P1 baseline.rollbackTarget 为实测 .git HEAD（只读解析）",
+      "ok": true,
+      "detail": "{\"ref\":\"refs/heads/main\",\"sha\":\"52ed690c81e5aca0227525aa2f4004065d5c3a9d\",\"measuredFrom\":\"D:\\\\.ai-hub\\\\skills\\\\yy\\\\.git\\\\refs\\\\heads\\\\main\",\"at\":\"2026-09-20T15:05:02.984Z\"}"
+    },
+    {
+      "name": "P1 changeset 为实测产物清单（非空、全为沙箱相对路径）",
+      "ok": true,
+      "detail": "[\".tt-state/state.json\",\"artifacts/t7-ev-01/output.md\",\"artifacts/t7-ev-01/receipt.json\"]"
+    },
+    {
+      "name": "P1 evidenceRefs 为实测引用（非空、sha256 齐全、无仓库绝对路径泄漏）",
+      "ok": true,
+      "detail": "[\".tt-state/state.json\",\"artifacts/t7-ev-01/output.md#012768022e06af3d759927b32a25ed6b6d37b53f01517fd641737f011808d857\",\"artifacts/t7-ev-01/receipt.json#24bdf0780fd33d64e0bc934bcb0f732ed1d517363d270638dc83c9dc427c9ed2\",\"measured@2026-09-20T15:05:02.984Z\"]"
+    },
+    {
+      "name": "P2 缺 receipt 链 ⇒ 该候选如实 ok:false",
+      "ok": true,
+      "detail": "[tt] [warn] [B7] --evolve: proposed 0/2 candidates（evidenceRoot=test-reports/rebuild-20260920/T7-closeout/.sandbox/evolve/run-20260920150502-20908/ws-noreceipt/.tt-state/evolution） | planning: ok:false BASELINE_MISSING 缺 receiptTerminal（workspace 内未找到 artifacts/<subtaskId>/receipt.json 链：如实登记 [待补充]，不编造终态） | review: ok:false BASELINE_MISSING 缺 receiptTerminal（workspace 内未找到 artifacts/<subtaskId>/re"
+    },
+    {
+      "name": "P2 reason 指名缺什么（指名 receiptTerminal，不泛泛而谈）",
+      "ok": true,
+      "detail": "[tt] [warn] [B7] --evolve: proposed 0/2 candidates（evidenceRoot=test-reports/rebuild-20260920/T7-closeout/.sandbox/evolve/run-20260920150502-20908/ws-noreceipt/.tt-state/evolution） | planning: ok:false BASELINE_MISSING 缺 receiptTerminal（workspace 内未找到 artifacts/<subtaskId>/receipt.json 链：如实登记 [待补充]，不编造终态） | review: ok:false BASELINE_MISSING 缺 receiptTerminal（workspace 内未找到 artifacts/<subtaskId>/re"
+    },
+    {
+      "name": "P2 fail-closed：一个候选都不落盘",
+      "ok": true,
+      "detail": "[]"
+    }
+  ],
+  "pass": 19,
+  "total": 19,
+  "allPass": true
+}
