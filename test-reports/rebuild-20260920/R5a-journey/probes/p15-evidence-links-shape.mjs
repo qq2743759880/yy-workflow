@@ -9,6 +9,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 
+import { writeJsonFixed } from './_helper.mjs';
+
 export async function run({ sandbox }) {
   const m = await import(new URL('../../../../scripts/lib/journey.mjs', import.meta.url).href);
   const tt = path.join(sandbox, '.tt-state', 's-evid');
@@ -18,9 +20,10 @@ export async function run({ sandbox }) {
   const stateFile = path.join(tt, 'state.json');
   const receiptFile = path.join(art, 's1', 'receipt.json');
   const summaryFile = path.join(art, 'p1', 'state-summary.json');
-  fs.writeFileSync(stateFile, JSON.stringify({ schema: 'aa-plan/v1', id: 'p1', status: 'done', subtasks: [{ id: 's1', asset: 'sdlc', status: 'done' }] }));
-  fs.writeFileSync(receiptFile, JSON.stringify({ subtaskId: 's1', assetId: 'sdlc', events: [{ transition: 'behavior_verified' }], result: 'VERIFIED' }));
-  fs.writeFileSync(summaryFile, JSON.stringify({ schema: 'tt/state-summary@1', planId: 'p1', cluster: 'T1', status: 'done' }));
+  // T8 加固①：mtime 统一固定（state/receipts 同刻 ⇒ 相对 STALE 判据不可能由夹具诱发）
+  writeJsonFixed(stateFile, { schema: 'aa-plan/v1', id: 'p1', status: 'done', subtasks: [{ id: 's1', asset: 'sdlc', status: 'done' }] });
+  writeJsonFixed(receiptFile, { subtaskId: 's1', assetId: 'sdlc', events: [{ transition: 'behavior_verified' }], result: 'VERIFIED' });
+  writeJsonFixed(summaryFile, { schema: 'tt/state-summary@1', planId: 'p1', cluster: 'T1', status: 'done' });
   const sha = (f) => crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex');
 
   const r = m.journey.project({ workspace: sandbox, session: 's-evid', mode: 'full' });

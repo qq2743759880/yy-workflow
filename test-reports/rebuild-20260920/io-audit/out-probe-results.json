@@ -1,14 +1,13 @@
 {
   "pass": [
     "p01",
+    "p02",
     "p03",
     "p04",
     "p05",
     "p06"
   ],
-  "fail": [
-    "p02"
-  ],
+  "fail": [],
   "results": [
     {
       "probe": "p01",
@@ -18,9 +17,9 @@
     },
     {
       "probe": "p02",
-      "exitCode": 1,
-      "ok": false,
-      "summary": "routing 子(1 条 tag=consumption) consumption 子(1 条 tag=consumption)"
+      "exitCode": 0,
+      "ok": true,
+      "summary": "basename 边界口径：matrix.mjs=routing（期望 routing） fake-matrix.mjs=consumption（期望 consumption） plain-reader.mjs=consumption（期望 consumption）"
     },
     {
       "probe": "p03",

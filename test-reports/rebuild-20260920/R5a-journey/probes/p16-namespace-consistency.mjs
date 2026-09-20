@@ -6,23 +6,26 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { writeJsonFixed } from './_helper.mjs';
 
 export async function run({ sandbox }) {
   const m = await import(new URL('../../../../scripts/lib/journey.mjs', import.meta.url).href);
   // 根（legacy）数据 + session A 数据并存
+  // T8 加固①：所有夹具写入统一走 writeJsonFixed（mtime 固定），杜绝紧邻写跨刻度
+  // ⇒ computeStale（OQ-R5-2=A 相对判据）不会因夹具时序误判 STALE（T7 D-4 / P2-3）。
   const rootArt = path.join(sandbox, 'artifacts', 'rootP');
   fs.mkdirSync(rootArt, { recursive: true });
-  fs.writeFileSync(path.join(rootArt, 'state-summary.json'), JSON.stringify({ schema: 'tt/state-summary@1', planId: 'rootP', status: 'done' }));
+  writeJsonFixed(path.join(rootArt, 'state-summary.json'), { schema: 'tt/state-summary@1', planId: 'rootP', status: 'done' });
   fs.mkdirSync(path.join(sandbox, '.tt-state'), { recursive: true });
-  fs.writeFileSync(path.join(sandbox, '.tt-state', 'state.json'), JSON.stringify({ schema: 'aa-plan/v1', id: 'root-plan', status: 'done', subtasks: [] }));
+  writeJsonFixed(path.join(sandbox, '.tt-state', 'state.json'), { schema: 'aa-plan/v1', id: 'root-plan', status: 'done', subtasks: [] });
 
   const aDir = path.join(sandbox, '.tt-state', 'alpha');
   const aArt = path.join(aDir, 'artifacts');
   fs.mkdirSync(path.join(aArt, 'as1'), { recursive: true });
   fs.mkdirSync(path.join(aArt, 'ap1'), { recursive: true });
-  fs.writeFileSync(path.join(aDir, 'state.json'), JSON.stringify({ schema: 'aa-plan/v1', id: 'ns-A-plan', status: 'done', subtasks: [{ id: 'as1', asset: 'sdlc', status: 'done' }] }));
-  fs.writeFileSync(path.join(aArt, 'as1', 'receipt.json'), JSON.stringify({ subtaskId: 'as1', assetId: 'sdlc', events: [{ transition: 'behavior_verified' }], result: 'VERIFIED' }));
-  fs.writeFileSync(path.join(aArt, 'ap1', 'state-summary.json'), JSON.stringify({ schema: 'tt/state-summary@1', planId: 'ap1', status: 'done' }));
+  writeJsonFixed(path.join(aDir, 'state.json'), { schema: 'aa-plan/v1', id: 'ns-A-plan', status: 'done', subtasks: [{ id: 'as1', asset: 'sdlc', status: 'done' }] });
+  writeJsonFixed(path.join(aArt, 'as1', 'receipt.json'), { subtaskId: 'as1', assetId: 'sdlc', events: [{ transition: 'behavior_verified' }], result: 'VERIFIED' });
+  writeJsonFixed(path.join(aArt, 'ap1', 'state-summary.json'), { schema: 'tt/state-summary@1', planId: 'ap1', status: 'done' });
 
   // namespaced read：读源随 session（不串根）
   const ra = m.journey.read({ workspace: sandbox, session: 'alpha', mode: 'full' });

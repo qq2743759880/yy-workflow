@@ -1,7 +1,17 @@
 /**
- * p02 — routing vs consumption 归类验证：
- *   调用栈帧含 "matrix.mjs"（子脚本命名为 fake-matrix.mjs）→ routing；
- *   普通子脚本（plain-reader.mjs）→ consumption。
+ * p02 — routing vs consumption 归类验证（**basename 边界口径**）。
+ *
+ * T8 加固批②（编排者 P2-2 / T7 D-3 裁决）：本探针原期望是「调用栈帧含 `matrix.mjs` 子串
+ * ⇒ routing」，并以 `fake-matrix.mjs` 作为 routing 子脚本。该期望与 P2-1 确立的
+ * **basename 精确匹配**口径自相矛盾（`fake-matrix.mjs` 的 basename 是 `fake-matrix.mjs`，
+ * 不在 ROUTING_BASENAMES 集合内），属**陈旧预期**，故长期 FAIL。
+ *
+ * 对齐 p07（P2-1 权威口径）后的期望矩阵：
+ *   - `matrix.mjs`（真路由脚本 basename）      → routing
+ *   - `fake-matrix.mjs`（仅含 matrix.mjs 子串）→ consumption（边界口径下不误命中）
+ *   - `plain-reader.mjs`（普通读脚本）          → consumption
+ *
+ * 断言口径不变：routing 组记录全 routing、consumption 组记录全 consumption，且两组都非空。
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -33,21 +43,31 @@ function runChild(name, auditDir) {
 }
 
 export async function run({ sandbox }) {
+  // basename 边界口径：真 matrix.mjs → routing；fake-matrix.mjs（仅子串）→ consumption
   const routingDir = path.join(sandbox, 'routing');
+  const fakeDir = path.join(sandbox, 'fake-boundary');
   const consDir = path.join(sandbox, 'consumption');
   fs.mkdirSync(routingDir, { recursive: true });
+  fs.mkdirSync(fakeDir, { recursive: true });
   fs.mkdirSync(consDir, { recursive: true });
 
-  const routingRecs = runChild('fake-matrix.mjs', routingDir);
+  const routingRecs = runChild('matrix.mjs', routingDir);
+  const fakeRecs = runChild('fake-matrix.mjs', fakeDir);
   const consRecs = runChild('plain-reader.mjs', consDir);
 
   const routingTag = routingRecs.map((x) => x.tag);
+  const fakeTag = fakeRecs.map((x) => x.tag);
   const consTag = consRecs.map((x) => x.tag);
-  const ok = routingRecs.length > 0 && routingTag.every((t) => t === 'routing') &&
-    consRecs.length > 0 && consTag.every((t) => t === 'consumption');
+
+  const routingOk = routingRecs.length > 0 && routingTag.every((t) => t === 'routing');
+  const fakeOk = fakeRecs.length > 0 && fakeTag.every((t) => t === 'consumption');
+  const consOk = consRecs.length > 0 && consTag.every((t) => t === 'consumption');
+  const ok = routingOk && fakeOk && consOk;
 
   return {
     ok,
-    summary: `routing 子(${routingRecs.length} 条 tag=${routingTag.join('/')}) consumption 子(${consRecs.length} 条 tag=${consTag.join('/')})`,
+    summary: `basename 边界口径：matrix.mjs=${routingTag.join('/') || '(none)'}（期望 routing）`
+      + ` fake-matrix.mjs=${fakeTag.join('/') || '(none)'}（期望 consumption）`
+      + ` plain-reader.mjs=${consTag.join('/') || '(none)'}（期望 consumption）`,
   };
 }

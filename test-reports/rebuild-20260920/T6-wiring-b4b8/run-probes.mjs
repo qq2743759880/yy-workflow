@@ -9,10 +9,14 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const REPO = process.cwd(); // 探针从仓库根运行
-const HERE = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
+// T8 加固批③（runner cwd 统一）：REPO/HERE 一律由**模块 URL** 定位，不再依赖 process.cwd()。
+// 此前 `const REPO = process.cwd()` 使本运行器只能从仓库根启动（从自身目录启动会
+// ERR_MODULE_NOT_FOUND: …T6-wiring-b4b8\scripts\lib\gate.mjs，见 T7 D-5）。
+// probes/ → T6-wiring-b4b8 → rebuild-20260920 → test-reports → 仓库根
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const REPO = path.resolve(HERE, '..', '..', '..');
 
 let pass = 0, fail = 0;
 const fails = [];
