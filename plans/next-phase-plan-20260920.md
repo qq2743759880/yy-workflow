@@ -62,7 +62,34 @@ T9 加固派单链路（T10/T11 的验收执行都要走它）；T10 解锁 T11�
 
 ---
 
-## T10. R5b 核对 + 补缺 + 独立验收
+## T10. R5b 核对 + 补缺 + 独立验收（2026-09-20 修订：index.html 改 Owner 主导重设计）
+
+**Owner 2026-09-20 决定：index.html 不按原样重建，由 Owner 重规划功能/接口/交互/风格。**
+实测依据：render-core.mjs（132 行，字节恢复 93a7652b）是**纯视图模型**——六态
+（AUTHORIZED/OBSERVED/INFERRED/STALE/PARTIAL/ERROR）+ 三负态、最坏态卷滚、冲突视图、
+nextPrompt 视图的全部语义都在其中并可机验；丢失的 index.html 只是消费
+`deriveJourneyView()` 输出的视觉/交互层。host-bridge 面（OQ-U-17=a 注入契约
+`window.__YY_JOURNEY__ = {injectedAt, sessionId, read, project}`，buildInjectionPayload /
+injectionScriptTag / buildPageHtml / servePage）字节恢复，建议**接口层保持不变**
+（改接口=重写 sha 锚定的恢复证据）。journey.css（51 行）可被 Owner 新风格整体取代。
+
+**T10a（Owner 设计裁决）**——裁决菜单（每轴 2-4 选项 + 编排者建议）：
+- 轴 1 视图范围：①阶段环+九节点 ②gate 清单卡 ③nextPrompt 卡（含快照引用）④计划/子任务表
+  ⑤evidence 链接区 ⑥冲突/降级告警条 —— 全选或子集（建议：①③④⑥ 首版，②⑤ 二期）
+- 轴 2 数据接口：保持注入契约不变（建议：保持——render-core/bridge 是恢复证据，
+  改接口即作废 93a7652b/b02cfd65 两个 sha 锚）
+- 轴 3 交互：刷新（已裁：手动+host push）/ 会话切换（已裁：整页重载）/ 新增写操作按钮？
+  （建议：首版纯只读，写操作走 CLI——UI 写操作会触碰 phase 权限面）
+- 轴 4 风格：布局（单列仪表盘 / 九节点环图 / 时间线）、明暗主题、密度、设计 token
+  （建议：单列仪表盘 + 暗色 + 状态色即语义色）
+- 轴 5 CSS：整体取代 journey.css（51 行旧基线作废）还是叠加
+
+**T10b（施工，菜单裁决后派单）**：按裁决实现 index.html + 新 CSS + f-01…f-10 fixtures；
+fixture 语义仍锚 REPORT §4 与 render-core 可机验语义。
+
+---
+
+## T10.（原案存档）R5b 核对 + 补缺 + 独立验收
 
 **目标**：把"已恢复 4/6"补成"6/6 + 全 fixture 绿 + 独立验收 ACCEPTED"。
 
