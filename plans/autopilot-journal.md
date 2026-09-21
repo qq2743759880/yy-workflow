@@ -32,3 +32,8 @@
 - 这正是 L2 分级复核的既知盲区被 GUI 盲测补上：FE-2 探针是 mock clipboard 断言，未发现"按钮在 DOM 但永不可见"
 - 修复环：REWORK-1 发回 FE-2 同执行者（≤2 轮纪律），修 D1/D2/D3；ENV 备注：盲测者用 playwright-core 驱动本机 Chrome（node_repl 子代理浏览器不可用），双静态服务器已停
 - 队列：FE-3 🔬（GUI 盲测报告收讫）→ 等 REWORK-1 → FE-3 复测 → FE-4
+## 2026-09-22 FE-2 REWORK-1 收口 → FE-3 复测
+- L2 复核 PASS：哈希复算一致（ce2056ed，styles.css 未动 a0bb1f67）、冻结锚三件完整、探针 35/35 + FE-1 回归 57/57 亲自复跑全过
+- 修复点语义直验：D1 调用链已改 renderNextPrompt(core.nextPromptView(...))、旧 bug 字样零命中；D2 import('./content.js') 在场 + 显式失败告警条；D3 data-copy-label 6 处
+- REWORK-1 轮次：1/2（同执行者）
+- FE-3 定点复测已派（三缺陷 + 真剪贴板 + 回归抽验）

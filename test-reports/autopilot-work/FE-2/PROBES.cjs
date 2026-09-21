@@ -30,7 +30,9 @@ check('P1.4 每 asset 有 name/description/cluster',
 
 // PROBE2 渲染逻辑消费面：抽取 index.html <script>，mock document/navigator 验证 renderPhases/renderAssets/copyText
 const script = html.match(/<script>([\s\S]*?)<\/script>/)[1]
-  .replace(/import\('\.\/render-core\.mjs'\)/g, "Promise.resolve(MOCK_CORE)");
+  // mock 两个动态 import：render-core → MOCK_CORE，content.js → { GUIDE_CONTENT: MOCK_GUIDE }
+  .replace(/import\('\.\/render-core\.mjs'\)/g, "Promise.resolve(MOCK_CORE)")
+  .replace(/import\('\.\/content\.js'\)/g, "Promise.resolve({ GUIDE_CONTENT: MOCK_GUIDE })");
 
 const calls = { writeText: [] };
 const fakeEl = (tag) => ({ tag, _cls: '', children: [], _text: '', attrs: {}, _onclick: null,
@@ -44,7 +46,7 @@ const fakeEl = (tag) => ({ tag, _cls: '', children: [], _text: '', attrs: {}, _o
 const registry = {};
 ['journey-grid','alert-banner','alert-title','alert-reason','alert-conflicts','evidence-section','evidence-list',
  'next-section','next-hint','next-meta','copy-next-prompt','copy-feedback','page-meta','loading',
- 'phases-list','asset-grid','copy-status'].forEach(id => { const n = fakeEl('div'); n.id = id; registry[id] = n; });
+ 'phases-list','asset-grid','copy-status'].forEach(id => { const n = fakeEl('div'); n.id = id; if (id === 'copy-next-prompt') n.setAttribute('data-copy-label', '复制提示'); registry[id] = n; });
 
 const GLOBALS = { document: null, setTimeout: (fn) => { fn(); return 0; }, window: {},
   navigator: { clipboard: { writeText: (t) => { calls.writeText.push(t); return Promise.resolve(); } } } };
@@ -52,9 +54,12 @@ GLOBALS.document = { readyState: 'complete', createElement: fakeEl,
   getElementById: (id) => registry[id] || null, addEventListener: () => {} };
 
 const MOCK_CORE = {
-  deriveJourneyView: () => ({ steps: [], evidence: [], nextPrompt: null, degraded: false, notFound: false, conflict: null }),
+  // 健康 mock：注入含 nextPrompt（DEFECT-1 回归断言用）
+  deriveJourneyView: () => ({ steps: [], evidence: [],
+    nextPrompt: { actionHint: '继续并行派单', targetNode: 7, requiredInputs: ['plan'], snapshotHash: 'abc123', snapshotRef: null },
+    degraded: false, notFound: false, conflict: null }),
   mapStep: () => ({ display: 'ERROR' }),
-  nextPromptView: (x) => x,
+  nextPromptView: (np) => np, // 页面侧幂等守卫；归一化对象语义由此 mock 保证
   conflictView: (x) => x
 };
 
@@ -65,11 +70,19 @@ const runPage = async () => {
 try { await runPage(); check('P2.1 页面脚本可执行（零异常）', true); }
 catch (e) { check('P2.1 页面脚本可执行: ' + e.message, false); }
 
-// renderPhases/renderAssets 在 main() 中触发（degraded=false 路径）
+// DEFECT-1 回归断言：注入含 nextPrompt 时 #next-section 不 hidden 且按钮可见
+check('R1.1 注入含 nextPrompt 时 #next-section 不 hidden', registry['next-section'].hidden === false);
+check('R1.2 next-hint 显示 actionHint', registry['next-hint']._text === '继续并行派单');
+check('R1.3 copy-next-prompt 按钮绑定 onclick（永不可见缺陷修复）', typeof registry['copy-next-prompt']._onclick === 'function');
+
+// DEFECT-2 回归断言：content.js 动态 import 后 phases=6 / assets=16 渲染
 const pl = registry['phases-list'];
 const ag = registry['asset-grid'];
-check('P2.2 6 phases 全渲染', Array.isArray(pl.children) && pl.children.length === 6);
-check('P2.3 16 assets 全渲染', Array.isArray(ag.children) && ag.children.length === 16);
+check('R2.1 加载后 6 phases 渲染', Array.isArray(pl.children) && pl.children.length === 6);
+check('R2.2 加载后 16 assets 渲染', Array.isArray(ag.children) && ag.children.length === 16);
+check('R2.3 告警条健康时保持隐藏（成功装载不触发报错条）', registry['alert-banner'].hidden === true);
+check('P2.2 6 phases 全渲染（数据面）', Array.isArray(G.phases) && G.phases.length === 6 && Array.isArray(pl.children) && pl.children.length === 6);
+check('P2.3 16 assets 全渲染（数据面）', Array.isArray(G.assets) && G.assets.length === 16 && Array.isArray(ag.children) && ag.children.length === 16);
 check('P2.4 phase 卡含两颗复制按钮（kick+redo）',
   pl.children.length === 6 && pl.children.every(item =>
     item.children.filter(c => c.tag === 'div' && c.children.some(b => b.tag === 'button')).length === 2));
@@ -80,6 +93,8 @@ check('P2.6 cluster 徽章文字含域簇', ag.children.every(c => c.children.so
 
 // PROBE3 三类复制按钮把对应文案传入 clipboard.writeText（mock 验证）
 calls.writeText.length = 0;
+// next-prompt 按钮（DEFECT-1 修复后已绑定）
+registry['copy-next-prompt']._onclick && registry['copy-next-prompt']._onclick();
 const kickBtn = pl.children[0].children.find(c => c.tag === 'div' && c.children.some(b => b.tag === 'button')).children.find(b => b.tag === 'button');
 kickBtn._onclick();
 const redoBtn = pl.children[0].children.filter(c => c.tag === 'div' && c.children.some(b => b.tag === 'button'))[1].children.find(b => b.tag === 'button');
@@ -87,13 +102,15 @@ redoBtn._onclick();
 const fWrap = ag.children[0].children.find(c => c.tag === 'div' && c.children.some(b => b.tag === 'button'));
 const forcedBtn = fWrap.children.find(b => b.tag === 'button');
 forcedBtn._onclick();
-// next-prompt 占位按钮（np=null 时 onclick 未绑定，跳过）
-check('P3.1 kick 文案入剪贴板', calls.writeText.length > 0 && calls.writeText[0] === G.phases[0].kickPrompt);
-check('P3.2 redo 文案入剪贴板', calls.writeText.length > 1 && calls.writeText[1] === G.phases[0].redoPrompt);
+check('P3.0 next-prompt 文案入剪贴板', calls.writeText.length > 0 && calls.writeText[0] === '继续并行派单');
+check('P3.1 kick 文案入剪贴板', calls.writeText.length > 1 && calls.writeText[1] === G.phases[0].kickPrompt);
+check('P3.2 redo 文案入剪贴板', calls.writeText.length > 2 && calls.writeText[2] === G.phases[0].redoPrompt);
 check('P3.3 强制点名话术入剪贴板（点名格式）',
-  calls.writeText.length > 2 && calls.writeText[2] === '请你现在读取并应用 ' + G.assets[0].name + ' 的方法论');
+  calls.writeText.length > 3 && calls.writeText[3] === '请你现在读取并应用 ' + G.assets[0].name + ' 的方法论');
 await new Promise(r => setImmediate(r)); // flush clipboard promise（success 态回调）
-check('P3.4 复制后按钮文案进入 success 态（已复制）', kickBtn._text === '已复制' || kickBtn._text === '复制文本');
+// DEFECT-3 回归断言：success 2s 回落用按钮自身 data-copy-label
+check('R3.1 kick 按钮回落文案=自身 data-copy-label（非硬编码）', kickBtn._text === '催办话术');
+check('R3.2 next-prompt 按钮回落文案=自身 data-copy-label', registry['copy-next-prompt']._text === '复制提示');
 check('P3.5 aria-live 全局反馈节点有内容', registry['copy-status']._text && registry['copy-status']._text.length > 0);
 
 // PROBE4 无新增 CDN/npm：无 <script src>、无 http(s) 资源引用、无 @import

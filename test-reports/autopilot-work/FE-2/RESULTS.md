@@ -81,3 +81,29 @@ Design Read（taste-skill §0.B，延续 FE-1 定稿照录）：**"Reading this 
 - D-FE2-3 renderPhases/renderAssets 不依赖注入数据：degraded/notFound 分支也照常渲染 B/C 手册（手册为构建期静态内容，与 journey 投影独立）。这与 FE-1 的「降级：只有告警条」语义并存——降级时 A 区块不伪造数据，但 B/C 手册为静态文档性质内容，不属于投影，保留渲染。若 L2 裁定降级时全页只留告警条，改 main() 两行调用加分支即可。
 - D-FE2-4 探针脚本以 `.cjs` 落盘为 PROBES.cjs（package.json `"type": "module"` 下 `.js` 会被按 ESM 解析，probe 需 require/fs 同步装载），命令为 `node test-reports/autopilot-work/FE-2/PROBES.cjs`。
 - D-FE2-5 next-prompt 渲染守卫重构（np 为 null 时显式隐藏而非传入 null）：FE-1 的 `renderNextPrompt(core.nextPromptView(...) || view.nextPrompt)` 在两者皆 null 时把 null 传入函数内部再判空，行为等价但探针以严格 null 崩溃暴露歧义；改为调用前判空，无行为变化。
+
+## REWORK-1 节（GUI 盲测 P0×2 + P2×1 修复，编排者已复现）
+
+写面：仅 `webview/journey/index.html`（styles.css 未动，sha256 仍 a0bb1f67d15f8959）。未自称 DONE，待 L2 复核。
+
+### 修了什么
+
+- **DEFECT-1（P0）**：`renderNextPrompt` 参数语义改为接收归一化后的 np 对象直接使用（原实现内部取 `view.nextPrompt`，传入归一化对象时该字段 undefined → 下一步提示区恒隐藏、复制按钮永不可见）；调用处改为 `renderNextPrompt(core.nextPromptView(view.nextPrompt))`，np=null 时显式隐藏。探针断言：注入含 nextPrompt 时 `#next-section` 不 hidden、next-hint 显示 actionHint、copy-next-prompt 按钮绑定 onclick（R1.1-R1.3 / P3.0 全 PASS）。
+- **DEFECT-2（P0）**：新增 `loadGuideContent()`——动态 `import('./content.js')`（与 render-core 同型）后渲染 B/C 区块；加载失败走告警条显式报错（title「错误：手册内容加载失败」），数据不完整走「错误：手册内容装载不完整」+ phases/assets 计数，均不静默。探针断言：加载后 phases=6、assets=16 渲染、成功装载不触发报错条（R2.1-R2.3 全 PASS）。
+- **DEFECT-3（P2）**：复制成功 2s 回落文案改为按钮自身 `data-copy-label`（原硬编码「复制提示/复制文本」与按钮语义不符）；同时给 `#copy-next-prompt` 占位按钮补上 `data-copy-label="复制提示"`（该按钮原只有 aria-label）。探针断言：kick 按钮回落「催办话术」、next-prompt 按钮回落「复制提示」（R3.1-R3.2 PASS）。
+
+### 探针结果
+
+- `node test-reports/autopilot-work/FE-2/PROBES.cjs`：**35 passed, 0 failed**（新增 R1.1-R1.3 / R2.1-R2.3 / R3.1-R3.2 / P3.0 断言；输出存 probe-output.txt，L2 可重跑）
+- FE-1 回归 `node test-reports/autopilot-work/FE-1/probe.js`：**57 passed, 0 failed**（无破坏；中途一次 2 failed 为本任务引入的 HTML 注释 em-dash 与 conflictView 消费注释改动，已修复回归全绿）
+
+### REWORK-1 交付物（sha256 前 16 位）
+
+- `webview/journey/index.html` = ce2056ed70e8e157（REWORK-1 前为 e9d343e3306ce116）
+- `test-reports/autopilot-work/FE-2/PROBES.cjs` = 37a7fc0151ad3d2f
+- `test-reports/autopilot-work/FE-2/probe-output.txt` = 3f0ce08bc09ab6ab
+
+### REWORK-1 偏差登记
+
+- D-FE2R1-1 探针 mock 的 `#copy-next-prompt` 节点镜像真实 HTML 补设 `data-copy-label="复制提示"`（fake mock 节点非 HTML 解析产物，不设则 getAttribute 返回 null 走 fallback，断言无法区分页面缺陷与 mock 缺陷）；真实断言落在页面 HTML 的 `data-copy-label` 属性与 copyText 回落逻辑上。
+- D-FE2R1-2 DEFECT-2 的失败分支在 mock 中未做「import 拒绝」负路径探针（Promise.reject 路径只做静态代码检查），负路径留 FE-3 GUI 盲测覆盖。

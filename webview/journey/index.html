@@ -43,7 +43,7 @@
     <div class="next-prompt">
       <p class="next-hint" id="next-hint"></p>
       <p class="next-meta" id="next-meta"></p>
-      <button type="button" class="copy-button" id="copy-next-prompt" aria-label="复制下一步提示文本">复制提示</button>
+      <button type="button" class="copy-button" id="copy-next-prompt" data-copy-label="复制提示" aria-label="复制下一步提示文本">复制提示</button>
       <p class="copy-feedback" id="copy-feedback" role="status" aria-live="polite"></p>
     </div>
   </section>
@@ -168,9 +168,9 @@
     banner.hidden = true; // 健康时隐藏
   }
 
-  function renderNextPrompt(view) {
+  // 接收归一化后的 np 对象（nextPromptView 输出），直接使用；null 时隐藏区块
+  function renderNextPrompt(np) {
     var section = document.getElementById('next-section');
-    var np = view.nextPrompt;
     if (!np) { section.hidden = true; return; }
     section.hidden = false;
     document.getElementById('next-hint').textContent = np.actionHint || '（无 actionHint）';
@@ -199,7 +199,7 @@
       navigator.clipboard.writeText(text).then(function () {
         report('已复制到剪贴板', '已复制');
         if (btn) {
-          setTimeout(function () { btn.textContent = btn.getAttribute('data-copy-label') ? '复制文本' : '复制提示'; }, 2000); // success 态回落
+          setTimeout(function () { btn.textContent = btn.getAttribute('data-copy-label') || btn.textContent; }, 2000); // success 态回落：按钮自身标签
         }
       }, function () {
         report('复制失败（环境拒绝剪贴板访问）', '复制失败');
@@ -209,10 +209,11 @@
     }
   }
 
-  // B 阶段手册：消费 GUIDE_CONTENT.phases（FE-0 构建产物），6 阶段逐段
+  // B 阶段手册：消费 GUIDE_CONTENT.phases（FE-0 构建产物），6 阶段逐段；
+  // GUIDE_CONTENT 缺失时不静默：由 loadGuideContent 走告警条，此处只守卫 DOM
   function renderPhases() {
     var list = document.getElementById('phases-list');
-    if (!list || typeof GUIDE_CONTENT === 'undefined' || !Array.isArray(GUIDE_CONTENT.phases)) return;
+    if (!list || typeof GUIDE_CONTENT === 'undefined' || !Array.isArray(GUIDE_CONTENT.phases)) return false;
     list.textContent = '';
     GUIDE_CONTENT.phases.forEach(function (p) {
       var item = el('article', 'phase-item');
@@ -255,12 +256,13 @@
       redoBtn.onclick = function () { copyText(p.redoPrompt || '', redoBtn, null); };
       list.appendChild(item);
     });
+    return true;
   }
 
-  // C 资产手册：消费 GUIDE_CONTENT.assets，16 资产卡片
+  // C 资产手册：消费 GUIDE_CONTENT.assets，16 资产卡片（守卫语义同 renderPhases）
   function renderAssets() {
     var grid = document.getElementById('asset-grid');
-    if (!grid || typeof GUIDE_CONTENT === 'undefined' || !Array.isArray(GUIDE_CONTENT.assets)) return;
+    if (!grid || typeof GUIDE_CONTENT === 'undefined' || !Array.isArray(GUIDE_CONTENT.assets)) return false;
     grid.textContent = '';
     GUIDE_CONTENT.assets.forEach(function (a) {
       var card = el('article', 'asset-card');
@@ -286,6 +288,7 @@
       };
       grid.appendChild(card);
     });
+    return true;
   }
 
   function renderEvidence(view) {
@@ -320,6 +323,32 @@
     grid.appendChild(card);
   }
 
+  // B/C 手册内容装载：动态 import('./content.js')（与 render-core 同型），
+  // 失败走告警条显式报错（不静默）；成功后渲染 B/C 区块
+  function loadGuideContent() {
+    return import('./content.js').then(function (mod) {
+      window.GUIDE_CONTENT = (mod && mod.GUIDE_CONTENT) || null;
+      var okPhases = renderPhases();
+      var okAssets = renderAssets();
+      if (!okPhases || !okAssets) {
+        var banner = document.getElementById('alert-banner');
+        banner.hidden = false;
+        document.getElementById('alert-title').textContent = '错误：手册内容装载不完整';
+        document.getElementById('alert-reason').textContent = 'content.js 已加载但 phases/assets 数据缺失（phases=' +
+          (window.GUIDE_CONTENT && Array.isArray(window.GUIDE_CONTENT.phases) ? window.GUIDE_CONTENT.phases.length : 0) +
+          ', assets=' + (window.GUIDE_CONTENT && Array.isArray(window.GUIDE_CONTENT.assets) ? window.GUIDE_CONTENT.assets.length : 0) + '）';
+        return false;
+      }
+      return true;
+    }, function (e) {
+      var banner = document.getElementById('alert-banner');
+      banner.hidden = false;
+      document.getElementById('alert-title').textContent = '错误：手册内容加载失败';
+      document.getElementById('alert-reason').textContent = 'content.js 加载失败: ' + e.message;
+      return false;
+    });
+  }
+
   function main(core) {
     var payload = window.__YY_JOURNEY__;
     var view = core.deriveJourneyView(payload);
@@ -333,15 +362,13 @@
     renderMeta(view);
     renderStepNodes(view, core);
     renderEvidence(view);
-    // B/C 手册区块：静态内容（content.js 构建产物），与 journey 投影独立渲染；
-    // 投影降级/notFound 时也照常渲染（手册不依赖注入数据）
-    renderPhases();
-    renderAssets();
-    // 下一步提示区：deriveJourneyView 内部已走 nextPromptView 归一化；conflictView 走 conflict 告警分支
-    var npNormalized = core.nextPromptView(view.nextPrompt);
-    if (npNormalized) { renderNextPrompt(npNormalized); }
-    else if (view.nextPrompt) { renderNextPrompt(view.nextPrompt); }
-    else { document.getElementById('next-section').hidden = true; }
+    // B/C 手册区块：content.js 构建产物，独立装载渲染（失败走告警条，不静默）；
+    // 投影降级/notFound 时也照常装载（手册不依赖注入数据）
+    loadGuideContent();
+    // 下一步提示区：deriveJourneyView 内部已走 nextPromptView 归一化（deriveJourneyView 内部调用
+    // nextPromptView/conflictView 归一化 nextPrompt 与 conflict，页面消费其组合产物）；此处再过一遍幂等，
+    // 归一化对象直接传 renderNextPrompt（np=null 时显式隐藏）
+    renderNextPrompt(core.nextPromptView(view.nextPrompt));
   }
 
   if (document.readyState === 'loading') {
