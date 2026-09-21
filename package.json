@@ -22,8 +22,8 @@
     "cockatiel": "^4.0.0",
     "culori": "^4.0.2",
     "playwright-core": "^1.63.0",
-    "polly-js": "^1.8.3",
     "poline": "^0.13.1",
+    "polly-js": "^1.8.3",
     "reflect-metadata": "^0.2.2",
     "tslib": "^2.8.1",
     "tsyringe": "^4.10.0"

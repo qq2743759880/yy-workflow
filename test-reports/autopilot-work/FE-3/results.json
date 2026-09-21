@@ -1,0 +1,135 @@
+{
+  "results": [
+    {
+      "id": "T1.1",
+      "name": "页面加载+截图总览(健康投影)",
+      "status": "PASS",
+      "note": "nodes=9, loadingHidden=true, meta=\"session: test-session-fe3 | 投影状态: OBSERVED | 阶段: 7 | 更新于: 2026-09-22T09:55:00Z\""
+    },
+    {
+      "id": "T1.2",
+      "name": "九节点渲染(节点名+状态徽章+gate卡)",
+      "status": "PASS",
+      "note": "names=资产整合/文档化/重执行1/拆任务/重执行1,2/规划+契约/重执行1,2,3/并行派单/批判反哺; badges[0]=已确认 · AUTHORIZED, badges[6]=已观察 · OBSERVED, badges[8]=不完整 · PARTIAL; gateLine[1]=gate: concept-signed, gateLine[0]=gate: 无（回跳层）"
+    },
+    {
+      "id": "T1.3",
+      "name": "B 阶段手册 6 段全渲染",
+      "status": "FAIL",
+      "note": "phaseItems=0 (期望 6); GUIDE_CONTENT typeof=undefined -> content.js 未被页面加载 (DEFECT-2)"
+    },
+    {
+      "id": "T1.4",
+      "name": "C 资产手册 16 卡全渲染",
+      "status": "FAIL",
+      "note": "assetCards=0 (期望 16); 同因 DEFECT-2"
+    },
+    {
+      "id": "T2.1",
+      "name": "下一步提示区+复制按钮可见",
+      "status": "FAIL",
+      "note": "button in DOM=true but visible=false, next-section hidden=true -> renderNextPrompt 参数语义不匹配 (DEFECT-1), 按钮永不可见"
+    },
+    {
+      "id": "T2.2",
+      "name": "复制按钮点击 -> 剪贴板反馈态",
+      "status": "BLOCKED",
+      "note": "GUI 点击不可达: click failed: element not visible (用户无法点击) — locator.click: Timeout 2000ms exceeded.; feedback=\"\" — 被 DEFECT-1 阻断, 无法验证剪贴板链路"
+    },
+    {
+      "id": "T3.1",
+      "name": "告警条健康时隐藏",
+      "status": "PASS",
+      "note": "alert-banner hidden=true (role=alert)"
+    },
+    {
+      "id": "T4.1",
+      "name": "JOURNEY_NOT_FOUND 数据通道渲染诊断卡",
+      "status": "PASS",
+      "note": "grid cards=[\"未找到 journey\"], bannerVisible=false (契约: 数据通道而非告警条)"
+    },
+    {
+      "id": "T5.1",
+      "name": "PROJECTION_CONFLICT 双侧证据告警条",
+      "status": "PASS",
+      "note": "title=\"冲突：投影数据源矛盾（PROJECTION_CONFLICT）\", reason=\"read 与 project 两侧步骤状态矛盾\", conflicts=[\"read: 节点0 done\",\"project: 节点0 pending\"]"
+    },
+    {
+      "id": "T6.1",
+      "name": "无注入数据不白屏(degraded 通道)",
+      "status": "PASS",
+      "note": "bannerVisible=true, title=\"降级：数据源不可用\", reason=\"bridge payload 缺失（window.__YY_JOURNEY__ 未注入）\", bodyLen=185, gridChildren=0 (不伪造数据)"
+    },
+    {
+      "id": "T7.1",
+      "name": "双主题切换(dark 模拟 vs light)",
+      "status": "PASS",
+      "note": "light bg=rgb(255, 255, 255), dark bg=rgb(17, 17, 17), dark badge bg=rgb(138, 180, 248)"
+    },
+    {
+      "id": "T8.1",
+      "name": "超长资产 description 不溢出",
+      "status": "BLOCKED",
+      "note": "资产卡 0 张(DEFECT-2), 无渲染目标可测; 代码级交叉验证: styles.css .asset-desc/.asset-name/.cluster-badge 均含 overflow-wrap:anywhere (仅静态核对, GUI 未验证)"
+    },
+    {
+      "id": "T9.1",
+      "name": "连点复制按钮不崩",
+      "status": "BLOCKED",
+      "note": "全部复制按钮不可见/不存在(DEFECT-1+DEFECT-2), 无可点击目标"
+    },
+    {
+      "id": "T10.1",
+      "name": "触控区 >=44px (DOM 量测)",
+      "status": "PASS",
+      "note": "copy-button computed min-height=44px, min-width=44px; 注意按钮不可见(DEFECT-1), 视觉级无法确认"
+    },
+    {
+      "id": "T11.1",
+      "name": "正文对比度 >=4.5:1 (DOM+WCAG)",
+      "status": "PASS",
+      "note": "fg=rgb(26, 26, 26) bg=rgb(255, 255, 255) ratio=17.40"
+    },
+    {
+      "id": "T11.2",
+      "name": "状态徽章对比度 (DOM+WCAG)",
+      "status": "PASS",
+      "note": "badge fg=rgb(255, 255, 255) bg=rgb(11, 87, 208) ratio=6.39"
+    },
+    {
+      "id": "T12.1",
+      "name": "瑞士网格多列布局",
+      "status": "PASS",
+      "note": "journey-grid computed columns=4"
+    },
+    {
+      "id": "T12.2",
+      "name": "零装饰(无阴影/无渐变)",
+      "status": "PASS",
+      "note": "boxShadow elements=0, backgroundImage elements=0"
+    },
+    {
+      "id": "T13.1",
+      "name": "控制台错误收集(全程)",
+      "status": "PASS",
+      "note": "console errors=[\"Failed to load resource: the server responded with a status of 404 (File not found)\",\"Failed to load resource: the server responded with a status of 404 (File not found)\"] (favicon 404 为环境噪音; 无 JS 异常)"
+    }
+  ],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (File not found)",
+    "Failed to load resource: the server responded with a status of 404 (File not found)"
+  ],
+  "shots": [
+    "D:/.ai-hub/skills/yy/test-reports/autopilot-work/FE-3/screenshots/t1_overview_top.png",
+    "D:/.ai-hub/skills/yy/test-reports/autopilot-work/FE-3/screenshots/t1_phases_assets_area.png",
+    "D:/.ai-hub/skills/yy/test-reports/autopilot-work/FE-3/screenshots/t2_next_section_hidden.png",
+    "D:/.ai-hub/skills/yy/test-reports/autopilot-work/FE-3/screenshots/t3_banner_hidden_healthy.png",
+    "D:/.ai-hub/skills/yy/test-reports/autopilot-work/FE-3/screenshots/t4_notfound.png",
+    "D:/.ai-hub/skills/yy/test-reports/autopilot-work/FE-3/screenshots/t5_conflict_banner.png",
+    "D:/.ai-hub/skills/yy/test-reports/autopilot-work/FE-3/screenshots/t6_degraded.png",
+    "D:/.ai-hub/skills/yy/test-reports/autopilot-work/FE-3/screenshots/t7_dark_theme.png",
+    "D:/.ai-hub/skills/yy/test-reports/autopilot-work/FE-3/screenshots/t11_contrast_area.png",
+    "D:/.ai-hub/skills/yy/test-reports/autopilot-work/FE-3/screenshots/t12_swiss_top.png",
+    "D:/.ai-hub/skills/yy/test-reports/autopilot-work/FE-3/screenshots/t12_swiss_grid.png"
+  ]
+}

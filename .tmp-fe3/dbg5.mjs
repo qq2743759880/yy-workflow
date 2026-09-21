@@ -1,0 +1,12 @@
+import { chromium } from 'playwright-core';
+const exe = 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe';
+const b = await chromium.launch({ executablePath: exe, headless: true });
+const p = await (await b.newContext()).newPage();
+const all = []; p.on('response', r => all.push(r.status() + ' ' + r.url()));
+await p.goto('http://127.0.0.1:8102/index-mock.html', { waitUntil: 'domcontentloaded' });
+await p.waitForTimeout(1500);
+console.log(all.join('\n'));
+console.log('---');
+console.log('GUIDE_CONTENT:', await p.evaluate(() => typeof window.GUIDE_CONTENT));
+console.log('scripts in DOM:', await p.evaluate(() => Array.from(document.querySelectorAll('script')).map(s => s.src || ('inline:' + (s.textContent || '').slice(0, 40))).join(' | ')));
+await b.close();

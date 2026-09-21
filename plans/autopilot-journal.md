@@ -26,3 +26,9 @@
 - 盲测抽验 3 条：三类复制按钮传真文案（kick/redo/forced 均绑定 content.js 数据非硬编码）、16 资产卡片真消费 GUIDE_CONTENT（6 处引用）、单一全局 live region（D-FE2-1 自报属实）
 - 双 skill 调用验证属实（ui-ux-pro-max 3 次检索 + taste Design Read 延续 + pre-flight）
 - FE-3 派单：web-gui-tester 全 GUI 盲测（黑盒+截图+只读 DOM 交叉验证；补截图环节）
+## 2026-09-22 FE-3 收口 → FE-2 REWORK-1
+- FE-3 GUI 盲测 19 点：PASS 13 / FAIL 3 / BLOCKED 3（真剪贴板被 D1 阻断）；11 张截图证据；webview/ 零改动（测试修复分离保持）
+- 盲测抓到 P0×2（我独立复现实锤）：D1 nextPrompt 二次归一化字段错位恒隐藏；D2 content.js 从未被加载（GUIDE_CONTENT undefined 静默 return → B/C 手册 GUI 上不存在）+ P2×1 回落文案硬编码
+- 这正是 L2 分级复核的既知盲区被 GUI 盲测补上：FE-2 探针是 mock clipboard 断言，未发现"按钮在 DOM 但永不可见"
+- 修复环：REWORK-1 发回 FE-2 同执行者（≤2 轮纪律），修 D1/D2/D3；ENV 备注：盲测者用 playwright-core 驱动本机 Chrome（node_repl 子代理浏览器不可用），双静态服务器已停
+- 队列：FE-3 🔬（GUI 盲测报告收讫）→ 等 REWORK-1 → FE-3 复测 → FE-4
