@@ -16,7 +16,7 @@ Owner 授权下的阶段性全功能验收制度。四条 Owner 制度逐条落�
 ## 一、盲行者工作区隔离设计（制度④）
 
 ```
-D:\.ai-hub\tmp\blindwalk-<日期>\           ← 盲行者唯一可见的工作目录
+D:\.ai-hub\tmp\project-run-<日期>\           ← 盲行者唯一可见的工作目录
 ├── workspace\                              ← "它的小项目"（真沙箱）
 └── (无任何 yy 仓库内容、无 handoffs/、无 test-reports/、无 plans/)
 ```
@@ -33,30 +33,49 @@ D:\.ai-hub\tmp\blindwalk-<日期>\           ← 盲行者唯一可见的工作�
 4. 若盲行者环境无法安装全局技能 → 退化方案：Prompt 里给一句"把 `<YY路径>` 当作技能目录
    按其 SKILL.md 行事"，并把该句措辞写成"用户指南"语气，不出现"测试/验收/踩坑"
 
-## 二、盲测 Prompt 设计（制度②，意识不到在被测）
+## 二、已安装形态配置（制度④落地步骤，Owner 逐条执行）与盲测 Prompt
 
-盲行者收到的 Prompt（全文，Owner 直接转发）：
+### 2.1 制作"发布目录"（一次性，10 分钟）
+
+盲行者读到的 yy 必须是**发布目录**，不是开发仓库。步骤：
+
+1. `robocopy D:.ai-hubskillsyy D:.ai-hub	mpyy-release /E /XD recovery-20260919 test-reports plans handoffs .git .mimosa .workbuddy .learnings .sandbox node_modules /XF .memory ACCEPTANCE.md CHANGELOG.md`
+   （XD 排除开发面目录；XF 排除开发史文件；CHANGELOG 含恢复叙述，不带）
+2. 抽查发布目录：`ls` 顶层应只有 SKILL.md/commands/reference/scripts/vendor/templates/docs/
+   config.example.json/package.json/package-lock.json/LICENSE/ONBOARDING.md/README.md；
+   `grep -r "误删|恢复|重建层|acceptance-20260920|rebuild-20260920" 发布目录` 应零命中
+   （scripts 注释里的"重建说明"按 §4.5-2 判定标准保留）
+3. 安装：盲行者宿主支持全局技能则
+   `cmd /c mklink /J C:UsersAdministrator.agentsskillsyy D:.ai-hub	mpyy-release`；
+   **不支持则**：在盲行者 Prompt 里以"用户指南"语气写明技能目录路径（见 Prompt 第 1 条措辞）
+4. 建工作区：`mkdir D:.ai-hub	mpproject-run-0921workspace`（notes/ 由盲行者自建）
+
+### 2.2 盲测 Prompt（全文，Owner 直接转发；项目 = ChatGPT 本地文件审查工具）
 
 ```
-你是一位资深开发助手。我在 D:\.ai-hub\skills\yy 装了一个叫 YY 的多 Agent 编排工作流
-技能（fork 自 TT 2.9.1）。我想用它从零做一个真实的小项目：一个命令行 Markdown 笔记
-工具（支持新建/列出/搜索笔记，纯 Node，无框架）。
+你是一位资深开发助手。我在 D:.ai-hub	mpyy-release 装了一个叫 YY 的多 Agent 编排
+工作流技能（fork 自 TT 2.9.1）。我想用它从零做一个真实的小项目：
+
+一个"本地项目审查助手"——对接 ChatGPT（OpenAI API），让我在对话里可以直接审查我的
+本地项目：读取我指定的本地项目文件结构（目录树）、按需读取文件内容发给模型分析，
+支持"审查我的项目结构 / 找出安全隐患 / 总结某个模块"这类指令。纯 Node 实现，API key
+从环境变量 OPENAI_API_KEY 读（不要把 key 写进任何源码或示例）。
 
 请你：
-1. 先读 D:\.ai-hub\skills\yy\SKILL.md 了解这个工作流怎么用
+1. 先读 D:.ai-hub	mpyy-releaseSKILL.md 了解这个工作流怎么用
 2. 严格按它的工作流阶段推进这个项目（从阶段 0 开始，每一步按它的纪律来）
 3. 我是 owner：该我拍板的地方问我，该我确认的给我看白话版
-4. 全程在这个目录下工作：D:\.ai-hub\tmp\blindwalk-20260920\workspace
+4. 全程在这个目录下工作：D:.ai-hub	mpproject-run-0921workspace
 5. 遇到走不通、报错、卡住、或者你觉得这个工作流哪里别扭的地方，就自然地绕过它继续
    推进项目（别死磕），同时把你遇到的每个问题随手记到
-   D:\.ai-hub\tmp\blindwalk-20260920\workspace\notes\issues.md（一行一个：现象+位置+你的猜测）
+   D:.ai-hub	mpproject-run-0921workspace
+otessession-notes.md
+   （一行一个：现象+位置+你的猜测）
 6. 目标是把项目做完。工作流只是你的工具，项目交付优先。
 ```
 
-设计要点：
-- 第 5 条是坑收集器：**"随手记问题"以"开发者笔记"的口吻出现**，不叫"报告盲测问题"
-- issues.md 只追加；盲行者从不知道这份清单会被拿来修复项目
-- 不给任何"验收标准/期望行为"——它踩到的坑才是真坑
+项目选题的验收价值（编排者自注，盲行者不可见）：真实 API 调用 + 环境变量凭据（触发
+ mimosa 红线正反两面）+ 文件系统访问 + 网络请求——覆盖此前所有模块的真实消费面。
 
 ## 三、盲测 task 看板（制度③）
 
@@ -83,6 +102,19 @@ D:\.ai-hub\tmp\blindwalk-<日期>\           ← 盲行者唯一可见的工作�
    （若需外派）或编排者直修（小修）
 3. 修复不越过冻结纪律：契约冻结面的问题走 change.record；不修 vendor/
 4. 全部坑闭环后：盲测轮 2（同一协议换项目重跑）验证修复，看板登记
+
+## 四点五、呈现面中性化清查（Owner 实测教训后补充）
+
+盲行者会看到的不只是工作区——它以"正常使用者"身份读**已安装的 yy 技能目录**。以下泄露面必须处理：
+1. 仓库根的 recovery-20260919/、.memory、test-reports/（60+ 验收目录）、plans/blindwalk-*.md、
+   handoffs/、rebuild/acceptance 字样——全部**不得出现在已安装形态**中。已安装形态 =
+   独立发布目录（见第二节），只含 SKILL.md/commands/reference/scripts/vendor/templates/docs/
+   config.example.json/package.json 等使用者必需文件，且 scripts/ 内注释里的
+   "重建说明/编排者盲测/rebuild-20260920"字样对使用者无害（是开发史叙事，非"你在被测"信号）
+   ——但 recovery/acceptance 类目录绝不能进发布目录。
+2. **判断标准**：凡文件内容会让盲行者推出"有人在观察我/这是一个测试项目"的，一律隔离；
+   纯开发史注释（如"本文件按 C-R5 契约重建"）不构成身份泄露，保留。
+3. CHANGELOG 含恢复叙述——发布目录用精简版或不带 CHANGELOG。
 
 ## 五、已知预告（编排者自审，非盲行者可见）
 
