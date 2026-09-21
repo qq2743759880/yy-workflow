@@ -43,3 +43,8 @@
 - 三个 L1 执行者同时派发在途：FE-4 收口 / FIX-1 workspace 坑 / FIX-4 handoff 加固
 - FE-3 复测（区 D 只读）继续在途 → 当前并发 4 agent（3×L1 + 1×复测）
 - git 索引由编排者独占；收口按分区顺序合并 commit
+## 2026-09-22 FE-4 收口（并行波门 1）
+- L2 复核 PASS：哈希复算一致（4f6c2cc4）、README 三要点抽验（loadGuideContent/注入契约/瑞士风格 10 处）、发布目录五文件与源逐字节一致、junction 冒烟 PASS
+- 竞态实况（D-FE4-6, P1）：FIX-1 与 FE-4 的 robocopy 撞窗口，执行者自行补充刷新并复验一致——并行机制首实战暴露收口顺序问题：发布刷新必须排在并行写面全部静默之后（编排者收口顺序修订：release 刷新永远最后一步）
+- 审计残留（D-FE4-2, P2）：scripts 运行时 warning 字符串 2 行含 rebuild 字样——待 Owner 裁决是否中性化（用户可见性低）
+- 并行纪律验证：FIX-1 的 SKILL.md/commands 改动被 FE-4 正确识别为"非本任务所为"未越权处理 ✓

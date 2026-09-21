@@ -17,7 +17,7 @@
 | FE-1 | 页面骨架+新 styles.css（A 现状导航；taste Design Read + ui-ux-pro-max 铁律） | ✅已收（L2 PASS，P2×2） |
 | FE-2 | B 阶段手册 + C 资产手册（消费 content.js；复制按钮） | ✅已收（L2 PASS，P2×2） |
 | FE-3 | web-gui-tester 全 GUI 盲测（黑盒+截图+只读 DOM 交叉验证；修复分离） | ⏳ |
-| FE-4 | 交付收口（README/release 刷新/部署验证） | ⏳ |
+| FE-4 | 交付收口（README/release 刷新/部署验证） | ✅已收（L2 PASS，P1×1 竞态机制/P2×1 运行时字符串） |
 
 ## W1 修复批 A（工匠 agent ×1，顺延至 FE 后）
 

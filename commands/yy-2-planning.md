@@ -5,7 +5,7 @@ journey-step: 3
 prereq-gates: [step1, concept-signed]
 ---
 
-> 首行指令：先跑 `node scripts/tt-journey.mjs --prereq-check --step 3` 机验前置。前置 step 1 未 done 或 gate concept-signed 未过时 exit 1 输出原因并阻断注入，先回阶段 1。
+> 首行指令：先跑 `node scripts/tt-journey.mjs --workspace "$PROJECT_ROOT" --prereq-check --step 3` 机验前置。`--workspace "$PROJECT_ROOT"` 必带（坑#2：cd 技能目录执行时缺它误读技能目录 journey，绕开用户工作区）。前置 step 1 未 done 或 gate concept-signed 未过时 exit 1 阻断注入，先回阶段 1。
 
 ## 阶段 3 · 拆任务（前提挑战）
 
@@ -15,7 +15,7 @@ prereq-gates: [step1, concept-signed]
 
 **纪律钥匙词**：`前提挑战`、`GWT 验收`、`前后置依赖`、`契约冻结顺序`、`选型依据`、`HTML 原型 gate`、`review-gate --plan 自检三视角`。
 
-**产物路径**：`docs/yy-dev-plan.md`（任务总纲）；前提通过后 `node scripts/tt-journey.mjs --update --step 3 --gate premise-signed`。
+**产物路径**：`docs/yy-dev-plan.md`（任务总纲）；前提通过后 `node scripts/tt-journey.mjs --workspace "$PROJECT_ROOT" --update --step 3 --gate premise-signed`。
 
 **owner 审阅**：产出 gate 产物后，读取 templates/owner-review/premise-challenge.md，按其四段结构向 owner 呈现审阅要点（审什么/看哪几字段/PASS-FAIL/常见坑）——owner 不懂术语也能做判断。
 

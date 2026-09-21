@@ -5,7 +5,7 @@ journey-step: 1
 prereq-gates: [step0]
 ---
 
-> 首行指令：先跑 `node scripts/tt-journey.mjs --prereq-check --step 1` 机验前置。前置 step 0 未 done 时 exit 1 输出原因并阻断注入，先回阶段 0。
+> 首行指令：先跑 `node scripts/tt-journey.mjs --workspace "$PROJECT_ROOT" --prereq-check --step 1` 机验前置。`--workspace "$PROJECT_ROOT"` 必带（坑#2：cd 技能目录执行时缺它误读技能目录 journey，绕开用户工作区）。前置 step 0 未 done 时 exit 1 阻断注入，先回阶段 0。
 
 ## 阶段 1 · 需求挖掘
 
@@ -15,7 +15,7 @@ prereq-gates: [step0]
 
 **纪律钥匙词**：`先别产文档`、`逐轮问我 ≤2 题`、`回源核验`、`查不到标 [待补充] 禁止编造`（防幻觉红线）。
 
-**产物路径**：`docs/`（概念版 / PRD 草案）；签收后 `node scripts/tt-journey.mjs --update --step 1 --gate concept-signed`。
+**产物路径**：`docs/`（概念版 / PRD 草案）；签收后 `node scripts/tt-journey.mjs --workspace "$PROJECT_ROOT" --update --step 1 --gate concept-signed`。
 
 **owner 审阅**：产出 gate 产物后，读取 templates/owner-review/concept-signoff.md，按其四段结构向 owner 呈现审阅要点（审什么/看哪几字段/PASS-FAIL/常见坑）——owner 不懂术语也能做判断。
 

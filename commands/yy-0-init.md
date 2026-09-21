@@ -5,7 +5,7 @@ journey-step: 0
 prereq-gates: []
 ---
 
-> 首行指令：先跑 `node scripts/tt-journey.mjs --prereq-check --step 0`（或读 `.tt-state/journey.json`）机验前置。本阶段无前置（step 0 起点，天然放行），但若 journey 已推进到后续阶段，请勿回退覆盖已实施产物。
+> 首行指令：先跑 `node scripts/tt-journey.mjs --workspace "$PROJECT_ROOT" --prereq-check --step 0`（或读 `$PROJECT_ROOT/.tt-state/journey.json`）机验前置。`--workspace` 必须显式指向 `$PROJECT_ROOT`：agent 若 cd 进技能目录执行，不带该参数会误读技能目录的 journey 而绕开用户项目工作区（坑#2）。本阶段无前置（step 0 起点，天然放行），但若 journey 已推进到后续阶段，请勿回退覆盖已实施产物。
 
 ## 阶段 0 · 立项 / 资产整合
 

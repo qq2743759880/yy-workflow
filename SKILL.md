@@ -18,9 +18,9 @@ version: 0.3.0
 | `/yy 3`、`契约冻结` | Read `commands/yy-3-contract.md` |
 | `/yy 4`、`派单` | Read `commands/yy-4-execute.md` |
 | `/yy 5`、`验收` | Read `commands/yy-5-critique.md` |
-| `当前进度`、`进度图` | 跑 `node $SKILL_DIR/scripts/tt-journey.mjs --workspace <项目目录>` |
+| `当前进度`、`进度图` | 跑 `node $SKILL_DIR/scripts/tt-journey.mjs --workspace <项目目录>`（`<项目目录>` 取 `$PROJECT_ROOT`，见注入纪律） |
 
-注入纪律：命令文件首行已内置 `--prereq-check` 机验，未 done 必须阻断；gate 过后跑 `--update`；`/yy 6`（改需求）`/yy 7`（打假）并入 yy-3/yy-5。
+注入纪律：命令文件首行已内置 `--prereq-check` 机验，未 done 必须阻断；gate 过后跑 `--update`；`/yy 6`（改需求）`/yy 7`（打假）并入 yy-3/yy-5。**tt-journey 每次调用必带 `--workspace "$PROJECT_ROOT"`**（坑#2）：agent cd 进技能目录执行时，缺该参数会读技能目录的 `.tt-state` 而绕开用户项目工作区（阶段 1+ 死锁）。
 
 ## 0b. 闭环全景（8 步可回跳；N=1 退化串行）
 
