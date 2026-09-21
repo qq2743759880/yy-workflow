@@ -37,3 +37,9 @@
 - 修复点语义直验：D1 调用链已改 renderNextPrompt(core.nextPromptView(...))、旧 bug 字样零命中；D2 import('./content.js') 在场 + 显式失败告警条；D3 data-copy-label 6 处
 - REWORK-1 轮次：1/2（同执行者）
 - FE-3 定点复测已派（三缺陷 + 真剪贴板 + 回归抽验）
+## 2026-09-22 并行修订生效 → 三线并行在途
+- Owner 指令"能并行就并行" → 协议 §八：写面正交即可并行（≤3 L1 并发），串行仅保留于同写面任务
+- 写面分区核对：FE-4(区A README) / FIX-1(区B commands+tt-journey) / FIX-4(区C summary-read) 两两正交 ✓
+- 三个 L1 执行者同时派发在途：FE-4 收口 / FIX-1 workspace 坑 / FIX-4 handoff 加固
+- FE-3 复测（区 D 只读）继续在途 → 当前并发 4 agent（3×L1 + 1×复测）
+- git 索引由编排者独占；收口按分区顺序合并 commit
