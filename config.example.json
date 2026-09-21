@@ -1,7 +1,6 @@
 {
   "aihubRoot": "~/.ai-hub",
   "projectRoot": "<YOUR_PROJECT_ROOT>",
-  "memoryRoot": "~/.ai-hub/memory",
   "platforms": [
     { "name": "opencode", "role": "orchestrator", "domain": null },
     { "name": "trae", "role": "worker", "domain": "backend" },

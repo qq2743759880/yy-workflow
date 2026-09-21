@@ -6,7 +6,7 @@
 
 - **文档集**（落 `$PROJECT_ROOT/.ai-hub/plans/`）：`README.md` 索引（决策/状态/版本）、PRD/修改规划、`tech-source-audit.md`（选型=来源+自我批判+原因）、`doc-frontend-design-spec.md`（tokens/逐页规范/交互状态机/红线）、`doc-architect-tech-arch.md`（分层架构）、`dev-plan.md`（任务总纲+执行顺序+契约冻结清单+风险）。
 - **改进回跳规则**：用户提改进 → 按影响面只重跑对应层（文档→重拆→重规划→看板/开工 prompt），**已实施的产物不回退**；每次重跑 bump 版本号。
-- **机器产物落点与人工文档分离**：编排内核冻结的契约 `contracts/<planId>.json`、执行报告/指令包 `artifacts/` 由 orchestrator 落在 `--workspace`（默认 `config.json` 的 `projectRoot`），不在 `.ai-hub/plans/` 人工文档区（产物表见 `reference/memory-and-sync.md`）。
+- **机器产物落点与人工文档分离**：编排内核冻结的契约 `contracts/<planId>.json`、执行报告/指令包 `artifacts/` 由 orchestrator 落在 `--workspace`（默认 `config.json` 的 `projectRoot`），不在 `.ai-hub/plans/` 人工文档区。
 
 ## 需求挖掘 gate（planner 前必做）
 

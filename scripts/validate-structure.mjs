@@ -48,7 +48,7 @@ const REF_MIGRATION = [
   ["reference/dispatch-and-acceptance.md", "派单", "§5"],
   ["reference/frontend-gate.md", "前端页面", "§6"],
   ["reference/critique-protocol.md", "技术批判", "§7"],
-  ["reference/memory-and-sync.md", "记忆与同步", "§8"],
+
   ["reference/yy-tt-diff.md", "差异", "附"],
 ];
 for (const [rel, kw, srcSec] of REF_MIGRATION) {
@@ -316,7 +316,7 @@ const stripFm = (t) => t.replace(/^---\r?\n[\s\S]*?\r?\n---/, "");
 {
   // SKILL.md 附 A 是变量声明唯一落点（正文 §0 变量表已迁 reference/variables-and-config.md，
   // 那里的变量表与附 A 同源——此处直接锁定附 A 必含的变量集，缺一即 FAIL）
-  const CORE_VARS = ["SKILL_DIR", "AIHUB_ROOT", "PROJECT_ROOT", "MEMORY_ROOT", "PLATFORMS", "TT_HTTP_PROXY"];
+  const CORE_VARS = ["SKILL_DIR", "AIHUB_ROOT", "PROJECT_ROOT", "PLATFORMS", "TT_HTTP_PROXY"];
   const missingVars = CORE_VARS.filter((v) => !declared.includes(v));
   const bodyVarsInRef = undeclared.filter((v) => v !== "VAR"); // 复用 ③ 的正文扫描结果
   const ok = missingVars.length === 0 && bodyVarsInRef.length === 0;
@@ -332,8 +332,7 @@ const stripFm = (t) => t.replace(/^---\r?\n[\s\S]*?\r?\n---/, "");
   const REF_DIR = path.join(ROOT, "reference");
   const expectedRefs = [
     "variables-and-config.md", "asset-integration.md", "documentation.md", "task-decomposition.md",
-    "planning.md", "dispatch-and-acceptance.md", "frontend-gate.md", "critique-protocol.md",
-    "memory-and-sync.md", "yy-tt-diff.md",
+    "planning.md", "dispatch-and-acceptance.md", "frontend-gate.md", "critique-protocol.md", "yy-tt-diff.md",
   ];
   const missingRefs = expectedRefs.filter((n) => !fs.existsSync(path.join(REF_DIR, n)));
   assertHard("H6a reference/ 文件齐备（10 个）", missingRefs.length === 0, missingRefs.length ? `缺失: ${missingRefs.join(", ")}` : `${expectedRefs.length}/${expectedRefs.length} 在场`);

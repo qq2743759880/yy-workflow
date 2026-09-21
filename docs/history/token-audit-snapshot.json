@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-09-08T07:04:58.823Z",
+  "generatedAt": "2026-09-21T03:59:26.093Z",
   "files": {
     "SKILL.md": {
-      "lines": 60,
-      "chars": 1899,
-      "cjk": 453,
-      "tokens": 701
+      "lines": 59,
+      "chars": 1833,
+      "cjk": 446,
+      "tokens": 681
     },
     "commands/yy-0-init.md": {
       "lines": 22,
@@ -57,9 +57,9 @@
     },
     "templates/owner-review/contract-review.md": {
       "lines": 24,
-      "chars": 556,
+      "chars": 534,
       "cjk": 325,
-      "tokens": 302
+      "tokens": 296
     },
     "templates/owner-review/html-approved.md": {
       "lines": 24,
@@ -76,9 +76,9 @@
   },
   "totals": {
     "files": 12,
-    "lines": 316,
-    "chars": 9942,
-    "cjk": 3969,
-    "tokens": 4471
+    "lines": 315,
+    "chars": 9854,
+    "cjk": 3962,
+    "tokens": 4445
   }
 }

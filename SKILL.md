@@ -48,12 +48,11 @@ version: 0.3.0
 | 阶段 4 派单 / 验收 / 批判闭环 | `reference/dispatch-and-acceptance.md` |
 | 前端页面 / HTML 双 gate | `reference/frontend-gate.md` |
 | 验收批判硬闸门 | `reference/critique-protocol.md` |
-| 记忆 / 同步 / 自进化 | `reference/memory-and-sync.md` |
 | YY↔TT 差异 / TTHP | `reference/yy-tt-diff.md` |
 
 详细协议见 reference/ 按需读取。
 ## 附 A：变量声明清单（validate 用）
-`$SKILL_DIR` `$AIHUB_ROOT` `$PROJECT_ROOT` `$MEMORY_ROOT` `$PLATFORMS` `$TT_HTTP_PROXY`
+`$SKILL_DIR` `$AIHUB_ROOT` `$PROJECT_ROOT` `$PLATFORMS` `$TT_HTTP_PROXY`
 
 ## 附 B：TTHP 与 YY/TT 差异
 

@@ -5,7 +5,7 @@
 ## 资产整合红线（第 0 步，前置）
 
 - **资产清单以实际部署为准**：引用任何 skill/mcp 前先确认存在（`scripts/detect-platforms.mjs` 或 `Test-Path`），**不引用不存在的资产**。
-- **平台能力差异必须先探明**：无 `Workflow()` API/某 MCP → 手动阶段调度 + CLI/Python 校验；沙箱拦 git commit/受保护路径 → 编排者沙箱外补；每平台记忆位置不同（`$MEMORY_ROOT/<平台>-projects/`）→ 先验证渲染产物非过时，缺失先注入再开工。
+- **平台能力差异必须先探明**：无 `Workflow()` API/某 MCP → 手动阶段调度 + CLI/Python 校验；沙箱拦 git commit/受保护路径 → 编排者沙箱外补；先验证渲染产物非过时，缺失先注入再开工。
 - **角色分配算法**（替代固定平台角色）：探测到 N 个平台 → 编排者 = 用户指定或首个平台；其余按能力启发式分域（前端/后端/调研/审查），结果可手工覆写；N=1 → 单平台模式。
 - **资产分级**（核心/增强/外部三级明细见 `reference/frontend-gate.md` §6.6）：核心 = dev-planner + templates（必须有，validate 校验）；增强 = 随包 vendor 资产（下表），缺失走内置通用步骤；外部 = TTHP（可选）。
 

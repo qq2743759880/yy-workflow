@@ -55,7 +55,7 @@
 | 技术批判 / 优化方案 | `plans/tasks/taskNN-{技术批判,优化修改方案}.md` | 测试 agent |
 | 契约 / 执行报告 / 指令包 | `contracts/<planId>.json`、`artifacts/report-<planId>.md`、`artifacts/<subtaskId>/brief.md` | orchestrator |
 
-> 均落 `--workspace`，gitignore 不入库；每层只传文件路径引用（开工 prompt ≤200 token）。分层记忆分区见 `reference/memory-and-sync.md`；压缩规则：保留（架构决策/未解决 bug/契约/验收结论），上下文 70% 时压缩写断点。
+> 均落 `--workspace`，gitignore 不入库；每层只传文件路径引用（开工 prompt ≤200 token）。压缩规则：保留（架构决策/未解决 bug/契约/验收结论），上下文 70% 时压缩写断点。
 
 ## 5.6 批判滞后任务闭环（防"只批判不修复"）
 

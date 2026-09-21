@@ -9,7 +9,6 @@
 | `$SKILL_DIR` | 本 skill 目录（SKILL.md 所在目录） | 内置资产根：`$SKILL_DIR/vendor/<name>/SKILL.md`、`$SKILL_DIR/templates/`、`$SKILL_DIR/scripts/` |
 | `$AIHUB_ROOT` | 可选覆盖：环境变量或 `config.json`，默认 `~/.ai-hub` | 若你拥有完整 AI-Hub 资产中心，可设此变量优先引用外部 skill；否则一律使用随包内置的 `$SKILL_DIR/vendor/` 副本 |
 | `$PROJECT_ROOT` | 当前项目根 | 所有产物（plans/handoffs/reports）的落点 |
-| `$MEMORY_ROOT` | `$AIHUB_ROOT/memory`（未设 `$AIHUB_ROOT` 时可用 `$SKILL_DIR/memory`） | 记忆中心（分区见 `reference/memory-and-sync.md`） |
 | `$PLATFORMS` | 由 `$SKILL_DIR/scripts/detect-platforms.mjs` 探测 | 可用平台列表与角色映射，可手工覆写 |
 
 ## 初始化
