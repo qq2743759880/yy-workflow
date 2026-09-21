@@ -1,9 +1,25 @@
-# 自动驾驶队列 — 20 task 蓝图（2026-09-21）
+# 自动驾驶队列 — v2 严格串行（2026-09-21 重排）
+
+> Owner 2026-09-21 裁定：① 前端任务（FE×5，见 plans/frontend-plan-20260921.md）排最前优先执行；
+> W1-W2 修复批与 W3 加固化批顺延其后；② BW 盲行任务只入队**不执行**，排最后；
+> ③ L3 登记员 = 脚本 scripts/autopilot-registrar.mjs（已产出+自测过）；
+> ④ 复核分级：白名单含产品面（scripts/*.mjs 产品脚本/webview 冻结锚）走 L2 全量重执行，
+> 纯测试资产/文档 task 只重跑自测+范围审计（裁定 1=B）。
 
 > 协议：`plans/autopilot-protocol-20260921.md`。状态由编排者在波门更新；执行者禁写本文件。
 > 状态值：⏳待派 / 🔄执行中 / 🔬验收中 / ✅已收 / 🔁返工(n) / 🚫blocked / ➖坍缩
 
-## W1 修复批 A（工匠 agent ×1）
+## FE 前端批（优先执行；详见 plans/frontend-plan-20260921.md）
+
+| id | task | 状态 |
+|---|---|---|
+| FE-0 | build-guide-content.mjs 构建期内容提取 | ⏳ |
+| FE-1 | 页面骨架+新 styles.css（A 现状导航；taste Design Read + ui-ux-pro-max 铁律） | ⏳ |
+| FE-2 | B 阶段手册 + C 资产手册（消费 content.js；复制按钮） | ⏳ |
+| FE-3 | web-gui-tester 全 GUI 盲测（黑盒+截图+只读 DOM 交叉验证；修复分离） | ⏳ |
+| FE-4 | 交付收口（README/release 刷新/部署验证） | ⏳ |
+
+## W1 修复批 A（工匠 agent ×1，顺延至 FE 后）
 
 | id | task | 白名单 | 状态 | 验收要点 |
 |---|---|---|---|---|
@@ -26,7 +42,7 @@
 | HARD-2 | 发布目录一键脚本 `scripts/make-release.mjs`（robocopy 规则+泄露 grep 审计+purge+可选 mklink 一条龙） | scripts/make-release.mjs | ⏳ | 产出目录过审计零命中；重跑幂等 |
 | HARD-3 | 发布面 purge 纪律固化进脚本（含本轮手工删 memory 残留的教训） | 同上 | ⏳ | 从干净 release 重生成，无残留旧文件 |
 
-## W4 盲行 1（盲行者 agent ×1，一次性）
+## W4 盲行 1（盲行者 agent ×1，**只入队不执行**——排最后）
 
 | id | task | 状态 |
 |---|---|---|
@@ -42,7 +58,7 @@
 | BFX-2 | （BW-1 坑#2 修复） | ⏳占位 |
 | BFX-3 | （视坑数增删，≤4 个） | ⏳占位 |
 
-## W6-W8 盲行 2-4（每波盲行者 ×1）
+## W6-W8 盲行 2-4（**只入队不执行**）
 
 | id | task | 状态 |
 |---|---|---|
