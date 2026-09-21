@@ -47,6 +47,23 @@
       <p class="copy-feedback" id="copy-feedback" role="status" aria-live="polite"></p>
     </div>
   </section>
+
+  <!-- B 阶段手册：数据源 content.js.phases（构建期静态产物），6 阶段逐段 -->
+  <section aria-labelledby="phases-heading" id="phases-section">
+    <h2 id="phases-heading" class="section-title">阶段手册</h2>
+    <p class="muted-note">6 个阶段逐段：目标、注入内容摘要、配套资产、催办话术与重走等效 Prompt。</p>
+    <div class="phase-list" id="phases-list"></div>
+  </section>
+
+  <!-- C 资产手册：数据源 content.js.assets，16 资产卡片 -->
+  <section aria-labelledby="assets-heading" id="assets-section">
+    <h2 id="assets-heading" class="section-title">资产手册</h2>
+    <p class="muted-note">16 个资产逐卡片：功能一句话、所属域簇、强制点名话术。</p>
+    <div class="asset-grid" id="asset-grid"></div>
+  </section>
+
+  <!-- 全局复制反馈（aria-live polite）：每按钮自身也有可见状态文案 -->
+  <p class="copy-feedback" id="copy-status" role="status" aria-live="polite"></p>
 </main>
 
 <script>
@@ -165,17 +182,110 @@
     var btn = document.getElementById('copy-next-prompt');
     var feedback = document.getElementById('copy-feedback');
     btn.onclick = function () {
-      var text = np.actionHint || '';
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(function () {
-          feedback.textContent = '已复制';
-        }, function () {
-          feedback.textContent = '复制失败（环境不支持 clipboard API）';
-        });
-      } else {
-        feedback.textContent = '复制失败（环境不支持 clipboard API）';
-      }
+      copyText(np.actionHint || '', btn, feedback);
     };
+  }
+
+  // 统一复制通道：唯一"写"操作是剪贴板；成功/失败反馈态（按钮文案 + aria-live polite）
+  function copyText(text, btn, feedback) {
+    var status = document.getElementById('copy-status');
+    function report(msg, label) {
+      if (feedback) feedback.textContent = msg;
+      if (status) status.textContent = (btn ? btn.getAttribute('data-copy-label') + ': ' : '') + msg;
+      if (btn) { btn.textContent = label; }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      btn.textContent = '复制中...';       // loading 态（写剪贴板为同步微任务，仍给即时反馈）
+      navigator.clipboard.writeText(text).then(function () {
+        report('已复制到剪贴板', '已复制');
+        if (btn) {
+          setTimeout(function () { btn.textContent = btn.getAttribute('data-copy-label') ? '复制文本' : '复制提示'; }, 2000); // success 态回落
+        }
+      }, function () {
+        report('复制失败（环境拒绝剪贴板访问）', '复制失败');
+      });
+    } else {
+      report('复制失败（环境不支持 clipboard API）', '复制失败');
+    }
+  }
+
+  // B 阶段手册：消费 GUIDE_CONTENT.phases（FE-0 构建产物），6 阶段逐段
+  function renderPhases() {
+    var list = document.getElementById('phases-list');
+    if (!list || typeof GUIDE_CONTENT === 'undefined' || !Array.isArray(GUIDE_CONTENT.phases)) return;
+    list.textContent = '';
+    GUIDE_CONTENT.phases.forEach(function (p) {
+      var item = el('article', 'phase-item');
+      item.appendChild(el('p', 'phase-step', '阶段 ' + (p.step != null ? p.step : '?')));
+      item.appendChild(el('h3', 'phase-name', p.name || ''));
+      item.appendChild(el('p', 'phase-goal', p.goal || ''));
+      item.appendChild(el('p', 'phase-summary', p.summary || ''));
+
+      // 配套资产名（如有）
+      if (Array.isArray(p.assets) && p.assets.length) {
+        var names = [];
+        p.assets.forEach(function (a) { names.push(a.name || ''); });
+        item.appendChild(el('p', 'phase-assets', '配套资产: ' + names.filter(Boolean).join(', ')));
+      }
+
+      // 纪律要点（如 content.js 携带）
+      if (Array.isArray(p.discipline) && p.discipline.length) {
+        item.appendChild(el('p', 'phase-discipline', '纪律: ' + p.discipline.join(' / ')));
+      }
+
+      // 催办话术（复制按钮）
+      var kick = el('div', 'phase-prompt');
+      kick.appendChild(el('p', 'prompt-label', '催办话术'));
+      var kickBtn = el('button', 'copy-button phase-copy', '复制文本');
+      kickBtn.type = 'button';
+      kickBtn.setAttribute('data-copy-label', '催办话术');
+      kick.appendChild(kickBtn);
+      item.appendChild(kick);
+
+      // 重走等效 Prompt（复制按钮）
+      var redo = el('div', 'phase-prompt');
+      redo.appendChild(el('p', 'prompt-label', '重走等效 Prompt'));
+      var redoBtn = el('button', 'copy-button phase-copy', '复制文本');
+      redoBtn.type = 'button';
+      redoBtn.setAttribute('data-copy-label', '重走等效 Prompt');
+      redo.appendChild(redoBtn);
+      item.appendChild(redo);
+
+      kickBtn.onclick = function () { copyText(p.kickPrompt || '', kickBtn, null); };
+      redoBtn.onclick = function () { copyText(p.redoPrompt || '', redoBtn, null); };
+      list.appendChild(item);
+    });
+  }
+
+  // C 资产手册：消费 GUIDE_CONTENT.assets，16 资产卡片
+  function renderAssets() {
+    var grid = document.getElementById('asset-grid');
+    if (!grid || typeof GUIDE_CONTENT === 'undefined' || !Array.isArray(GUIDE_CONTENT.assets)) return;
+    grid.textContent = '';
+    GUIDE_CONTENT.assets.forEach(function (a) {
+      var card = el('article', 'asset-card');
+      card.appendChild(el('h3', 'asset-name', a.name || ''));
+      if (a.cluster) {
+        card.appendChild(el('p', 'cluster-badge', '域簇 ' + a.cluster)); // 徽章：文字+色，不靠颜色单独传义
+      }
+      card.appendChild(el('p', 'asset-desc', a.description || ''));
+      if (Array.isArray(a.stages) && a.stages.length) {
+        card.appendChild(el('p', 'asset-stages', '可能用到的阶段: ' + a.stages.join(', ')));
+      }
+      // 强制点名话术（复制按钮）
+      var forced = el('div', 'phase-prompt');
+      forced.appendChild(el('p', 'prompt-label', '强制点名话术'));
+      var forcedBtn = el('button', 'copy-button asset-copy', '复制文本');
+      forcedBtn.type = 'button';
+      forcedBtn.setAttribute('data-copy-label', '强制点名话术');
+      forced.appendChild(forcedBtn);
+      card.appendChild(forced);
+      forcedBtn.onclick = function () {
+        var text = '请你现在读取并应用 ' + (a.name || '') + ' 的方法论';
+        copyText(text, forcedBtn, null);
+      };
+      grid.appendChild(card);
+    });
   }
 
   function renderEvidence(view) {
@@ -223,8 +333,15 @@
     renderMeta(view);
     renderStepNodes(view, core);
     renderEvidence(view);
+    // B/C 手册区块：静态内容（content.js 构建产物），与 journey 投影独立渲染；
+    // 投影降级/notFound 时也照常渲染（手册不依赖注入数据）
+    renderPhases();
+    renderAssets();
     // 下一步提示区：deriveJourneyView 内部已走 nextPromptView 归一化；conflictView 走 conflict 告警分支
-    renderNextPrompt(core.nextPromptView(view.nextPrompt) || view.nextPrompt);
+    var npNormalized = core.nextPromptView(view.nextPrompt);
+    if (npNormalized) { renderNextPrompt(npNormalized); }
+    else if (view.nextPrompt) { renderNextPrompt(view.nextPrompt); }
+    else { document.getElementById('next-section').hidden = true; }
   }
 
   if (document.readyState === 'loading') {

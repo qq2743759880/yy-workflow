@@ -266,6 +266,103 @@ h1 {
 
 .copy-feedback { font-size: var(--fs-note); color: var(--color-muted); min-height: 1.5em; }
 
+/* ===== B 阶段手册区块：瑞士网格延续（同一 --grid-track 轨道系统） ===== */
+.phase-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, var(--grid-track));
+  gap: var(--sp-4);
+}
+
+.phase-item {
+  display: grid;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  border: 1px solid var(--color-border);
+  border-top: 3px solid var(--color-fg);   /* 与 journey-node 同一 Swiss 规则线 */
+}
+
+.phase-step {
+  font-size: var(--fs-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.phase-name {
+  font-size: var(--fs-node);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.phase-goal { font-size: var(--fs-body); font-weight: 700; }
+.phase-summary {
+  font-size: var(--fs-note);
+  color: var(--color-muted);
+  line-height: 1.5;
+  overflow-wrap: anywhere;   /* 摘要含命令行/中文引号，不横向溢出 */
+}
+.phase-assets { font-size: var(--fs-note); font-weight: 700; }
+.phase-discipline { font-size: var(--fs-note); color: var(--color-muted); }
+
+.phase-prompt {
+  display: grid;
+  gap: var(--sp-1);
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--color-border);
+}
+.prompt-label {
+  font-size: var(--fs-micro);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-muted);
+}
+
+/* ===== C 资产手册区块：同一轨道系统，cluster 徽章扁平语义色 ===== */
+.asset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, var(--grid-track));
+  gap: var(--sp-4);
+}
+
+.asset-card {
+  display: grid;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  border: 1px solid var(--color-border);
+  border-top: 3px solid var(--color-accent); /* 与 A 区块同一规则线语言，accent 单一贯穿 */
+}
+
+.asset-name {
+  font-size: var(--fs-node);
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+/* cluster 徽章：扁平语义色纯色块（复用六态 token 体系，文字+色不靠颜色单独传义） */
+.cluster-badge {
+  justify-self: start;
+  display: inline-block;
+  padding: var(--sp-1) var(--sp-2);
+  font-size: var(--fs-micro);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: var(--state-partial-bg);
+  color: var(--state-partial-fg);
+  overflow-wrap: anywhere;
+}
+
+.asset-desc {
+  font-size: var(--fs-note);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.asset-stages { font-size: var(--fs-note); color: var(--color-muted); }
+
+/* 复制按钮态：loading/success 用文案表达（零动画堆砌，reduced-motion 天然安全） */
+.copy-button.is-loading,
+.copy-button.is-success { text-decoration: underline; }
+
 /* 响应式：>=768px 页头横排 */
 @media (min-width: 48rem) {
   .page-header { display: grid; grid-template-columns: 1fr auto; align-items: baseline; }

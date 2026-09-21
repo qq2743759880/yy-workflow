@@ -1,0 +1,29 @@
+PASS P1.1 phases 长度=6
+PASS P1.2 assets 长度=16
+PASS P1.3 每 phase 有 name/goal/summary/kickPrompt/redoPrompt
+PASS P1.4 每 asset 有 name/description/cluster
+PASS P2.1 页面脚本可执行（零异常）
+PASS P2.2 6 phases 全渲染
+PASS P2.3 16 assets 全渲染
+PASS P2.4 phase 卡含两颗复制按钮（kick+redo）
+PASS P2.5 asset 卡含强制点名复制按钮
+PASS P2.6 cluster 徽章文字含域簇
+PASS P3.1 kick 文案入剪贴板
+PASS P3.2 redo 文案入剪贴板
+PASS P3.3 强制点名话术入剪贴板（点名格式）
+PASS P3.4 复制后按钮文案进入 success 态（已复制）
+PASS P3.5 aria-live 全局反馈节点有内容
+PASS P4.1 无 <script src>
+PASS P4.2 无外链资源（http/https）
+PASS P4.3 CSS 无 @import
+PASS P5.1 journey/phase/asset 三网格共用 --grid-track
+PASS P5.2 三卡片同 border-top 规则线语言
+PASS P5.3 无新增圆角/阴影/渐变
+PASS P6.1 copy-button min-height/min-width 44px
+PASS P6.2 所有动态复制按钮带可见文本标签（非图标）
+PASS P6.3 零 emoji
+PASS P6.4 零 em-dash（taste 铁律）
+PASS P6.5 页面静态文案零 em-dash
+PASS P6.6 aria-live polite 反馈节点存在
+
+TOTAL: 27 passed, 0 failed
