@@ -13,7 +13,7 @@
 
 | id | task | 状态 |
 |---|---|---|
-| FE-0 | build-guide-content.mjs 构建期内容提取 | ⏳ |
+| FE-0 | build-guide-content.mjs 构建期内容提取 | ✅已收（L2 PASS，P2×1） |
 | FE-1 | 页面骨架+新 styles.css（A 现状导航；taste Design Read + ui-ux-pro-max 铁律） | ⏳ |
 | FE-2 | B 阶段手册 + C 资产手册（消费 content.js；复制按钮） | ⏳ |
 | FE-3 | web-gui-tester 全 GUI 盲测（黑盒+截图+只读 DOM 交叉验证；修复分离） | ⏳ |
