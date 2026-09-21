@@ -31,7 +31,7 @@
 | id | task | 白名单 | 状态 | 验收要点 |
 |---|---|---|---|---|
 | FIX-3 | 坑#7：validate-structure 的 expectedRefs 硬编码解耦（从 SKILL.md 指针表派生或独立清单文件单一事实源） | scripts/validate-structure.mjs | ⏳ | 删一个 reference 文件不再需要改断言（用临时文件实测） |
-| FIX-4 | T9 遗留：--validate-handoff 冒号列表 key 误判边缘加固 | scripts/summary-read.mjs | ⏳ | 构造冒号列表正文样本，三必填字段判定不变 |
+| FIX-4 | T9 遗留：--validate-handoff 冒号列表 key 误判边缘加固 | scripts/summary-read.mjs | ✅已收（L2 PASS，含基线重放；P2×1 口径裁定） | 构造冒号列表正文样本，三必填字段判定不变 |
 | FIX-5 | T9 遗留：runner 沙箱修剪策略统一（保留数入常量） | test-reports/rebuild-20260920/T9-wizard/ | ⏳ | 连跑 3 轮沙箱目录数不增 |
 
 ## W3 加固化批（工匠 agent ×1）

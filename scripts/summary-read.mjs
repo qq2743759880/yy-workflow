@@ -13,6 +13,9 @@
  *   node scripts/summary-read.mjs --validate-handoff artifacts/<planId>/reports/<taskId>
  *     校验该目录 REPORT.md 的必填回填字段（taskId / taskVerdict / evidencePaths）；
  *     缺任一字段 FAIL（exit 1），缺字段不猜不推断；无 --workspace 交互。
+ *   FIX-4 加固：键行白名单化——仅 taskId/taskVerdict/evidencePaths 三名建立字段（区分大小写，`taskid` 不算）；
+ *     正文冒号行/冒号列表项（`说明: xxx`、`foo: bar`）不再误判为 key、不并入必填字段值、不劫持多行收集。
+ *     三必填判定语义零变化：齐→PASS / 缺→FAIL(1) / 目录缺失→FAIL(1)。
  *
  * 零外部依赖（node: 内建）。critiqueBacklog 缺省/为 null 时尝试从本机 plans/critique-backlog-tracker.md
  * 补算；读不到 tracker（如 workspace ≠ SKILL_DIR 且本机 tracker 缺失）→ 保持 null + note，不报错。
@@ -110,30 +113,40 @@ function parseArgs(args) {
 // 解析约定（与 executor-setup.mjs 生成骨架同构）：
 //   - 键行：行首（允许 "- "/列表/加粗前缀）ASCII 标识符 + 半/全角冒号 + 值
 //   - evidencePaths：单行逗号/空白分隔，或空值后跟缩进 "- " 列表直到下一个键行
+// FIX-4 加固（正文冒号列表项不再干扰三必填判定，语义零变化）：
+//   - 字段键白名单化：仅 HANDOFF_REQUIRED_FIELDS 三名建立字段（区分大小写，`taskid:` 不算 taskId）；
+//     其余冒号行（`说明: xxx`、`foo: bar`）不建立字段——不再把收集区抢走，也不触发必填键行的
+//     "重复键跳过"分支。根因：原解析对任意键建字段，`说明:` 会把 taskId 收集区占位为
+//     `说明`，随后真正的 `taskId:` 被当重复键整行丢弃 → 误判缺字段。
+//   - 多行收集严格限列表项：空值必填字段后仅接收 `- ` / `* ` 列表行；空行不打断，
+//     非列表行（`## 标题`、`foo: bar` 正文、普通句子）一律打断收集且绝不并入字段值。
+//     （原实现对收集区内任意非空行盲目并入，`## 标题`/正文句会污染 evidencePaths。）
 // 既有功能零改动：validateHandoff 分支在 main 最早返回，不触碰 collectSummaries 以下任何路径。
 // ---------------------------------------------------------------------------
 
 const HANDOFF_REQUIRED_FIELDS = Object.freeze(['taskId', 'taskVerdict', 'evidencePaths']);
 const HANDOFF_KEY_RE = /^\s*(?:[-*]\s*)?(?:\*\*)?([A-Za-z][A-Za-z0-9_-]*)(?:\*\*)?\s*[:：]\s*(.*)$/;
 
-/** 解析回填报告为 {字段: 字符串值}。仅收集 ASCII 键行；evidencePaths 支持多行 - 列表。 */
+/** 解析回填报告为 {字段: 字符串值}。键行白名单（三必填，区分大小写）；空值字段支持多行 - 列表（实践即 evidencePaths）。 */
 function parseHandoffReport(text) {
   const fields = {};
   const lines = String(text || '').replace(/\r\n/g, '\n').split('\n');
-  let collecting = null; // 正在收集多行值的字段名
+  let collecting = null; // 正在收集多行值的必填字段名（值为空的必填字段可续列表项）
   for (const line of lines) {
     const m = line.match(HANDOFF_KEY_RE);
     if (m) {
+      const isRequired = HANDOFF_REQUIRED_FIELDS.includes(m[1]);
+      if (!isRequired) continue; // 白名单外冒号行（正文键样行）：不建立字段、不打断 evidencePaths 收集
       collecting = m[1];
       if (!fields[collecting]) fields[collecting] = m[2].trim();
-      else if (m[2].trim()) fields[collecting] += ',' + m[2].trim();
+      else if (m[2].trim()) fields[collecting] += ',' + m[2].trim(); // 白名单内重复键行：追加（保持宽容原语义）
       continue;
     }
     if (collecting && fields[collecting] !== undefined) {
+      if (line.trim() === '') continue; // 空行不打断列表收集
+      if (!/^\s*(?:[-*]\s+)/.test(line)) { collecting = null; continue; } // 标题/正文行打断收集，绝不并入字段值
       const item = line.trim().replace(/^[-*]\s*/, '').trim();
       if (item) fields[collecting] += (fields[collecting] ? ',' : '') + item;
-      else if (line.trim() === '') continue; // 空行不打断列表收集
-      else collecting = null; // 非缩进正文打断收集
     }
   }
   return fields;
