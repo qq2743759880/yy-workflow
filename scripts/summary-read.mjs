@@ -9,6 +9,11 @@
  *   node scripts/summary-read.mjs --workspace <dir> --latest 打印最新一个摘要全文（JSON，供恢复断点）
  *   node scripts/summary-read.mjs --workspace <dir> --all    合并全部摘要为精简清单（JSON 数组）
  *
+ * T9 仅追加 — 回填报告校验模式（executor-setup 交接 schema 配套，既有功能零改动）：
+ *   node scripts/summary-read.mjs --validate-handoff artifacts/<planId>/reports/<taskId>
+ *     校验该目录 REPORT.md 的必填回填字段（taskId / taskVerdict / evidencePaths）；
+ *     缺任一字段 FAIL（exit 1），缺字段不猜不推断；无 --workspace 交互。
+ *
  * 零外部依赖（node: 内建）。critiqueBacklog 缺省/为 null 时尝试从本机 plans/critique-backlog-tracker.md
  * 补算；读不到 tracker（如 workspace ≠ SKILL_DIR 且本机 tracker 缺失）→ 保持 null + note，不报错。
  * C-27 透传：summary.domainDeclaredMissing（缺域声明条数）与计算出的三态状态（missing/ok/N/A 旧数据无字段）
@@ -87,15 +92,65 @@ function ensureBacklog(data) {
   return data;
 }
 function parseArgs(args) {
-  const out = { workspace: '.', latest: false, all: false, help: false };
+  const out = { workspace: '.', latest: false, all: false, help: false, validateHandoff: null };
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
     if (a === '--workspace') { const v = args[i + 1]; if (v !== undefined && !v.startsWith('--')) { out.workspace = v; i += 1; } else out.help = true; }
     else if (a === '--latest') out.latest = true;
     else if (a === '--all') out.all = true;
+    else if (a === '--validate-handoff') { const v = args[i + 1]; if (v !== undefined && !v.startsWith('--')) { out.validateHandoff = v; i += 1; } else out.help = true; }
     else if (a === '--help' || a === '-h') out.help = true;
   }
   return out;
+}
+
+// ---------------------------------------------------------------------------
+// T9 仅追加：回填报告校验（executor-setup 交接 schema tt/handoff-brief@1 配套）。
+// 必填字段 taskId / taskVerdict / evidencePaths；缺任一 FAIL（exit 1），缺字段不猜不推断。
+// 解析约定（与 executor-setup.mjs 生成骨架同构）：
+//   - 键行：行首（允许 "- "/列表/加粗前缀）ASCII 标识符 + 半/全角冒号 + 值
+//   - evidencePaths：单行逗号/空白分隔，或空值后跟缩进 "- " 列表直到下一个键行
+// 既有功能零改动：validateHandoff 分支在 main 最早返回，不触碰 collectSummaries 以下任何路径。
+// ---------------------------------------------------------------------------
+
+const HANDOFF_REQUIRED_FIELDS = Object.freeze(['taskId', 'taskVerdict', 'evidencePaths']);
+const HANDOFF_KEY_RE = /^\s*(?:[-*]\s*)?(?:\*\*)?([A-Za-z][A-Za-z0-9_-]*)(?:\*\*)?\s*[:：]\s*(.*)$/;
+
+/** 解析回填报告为 {字段: 字符串值}。仅收集 ASCII 键行；evidencePaths 支持多行 - 列表。 */
+function parseHandoffReport(text) {
+  const fields = {};
+  const lines = String(text || '').replace(/\r\n/g, '\n').split('\n');
+  let collecting = null; // 正在收集多行值的字段名
+  for (const line of lines) {
+    const m = line.match(HANDOFF_KEY_RE);
+    if (m) {
+      collecting = m[1];
+      if (!fields[collecting]) fields[collecting] = m[2].trim();
+      else if (m[2].trim()) fields[collecting] += ',' + m[2].trim();
+      continue;
+    }
+    if (collecting && fields[collecting] !== undefined) {
+      const item = line.trim().replace(/^[-*]\s*/, '').trim();
+      if (item) fields[collecting] += (fields[collecting] ? ',' : '') + item;
+      else if (line.trim() === '') continue; // 空行不打断列表收集
+      else collecting = null; // 非缩进正文打断收集
+    }
+  }
+  return fields;
+}
+
+/** 校验回填报告。返回 {ok, missing, empty, fields}；不猜：缺字段原样列出，不推断。 */
+function validateHandoffReport(dir) {
+  const reportPath = path.join(path.resolve(dir), 'REPORT.md');
+  let text;
+  try { text = fs.readFileSync(reportPath, 'utf8'); }
+  catch (e) {
+    return { ok: false, missing: HANDOFF_REQUIRED_FIELDS, empty: [], fields: {}, fatal: 'REPORT.md 不可读: ' + reportPath + '（' + e.code + '）' };
+  }
+  const fields = parseHandoffReport(text);
+  const missing = HANDOFF_REQUIRED_FIELDS.filter((k) => !(k in fields));
+  const empty = HANDOFF_REQUIRED_FIELDS.filter((k) => (k in fields) && !String(fields[k]).trim());
+  return { ok: missing.length === 0 && empty.length === 0, missing, empty, fields, reportPath };
 }
 /** 扫描 workspace/artifacts/<planId>/state-summary.json，按 mtime 倒序。解析失败跳过（stderr 提示，不中断）。 */
 function collectSummaries(workspace) {
@@ -146,11 +201,29 @@ function usage() {
   console.log('  --workspace <dir>  产物目录（含 artifacts/<planId>/state-summary.json）');
   console.log('  --latest           打印最新一个摘要全文（JSON，供新会话恢复断点）');
   console.log('  --all              合并所有摘要为精简清单（JSON 数组）');
+  console.log('  --validate-handoff <dir>  校验 <dir>/REPORT.md 回填必填字段（T9 追加；缺字段 FAIL exit 1）');
   console.log('  默认: 列出该 workspace 所有摘要（按时间倒序），一行一项');
+}
+/** T9 仅追加：--validate-handoff 入口。返回进程退出码，不触碰既有摘要读取路径。 */
+function runValidateHandoff(dir) {
+  const r = validateHandoffReport(dir);
+  if (r.fatal) {
+    process.stderr.write('FAIL ' + r.fatal + '（缺字段不猜：目录/文件不存在即 FAIL，不推断）\n');
+    return 1;
+  }
+  const problems = r.missing.map((k) => '缺字段: ' + k).concat(r.empty.map((k) => '字段存在但值为空: ' + k));
+  if (problems.length) {
+    process.stderr.write('FAIL 回填报告校验未通过: ' + r.reportPath + '\n  ' + problems.join('\n  ') + '\n  缺字段不猜——请按 executor-setup 交接 schema 补齐 taskId/taskVerdict/evidencePaths 后重跑。\n');
+    return 1;
+  }
+  console.log('PASS 回填报告校验通过: ' + r.reportPath);
+  console.log(JSON.stringify({ taskId: r.fields.taskId, taskVerdict: r.fields.taskVerdict, evidencePaths: r.fields.evidencePaths }, null, 2));
+  return 0;
 }
 export function main(args = process.argv.slice(2)) {
   const opts = parseArgs(args);
   if (opts.help) { usage(); return 0; }
+  if (opts.validateHandoff) return runValidateHandoff(opts.validateHandoff); // T9 仅追加分支
   const workspace = path.resolve(opts.workspace);
   const its = collectSummaries(workspace);
   if (opts.latest) {
