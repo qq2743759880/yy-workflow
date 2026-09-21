@@ -1,47 +1,47 @@
 {
-  "generatedAt": "2026-09-21T03:59:26.093Z",
+  "generatedAt": "2026-09-21T22:39:39.214Z",
   "files": {
     "SKILL.md": {
       "lines": 59,
-      "chars": 1833,
-      "cjk": 446,
-      "tokens": 681
+      "chars": 1987,
+      "cjk": 506,
+      "tokens": 750
     },
     "commands/yy-0-init.md": {
       "lines": 22,
-      "chars": 729,
+      "chars": 771,
       "cjk": 305,
-      "tokens": 335
+      "tokens": 345
     },
     "commands/yy-1-requirement.md": {
       "lines": 24,
-      "chars": 789,
+      "chars": 845,
       "cjk": 276,
-      "tokens": 335
+      "tokens": 349
     },
     "commands/yy-2-planning.md": {
       "lines": 24,
-      "chars": 901,
+      "chars": 957,
       "cjk": 304,
-      "tokens": 377
+      "tokens": 391
     },
     "commands/yy-3-contract.md": {
       "lines": 26,
-      "chars": 1010,
-      "cjk": 357,
-      "tokens": 431
+      "chars": 1021,
+      "cjk": 354,
+      "tokens": 432
     },
     "commands/yy-4-execute.md": {
       "lines": 22,
-      "chars": 818,
+      "chars": 874,
       "cjk": 253,
-      "tokens": 331
+      "tokens": 345
     },
     "commands/yy-5-critique.md": {
       "lines": 24,
-      "chars": 938,
-      "cjk": 356,
-      "tokens": 413
+      "chars": 990,
+      "cjk": 352,
+      "tokens": 424
     },
     "templates/owner-review/acceptance-report.md": {
       "lines": 23,
@@ -77,8 +77,8 @@
   "totals": {
     "files": 12,
     "lines": 315,
-    "chars": 9854,
-    "cjk": 3962,
-    "tokens": 4445
+    "chars": 10281,
+    "cjk": 4015,
+    "tokens": 4578
   }
 }

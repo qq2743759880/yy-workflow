@@ -23,7 +23,7 @@
 
 | id | task | 白名单 | 状态 | 验收要点 |
 |---|---|---|---|---|
-| FIX-1 | 坑#2：六个命令文件前置机验补 `--workspace "$PROJECT_ROOT"` 语义（或等价 env 兜底，择一申报）；SKILL.md 注入纪律行同步 | commands/yy-*.md、SKILL.md、（如走 env）scripts/tt-journey.mjs | ⏳ | 盲行沙箱复现：非 yy cwd 下 prereq-check 读到项目工作区 journey |
+| FIX-1 | 坑#2：六个命令文件前置机验补 `--workspace "$PROJECT_ROOT"` 语义（或等价 env 兜底，择一申报）；SKILL.md 注入纪律行同步 | commands/yy-*.md、SKILL.md、（如走 env）scripts/tt-journey.mjs | ✅已收（L2 PASS，方案A；P2×2） | 盲行沙箱复现：非 yy cwd 下 prereq-check 读到项目工作区 journey |
 | FIX-2 | executor.json↔orchestrator 接线：orchestrator 读 `<ws>/.tt-state/executor.json` 的 cli/模型偏好，映射到 --exec/config 段（presence≠可用，禁自动 roundtrip） | scripts/orchestrator.mjs、scripts/executor-setup.mjs | ⏳ | 向导选 claude→dry-run 派单命令确实变化；两文件隔离互不越权 |
 
 ## W2 修复批 B（工匠 agent ×1）

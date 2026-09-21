@@ -5,7 +5,7 @@ journey-step: 8
 prereq-gates: [step7]
 ---
 
-> 首行指令：先跑 `node scripts/tt-journey.mjs --workspace "$PROJECT_ROOT" --prereq-check --step 8` 机验前置。`--workspace "$PROJECT_ROOT"` 必带（坑#2：cd 技能目录执行时缺它误读技能目录 journey，绕开用户工作区）。前置 step 7 需 in_progress 或 done，否则 exit 1 阻断注入，先回阶段 7。
+> 首行指令：先跑 `node scripts/tt-journey.mjs --workspace "$PROJECT_ROOT" --prereq-check --step 8` 机验前置。前置 step 7 需 in_progress 或 done，否则 exit 1 输出原因并阻断注入，先回阶段 7。
 
 ## 阶段 8 · 验收批判（反哺）
 

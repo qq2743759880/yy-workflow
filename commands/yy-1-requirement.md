@@ -5,7 +5,7 @@ journey-step: 1
 prereq-gates: [step0]
 ---
 
-> 首行指令：先跑 `node scripts/tt-journey.mjs --workspace "$PROJECT_ROOT" --prereq-check --step 1` 机验前置。`--workspace "$PROJECT_ROOT"` 必带（坑#2：cd 技能目录执行时缺它误读技能目录 journey，绕开用户工作区）。前置 step 0 未 done 时 exit 1 阻断注入，先回阶段 0。
+> 首行指令：先跑 `node scripts/tt-journey.mjs --workspace "$PROJECT_ROOT" --prereq-check --step 1` 机验前置。前置 step 0 未 done 时 exit 1 输出原因并阻断注入，先回阶段 0。
 
 ## 阶段 1 · 需求挖掘
 

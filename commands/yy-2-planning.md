@@ -5,7 +5,7 @@ journey-step: 3
 prereq-gates: [step1, concept-signed]
 ---
 
-> 首行指令：先跑 `node scripts/tt-journey.mjs --workspace "$PROJECT_ROOT" --prereq-check --step 3` 机验前置。`--workspace "$PROJECT_ROOT"` 必带（坑#2：cd 技能目录执行时缺它误读技能目录 journey，绕开用户工作区）。前置 step 1 未 done 或 gate concept-signed 未过时 exit 1 阻断注入，先回阶段 1。
+> 首行指令：先跑 `node scripts/tt-journey.mjs --workspace "$PROJECT_ROOT" --prereq-check --step 3` 机验前置。前置 step 1 未 done 或 gate concept-signed 未过时 exit 1 输出原因并阻断注入，先回阶段 1。
 
 ## 阶段 3 · 拆任务（前提挑战）
 

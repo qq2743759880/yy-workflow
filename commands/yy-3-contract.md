@@ -5,7 +5,7 @@ journey-step: 5
 prereq-gates: [step3]
 ---
 
-> 首行指令：先跑 `node scripts/tt-journey.mjs --workspace "$PROJECT_ROOT" --prereq-check --step 5` 机验前置（`--workspace` 必带——坑#2：cd 技能目录执行时缺它误读技能目录 journey，绕开用户工作区）。前置 step 3 未 done 时 exit 1 阻断注入，先回阶段 3。
+> 首行指令：先跑 `node scripts/tt-journey.mjs --workspace "$PROJECT_ROOT" --prereq-check --step 5` 机验前置。前置 step 3 未 done 时 exit 1 输出原因并阻断注入，先回阶段 3。
 
 ## 阶段 5 · 规划 + 契约冻结
 
@@ -15,7 +15,7 @@ prereq-gates: [step3]
 
 **纪律钥匙词**：`契约先冻结`、`冻结后执行期禁止改契约`、`要改走变更单 + 重验收`、`前端缺契约就停下不要臆造接口`。
 
-**产物路径**：`contracts/<planId>.json`（冻结契约）；审完跑 `--update --step 5 --gate contract-frozen`（带 --workspace，坑#2）。
+**产物路径**：`contracts/<planId>.json`（冻结契约）；审完跑 `--update --step 5 --gate contract-frozen`（`--workspace` 必带）。
 
 **owner 审阅**：产出 gate 产物后，读取 templates/owner-review/contract-review.md，按其四段结构向 owner 呈现审阅要点（审什么/看哪几字段/PASS-FAIL/常见坑）——owner 不懂术语也能做判断。
 

@@ -5,7 +5,7 @@ journey-step: 7
 prereq-gates: [step5, contract-frozen]
 ---
 
-> 首行指令：先跑 `node scripts/tt-journey.mjs --workspace "$PROJECT_ROOT" --prereq-check --step 7` 机验前置。`--workspace "$PROJECT_ROOT"` 必带（坑#2：cd 技能目录执行时缺它误读技能目录 journey，绕开用户工作区）。前置 step 5 未 done 或 gate contract-frozen 未过时 exit 1 阻断注入，先回阶段 3/5。
+> 首行指令：先跑 `node scripts/tt-journey.mjs --workspace "$PROJECT_ROOT" --prereq-check --step 7` 机验前置。前置 step 5 未 done 或 gate contract-frozen 未过时 exit 1 输出原因并阻断注入，先回阶段 3/5。
 
 ## 阶段 7 · 派单执行
 
