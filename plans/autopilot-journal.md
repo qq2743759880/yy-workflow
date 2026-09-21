@@ -14,3 +14,10 @@
 - L3 登记：plans/autopilot-ledger-20260921.md FE-0 PASS + 批判提案 1 条
 - FE-1 派单落 handoffs/fe/FE-1-dispatch.md（极简瑞士风格 + 双 skill 硬性调用），L1 执行者已启动
 - 队列：FE-0 ✅、FE-1 🔄
+## 2026-09-22 FE-1 收口 → FE-2 启动
+- L2 复核 PASS：哈希复算一致（7c54b556/d079d9f1）、冻结锚完整（93a7652b/b02cfd65）、执行者探针 57/57 亲自复跑全过
+- 盲测抽验 3 条（完工后新写）：六态语义真渲染（deriveJourneyView 导出消费面 + negative handling）、真引用 styles.css/render-core（无内联堆砌）、瑞士风格（grid-template×4 / gradient×0 / 无 AI-purple）
+- L2 接受 P2×2（截图未覆盖归 FE-3；NODE_META 内联词表漂移风险）
+- 双 skill 硬性调用已验证：ui-ux-pro-max 3 次检索摘录在 RESULTS、taste Design Read 首行声明 + pre-flight 自查
+- FE-2 派单落 handoffs/fe/FE-2-dispatch.md（B 阶段手册 + C 资产手册 + 三类复制按钮），L1 执行者已启动
+- 队列：FE-0 ✅、FE-1 ✅、FE-2 🔄
