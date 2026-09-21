@@ -42,12 +42,10 @@ cat skills/tt/SKILL.md    # 或让 AI 平台加载本 skill
 
 - **只有一个平台怎么办？** 自动进入单平台模式（N=1）：8 步框架不变，跳过并行派单，"跨平台切换返工"退化为换子 agent/换批判视角复验。
 - **增强资产（frontend-design、planning、review、security 等簇）没有？** 不影响核心闭环；§6.2/§2.1 有内置降级路径，缺失时自动走通用步骤。
-- **用 Windows？** `sync.mjs` 跨平台可用；`detect-platforms.mjs` 自动识别 APPDATA 路径。
 - **模型 key 怎么配？** 放环境变量或本机 `.env`，`config.example.json` 的 model 段只放 baseUrl/model 名，**勿提交 key**。
 
 ## 自检清单（发布前/迁移后）
 
 - [ ] `validate-structure.mjs` 通过
 - [ ] `detect-platforms.mjs` 输出与实际平台一致
-- [ ] `node scripts/sync.mjs --dry-run` 无报错
 - [ ] 无本机绝对路径（盘符/用户目录/用户名）与 key 残留（`grep` 扫描）

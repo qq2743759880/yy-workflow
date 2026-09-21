@@ -166,7 +166,6 @@ tt/
 ├── scripts/                 # 零依赖 Node 脚本
 │   ├── detect-platforms.mjs # 平台探测
 │   ├── validate-structure.mjs # 结构/可移植性校验
-│   └── sync.mjs             # 记忆与产物同步
 ├── templates/               # 完工报告/契约/批判等模板
 └── vendor/                  # 16 个随包内置增强资产（自包含核心：10 skill + 6 agent）
     ├── dev-planner/         # agent：只读规划
