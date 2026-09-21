@@ -1,0 +1,59 @@
+PASS render-core 动态 import 可加载（页面同款消费方式）
+PASS deriveJourneyView 健康 payload: degraded=false
+PASS deriveJourneyView 健康 payload: steps 归一化为 9 节点 :: steps.length=9
+PASS deriveJourneyView 健康 payload: nextPromptView 输出 actionHint/snapshotHash
+PASS deriveJourneyView 健康 payload: conflict=null（告警条应隐藏）
+PASS mapStep in_progress -> OBSERVED
+PASS mapStep 畸形行 -> ERROR 不伪造
+PASS mapStep FAILED 永不渲染为成功
+PASS NEGATIVE_STATES 含 FAILED/SKIPPED/UNRESOLVED
+PASS DISPLAY_STATES 六态
+PASS conflictView PROJECTION_CONFLICT 两侧证据
+PASS detectBridge null -> degraded
+PASS detectBridge 缺 ok 布尔 -> degraded（非统一壳）
+PASS JOURNEY_NOT_FOUND: notFound=true 非 degraded
+PASS index.html: 动态 import ./render-core.mjs
+PASS index.html: 消费 window.__YY_JOURNEY__
+PASS index.html: 消费 deriveJourneyView/mapStep/nextPromptView/conflictView
+PASS index.html: 告警条 role=alert 初始 hidden（健康时隐藏）
+PASS index.html: 九节点 NODE_META 0-8 全在
+PASS index.html: 六态徽章 state- 前缀消费
+PASS index.html: gate 卡三要素（gate: / 看： / 说：）
+PASS index.html: 复制按钮占位（clipboard API）
+PASS index.html: 零运行时依赖（无 CDN/框架 script src）
+PASS index.html: link 只引 ./styles.css
+PASS index.html: 无 emoji 图标
+PASS index.html: 无 em-dash（taste-skill 9.G 禁令）
+PASS index.html: 语义色之外有文字标签（不靠颜色单独传义）
+PASS styles.css: 语义色 token 于 :root（含 dark 覆写块），组件选择器零裸 hex :: hex 全部位于 :root token 定义区
+PASS styles.css: prefers-color-scheme 双主题
+PASS styles.css: reduced-motion 媒体查询
+PASS styles.css: 触控 44px
+PASS styles.css: 显式 CSS Grid 轨道
+PASS styles.css: focus-visible 环保留
+PASS styles.css: 无 CDN @import
+PASS styles.css: 零装饰（无 box-shadow/gradient/animation）
+PASS styles.css: 字阶对比 >=2 级（display 36px vs micro 12px = 3 级） :: display 2.25rem / micro 0.75rem
+PASS styles.css: badge 无 border-radius 堆砌（Swiss 直角） :: 仅 border-radius: 0
+PASS 浅色对比 --color-fg on --color-bg >= 4.5:1 :: 17.40
+PASS 浅色对比 --color-muted on --color-bg >= 4.5:1 :: 7.00
+PASS 浅色对比 --state-authorized-bg on --state-authorized-fg >= 4.5:1 :: 6.39
+PASS 浅色对比 --state-observed-bg on --state-observed-fg >= 4.5:1 :: 6.85
+PASS 浅色对比 --state-inferred-bg on --state-inferred-fg >= 4.5:1 :: 6.02
+PASS 浅色对比 --state-stale-bg on --state-stale-fg >= 4.5:1 :: 6.49
+PASS 浅色对比 --state-partial-bg on --state-partial-fg >= 4.5:1 :: 8.11
+PASS 浅色对比 --state-error-bg on --state-error-fg >= 4.5:1 :: 6.68
+PASS 浅色对比 --color-accent on --color-bg >= 4.5:1 :: 6.39
+PASS 浅色对比 --color-alert-bg on --color-alert-fg >= 4.5:1 :: 17.40
+PASS 深色对比 --color-fg on --color-bg >= 4.5:1 :: 16.87
+PASS 深色对比 --color-muted on --color-bg >= 4.5:1 :: 7.94
+PASS 深色对比 --state-authorized-bg on --state-authorized-fg >= 4.5:1 :: 6.66
+PASS 深色对比 --state-observed-bg on --state-observed-fg >= 4.5:1 :: 7.82
+PASS 深色对比 --state-inferred-bg on --state-inferred-fg >= 4.5:1 :: 9.91
+PASS 深色对比 --state-stale-bg on --state-stale-fg >= 4.5:1 :: 8.27
+PASS 深色对比 --state-partial-bg on --state-partial-fg >= 4.5:1 :: 9.54
+PASS 深色对比 --state-error-bg on --state-error-fg >= 4.5:1 :: 8.79
+PASS 深色对比 --color-accent on --color-bg >= 4.5:1 :: 8.96
+PASS 深色对比 --color-alert-bg on --color-alert-fg >= 4.5:1 :: 16.87
+
+57 passed, 0 failed

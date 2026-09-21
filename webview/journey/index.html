@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Journey 现状导航</title>
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">跳到主内容</a>
+
+<header class="page-header">
+  <p class="eyebrow">YY · Journey Control Room</p>
+  <h1>现状导航</h1>
+  <p class="page-meta" id="page-meta"></p>
+</header>
+
+<!-- 顶部告警条：degraded / conflict 时显示，健康时隐藏 -->
+<div id="alert-banner" class="alert-banner" role="alert" hidden>
+  <p class="alert-title" id="alert-title"></p>
+  <p class="alert-reason" id="alert-reason"></p>
+  <ul class="alert-conflicts" id="alert-conflicts"></ul>
+</div>
+
+<main id="main" class="main">
+  <p id="loading" class="muted-note">正在读取 journey 投影...</p>
+
+  <!-- 九节点 journey 网格（0-8，含回跳层），节点名 + 状态徽章 + gate 卡 -->
+  <section aria-labelledby="journey-heading">
+    <h2 id="journey-heading" class="section-title">九节点进度</h2>
+    <div class="journey-grid" id="journey-grid"></div>
+  </section>
+
+  <!-- 证据列表 -->
+  <section aria-labelledby="evidence-heading" id="evidence-section" hidden>
+    <h2 id="evidence-heading" class="section-title">证据</h2>
+    <ul class="evidence-list" id="evidence-list"></ul>
+  </section>
+
+  <!-- 下一步提示区（nextPromptView + 复制按钮占位，FE-2 完善） -->
+  <section aria-labelledby="next-heading" id="next-section" hidden>
+    <h2 id="next-heading" class="section-title">下一步提示</h2>
+    <div class="next-prompt">
+      <p class="next-hint" id="next-hint"></p>
+      <p class="next-meta" id="next-meta"></p>
+      <button type="button" class="copy-button" id="copy-next-prompt" aria-label="复制下一步提示文本">复制提示</button>
+      <p class="copy-feedback" id="copy-feedback" role="status" aria-live="polite"></p>
+    </div>
+  </section>
+</main>
+
+<script>
+// 页面入口：消费 window.__YY_JOURNEY__（host-bridge 注入）+ render-core 纯视图模型。
+// 零运行时依赖；本页不写任何状态（冻结 §3.2），复制仅走 clipboard API（FE-2 完善，此处占位）。
+(function () {
+  'use strict';
+
+  var NODE_META = [
+    { step: 0, name: '资产整合', gate: null },
+    { step: 1, name: '文档化', gate: 'concept-signed' },
+    { step: 2, name: '重执行1', gate: null },
+    { step: 3, name: '拆任务', gate: 'premise-signed' },
+    { step: 4, name: '重执行1,2', gate: null },
+    { step: 5, name: '规划+契约', gate: 'contract-frozen' },
+    { step: 6, name: '重执行1,2,3', gate: null },
+    { step: 7, name: '并行派单', gate: 'gate-a-approved' },
+    { step: 8, name: '批判反哺', gate: null }
+  ];
+
+  // 状态徽章文案（语义色之外还有文字，不靠颜色单独传义）
+  var STATE_LABEL = {
+    AUTHORIZED: '已确认', OBSERVED: '已观察', INFERRED: '已推断',
+    STALE: '已过期', PARTIAL: '不完整', ERROR: '错误',
+    FAILED: '失败', SKIPPED: '已跳过', UNRESOLVED: '未解决'
+  };
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  function stepFor(n) { return NODE_META[n] || { step: n, name: '节点 ' + n, gate: null }; }
+
+  function renderStepNodes(view, core) {
+    var grid = document.getElementById('journey-grid');
+    grid.textContent = '';
+    NODE_META.forEach(function (meta) {
+      var node = el('article', 'journey-node');
+      var m = meta.step;
+      var raw = null;
+      if (Array.isArray(view.steps)) {
+        for (var i = 0; i < view.steps.length; i++) {
+          if (view.steps[i].step === m) { raw = view.steps[i]; break; }
+        }
+      }
+      var s = raw || core.mapStep(null); // 缺失行也走 mapStep，display=ERROR，不伪造成功
+      node.appendChild(el('p', 'node-step', '节点 ' + m));
+      node.appendChild(el('h3', 'node-name', stepFor(m).name));
+      var badge = el('p', 'badge state-' + s.display, (STATE_LABEL[s.display] || s.display) + ' · ' + s.display);
+      badge.setAttribute('data-state', s.display);
+      node.appendChild(badge);
+
+      // gate 卡合并进节点：卡在哪个 gate / 看什么 / 说什么通过
+      var gateCard = el('div', 'gate-card');
+      var gateName = stepFor(m).gate;
+      gateCard.appendChild(el('p', 'gate-line', gateName ? ('gate: ' + gateName) : 'gate: 无（回跳层）'));
+      var status = s.status || 'pending';
+      var look, say;
+      if (s.done) {
+        look = '看：该节点交付物已确认';
+        say = '通过：节点 ' + m + ' 已完成';
+      } else if (s.negative) {
+        look = '看：' + (s.blockerReason || '节点处于负态，先修复再前进');
+        say = '说：修复后重执行本节点';
+      } else {
+        look = gateName ? ('看：' + gateName + ' 是否已签署（gates_passed）') : '看：本节点是否已到 done';
+        say = gateName ? ('说：请通过 gate ' + gateName) : '说：请完成节点 ' + m;
+      }
+      gateCard.appendChild(el('p', 'gate-look', look));
+      gateCard.appendChild(el('p', 'gate-say', say));
+      node.appendChild(gateCard);
+      grid.appendChild(node);
+    });
+  }
+
+  function renderAlert(view, core) {
+    var banner = document.getElementById('alert-banner');
+    var title = document.getElementById('alert-title');
+    var reason = document.getElementById('alert-reason');
+    var conflicts = document.getElementById('alert-conflicts');
+    conflicts.textContent = '';
+
+    if (view.degraded) {
+      banner.hidden = false;
+      title.textContent = '降级：数据源不可用';
+      reason.textContent = view.bridgeReason || '注入载荷缺失或非法';
+      return;
+    }
+    if (view.conflict) {
+      banner.hidden = false;
+      title.textContent = '冲突：投影数据源矛盾（' + view.conflict.code + '）';
+      reason.textContent = view.conflict.displayReason || '两侧证据均列出，不自动取舍';
+      (view.conflict.conflicts || []).forEach(function (c) {
+        conflicts.appendChild(el('li', 'alert-conflict-item',
+          typeof c === 'string' ? c : JSON.stringify(c)));
+      });
+      return;
+    }
+    banner.hidden = true; // 健康时隐藏
+  }
+
+  function renderNextPrompt(view) {
+    var section = document.getElementById('next-section');
+    var np = view.nextPrompt;
+    if (!np) { section.hidden = true; return; }
+    section.hidden = false;
+    document.getElementById('next-hint').textContent = np.actionHint || '（无 actionHint）';
+    var meta = [];
+    if (np.targetNode != null) meta.push('目标节点: ' + np.targetNode);
+    if (np.requiredInputs.length) meta.push('必需输入: ' + np.requiredInputs.join(', '));
+    if (np.snapshotHash) meta.push('snapshot: ' + np.snapshotHash);
+    document.getElementById('next-meta').textContent = meta.join(' | ') || ' ';
+    var btn = document.getElementById('copy-next-prompt');
+    var feedback = document.getElementById('copy-feedback');
+    btn.onclick = function () {
+      var text = np.actionHint || '';
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+          feedback.textContent = '已复制';
+        }, function () {
+          feedback.textContent = '复制失败（环境不支持 clipboard API）';
+        });
+      } else {
+        feedback.textContent = '复制失败（环境不支持 clipboard API）';
+      }
+    };
+  }
+
+  function renderEvidence(view) {
+    var section = document.getElementById('evidence-section');
+    var list = document.getElementById('evidence-list');
+    list.textContent = '';
+    if (!view.evidence || !view.evidence.length) { section.hidden = true; return; }
+    section.hidden = false;
+    view.evidence.forEach(function (e) {
+      list.appendChild(el('li', 'evidence-item',
+        typeof e === 'string' ? e : JSON.stringify(e)));
+    });
+  }
+
+  function renderMeta(view) {
+    var meta = document.getElementById('page-meta');
+    var parts = [];
+    if (view.sessionId != null) parts.push('session: ' + view.sessionId);
+    if (view.displayStatus) parts.push('投影状态: ' + view.displayStatus);
+    if (view.phase) parts.push('阶段: ' + view.phase);
+    if (view.updatedAt) parts.push('更新于: ' + view.updatedAt);
+    meta.textContent = parts.join(' | ');
+  }
+
+  function renderNotFound(view) {
+    var grid = document.getElementById('journey-grid');
+    grid.textContent = '';
+    var card = el('article', 'journey-node');
+    card.appendChild(el('h3', 'node-name', '未找到 journey'));
+    card.appendChild(el('p', 'gate-look', (view.notFoundDiag && view.notFoundDiag.reason) || '无 journey 文件且无可推断源'));
+    card.appendChild(el('p', 'gate-say', (view.notFoundDiag && view.notFoundDiag.initGuidance) || ''));
+    grid.appendChild(card);
+  }
+
+  function main(core) {
+    var payload = window.__YY_JOURNEY__;
+    var view = core.deriveJourneyView(payload);
+    document.getElementById('loading').hidden = true;
+    renderAlert(view, core);
+    if (view.degraded) {
+      document.getElementById('journey-grid').textContent = '';
+      return; // 降级：只有告警条，不伪造数据
+    }
+    if (view.notFound) { renderNotFound(view); document.getElementById('next-section').hidden = true; return; }
+    renderMeta(view);
+    renderStepNodes(view, core);
+    renderEvidence(view);
+    // 下一步提示区：deriveJourneyView 内部已走 nextPromptView 归一化；conflictView 走 conflict 告警分支
+    renderNextPrompt(core.nextPromptView(view.nextPrompt) || view.nextPrompt);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () {
+      import('./render-core.mjs').then(main, function (e) {
+        document.getElementById('loading').textContent = 'render-core 加载失败: ' + e.message;
+      });
+    });
+  } else {
+    import('./render-core.mjs').then(main, function (e) {
+      document.getElementById('loading').textContent = 'render-core 加载失败: ' + e.message;
+    });
+  }
+})();
+</script>
+</body>
+</html>
