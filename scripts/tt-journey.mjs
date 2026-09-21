@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import path from 'node:path';
+import fsSync from 'node:fs';
 import fs from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -567,7 +568,19 @@ async function main() {
   process.exitCode = 0;
 }
 
-const isMain = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+/* realpath 归一的主模块判定：junction（mklink）/大小写/短名安装形态下
+ * import.meta.url 会被解析到真实路径而 argv[1] 保持安装路径，直等比较会静默跳过 main()
+ * （2026-09-21 盲测发现：junction 部署的 yy 全部 CLI 静默 exit 0）。两侧 realpath 后比较。 */
+function isMainFileMatch() {
+  try {
+    const self = fsSync.realpathSync(fileURLToPath(import.meta.url));
+    let entry = process.argv[1];
+    if (!entry) return false;
+    try { entry = fsSync.realpathSync(path.resolve(entry)); } catch { entry = path.resolve(entry); }
+    return self === entry;
+  } catch { return false; }
+}
+const isMain = process.argv[1] && isMainFileMatch();
 if (isMain) {
   main().then(function() {}).catch(function(error) { console.error('[tt-journey] ' + error.message); process.exitCode = 2; });
 }

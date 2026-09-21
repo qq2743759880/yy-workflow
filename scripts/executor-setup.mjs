@@ -32,7 +32,7 @@ import fsp from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import readline from 'node:readline/promises';
-import { pathToFileURL } from 'node:url';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 import { resolveCommandShim } from './lib/adapters/util.mjs';
 import { withLock, LockBusyError } from './lib/store.mjs';
 
@@ -299,7 +299,7 @@ function handoffBriefText(planId, taskId, taskDesc) {
     '缺任一字段校验 FAIL（缺字段不猜，不推断不补全）：',
     '',
     '- taskId: ' + taskId,
-    '- taskVerdict: <执行者自评结论，如 PASS / FAIL / PARTIAL；终验收以编排者盲测为准>',
+    '- taskVerdict: <执行者自评结论，如 PASS / FAIL / PARTIAL；以项目维护者的复核为准>',
     '- evidencePaths: <证据路径，逗号分隔一行，或空值后跟 - 列表逐条>',
     '',
     '## 本子任务',
@@ -508,7 +508,17 @@ export async function main(argv = process.argv.slice(2)) {
 }
 
 // 直接执行时入口（被探针 import 时静默）
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+/* realpath 归一的主模块判定（junction/安装形态安全，2026-09-21 盲测修复同款） */
+function isMainFileMatch() {
+  try {
+    const self = fs.realpathSync(fileURLToPath(import.meta.url));
+    let entry = process.argv[1];
+    if (!entry) return false;
+    try { entry = fs.realpathSync(path.resolve(entry)); } catch { entry = path.resolve(entry); }
+    return self === entry;
+  } catch { return false; }
+}
+if (process.argv[1] && isMainFileMatch()) {
   main().then((code) => { process.exitCode = code; }).catch((e) => {
     if (e instanceof LockBusyError) fail(1, 'executor.json 写锁忙（fail-closed）: ' + e.message);
     fail(1, '运行异常: ' + String(e && e.stack || e));

@@ -11,6 +11,9 @@
 
 坑登记（来自 issues.md，编排者复现后分类）：
 
-| # | 来源 | 坑（盲行者原话摘要） | 编排者复现 | 分级 | 修复 | 复验 |
+| # | 来源 | 坑（摘要） | 编排者复现 | 分级 | 修复 | 复验 |
 |---|---|---|---|---|---|---|
-| - | - | - | - | - | - | - |
+| 1 | 预跑（ZCode 实跑截图+日志 sess_268a7a12） | junction 部署全 CLI 静默失效（exit 0 零输出；isMain 直等比较 vs import.meta.url realpath） | ✅ 复现 | P0 | ✅ 4 脚本 isMainFileMatch realpath 归一（fix-20260921/） | ✅ junction-smoke 4/4 |
+| 2 | 预跑（截图） | 命令文件首行缺 --workspace → prereq-check 读技能目录 .tt-state（阶段 1+ 死锁风险） | ✅ 复现（tt-journey.mjs:501 workspace='.'） | P0 | ⏳ 待修（--workspace "$PROJECT_ROOT" 或 YY_WORKSPACE env） | - |
+| 3 | 预跑 | 每命令权限确认摩擦（ZCode 权限门 × 每阶段 3-6 次 node） | 目测 | P2 | 待议（README 部署节建议选"始终允许"） | - |
+| 4 | 预跑 | 盲行者烧完配额未写 session-notes（坑收集机制依赖自觉，无兜底） | ✅（日志取证替代） | P2 | 协议补丁：Owner 收报告须收集会话总结；编排者可从 db 自取 | - |
