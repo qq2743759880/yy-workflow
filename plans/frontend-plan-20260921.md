@@ -40,7 +40,13 @@
   让内容可再生成**，手写会腐烂）
 - **接口不变**：注入契约 `window.__YY_JOURNEY__` 与 render-core.mjs（93a7652b）、host-bridge.mjs
   （b02cfd65）是恢复 sha 锚，**不修改**；新页面消费 render-core 的导出（纯视图模型）
-- **风格轴（taste-skill Design Read）**：开发者工具随行手册 → trust-first utility 语言；
+- **风格轴（Owner 2026-09-21 定稿：极简主义与瑞士风格 Minimalism & Swiss Style）**——Design Read 定稿：
+  *"Reading this as: developer utility handbook, with Minimalism & Swiss Style language —
+  grid-driven layout, generous whitespace, strong typographic hierarchy, flat semantic color
+  accents, zero decoration"*；ui-ux-pro-max 已部署 ZCode（junction 验证 name: ui-ux-pro-max）、
+  taste-skill 已部署（name: design-taste-frontend）——两个 skill 必须在 FE-1/FE-2 施工中被执行者
+  显式调用（派单 brief 硬性要求：先跑 ui-ux-pro-max --domain ux/style/color 检索，再按 taste-skill
+  §0 Design Read 流程声明后动工）；
   ui-ux-pro-max 铁律：对比 4.5:1、触控 44px、语义色 token、无 emoji 图标、reduced-motion
 - 明暗主题：跟随 `prefers-color-scheme`（盲行工作区不可控环境，双主题都要可读）
 
