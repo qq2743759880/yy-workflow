@@ -3,7 +3,7 @@
 > 执行者：TT 工作流派出的独立执行子 agent
 > 日期：2026-09-01
 > 环境事实：Windows；解释器 py3.10.10（Program Files）、py3.11.15（uv 管理）、py3.12.7（anaconda3）、py3.14.6（C:\Python314）
-> 工具：`uv`（D:\ ...\hermes\bin\uv.exe），全程独立 venv，未污染任何全局 Python。
+> 工具：`uv`（~/.ai-hub/.../hermes/bin/uv.exe），全程独立 venv，未污染任何全局 Python。
 
 ## 总结（验收结果）
 
@@ -20,7 +20,7 @@
 ## 1. gpt-researcher（调研类）— 修复成功
 
 ### venv 路径
-`D:\.ai-hub\thirdparty\venv-gpt-researcher`（Python 3.10.10，删除重建为干净 venv）
+`~/.ai-hub/thirdparty/venv-gpt-researcher`（Python 3.10.10，删除重建为干净 venv）
 
 ### 原始故障（已核实）
 原 venv 同时存在 `langchain 0.2.17` + `langchain-classic 1.0.8`（metaclass 冲突），且解析到了新版 langchain 1.x（移除 `langchain.docstore`），`import gpt_researcher` 报 `ModuleNotFoundError: No module named 'langchain.docstore'`。
@@ -49,7 +49,7 @@ gpt_researcher.__version__ = 0.12.3
 ## 2. metagpt（规划类）— 现代版不可装，仅 0.1 老版可用
 
 ### venv 路径
-`D:\.ai-hub\thirdparty\venv-metagpt`（Python 3.10.10）
+`~/.ai-hub/thirdparty/venv-metagpt`（Python 3.10.10）
 
 ### 原始故障（已核实）
 `pip install metagpt` 报 `OSError: [Errno 2]`（volcengine-python-sdk 在 Windows 的文件/路径问题）。本次用 uv 重试后 volcengine OSError **未复现**（uv 的解析/安装路径避开了该问题）。
@@ -78,7 +78,7 @@ metagpt.__version__ = 0.1（deepwisdomai 早期版，非现代 MetaGPT）
 ## 3. crewai（规划类替代）— 成功
 
 ### venv 路径
-`D:\.ai-hub\thirdparty\venv-crewai-py311`（Python 3.11.15，uv 管理；按任务约束不使用 py3.14 的 venv-crewai）
+`~/.ai-hub/thirdparty/venv-crewai-py311`（Python 3.11.15，uv 管理；按任务约束不使用 py3.14 的 venv-crewai）
 
 ### 安装命令
 1. `uv venv --python "...\uv\python\cpython-3.11.15-windows-x86_64-none\python.exe" venv-crewai-py311`

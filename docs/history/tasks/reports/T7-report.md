@@ -61,7 +61,7 @@ be-validator 仍为描述字符串 `backend interface and error contract` → po
 ### 3.3 验收③：--contract 指向不存在文件 → exit 2
 
 ```
---contract 文件不存在: docs/examples/nope.json（已解析为 D:\.ai-hub\skills\tt\docs\examples\nope.json）
+--contract 文件不存在: docs/examples/nope.json（已解析为 ~/.ai-hub/skills/tt/docs/examples/nope.json）
 EXIT=2
 ```
 
@@ -69,7 +69,7 @@ EXIT=2
 
 ```
 node scripts/orchestrator.mjs --task "ops deploy monitor contract" --workspace <tmp> --contract <abs样例> --backend cli
-[tt] contract override (--contract): plan-mtinmgyv-3 -> D:\.ai-hub\skills\tt\docs\examples\openapi-login.sample.json
+[tt] contract override (--contract): plan-mtinmgyv-3 -> ~/.ai-hub/skills/tt/docs/examples/openapi-login.sample.json
 [tt] plan plan-mtinmgyv cluster=T5_OPS subtasks=5
 [tt] state: done        ← EXIT=0
 ```
@@ -84,7 +84,7 @@ node scripts/orchestrator.mjs --task "ops deploy monitor contract" --workspace <
   "tool": "portman",
   "version": "1.35.0",
   "mode": "exec",
-  "scope": "real portman 1.35.0 --local lint/collection against D:\\.ai-hub\\skills\\tt\\docs\\examples\\openapi-login.sample.json"
+  "scope": "real portman 1.35.0 --local lint/collection against ~/.ai-hub/skills/tt/docs/examples/openapi-login.sample.json"
 }
 ```
 
@@ -99,7 +99,7 @@ node scripts/orchestrator.mjs --task "ops deploy monitor contract" --workspace <
   "contract": "backend interface and error contract",
   "task": "backend login module",
   "frozenAt": "2026-09-01T12:38:56.453Z",
-  "contractSource": "D:\\.ai-hub\\skills\\tt\\docs\\examples\\openapi-login.sample.json"
+  "contractSource": "~/.ai-hub/skills/tt/docs/examples/openapi-login.sample.json"
 }
 ```
 

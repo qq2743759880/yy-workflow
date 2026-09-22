@@ -2,7 +2,7 @@
 
 - 日期：2026-09-01
 - 执行方：TT 工作流独立实现子 agent
-- 目标：清理 `D:\.ai-hub\skills\tt\CHANGELOG.md` 中同标题重复块，只保留最完整的一份。
+- 目标：清理 `~/.ai-hub/skills/tt/CHANGELOG.md` 中同标题重复块，只保留最完整的一份。
 
 ## 环境事实（脚本实测，非目测）
 
@@ -10,7 +10,7 @@
 - 解析方式：node 脚本按 `^## ` 分块 → 按标题（`## ` 整行）归组 → 组内比较块内容：
   - 组内全部逐字相同 → 保留首个；
   - 内容不同 → 保留行数最多/内容最长者。
-- 去重脚本：`C:\Users\Administrator\AppData\Local\Temp\opencode\dedup-changelog.mjs`（dry-run 预览后 --apply 落盘）。
+- 去重脚本：`<TEMP>/opencode/dedup-changelog.mjs`（dry-run 预览后 --apply 落盘）。
 
 ## 去重前后对比
 

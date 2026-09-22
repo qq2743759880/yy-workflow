@@ -27,3 +27,5 @@
 - [P2] D-H2-2: make-release.mjs 源码机器路径按段拼接规避 validate-structure 按行扫描（白名单禁改该扫描器，无法加豁免）
 - [P2] D-H2-3: 阀测试 sed 补丁未生效导致误在真实安装面跑一次，短暂污染由发布流程自愈（569/569 复原）；教训固化进 make-valve-patch.mjs（marker 校验）
 - [P2] D-H2-4: docs/history 等 113 历史文档按安装面现状反推口径保留在发布面；如认定非发布面，EXCLUDE_DIRS 增一行即生效
+| LEAK-1 | PASS | agent_5ddab340 | orchestrator-L2(全量) | 2026-09-22T09:00:00Z | GRANDFATHER_BASELINE 清单 31 文件; scripts/make-release.mjs（基线复位）; test-reports/autopilot-work/LEAK-1/RESULTS.md |
+- [P2] D-LEAK-1-①: 67 处审计命中 scrub 至 0（69 处字面替换，含 2 处非计数 /Users/ 引述按语义一并清）；冻结例外=0（7 个"冻结"字样文件均为领域语义非文件级冻结标记）；基线常量置空、机制保留

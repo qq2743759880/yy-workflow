@@ -3,7 +3,7 @@
 - **task**: task-A1-portman.md
 - **执行时间**: 2026-08-31 22:38–22:45
 - **结论**: **PASS** — portman 1.35.0 已完成真实契约校验（非仅 `--version` 探测），含**正例通过 + 反例失败（diff）**双向实证
-- **前置状态**: `portman --version` → `1.35.0`（PATH 全局，`/c/Users/Administrator/AppData/Roaming/npm/portman`）
+- **前置状态**: `portman --version` → `1.35.0`（PATH 全局，`~/AppData/Roaming/npm/portman`）
 
 ---
 

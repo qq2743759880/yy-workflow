@@ -22,7 +22,7 @@
 ## 前置条件
 - FE-01~FE-06 已完成（vendor 已簇化为 16 个顶层簇，`SKILL_ENTRIES`/`AGENT_ENTRIES` 已更新）。
 - `scripts/validate-structure.mjs` 存在且可运行。
-- SkillOps 已 vendored 于 `C:/Users/Administrator/.workbuddy/skills/skillops`（本机），仓库内不强制包含。
+- SkillOps 已 vendored 于 `~/.workbuddy/skills/skillops`（本机），仓库内不强制包含。
 
 ## 输入
 - `scripts/validate-structure.mjs` 输出；`SKILL.md`；`vendor/`。
@@ -68,7 +68,7 @@ export async function runValidate({ cwd = process.cwd() } = {}) { /* -> Regressi
 - Given 仓库处于簇化后状态（16 个顶层簇），When 执行 `npm run validate`，Then 输出 `16/16 vendor`、`0 警告`、`接口漂移 无`、`可移植性泄露 无`。
 - Given 执行 `node scripts/orchestrator.mjs --task "..." --validate`，When 任务结束，Then 自动跑回归并打印四项指标；全部通过时退出码 0。
 - Given 人为在 `SKILL.md` 中删掉一个已簇化资产条目，When 跑回归，Then `runValidate` 返回 `ok:false` 且 `vendorCount.actual < expected`。
-- Given 人为在任一 vendor 文件写入 `D:\` 绝对路径，When 跑回归，Then `leak` 非「无」，`ok:false`（可移植性检查生效）。
+- Given 人为在任一 vendor 文件写入盘符绝对路径，When 跑回归，Then `leak` 非「无」，`ok:false`（可移植性检查生效）。
 - Given 回归不通过且使用 `--validate`，When orchestrator 结束，Then 退出码为 5 且 stderr 指出未通过的具体项。
 
 ## 验证命令

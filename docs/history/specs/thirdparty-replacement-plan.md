@@ -1,7 +1,7 @@
 # Third-party 竞品实际部署 + 资产替换方案
 
 > 目标：把 TT 资产从 `.md 空壳 + Execution kernel 声明` 升级为**实际调用已部署竞品能力**。原则：别重复造轮子——有真实竞品的资产，直接调用竞品；不可部署的诚实标注。
-> 部署位置：CLI 全局（npm/pip/go）/ 库 `D:\.ai-hub\thirdparty\node_modules`。
+> 部署位置：CLI 全局（npm/pip/go）/ 库 `~/.ai-hub/thirdparty/node_modules`。
 
 ## 一、部署现状（2026-08-31 实测）
 
@@ -11,9 +11,9 @@
 | portman | `npm i -g @apideck/portman` | ✅ 已装 | 1.35.0 | PATH 全局 |
 | semgrep | `pip install semgrep` | ✅ 已装 | 1.175.0 | Python env |
 | gitleaks | `go install github.com/zricethezav/gitleaks/v8` | ✅ 已装 | build-set | `%GOPATH%\bin` |
-| tsyringe / inversify | npm 库 | ✅ 已装 | 4.10/8.2 | `D:\.ai-hub\thirdparty` |
-| cockatiel / polly-js | npm 库 | ✅ 已装 | 4.0/1.8 | `D:\.ai-hub\thirdparty` |
-| culori / chroma-js / poline | npm 库 | ✅ 已装 | 4.0/3.2/0.13 | `D:\.ai-hub\thirdparty` |
+| tsyringe / inversify | npm 库 | ✅ 已装 | 4.10/8.2 | `~/.ai-hub/thirdparty` |
+| cockatiel / polly-js | npm 库 | ✅ 已装 | 4.0/1.8 | `~/.ai-hub/thirdparty` |
+| culori / chroma-js / poline | npm 库 | ✅ 已装 | 4.0/3.2/0.13 | `~/.ai-hub/thirdparty` |
 | cline | `npm i -g @cline/cli` | ⚠️ 不可用 | 0.0.13 | bin 为 `clite`，官方 CLI 未成熟（cline 是 VS Code 扩展） |
 | gpt-researcher | `pip install` | ❌ 失败 | — | pip 依赖冲突（ResolutionImpossible）→ 需独立 venv |
 | metagpt | `pip install` | ❌ 失败 | — | 同上 |

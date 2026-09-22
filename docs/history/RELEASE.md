@@ -12,7 +12,7 @@
 ## ✨ 亮点
 
 - **自包含**：16 个增强资产随包内置在 `vendor/`（需求挖掘 / 设计系统 / 前端链 / 调研 / 视觉质检 / 安全扫描），**无需任何外部 AI-Hub**，离线即用。
-- **可移植**：所有资产引用走 `$SKILL_DIR`（= SKILL.md 所在目录），**0 处机器专属路径泄露**（无 `D:\` / `/Users/` / `Administrator`），任意用户把本目录整体拷贝即可直接运行。
+- **可移植**：所有资产引用走 `$SKILL_DIR`（= SKILL.md 所在目录），**0 处机器专属路径泄露**（无盘符绝对路径 / 用户目录绝对路径 / 本机用户名），任意用户把本目录整体拷贝即可直接运行。
 - **SkillOps 优化**：两轮维护扫描（17 节点技能图），**0 冗余簇**，备选关系（prd-writer↔vibe-coding-prd、audit↔critique）正确保留；补 16 条 `frontmatter_version_present` 校验器 + 1 条 `frontend-design→frontend-visual-validation` 适配边。
 - **机器可校验**：`scripts/validate-structure.mjs` 覆盖 frontmatter / 8 步闭环 / 变量声明 / vendor 资产 / 接口漂移 / 可移植性 六项检查。
 
@@ -73,7 +73,7 @@ node scripts/validate-structure.mjs --verbose
 
 - **v2.1.0 · 自包含化 + SkillOps 首轮优化**
   - 16 个资产随包内置 `vendor/`；新增 `$SKILL_DIR` 变量，`$AIHUB_ROOT` 降级为可选外部覆盖。
-  - 去硬编码：agent-research 内 `/Users/lingzhi/...` → `<USER_HOME>`；tt 自身经可移植性校验零泄露。
+  - 去硬编码：agent-research 内 `/Users/<user>/...` → `<USER_HOME>`；tt 自身经可移植性校验零泄露。
   - 脚本独立化：缺 `$AIHUB_ROOT` 时从脚本自身位置解析，离线可用。
 - **v2.1.1 · 接口一致性 + 可移植性收尾（SkillOps 2nd-iteration）**
   - 为 14 个标准 `SKILL.md` 资产补 `version: 1.0.0`；`agent-research` 新增索引 `SKILL.md`（原无顶层 SKILL.md）。

@@ -1,0 +1,11 @@
+== make-release ==
+STEP 0 安全阀校验（realpath 归一 + .git 哨兵）
+  junction 归一: C:\Users\Administrator\.agents\skills\yy -> D:\.ai-hub\tmp\yy-release
+STEP 1 purge：扫描目标中发布清单之外的条目
+  PURGED: （空，目标与发布清单一致）
+STEP 2 robocopy 刷新发布面
+  robocopy exit=0（无变化，幂等）
+STEP 3 泄露审计（对产物目录，零命中才通过）
+  新增命中 0，审计通过
+STEP 4 --mklink（未启用，跳过）
+RESULT: 发布完成 | PURGED=0 | LEAK新增=0 | LEAK基线豁免=0

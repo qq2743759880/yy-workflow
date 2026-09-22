@@ -4,7 +4,7 @@
 在独立 venv 装 gpt-researcher，验证 import 成功（避开主环境 pip 依赖冲突）。
 
 ## 执行
-1. `python -m venv D:\.ai-hub\thirdparty\venv-gpt-researcher\`（或临时目录）
+1. `python -m venv ~/.ai-hub/thirdparty/venv-gpt-researcher/`（或临时目录）
 2. venv 内 `pip install gpt-researcher`
 3. `python -c "import gpt_researcher; print(gpt_researcher.__version__)"`
 

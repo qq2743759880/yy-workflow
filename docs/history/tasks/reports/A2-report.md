@@ -11,11 +11,11 @@
 
 1. **确认 opencode 1.18 非交互调用方式**：`opencode --help`
    - 结果：1.18.25；非交互消息命令为 **`opencode run [message..]`**；`serve`/`web` 为无头服务；默认无参数/带 `[project]` 启动 TUI。
-2. **用临时 workspace 跑 orchestrator**（临时目录 `C:\Users\Administrator\.openclaw\workspace\tmp\tt-a2`）：
+2. **用临时 workspace 跑 orchestrator**（临时目录 `~/.openclaw/workspace/tmp/tt-a2`）：
    ```
-   node D:\.ai-hub\skills\tt\scripts\orchestrator.mjs `
+   node ~/.ai-hub/skills/tt/scripts/orchestrator.mjs `
      --task "backend 实现一个加法函数 add(a,b) 返回 a+b" `
-     --workspace C:\Users\Administrator\.openclaw\workspace\tmp\tt-a2 `
+     --workspace ~/.openclaw/workspace/tmp/tt-a2 `
      --exec opencode run --exec-timeout 60 --verbose
    ```
    - `backend` 关键词命中 `T2_BACKEND` cluster → candidates 含 `implementation`。
@@ -98,4 +98,4 @@ completed
 
 ## 6. 清理
 
-临时 workspace `C:\Users\Administrator\.openclaw\workspace\tmp\tt-a2` 已清理（含 .tt-state、artifacts、contracts）。验证报告保留于本文档路径。
+临时 workspace `~/.openclaw/workspace/tmp/tt-a2` 已清理（含 .tt-state、artifacts、contracts）。验证报告保留于本文档路径。

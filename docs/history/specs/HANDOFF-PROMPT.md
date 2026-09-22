@@ -84,7 +84,7 @@ node scripts/validate-structure.mjs --help 2>/dev/null; ls scripts
 ## 5. 全局硬约束（违反即返工）
 
 1. **零第三方依赖**：不引入 npm 包；不用 `yargs`/`commander`；参数解析手写。
-2. **路径必须相对化**：任何产物、报告、日志路径都不得出现 `D:\`、`C:\Users\` 等本机绝对路径（TT 对可移植性有硬要求，校验器会检查）。
+2. **路径必须相对化**：任何产物、报告、日志路径都不得出现盘符绝对路径、`C:` 盘 Users 目录等本机绝对路径（TT 对可移植性有硬要求，校验器会检查）。
 3. **类型判定不能错**：
    - skill 型 = 目录内含 `SKILL.md`（需 name/description/version frontmatter）
    - agent 型 = 目录内含 `<name>.md`，**且不能有 `SKILL.md`**

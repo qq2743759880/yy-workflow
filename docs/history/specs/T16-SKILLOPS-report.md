@@ -1,7 +1,7 @@
 # TT vendor SkillOps 自进化体检报告
 
 - 生成: (tt-skillops, 只读分析, 无 LLM)
-- 资产库: D:\.ai-hub\skills\tt\vendor
+- 资产库: ~/.ai-hub/skills/tt/vendor
 
 ## 1. 资产→五元组映射
 | skill | domain_type(截断) | artifact_kind | validator 数 | type |

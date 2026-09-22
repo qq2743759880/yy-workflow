@@ -292,7 +292,7 @@ P0 即形成完整闭环：**前提挑战 → 设计文档引用 → GWT 任务 
 
 | 被影响资产 | 校验逻辑（源码行） | 本 PRD 改动是否触碰 | 兜底 |
 |---|---|---|---|
-| `scripts/validate-structure.mjs` | L56 `AGENT_ENTRIES` 含 `dev-planner`（目录存在性）；L82 扫描全部 `templates/*.md` 做可移植性检查（禁 `D:\`/`C:\Users`/`Administrator` 等绝对路径） | 改 dev-planner.md **内容**不删目录 → 安全；新增模板**文件**会自动被扫描 → 新模板禁止含本机绝对路径 | 改动后跑 validate-structure |
+| `scripts/validate-structure.mjs` | L56 `AGENT_ENTRIES` 含 `dev-planner`（目录存在性）；L82 扫描全部 `templates/*.md` 做可移植性检查（禁盘符绝对路径、`C:` 盘 Users 目录、本机用户名等泄露） | 改 dev-planner.md **内容**不删目录 → 安全；新增模板**文件**会自动被扫描 → 新模板禁止含本机绝对路径 | 改动后跑 validate-structure |
 | `scripts/sync.mjs` | L65-67 templates → 项目 `.ai-hub/templates` 全量复制 | 新增模板自动同步 → 安全 | sync.mjs 模板渲染 dry-run |
 | `scripts/review-gate.mjs` | L50-68 self-test 好/坏样例断言；L39-48 checkReview | FR-203 扩展为 append 新 check + 新样例，不删既有路径 | `--self-test` 必须 PASS |
 | `scripts/regression-all.mjs` | 8 段回归（含 S1 结构校验 / S3 资产替换清单漂移门） | 模板/提示词改动影响 S1 结构校验面（只增不减 → 安全）；S3 若含模板清单需同步（FR-302 新增模板时核对） | 全量回归保持全绿 |
@@ -341,7 +341,7 @@ node scripts/plan-review.mjs --plan <dev-plan.md>
 | NFR | 验收 |
 |---|---|
 | 零外部依赖 | `git diff --stat` 无新依赖文件；新脚本仅 import node 内置模块 |
-| 平台无关 | 新增模板/脚本中 grep 无 `D:\`、`C:\Users`、`/Users/`、`/home/` 绝对路径（validate-structure ⑤ 自动拦截） |
+| 平台无关 | 新增模板/脚本中 grep 无盘符绝对路径、`C:` 盘 Users 目录、`/Users/`、`/home/` 绝对路径（validate-structure ⑤ 自动拦截） |
 | GWT 保留 | 任一既有 `.claude/specs/dev-*.md` 样例经新 dev-planner 重跑，`## 태스크 분해` 与 FE/BE-NN + AC 结构不变 |
 | 向后兼容 | 既有 dev-plan.md（旧版）文件不被重写；review-gate 原 task 批判调用路径行为不变 |
 | 评审可机验 | review-gate --plan 用正则校验区块头存在（不依赖 LLM 判断） |

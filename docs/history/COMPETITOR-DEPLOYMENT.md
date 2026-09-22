@@ -1,7 +1,7 @@
 # TT 竞品部署与整合现状（2026-09-01 实测）
 
 > 目的：列出 TT 工作流已实际部署（非声明）的竞品及其调用点，供「直接使用竞品 vs TT 16 资产」择优决策。
-> 方法：本机命令实测（--version / import / 真实执行），非文档声明。AI-Hub 根 = `D:\.ai-hub`（脚本经 `AIHUB_ROOT` env 读取）。
+> 方法：本机命令实测（--version / import / 真实执行），非文档声明。AI-Hub 根 = `~/.ai-hub`（脚本经 `AIHUB_ROOT` env 读取）。
 
 ---
 
@@ -15,10 +15,10 @@
 | codex | 0.151.0 | `%AppData%\npm\codex` | `--exec` 宿主候选 | ⚠️ exec 挂起（C-10，stdin 继承待修） |
 | openclaw | 2026.7.1-2 | `%AppData%\npm\openclaw` | `scripts/exec-host-openclaw.mjs`（main agent=deepseek-v4-flash） | ✅ 真调 |
 | semgrep | 1.175.0 | `C:\Python314\Scripts\semgrep.exe` | `scripts/security-scan.mjs` | ✅ 真扫（实测 0 发现） |
-| gitleaks | v8 (go) | `C:\Users\Administrator\go\bin\gitleaks.exe` | `scripts/security-scan.mjs` | ✅ 真扫 |
+| gitleaks | v8 (go) | `~/go/bin/gitleaks.exe` | `scripts/security-scan.mjs` | ✅ 真扫 |
 | cline | clite 0.0.13 | npm | `scripts/lib/adapters/bmad-cline.mjs` | ⚠️ 未成熟（只探活，不真执行） |
 
-## 2. 库竞品（`D:\.ai-hub\thirdparty\node_modules`）
+## 2. 库竞品（`~/.ai-hub/thirdparty/node_modules`）
 
 | 库 | 对标 TT 资产 | 调用脚本 | 状态 |
 |----|-------------|---------|------|
@@ -29,7 +29,7 @@
 | inversify / reflect-metadata / tslib | be-provider | 同上（inversify 分支 ESM 解析） | ✅ 真调（实测 exit 0） |
 | cockatiel / polly-js | be-resilience | `scripts/resilience-check.mjs`（退避重试 + 熔断 + 等待重试） | ✅ 真调（实测 exit 0） |
 
-## 3. Python venv 竞品（`D:\.ai-hub\thirdparty\`）
+## 3. Python venv 竞品（`~/.ai-hub/thirdparty/`）
 
 | 竞品 | venv | Python | 版本 | import | 对标 TT 资产 |
 |------|------|--------|------|--------|-------------|
@@ -43,7 +43,7 @@
 
 | 竞品 | 地址 | 用途 |
 |------|------|------|
-| MUSE-Autoskill | `D:\.ai-hub\thirdparty\muse-autoskill` | F1-F5 自进化融合（asset-call-rate / SkillRefiner / SkillCreator） |
+| MUSE-Autoskill | `~/.ai-hub/thirdparty/muse-autoskill` | F1-F5 自进化融合（asset-call-rate / SkillRefiner / SkillCreator） |
 
 ## 5. 资产×竞品整合矩阵（16 资产逐条）
 

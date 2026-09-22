@@ -4,7 +4,7 @@
 在独立 venv 装 metagpt，验证 import 成功。
 
 ## 执行
-1. `python -m venv D:\.ai-hub\thirdparty\venv-metagpt\`（或临时目录）
+1. `python -m venv ~/.ai-hub/thirdparty/venv-metagpt/`（或临时目录）
 2. venv 内 `pip install metagpt`
 3. `python -c "import metagpt; print(metagpt.__version__)"`
 

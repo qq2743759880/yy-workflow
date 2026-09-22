@@ -1,0 +1,33 @@
+docs/DEPENDENCY-AUDIT.md: 3 处替换
+docs/history/COMPETITOR-DEPLOYMENT.md: 5 处替换
+docs/history/OPTIMIZATION.md: 5 处替换
+docs/history/RELEASE.md: 1 处替换
+docs/history/specs/HANDOFF-PROMPT.md: 1 处替换
+docs/history/specs/P1-report.md: 1 处替换
+docs/history/specs/T16-SKILLOPS-report.md: 1 处替换
+docs/history/specs/VERIFY-2.9.0-report.md: 2 处替换
+docs/history/specs/dev-planner-optimization-prd.md: 2 处替换
+docs/history/specs/muse-tt-fusion-plan.md: 2 处替换
+docs/history/specs/thirdparty-replacement-plan.md: 4 处替换
+docs/history/tasks/BE-12-regression-integration.md: 2 处替换
+docs/history/tasks/FE-06-manifest-and-validator-update.md: 1 处替换
+docs/history/tasks/reports/A1-report.md: 1 处替换
+docs/history/tasks/reports/A2-kickoff.md: 2 处替换
+docs/history/tasks/reports/A2-report.md: 4 处替换
+docs/history/tasks/reports/B1-report.md: 1 处替换
+docs/history/tasks/reports/B12-kickoff.md: 4 处替换
+docs/history/tasks/reports/B2-report.md: 1 处替换
+docs/history/tasks/reports/C08-kickoff.md: 2 处替换
+docs/history/tasks/reports/T1-report.md: 4 处替换
+docs/history/tasks/reports/T3-report.md: 3 处替换
+docs/history/tasks/reports/T5-report.md: 1 处替换
+docs/history/tasks/reports/T7-report.md: 4 处替换
+docs/history/tasks/reports/T8-report.md: 2 处替换
+docs/history/tasks/task-B1-gpt-researcher.md: 1 处替换
+docs/history/tasks/task-B2-metagpt.md: 1 处替换
+docs/history/tasks/task01-a6api-host.md: 2 处替换
+prototypes/yy-workflow-panel/index.html: 3 处替换
+vendor/frontend-design/reference/design-data/data/stacks/avalonia.csv: 1 处替换
+vendor/frontend-design/reference/design-data/scripts/validate_data.py: 1 处替换
+
+ALL OK

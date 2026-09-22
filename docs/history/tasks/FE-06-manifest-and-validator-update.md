@@ -102,7 +102,7 @@ grep -n "26 个" SKILL.md README.md || echo "无残留 26 的表述"
 ## 失败与回滚
 - 失败：校验报「资产缺失」→ 多为某个簇目录名拼写不一致，用 `ls vendor` 逐字比对。
 - 失败：报「frontmatter 缺失 version」→ 给对应 `SKILL.md` 补 `version: 1.0.0`（簇化改写的文档可能漏写）。
-- 失败：报「可移植性泄露」→ 检查迁入文件是否带绝对路径（如 `D:\`、`C:\Users\`），改为相对路径或 `<USER_HOME>` 占位。
+- 失败：报「可移植性泄露」→ 检查迁入文件是否带绝对路径（如盘符绝对路径、`C:` 盘 Users 目录），改为相对路径或 `<USER_HOME>` 占位。
 - 回滚：`git checkout -- SKILL.md scripts/validate-structure.mjs`；若 FE-01~05 尚未提交，`git checkout -- vendor/` 可整体回滚簇化。
 
 ## 风险与注意

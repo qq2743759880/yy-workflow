@@ -41,6 +41,7 @@
 | HARD-1 | junction-smoke 并入回归入口（无 junction 时 SKIP 语义） | scripts/regression-all.mjs、test-reports/fix-20260921/ | ✅已收（L2 全量重执行 13/13；P2×1 realpath 修正） | 本机全绿；删 junction 后整套仍 12/12+1skip |
 | HARD-2 | 发布目录一键脚本 `scripts/make-release.mjs`（robocopy 规则+泄露 grep 审计+purge+可选 mklink 一条龙） | scripts/make-release.mjs | ✅已收（L2 全量重执行幂等；P2×4，D-H2-1 待 Owner） | 产出目录过审计零命中；重跑幂等 |
 | HARD-3 | 发布面 purge 纪律固化进脚本（含本轮手工删 memory 残留的教训） | 同上 | ✅已收（与 HARD-2 同 agent 串行收口；purge 样本验证） | 从干净 release 重生成，无残留旧文件 |
+| LEAK-1 | 【Owner 2026-09-22 开单】D-H2-1 清零：发布面 31 文件 67 处历史本机痕迹 scrub + GRANDFATHER_BASELINE 复位零基线 + 重发布验证 | docs/、prototypes/、vendor 参考数据内 31 文件（清单见 make-release.mjs GRANDFATHER_BASELINE）；scripts/make-release.mjs（仅基线常量复位） | ✅已收（L2 全量重执行：审计 0+0，回归 13/13） | make-release 审计 GRANDFATHERED=0 且新增 0；regression/validate 全绿 |
 
 ## W4 盲行 1（盲行者 agent ×1，**只入队不执行**——排最后）
 

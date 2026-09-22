@@ -1,9 +1,9 @@
 # VERIFY-2.9.0 独立实证验收报告
 
-- 被测提交：`21ae3d0`（TT 2.9.0，repo `D:\.ai-hub\skills\tt`）
+- 被测提交：`21ae3d0`（TT 2.9.0，repo `~/.ai-hub/skills/tt`）
 - 验收类型：独立实证（不采信 IMP1/IMP2-3 报告；逐项亲自构造输入跑通并核对）
 - 验收时间：2026-09-05
-- 环境：win32 / node v24.18.0 / 全部测试产物在系统 TEMP（`C:\Users\Administrator\AppData\Local\Temp\opencode\tt-verify-2.9.0\`）；验收前后 repo `git status` 干净；零依赖；未提交未 push
+- 环境：win32 / node v24.18.0 / 全部测试产物在系统 TEMP（`<TEMP>/opencode/tt-verify-2.9.0/`）；验收前后 repo `git status` 干净；零依赖；未提交未 push
 
 ## 结论总览
 

@@ -33,8 +33,8 @@ tt/vendor/
 
 ## 3. 去硬编码 / 可移植性
 
-- **tt 自身**：所有资产引用改为 `$SKILL_DIR/vendor/<name>/SKILL.md` + 新增 `$SKILL_DIR` 变量；`$AIHUB_ROOT` 仅作可选外部覆盖。SKILL.md + 脚本经 ⑤ 可移植性校验，**零泄露**（无 `D:\` / `/Users/` / `Administrator`）。
-- **打包资产**：`vendor/agent-research` 内原作者绝对路径 `/Users/lingzhi/...` 已中性化为 `<USER_HOME>` 占位，避免泄露且保持语义正确。
+- **tt 自身**：所有资产引用改为 `$SKILL_DIR/vendor/<name>/SKILL.md` + 新增 `$SKILL_DIR` 变量；`$AIHUB_ROOT` 仅作可选外部覆盖。SKILL.md + 脚本经 ⑤ 可移植性校验，**零泄露**（无盘符绝对路径 / 用户目录绝对路径 / 本机用户名）。
+- **打包资产**：`vendor/agent-research` 内原作者绝对路径 `/Users/<user>/...` 已中性化为 `<USER_HOME>` 占位，避免泄露且保持语义正确。
 - **脚本独立化**：`sync.mjs` / `detect-platforms.mjs` 在缺 `$AIHUB_ROOT` 时从脚本自身位置解析 `$SKILL_DIR`，离线模式不要求外部 AI-Hub。
 
 ## 4. 校验结果
@@ -91,10 +91,10 @@ validate-structure.mjs → frontmatter OK · 0 警告 · 16/16 vendor · 接口�
 
 用户指出 tt 缺少后端资产。根因：tt 是从 `tgent`（全栈实战版）fork 的开源参数化版，开源化时只把前端/设计/科研链（16 资产）写进 §1c，`tgent` 中引用的后端 agent（be-*）/ 后端 skill（sdlc/harden）**从未被重新声明为 tt 依赖**，是依赖图的「孤儿」，故前两轮未打包。
 
-### 7.1 资产盘点（D:\.ai-hub）
+### 7.1 资产盘点（~/.ai-hub）
 - **后端 agent**（agents/）：be-architect、be-implementer、be-provider、be-resilience、be-security、be-tester、be-validator、dev-backend（共 8，均无本机路径硬编码）。
-- **后端 skill**（skills/）：sdlc（复合：plan/develop/review/summarize 子技能 + 6 子 agent）、harden。其中 `sdlc/.claude-plugin/marketplace.json` 含 `C:\Users\Administrator\.claude\plugins\sdlc` 硬编码（Claude 插件专属，与 tt 无关）→ 已从包移除。
-- **缺失模板**：`task-agent-matrix.md`、`orchestration-frontend-backend.md` 在全 D:\.ai-hub 均不存在，tt/SKILL.md 却引用之 → 新建。
+- **后端 skill**（skills/）：sdlc（复合：plan/develop/review/summarize 子技能 + 6 子 agent）、harden。其中 `sdlc/.claude-plugin/marketplace.json` 含 `~/.claude/plugins/sdlc` 硬编码（Claude 插件专属，与 tt 无关）→ 已从包移除。
+- **缺失模板**：`task-agent-matrix.md`、`orchestration-frontend-backend.md` 在全 ~/.ai-hub 均不存在，tt/SKILL.md 却引用之 → 新建。
 
 ### 7.2 落地（vendor 16 → 26）
 - 8 个后端 agent → `vendor/<name>/<name>.md`；sdlc/harden → `vendor/<name>/SKILL.md`（sdlc 补索引 SKILL.md 含 version，harden 补 version:1.0.0）。

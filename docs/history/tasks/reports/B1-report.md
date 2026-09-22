@@ -2,7 +2,7 @@
 
 - 日期：2026-08-31
 - 结论：**部分通过**（安装成功，import 依赖冲突待修）
-- venv：`D:\.ai-hub\thirdparty\venv-gpt-researcher`
+- venv：`~/.ai-hub/thirdparty/venv-gpt-researcher`
 - 安装：`pip install gpt-researcher` ✅ exit 0
 - import：❌ `ModuleNotFoundError: No module named 'langchain.docstore'`（新版 langchain 移除 docstore）
 - 补 `langchain-community`：仍缺 docstore

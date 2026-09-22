@@ -1,6 +1,6 @@
 # MUSE-Autoskill × TT 融合方案
 
-> 部署：`D:\.ai-hub\thirdparty\muse-autoskill`（Akshay2695/muse_autoskill，完整源码 + 文档 + 测试）
+> 部署：`~/.ai-hub/thirdparty/muse-autoskill`（Akshay2695/muse_autoskill，完整源码 + 文档 + 测试）
 > 论文：arxiv 2605.27366 "Self-Evolving Agents via Skill Creation, Memory, Management, and Evaluation"
 
 ## 一、MUSE 自进化闭环（5 件套）
@@ -62,7 +62,7 @@
 
 ## 五、部署状态
 
-- MUSE 源码：`D:\.ai-hub\thirdparty\muse-autoskill`（agent.py/skill_creator/skill_bank/skill_manager/skill_refiner/memory_manager + 测试 + Docker）
+- MUSE 源码：`~/.ai-hub/thirdparty/muse-autoskill`（agent.py/skill_creator/skill_bank/skill_manager/skill_refiner/memory_manager + 测试 + Docker）
 - 完整跑 MUSE 需 Docker + OpenAI API（requirements: openai/pyyaml/pytest/docker）
 - 融合方式：借鉴 MUSE 模式写入 TT（非直接 import MUSE——TT 是 Node 零依赖，MUSE 是 Python+Docker）
 

@@ -7,7 +7,7 @@
 
 ## 环境事实（已核实）
 
-- 第三方库已装于 `D:\.ai-hub\thirdparty\node_modules`，脚本一律经 `AIHUB_ROOT` env（默认 `~/.ai-hub`）定位，不写死盘符。
+- 第三方库已装于 `~/.ai-hub/thirdparty/node_modules`，脚本一律经 `AIHUB_ROOT` env（默认 `~/.ai-hub`）定位，不写死盘符。
 - 模块形态（实测）：
   - `tsyringe` 4.10.0 → CJS（`dist/cjs/index.js`），require 时强校验 reflect-metadata 反射 polyfill。
   - `inversify` 8.2.3 → ESM（`lib/index.js`，`type: module`），re-export 自 `@inversifyjs/*`。

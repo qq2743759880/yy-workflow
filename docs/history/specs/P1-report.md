@@ -84,7 +84,7 @@ node scripts/orchestrator.mjs --backend prompt --task "backend login module" \
 
 无 `--hosts` 且无 config hosts 回归对照：`--exec node <fail.mjs>` → `mode=prompt attempts=1 recovery=null`，与 2.5.0 完全一致。`node scripts/test-retry.mjs` 6/6 PASS。
 
-**诚实说明**：主工作区 `D:\.ai-hub\skills\tt` 存在**并发外部改动**（非本 P1 引入：`scripts/review-gate.mjs` +323 行、`scripts/asset-call-rate.mjs` +124 行、`plans/critique-backlog-tracker.md`、`docs/history/specs/P2-report.md`/`P3-report.md` 等），其中 review-gate 的 `--auto-register` 扩展使主工作区 S7 self-test 暂红（应登记 3 条实得 1）。已用 `git worktree` 隔离验证：HEAD 版本 review-gate self-test PASS；**仅叠加本 P1 5 文件的纯净环境 CI 全绿 8/8**。P1 改动本身 validate 0 泄露、test-retry 全过。未触碰并发文件，未提交未 push。
+**诚实说明**：主工作区 `~/.ai-hub/skills/tt` 存在**并发外部改动**（非本 P1 引入：`scripts/review-gate.mjs` +323 行、`scripts/asset-call-rate.mjs` +124 行、`plans/critique-backlog-tracker.md`、`docs/history/specs/P2-report.md`/`P3-report.md` 等），其中 review-gate 的 `--auto-register` 扩展使主工作区 S7 self-test 暂红（应登记 3 条实得 1）。已用 `git worktree` 隔离验证：HEAD 版本 review-gate self-test PASS；**仅叠加本 P1 5 文件的纯净环境 CI 全绿 8/8**。P1 改动本身 validate 0 泄露、test-retry 全过。未触碰并发文件，未提交未 push。
 
 ## 七、验收对照
 

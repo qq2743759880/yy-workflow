@@ -27,8 +27,8 @@
 
 ## Kickoff prompt（派单用）
 ```
-你是执行 agent。任务 task01：为 TT 仓库（D:\.ai-hub\skills\tt）实现 a6api 参考 --exec 宿主。
-读 spec：D:\.ai-hub\skills\tt\.claude\specs\tasks\task01-a6api-host.md
+你是执行 agent。任务 task01：为 TT 仓库（~/.ai-hub/skills/tt）实现 a6api 参考 --exec 宿主。
+读 spec：~/.ai-hub/skills/tt/.claude/specs/tasks/task01-a6api-host.md
 只改：scripts/exec-host-a6api.mjs（新）、config.example.json、README.md。不碰其它。
 key 只从 process.env.A6API_KEY 读（测试时我注入 env，不写仓库）。实现后自测 GWT，报告结果。
 ```

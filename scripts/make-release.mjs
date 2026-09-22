@@ -171,45 +171,13 @@ const AUDIT_TEXT_RE = [
   /\/home\/[A-Za-z0-9_.-]+/,                      // Linux 用户目录
   new RegExp(USER_NAME, 'i'),                     // 本机用户名
 ];
-// 基线豁免（grandfather，2026-09-22 首次全量审计冻结）：发布面 docs/history、
-// prototypes、vendor 参考数据中存在历史遗留的本机路径/用户名痕迹，共 31 文件 67 处。
-// 这些文件不在本任务白名单内（不可修改），故按「只许减少不许增加」冻结：
+// 基线豁免（grandfather）：2026-09-22 首次全量审计曾冻结 31 文件 67 处历史遗留的
+// 本机路径/用户名痕迹；同日 LEAK-1 开单已全部 scrub 清零，基线复位为空。
+// 机制仍在生效：
 //   - 基线内文件命中数 > 基线值 → 发布失败；
 //   - 基线外任何文件命中 → 发布失败；
 //   - 基线内文件修复后命中减少（含清零）→ 自然通过，基线不回调。
-const GRANDFATHER_BASELINE = {
-  'docs/DEPENDENCY-AUDIT.md': 3,
-  'docs/history/COMPETITOR-DEPLOYMENT.md': 5,
-  'docs/history/OPTIMIZATION.md': 4,
-  'docs/history/RELEASE.md': 1,
-  'docs/history/specs/HANDOFF-PROMPT.md': 1,
-  'docs/history/specs/P1-report.md': 1,
-  'docs/history/specs/T16-SKILLOPS-report.md': 1,
-  'docs/history/specs/VERIFY-2.9.0-report.md': 2,
-  'docs/history/specs/dev-planner-optimization-prd.md': 2,
-  'docs/history/specs/muse-tt-fusion-plan.md': 2,
-  'docs/history/specs/thirdparty-replacement-plan.md': 4,
-  'docs/history/tasks/BE-12-regression-integration.md': 2,
-  'docs/history/tasks/FE-06-manifest-and-validator-update.md': 1,
-  'docs/history/tasks/reports/A1-report.md': 1,
-  'docs/history/tasks/reports/A2-kickoff.md': 2,
-  'docs/history/tasks/reports/A2-report.md': 4,
-  'docs/history/tasks/reports/B1-report.md': 1,
-  'docs/history/tasks/reports/B12-kickoff.md': 4,
-  'docs/history/tasks/reports/B2-report.md': 1,
-  'docs/history/tasks/reports/C08-kickoff.md': 2,
-  'docs/history/tasks/reports/T1-report.md': 4,
-  'docs/history/tasks/reports/T3-report.md': 3,
-  'docs/history/tasks/reports/T5-report.md': 1,
-  'docs/history/tasks/reports/T7-report.md': 4,
-  'docs/history/tasks/reports/T8-report.md': 2,
-  'docs/history/tasks/task-B1-gpt-researcher.md': 1,
-  'docs/history/tasks/task-B2-metagpt.md': 1,
-  'docs/history/tasks/task01-a6api-host.md': 2,
-  'prototypes/yy-workflow-panel/index.html': 3,
-  'vendor/frontend-design/reference/design-data/data/stacks/avalonia.csv': 1,
-  'vendor/frontend-design/reference/design-data/scripts/validate_data.py': 1,
-};
+const GRANDFATHER_BASELINE = {};
 const leakHits = [];
 const grandfatherHits = [];
 if (target) {

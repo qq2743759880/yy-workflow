@@ -14,8 +14,8 @@
 | npm 全局 | `npm ls -g --depth=0` | opencode-ai@1.18.25、@anthropic-ai/claude-code@2.1.261、@openai/codex@0.151.0、@apideck/portman@1.35.0、@mermaid-js/mermaid-cli@11.16.0、@cline/cli@0.0.13、openclaw@2026.7.1-2 |
 | npx 缓存 | `%LOCALAPPDATA%\npm-cache\_npx` | playwright-core 1.63.0-alpha-2026-08-31（仅 alpha 预览版，无稳定版落盘） |
 | 浏览器 | `%LOCALAPPDATA%\ms-playwright` | **空目录（0 个浏览器构建）**；`ms-playwright-mcp\mcp-chrome-*` 是 MCP 启动器的 Chrome 用户数据目录，非 playwright 浏览器 |
-| Python venv | `D:\.ai-hub\thirdparty\venv-*` | gpt_researcher 0.12.3、crewai 1.15.18（py311）、metagpt 0.1（旧版） |
-| AIHUB thirdparty | `D:\.ai-hub\thirdparty\node_modules` | culori/poline/chroma-js/tsyringe/inversify/cockatiel/polly-js/reflect-metadata/tslib（TT 脚本经 `AIHUB_ROOT` 间接引用——**这正是"零依赖"的缺口：不在包内，换机即失效**） |
+| Python venv | `~/.ai-hub/thirdparty/venv-*` | gpt_researcher 0.12.3、crewai 1.15.18（py311）、metagpt 0.1（旧版） |
+| AIHUB thirdparty | `~/.ai-hub/thirdparty/node_modules` | culori/poline/chroma-js/tsyringe/inversify/cockatiel/polly-js/reflect-metadata/tslib（TT 脚本经 `AIHUB_ROOT` 间接引用——**这正是"零依赖"的缺口：不在包内，换机即失效**） |
 | npm registry API | `registry.npmjs.org/<pkg>/latest`（2026-09-07 实测） | 见下表版本列 |
 | PyPI API | `pypi.org/pypi/<pkg>/json`（2026-09-07 实测） | gpt-researcher 0.16.0、crewai 1.15.20、metagpt 0.8.2、pr-agent 0.45.0、semgrep 1.176.1 |
 | GitHub API | `api.github.com/repos/<repo>`（2026-09-07 实测） | 见 §3 |
@@ -29,7 +29,7 @@
 | # | 资产/脚本 | 依赖 | 真实依据 | 建议 |
 |---|-----------|------|----------|------|
 | 1.1 | `scripts/prototype-parity-check.mjs`、`scripts/visual-regression.mjs`、`scripts/integration-e2e.mjs` | playwright / playwright-core（浏览器截图+像素 diff） | npx 缓存只有 1.63.0-alpha（非稳定版）；`ms-playwright` 目录为空 = **浏览器未下载**；npm registry 稳定版 `playwright 1.63.0`（2026-09-07 实测）。脚本已内置 `req.resolve('playwright')` 探测 + 诚实降级（integration-e2e.mjs:77-90） | **装进 yy**：`dependencies` 加 `playwright-core@^1.63.0`（截图走 `executablePath` 指向系统 Chrome，无需下载浏览器）；`optionalDependencies` 加 `playwright@^1.63.0`（要 `npx playwright install chromium` 才有全功能） |
-| 1.2 | `scripts/security-scan.mjs` | semgrep（SAST）+ gitleaks（密钥） | 本机 PATH 实测：`semgrep.exe`（C:\Python314\Scripts，PyPI 现价 1.176.1）、`gitleaks.exe`（C:\Users\Administrator\go\bin，GitHub 最新 release v8.30.1）。TT 脚本已做 ENOENT 诚实降级（security-scan.mjs:23,35） | **不进 package.json**（pip/go 二进制，非 npm 生态）；写入 ONBOARDING 安装前置：`pip install semgrep` + `go install github.com/zricethezav/gitleaks/v8@latest`；脚本降级路径已合规 |
+| 1.2 | `scripts/security-scan.mjs` | semgrep（SAST）+ gitleaks（密钥） | 本机 PATH 实测：`semgrep.exe`（C:\Python314\Scripts，PyPI 现价 1.176.1）、`gitleaks.exe`（~/go/bin，GitHub 最新 release v8.30.1）。TT 脚本已做 ENOENT 诚实降级（security-scan.mjs:23,35） | **不进 package.json**（pip/go 二进制，非 npm 生态）；写入 ONBOARDING 安装前置：`pip install semgrep` + `go install github.com/zricethezav/gitleaks/v8@latest`；脚本降级路径已合规 |
 | 1.3 | `scripts/integration-e2e.mjs`（newman 路径） | newman（契约真实请求） | 本机无独立 newman，但 `@apideck/portman@1.35.0` 内嵌 `newman 6.2.2`（node_modules 实测）；npm 独立包 `newman 6.2.2`。脚本探测 portman 优先、newman 兜底（integration-e2e.mjs:93-101） | **不进 package.json**：portman 已在 PATH 且脚本会优先用它；无 portman 的新机器按 ONBOARDING `npm i -g @apideck/portman`（自带 newman）。若要纯 newman：`npm i -g newman` |
 | 1.4 | `scripts/lib/adapters/portman.mjs`、`be-validator` 内核 | portman（OpenAPI→Postman 契约校验） | 本机 `portman.ps1`（npm 全局 @apideck/portman@1.35.0）；npm 裸名 `portman` 是无关占位包 0.0.3——**真包名是 `@apideck/portman`** | 不进 package.json（CLI 全局工具）；ONBOARDING 注明 `npm i -g @apideck/portman@^1.35.0` |
 | 1.5 | `scripts/lib/adapters/opencode.mjs`、`implementation` 内核 | opencode CLI | npm 全局 opencode-ai@1.18.25（registry 最新 1.18.29）；adapters/opencode.mjs 真调（assetConsumed 校验） | 不进 package.json（编排宿主，用户按平台装）；ONBOARDING 注明 |

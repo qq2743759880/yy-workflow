@@ -1078,7 +1078,7 @@ def main():
     problems = validate()
 
     if problems:
-        print(f"FAILED: {len(problems)} data integrity issue(s) found:\n")
+        print(f"FAILED: {len(problems)} data integrity issue(s) found:", end="\n\n")
         for p in problems:
             print(f"  - {p}")
         sys.exit(1)

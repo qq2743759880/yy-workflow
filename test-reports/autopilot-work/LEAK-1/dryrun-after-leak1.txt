@@ -1,0 +1,11 @@
+== make-release --dry-run ==
+STEP 0 安全阀校验（realpath 归一 + .git 哨兵）
+  junction 归一: C:\Users\Administrator\.agents\skills\yy -> D:\.ai-hub\tmp\yy-release
+STEP 1 purge：扫描目标中发布清单之外的条目
+  PURGED: （空，目标与发布清单一致）
+STEP 2 robocopy 刷新发布面
+  [dry-run] 将执行: robocopy D:\.ai-hub\skills\yy D:\.ai-hub\tmp\yy-release /MIR /R:1 /W:1 /NP /NDL /NFL /XD .git .learnings .mimosa .tmp-demo contracts handoffs node_modules plans recovery-20260919 test-reports .tmp-* /XF .memory CHANGELOG.md make-release.mjs *.log
+STEP 3 泄露审计（对产物目录，零命中才通过）
+  [dry-run] 将扫描 D:\.ai-hub\tmp\yy-release（模式 6 组 + U+FFFD 字节；grandfather 基线 0 文件）
+STEP 4 --mklink（未启用，跳过）
+RESULT: DRY-RUN 完成（零落盘） | PURGED=0(待删) | LEAK新增=? | LEAK基线豁免=0
