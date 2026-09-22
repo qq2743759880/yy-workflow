@@ -15,3 +15,6 @@
 | FIX-4 | PASS | agent_965ba371 | orchestrator-L2 | 2026-09-22T05:30:00Z | scripts/summary-read.mjs; test-reports/autopilot-work/FIX-4/RESULTS.md; test-reports/autopilot-work/FIX-4/run-probes.mjs |
 | FIX-2 | PASS | agent_5cc6fa13 | orchestrator-L2 | 2026-09-22T06:30:00Z | scripts/orchestrator.mjs; scripts/executor-setup.mjs; test-reports/autopilot-work/FIX-2/RESULTS.md; test-reports/autopilot-work/FIX-2/run-probes.mjs |
 - [P1] D-FIX2-6: P5 探针非确定性：modes.exec>0 依赖模型拆解出带 asset 的子任务（模型行为），编排者复跑 3 连挂（首跑 exec=1）——接线本体映射经编排者亲自复现成功（--exec/--hosts 注入 shim 命令 + isolate warning），探针需改为确定性断言（映射日志+注入命令形态），modes.exec 断言删除（落点: test-reports/autopilot-work/FIX-2/run-probes.mjs P5）
+| FIX-3 | PASS | agent_f2ba637a | orchestrator-L2 | 2026-09-22T06:45:00Z | scripts/validate-structure.mjs（区B, 063861a）; test-reports/autopilot-work/FIX-2/run-probes.mjs（区C P5 确定性化）; test-reports/autopilot-work/FIX-3/RESULTS.md |
+- [P2] D-FIX3-1: 任务 A 自测「登记指针后应 PASS」步骤临时改 SKILL.md 与派单禁改字面冲突，执行后 sha256 链逐字节恢复（42204389…b100e4 前后一致）
+- [P2] D-FIX3-2: 派单 R10 runner 路径笔误（R10-implementation-20260917 无 run-fixtures.mjs），实跑 R10-rebuild-20260920 12/12 PASS

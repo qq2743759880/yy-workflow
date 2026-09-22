@@ -9,7 +9,9 @@
  *   P2  显式 --exec 覆盖 executor.json（优先级：显式命令行 > executor.json）
  *   P3  cli=unknown-cli → warning + 不崩溃（fail-soft，--plan --dry-run 正常完成）
  *   P4  无 executor.json → 与基线（auto-fe-base 版 orchestrator.mjs）对同一 task 行为一致（归一化 diff 逐字节）
- *   P5  executor.json 缺省 --exec 真实派单（--backend prompt 宿主执行 → modes.exec>0，优先级链端到端）
+ *   P5  executor.json 缺省 --exec 接线（确定性：映射日志 --exec from executor.json + 注入命令形态含
+ *       opencode.cmd（resolveCommandShim 命中 Windows shim）+ isolate 透传 warning；不约束 modes.exec——
+ *       派单是否真执行属模型行为非接线，FIX-3 删除该断言）
  *   P6  config.json executor.command 优先级：executor.json 存在但 mode=A-direct → 不映射，config 缺省仍生效（config > executor.json 当 cli 无映射）
  *   P7  corrupt executor.json（坏 JSON）→ warning + 不崩溃 + 不映射
  *   P8  isolate 字段 → 只透传登记（warning「隔离未实施」）+ 不改 spawn 行为
@@ -250,26 +252,44 @@ const tmpDirs = [];
 }
 
 // ---------------------------------------------------------------------------
-// P5: executor.json 缺省 --exec 端到端真实派单（无显式旗标，modes.exec>0）
+// P5: executor.json 缺省 --exec 注入接线（确定性断言，FIX-3 重设计）
+// （原断言 modes.exec>0 依赖模型拆解出带 asset 的子任务——模型行为非确定性，编排者复跑 3 连挂，
+//   已删除（它验证的是模型行为不是接线）。改为三个确定性接线断言：
+//   ① 映射日志：无显式旗标时 stdout 出现「--exec from executor.json」（executor.json 缺省槽生效）；
+//   ② 注入命令形态：PATH 前置 shimbin（良性 opencode.cmd shim）后，orchestrator 经 resolveCommandShim
+//      （scripts/lib/adapters/util.mjs：PATH 逐目录 × PATHEXT 逐扩展命中 .cmd → {command: ComSpec,
+//      prefix:['/d','/c',candidate]}）解析 cli=opencode，映射日志命令形态必含 opencode.cmd——
+//      「映射出的命令真的是 shim 解析产物」由脚本可控环境确定性验证，不再依赖模型拆解；
+//   ③ isolate 字段只透传登记：stderr 出现「isolate=...隔离未实施」warning。
+//   派单是否真执行（modes.exec）属模型行为，不在本探针面；exit 不约束为 0（受控退出码
+//   0/5/6 均为诚实结局：OK/计划失败/草案中止），非受控码（含 spawn error -1）报 FAIL。）
 // ---------------------------------------------------------------------------
 {
   const ws = await mkws('p5'); tmpDirs.push(ws);
-  // 已知清单内 cli 但本探针固定用「良性 node 宿主」验证端到端派单：cli=node 不在清单 → 走 P3 fail-soft。
-  // 故端到端用 claude 映射无法保证可执行（presence≠可用纪律：探针不烧配额）。此处直接验证注入通道：
-  // cli=opencode（清单内）映射出的命令形态 [opencode] → 派单尝试 exec-host 语义失败 → 诚实降级 prompt。
-  // 端到端「映射出的命令真的被 spawn」由 P5b 补：临时 PATH 前置放一个 opencode.cmd 良性 shim。
   const shimDir = path.join(ws, 'shimbin');
   fs.mkdirSync(shimDir, { recursive: true });
   writeOpencodeShim(path.join(shimDir, 'opencode.cmd'));
-  writeExecutorJson(ws, { schema: 'tt/executor-config@1', mode: 'B-cli', cli: 'opencode', model: null, isolate: null });
-  const r = await runOrch(ORCH, ['--backend', 'prompt', '--task', 'backend login module', '--workspace', ws]);
-  let state = null;
-  try { state = JSON.parse(fs.readFileSync(path.join(ws, '.tt-state', 'state.json'), 'utf8')); } catch (e) { /* 忽略 */ }
-  const execOk = state && state.modes && (state.modes.exec || 0) > 0;
-  const mapped = r.stdout.includes('--exec from executor.json') && r.stdout.includes('opencode');
-  section('P5 executor.json cli=opencode（清单内）→ 缺省 --exec 真实派单 exec>0', r.exit === 0 && execOk && mapped,
-    'exit=' + r.exit + ' modes.exec=' + (state && state.modes ? state.modes.exec : '?') + ' 映射日志=' + (mapped ? '有' : '无'));
-  results.p5 = { exit: r.exit, exec: state && state.modes ? state.modes.exec : null, mapped };
+  writeExecutorJson(ws, { schema: 'tt/executor-config@1', mode: 'B-cli', cli: 'opencode', model: null, isolate: 'sandbox' });
+  // 本地 spawn（不用 runOrch）：PATH 前置 shimbin，使 resolveCommandShim('opencode') 确定性命中
+  // 良性 shim——注入命令形态由此从「环境碰运气」变为可断言。
+  const r = await new Promise((resolve) => {
+    const child = spawn(process.execPath, [ORCH, '--backend', 'prompt', '--task', 'backend login module', '--workspace', ws],
+      { cwd: REPO, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, TT_TUI: 'off', PATH: shimDir + path.delimiter + (process.env.PATH || '') } });
+    let out = '', err = '';
+    child.stdout.on('data', (c) => { out += c; });
+    child.stderr.on('data', (c) => { err += c; });
+    child.on('error', (e) => resolve({ exit: -1, stdout: out, stderr: err + String(e.message) }));
+    child.on('close', (code) => resolve({ exit: code ?? -1, stdout: out, stderr: err }));
+  });
+  const mapped = r.stdout.includes('--exec from executor.json');
+  // 注入命令形态：映射日志行内含 opencode.cmd（resolveCommandShim 命中 Windows .cmd shim 的确定性证据）
+  const mapLine = r.stdout.split('\n').find((l) => l.includes('--exec from executor.json')) || '';
+  const shapeOk = mapLine.includes('opencode.cmd');
+  const isolateWarned = r.stderr.includes('isolate') && r.stderr.includes('隔离未实施');
+  const exitOk = r.exit === 0 || r.exit === 5 || r.exit === 6;
+  section('P5 executor.json cli=opencode 缺省注入接线（映射日志+opencode.cmd 形态+isolate warning）', mapped && shapeOk && isolateWarned && exitOk,
+    'exit=' + r.exit + ' 映射日志=' + (mapped ? '有' : '无') + ' 命令形态含opencode.cmd=' + (shapeOk ? '是' : '否') + ' isolate警告=' + (isolateWarned ? '有' : '无'));
+  results.p5 = { exit: r.exit, mapped, shapeOk, isolateWarned, mapLine: mapLine.trim().slice(0, 300) };
 }
 
 // ---------------------------------------------------------------------------

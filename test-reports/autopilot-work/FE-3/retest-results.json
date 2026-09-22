@@ -1,0 +1,52 @@
+{
+  "meta": {
+    "task": "FE-3 复测（重派）：独立验证 REWORK-1 修复（commit 4102028）",
+    "date": "2026-09-22",
+    "method": "web-gui-tester 纯 GUI 黑盒：真实导航/真实点击 + 只读 DOM 交叉验证 + 截图留证；测试期零改码",
+    "environment": {
+      "browser": "本机 Chrome (C:/Program Files (x86)/Google/Chrome/Application/chrome.exe) + playwright-core 1.63.0，headed",
+      "clipboardPermission": "playwright context.grantPermissions(['clipboard-read','clipboard-write'])（CDP 授权，非页面注入）",
+      "servers": { "8101": "webview/journey 原始页（degraded 通道，零修改）", "8102": ".tmp-fe3-retest 测试副本目录" },
+      "mockInjection": "host-bridge.mjs buildPageHtml 同款机制：window.__YY_JOURNEY__ 注入在首个 <script> 之前，页面脚本执行前生效",
+      "setup": ["复制 index.html/styles.css/render-core.mjs/content.js 到 .tmp-fe3-retest/", "生成 index-mock.html（健康投影含 nextPrompt+snapshotHash）/index-notfound.html/index-conflict.html", "健康 payload：9 步、phase 7、evidence 2 条、nextPrompt{actionHint,targetNode:7,requiredInputs[2],snapshotHash:sha256:fe3a9f2c7d15}", "console 监听只读（console error/warning + pageerror + requestfailed）"]
+    },
+    "limitations": [
+      "本 subagent 运行时剥离图像输入（Read 回读截图报 Media omitted: model does not support image input），无法做像素级目检；14 张截图已按规范采集并验证文件有效性（PNG 头/尺寸/非空白抽样），留档供有图像能力的下游复核",
+      "T8.1 黑盒禁注入，无法追加合成超长 description；以 content.js 最长真实描述（80 字符）+ 375px 窄视口压力测试替代，如实记录"
+    ]
+  },
+  "results": [
+    { "id": "T1.1", "name": "页面加载+截图总览(健康投影)", "status": "PASS", "round1": "PASS", "dom": { "loadingHidden": true, "meta": "session: test-session-fe3 | 投影状态: OBSERVED | 阶段: 7 | 更新于: 2026-09-22T09:55:00Z", "bannerHidden": true }, "shot": "screenshots-retest/r_t1_overview_top.png" },
+    { "id": "T1.2", "name": "九节点渲染(节点名+状态徽章+gate卡)", "status": "PASS", "round1": "PASS", "dom": { "nodes": 9, "names": ["资产整合","文档化","重执行1","拆任务","重执行1,2","规划+契约","重执行1,2,3","并行派单","批判反哺"], "badges": ["已确认 · AUTHORIZED","已确认 · AUTHORIZED","已确认 · AUTHORIZED","已确认 · AUTHORIZED","已确认 · AUTHORIZED","已确认 · AUTHORIZED","已观察 · OBSERVED","已观察 · OBSERVED","不完整 · PARTIAL"], "gates": ["gate: 无（回跳层）","gate: concept-signed","gate: 无（回跳层）","gate: premise-signed","gate: 无（回跳层）","gate: contract-frozen","gate: 无（回跳层）","gate: gate-a-approved","gate: 无（回跳层）"] }, "shot": "screenshots-retest/r_t1_grid.png" },
+    { "id": "T1.3", "name": "B 阶段手册 6 段全渲染", "status": "PASS", "round1": "FAIL(DEFECT-2)", "dom": { "phaseItems": 6, "guideType": "object", "phaseNames": ["立项 / 资产整合","需求挖掘","拆任务（前提挑战）","规划 + 契约冻结","派单执行","验收批判（反哺）"], "loadErrorBanner": false }, "shot": "screenshots-retest/r_t1_phases.png", "note": "DEFECT-2 修复验证：content.js 经动态 import 装载，GUIDE_CONTENT typeof=object，6/6 段全渲染，无装载错误告警" },
+    { "id": "T1.4", "name": "C 资产手册 16 卡全渲染", "status": "PASS", "round1": "FAIL(DEFECT-2)", "dom": { "assetCards": 16, "copyButtons": 29, "names": ["be-architect","implementation","be-validator","be-provider","sdlc","be-resilience","security","review","agent-research","dev-planner","frontend-design","frontend-visual-validation","agent-vision-toolkit","colorize","planning","skill-sentinel"] }, "shot": "screenshots-retest/r_t1_assets.png", "note": "16/16 卡；copy-button 总数 29 = 1(下一步) + 6阶段x2(催办/重走) + 16资产(点名)，账目吻合" },
+    { "id": "T2.1", "name": "下一步提示区+复制按钮可见", "status": "PASS", "round1": "FAIL(DEFECT-1)", "dom": { "sectionHidden": false, "sectionVisible": true, "hint": "继续节点 7 并行派单：按拆分清单并行派发子 agent，全部回收后进入节点 8 批判反哺。", "meta": "目标节点: 7 | 必需输入: 任务拆分清单, gate-a-approved 回执 | snapshot: sha256:fe3a9f2c7d15", "btnVisible": true, "btnRect": { "w": 100, "h": 44 } }, "shot": "screenshots-retest/r_t2_next_section.png", "note": "DEFECT-1 修复验证：renderNextPrompt 改收归一化 np 对象，#next-section 可见，hint/meta（含 targetNode/requiredInputs/snapshotHash）全部渲染，按钮可见" },
+    { "id": "T2.2", "name": "复制按钮点击→真剪贴板验证", "status": "PASS", "round1": "BLOCKED", "dom": { "clipBefore(系统剪贴板原有内容)": "搭建 PyTorch + CUDA 训练环境", "clipAfter(真实点击后读取)": "继续节点 7 并行派单：按拆分清单并行派发子 agent，全部回收后进入节点 8 批判反哺。", "clipboardMatch": true, "btnTextAfterClick": "已复制", "feedbackAfterClick": "已复制到剪贴板", "copyStatusAfterClick": "复制提示: 已复制到剪贴板" }, "shots": ["screenshots-retest/r_t2_copy_feedback.png", "screenshots-retest/r_t2_copy_reverted.png"], "note": "本轮重点：真实 GUI 点击（非注入）→ navigator.clipboard.readText() 只读回读，剪贴板内容与期望 actionHint 逐字符一致；点击前系统剪贴板是无关内容（PyTorch 环境），证明写入确由本次点击产生" },
+    { "id": "T3.1", "name": "告警条健康时隐藏", "status": "PASS", "round1": "PASS", "dom": { "bannerHidden": true, "title": "", "reason": "", "conflicts": [] } },
+    { "id": "T4.1", "name": "JOURNEY_NOT_FOUND 数据通道", "status": "PASS", "round1": "PASS", "dom": { "cards": ["未找到 journey / 未找到 journey 文件（.tt-state/journey.json）/ 请先运行 /yy 0 初始化 journey"], "bannerHidden": true, "nextHidden": true }, "shot": "screenshots-retest/r_t4_notfound.png" },
+    { "id": "T5.1", "name": "PROJECTION_CONFLICT 双侧证据告警条", "status": "PASS", "round1": "PASS", "dom": { "title": "冲突：投影数据源矛盾（PROJECTION_CONFLICT）", "reason": "read 与 project 两侧步骤状态矛盾", "conflicts": ["read: 节点0 done", "project: 节点0 pending"] }, "shot": "screenshots-retest/r_t5_conflict.png" },
+    { "id": "T6.1", "name": "无注入数据不白屏(degraded, 原始 index.html)", "status": "PASS", "round1": "PASS", "dom": { "bannerHidden": false, "title": "降级：数据源不可用", "reason": "bridge payload 缺失（window.__YY_JOURNEY__ 未注入）", "bodyLen": 185, "gridChildren": 0, "phases": 0, "assets": 0 }, "shot": "screenshots-retest/r_t6_degraded.png", "note": "发现观察项 OBS-1（P3）：index.html 注释称手册『投影降级/notFound 时也照常装载』，但 main() 在 degraded/notFound 分支提前 return，loadGuideContent 不会执行（GUI 实测 phases=0/assets=0）；行为本身无害（有降级告警、不伪造数据），属注释与实现不一致" },
+    { "id": "T7.1", "name": "双主题(dark 模拟)", "status": "PASS", "round1": "PASS", "dom": { "lightBg": "rgb(255, 255, 255)", "darkBg": "rgb(17, 17, 17)", "darkFg": "rgb(242, 242, 242)", "darkBadgeBg": "rgb(138, 180, 248)", "nextSectionVisibleInDark": true }, "shot": "screenshots-retest/r_t7_dark.png" },
+    { "id": "T8.1", "name": "超长资产 description 不溢出", "status": "PASS", "round1": "BLOCKED", "dom": { "wide1280_overflowCount": 0, "narrow375_overflowCount": 0, "maxDescLen": 80, "measuredSelectors": [".asset-desc", ".asset-name", ".cluster-badge"] }, "shot": "screenshots-retest/r_t8_narrow_viewport.png", "note": "解除 DEFECT-2 阻断后 16 卡全部量测：1280px 与 375px 视口下 scrollWidth 均 ≤ clientWidth，零溢出。保留：黑盒禁注入，未追加合成超长文本（如 500 字符），压力来自 content.js 真实最长 80 字符描述 + 375px 窄视口" },
+    { "id": "T9.1", "name": "连点复制按钮不崩", "status": "PASS", "round1": "BLOCKED", "dom": { "rapidClicks": "#copy-next-prompt x10 真实点击 + 催办话术 x1 + 强制点名话术 x1", "aliveResult": 42, "copyButtons": 29, "copyStatusAfter": "强制点名话术: 已复制到剪贴板" }, "shot": "screenshots-retest/r_t9_after_rapid.png", "note": "解除 DEFECT-1+2 阻断后可达：连点后页面存活（JS 可执行 42），无崩溃无页面错误" },
+    { "id": "T10.1", "name": "触控区 >=44px", "status": "PASS", "round1": "PASS(带保留)", "dom": [{ "label": "复制提示", "minH": "44px", "minW": "44px", "w": 87, "h": 44, "visible": true }, { "label": "催办话术", "minH": "44px", "minW": "44px", "w": 87, "h": 48, "visible": true }, { "label": "重走等效 Prompt", "minH": "44px", "minW": "44px", "w": 100, "h": 48, "visible": true }], "note": "保留解除：按钮现已可见且真实渲染 87-100px 宽 / 44-51px 高，视觉与 DOM 量测一致（截图留证）" },
+    { "id": "T11.1", "name": "正文对比度 >=4.5:1", "status": "PASS", "round1": "PASS", "dom": { "fg": "rgb(26, 26, 26)", "bg": "rgb(255, 255, 255)", "ratio": 17.40 } },
+    { "id": "T11.2", "name": "状态徽章对比度", "status": "PASS", "round1": "PASS", "dom": { "fg": "rgb(255, 255, 255)", "bg": "rgb(11, 87, 208)", "ratio": 6.39 }, "shot": "screenshots-retest/r_t1_grid.png" },
+    { "id": "T12.1", "name": "瑞士网格多列布局", "status": "PASS", "round1": "PASS", "dom": { "gridColumns": 4 }, "shot": "screenshots-retest/r_t1_grid.png" },
+    { "id": "T12.2", "name": "零装饰(无阴影/无渐变)", "status": "PASS", "round1": "PASS", "dom": { "boxShadowEls": 0, "gradientEls": 0, "scannedEls": 302 } },
+    { "id": "T13.1", "name": "控制台错误收集(全程只读)", "status": "PASS", "round1": "PASS", "dom": { "errors": ["Failed to load resource: 404 (8102/index-mock.html 会话)", "Failed to load resource: 404 (8101/index.html 会话)"], "pageerror": 0, "requestfailed": 0 }, "note": "仅 2 次 404 资源错误，与第一轮相同为 favicon.ico 环境噪音（两台静态服务器均无 favicon）；全程零 JS 异常" }
+  ],
+  "defectsVerification": {
+    "DEFECT-1": { "severity": "P0", "fixCommit": "4102028", "verdict": "FIXED_VERIFIED", "evidence": "T2.1：#next-section 可见、hint/meta 完整渲染（目标节点/必需输入/snapshotHash）、#copy-next-prompt 可见可点（100x44px）；T2.2 真实点击成功写剪贴板" },
+    "DEFECT-2": { "severity": "P0", "fixCommit": "4102028", "verdict": "FIXED_VERIFIED", "evidence": "T1.3 phaseItems=6/6、T1.4 assetCards=16/16，GUIDE_CONTENT typeof=object（动态 import('./content.js') 装载成功），无装载错误告警" },
+    "DEFECT-3": { "severity": "P2", "fixCommit": "4102028", "verdict": "FIXED_VERIFIED", "evidence": "T2.2 下一步按钮 2s 后回落至 data-copy-label『复制提示』；补充跑：催办话术按钮 2s 后回落至『催办话术』而非硬编码『复制文本』；copyStatus 前缀均取 data-copy-label（『强制点名话术: 已复制到剪贴板』）" }
+  },
+  "newFindings": [
+    { "id": "OBS-1", "severity": "P3", "title": "degraded/notFound 分支手册不装载，与代码注释不一致", "detail": "index.html 注释称手册『投影降级/notFound 时也照常装载（手册不依赖注入数据）』，但 main() 在 view.degraded 与 view.notFound 分支提前 return，loadGuideContent 未执行；GUI 实测 degraded 页 phases=0/assets=0。行为无害（有显式降级告警、不伪造数据、不白屏），建议后续对齐注释或实现" }
+  ],
+  "clipboardVerification": {
+    "method": "playwright context.grantPermissions(['clipboard-read','clipboard-write'])（CDP 授权）→ 真实 locator.click() → navigator.clipboard.readText() 只读回读比对",
+    "injectionBypass": false,
+    "result": "VERIFIED：点击前系统剪贴板内容为无关文本（『搭建 PyTorch + CUDA 训练环境』），点击 #copy-next-prompt 后剪贴板变为完整 actionHint，逐字符一致"
+  }
+}

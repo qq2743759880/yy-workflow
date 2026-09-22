@@ -70,3 +70,11 @@
 - D-FIX2-3 教训自证（shim 反斜杠被 cmd 层吃 → String.fromCharCode(92) 构造，探针注释里留痕）
 - FIX-3 派单（validate 断言解耦 + P5 探针确定性），L1 已启动；executor.json↔orchestrator 正式接通（Owner 上次抓出的"过度推论"漏洞闭环）
 - 队列：FE×5 ✅、FIX-1/2/4 ✅、FIX-3 🔄、FE-3 复测 🔄、HARD×3 + BW×4（只入队）待命
+## 2026-09-22 崩溃恢复 + FIX-3/FE-3复测 重派收口
+- 两在飞 agent 崩溃（FIX-3 零产出、FE-3 复测零产出），盘点现场后重派
+- FIX-3 收口 PASS：区 B（validate H6 单源派生，063861a，编排者预落）+ 区 C（P5 确定性化：映射日志+注入命令形态+isolate warning，modes.exec 断言删除）；编排者 L2 亲自复跑探针 12/12 + validate 0 警告 + reference/ 9 文件恢复核验
+- FE-3 复测 PASS：三缺陷全 FIXED_VERIFIED（DEFECT-1/2/3），真剪贴板验证 PASS（grantPermissions + 真实点击 + readText 逐字符一致），19/19 全 PASS 零 BLOCKED（原 3 BLOCKED 解锁：长文本溢出/连点/触控区）
+- OBS-1（P3 仅记录）：degraded/notFound 分支提前 return 不执行 loadGuideContent，与 index.html 注释不一致——下游对齐
+- 限制声明：复测 agent 无图像输入能力，14 张截图仅文件级验证，视觉维度待有图像能力下游复核
+- 队列：FE×5 ✅、FIX×4 ✅、FE-3 复测 ✅；HARD×3 + BW×4 只入队待命
+- GitHub push 恢复：1ed42d9..063861a 已推（代理恢复）
