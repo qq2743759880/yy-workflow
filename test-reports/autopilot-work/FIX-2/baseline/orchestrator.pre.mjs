@@ -20,8 +20,6 @@ import { runDeconstructFlow, normalizeDraft, validateDraft, formatErrors } from 
 import { approveDraft, printApprovalSummary, printDraft } from './lib/approve.mjs';
 import { createTui } from './lib/tui.mjs';
 import { readJourney, newJourney, ensureSteps, journeyPath, updateJourney, prereqCheck, withJourneyLock } from './tt-journey.mjs';
-// FIX-2：Windows shim 解析单点复用（cli 命令名 → 可 spawn 形态），与 exec-host/adapter 同一实现
-import { resolveCommandShim } from './lib/adapters/util.mjs';
 // B7（T6 接线）：核心循环改用 lib/orchestrator.mjs 的 A2 纯逻辑（parseArgs/validateOpts/
 // isOpenApiSpec/parseBacklogRows/backlogIsPending 逐字等价，planDryRun 已差分验证）；
 // 删除顶层内联副本，单点维护。新路径（phase 门/change.record/--evolve）全部旗标制，默认 no-op。
@@ -37,59 +35,6 @@ const EXIT_APPROVAL_ABORTED = 6;
 function usage() { console.log('Usage: node scripts/orchestrator.mjs --task TASK [--workspace PATH] [--backend auto|prompt|cli] [--exec PROG [ARGS...]] [--exec-timeout N] [--max-retries N] [--hosts "HOST1,HOST2..."] [--parallel [N]] [--contract OPENAPI.json] [--plan] [--draft DRAFT.json] [--tui] [--no-tui] [--dry-run] [--verbose] [--resume] [--validate]'); console.log('--plan: 自动拆解 + 逐 task 审批后冻结进编排（与 --resume 互斥；可组合 --exec 宿主拆解或 --draft 草案文件/手动粘贴）。--plan --dry-run 只打印草案与审批摘要，不写任何文件。'); console.log('--tui: 执行时叠加实时 DAG 视图（纯 ANSI 自绘，状态色 + 瓶颈反色；仅叠加渲染，不改变执行语义）。非 TTY 自动降级为一次性静态文本；TT_TUI=off 或 --no-tui 完全不渲染。独立复盘用 node scripts/tt-tui.mjs [--workspace PATH]。'); console.log('--exec 后的未知 --flag/值会原样透传给宿主（如 --model gpt-5.6-luna，供 exec-host-a6api.mjs 跨模型批判）；已知编排器参数（--task/--workspace 等）会结束透传段。'); console.log('--hosts: 逗号分隔的备选宿主命令（如 "node exec-host-openclaw.mjs,node exec-host-a6api.mjs --model gpt-5.6-luna"）；主宿主(--exec/config executor.command)失败时自动按序换宿主/换模型重试（失败自动恢复），全失败 → 诚实降级 degraded + warning。也可在 config.json 的 executor.hosts（数组，每项 command 数组）固化。'); }
 async function readConfig() {
   try { return JSON.parse(await fs.readFile(path.join(SKILL_DIR, 'config.json'), 'utf8')); } catch (error) { if (error.code === 'ENOENT') return null; throw error; }
-}
-
-// ---------------------------------------------------------------------------
-// FIX-2（executor.json↔orchestrator 接线）：读 <workspace>/.tt-state/executor.json，
-// 把向导输出（schema tt/executor-config@1，scripts/executor-setup.mjs 写入）的 cli/model
-// 映射为 --exec / --hosts 缺省。此前 orchestrator 只读 config.json 的 executor.command/hosts，
-// 向导输出从未被消费（编排者过度推论闭环）。
-//   优先级：显式命令行 > executor.json > config.json > 无（runtime.resolveHosts 同构）。
-//   纪律（派单约束 1-3）：
-//   1. presence≠可用：cli 只映射命令名（经 resolveCommandShim 解析 Windows shim），
-//      不做可用性推断、不自动跑 roundtrip；
-//   2. cli 不在已知清单 → warning + 跳过（fail-soft，不阻断）；
-//   3. isolate 字段只透传登记（warning 提示「隔离未实施」），不改变 spawn 行为。
-// ---------------------------------------------------------------------------
-
-/** executor.json 已知 CLI 清单单点引用（executor-setup.mjs 导出；清单/schema 漂移只有一处维护点）。 */
-const EXECUTOR_KNOWN_CLIS = await import('./executor-setup.mjs').then(function(m) { return m.KNOWN_CLIS; }).catch(function() { return ['claude', 'codex', 'openclaw', 'cursor', 'trae', 'opencode']; });
-
-/**
- * 读 executor.json 并映射缺省。返回 {exists, corrupt, cli, model, isolate, mode, exec, source}。
- * - 文件缺失 → { exists:false }（调用方跳过，行为与现状一致）；
- * - JSON 损坏 → { corrupt:true }（warning 不猜内容，不阻断）；
- * - exec = cli 映射出的命令数组（未知 cli / mode 非 B-cli / cli 缺失 → null）。
- */
-async function readExecutorDefaults(workspace) {
-  const file = path.join(workspace, '.tt-state', 'executor.json');
-  let doc = null;
-  try { doc = JSON.parse(await fs.readFile(file, 'utf8')); }
-  catch (error) {
-    if (error.code === 'ENOENT') return { exists: false, corrupt: false, exec: null };
-    return { exists: true, corrupt: true, exec: null };
-  }
-  const out = { exists: true, corrupt: false, exec: null };
-  if (!doc || typeof doc !== 'object' || Array.isArray(doc)) { out.corrupt = true; return out; }
-  out.cli = typeof doc.cli === 'string' ? doc.cli : null;
-  out.model = typeof doc.model === 'string' ? doc.model : null;
-  out.isolate = doc.isolate === undefined ? null : doc.isolate;
-  out.mode = typeof doc.mode === 'string' ? doc.mode : null;
-  // 只有 B-cli 模式（本机 CLI 子代理）才有命令形态可映射；A-direct（编排者直执行）/C-handoff（手动交接）
-  // 不派宿主命令——映射了反而改变行为（向导选 A/C 的用户没有宿主可派）。
-  if (out.mode && out.mode !== 'B-cli') return out;
-  if (!out.cli || !out.cli.trim()) return out;
-  out.cli = out.cli.trim();
-  // fail-soft：cli 不在已知清单 → warning + 跳过（不推断、不猜测命令形态）
-  if (!EXECUTOR_KNOWN_CLIS.includes(out.cli)) { out.unknownCli = true; return out; }
-  // 只映射命令名（presence≠可用：不做可用性推断，不跑 roundtrip）；resolveCommandShim 解析
-  // Windows .cmd shim（与 exec-host-generic/adapter 同一入口），非 win32 或未定位 → 裸名。
-  // resolveCommandShim 语义是 spawn(shim.command, shim.prefix.concat(argv))——程序名在前、
-  // shim 前缀随后；编排器 --exec 契约是「exec[0] 为程序名、其余为固定前缀参数」（brief 追加在末尾），
-  // 故规范化为 [command, ...prefix]（与 exec-host-generic 的 entry 用法同构，不能倒置为 [prefix..., command]）。
-  const shim = resolveCommandShim(out.cli);
-  out.exec = [shim.command].concat(shim.prefix);
-  return out;
 }
 /**
  * FR-3 前端按契约实现（契约硬前置）：对「调用后端接口的前端实现」子任务，
@@ -563,34 +508,14 @@ async function main() {
   const logger = createLogger(opts.verbose);
   // workspace 落产物/状态；默认取 config.json 的 projectRoot，未配置则当前目录。vendor 资产始终用随包副本。
   const cfg = await readConfig();
-  let workspaceArg = opts.workspace;
-  if (workspaceArg === '.' && cfg && cfg.projectRoot && !String(cfg.projectRoot).includes('<')) workspaceArg = cfg.projectRoot;
-  const workspace = path.resolve(workspaceArg);
-  const store = createStore(workspace);
-  // FIX-2：executor.json 接线。优先级（两个缺省槽各自成立）：显式命令行 > executor.json > config.json > 无。
-  // executor.json 是「workspace 级」配置，按最终 workspace 读取；向导输出是新近用户意图，优先于 config 旧缺省。
-  const ex = await readExecutorDefaults(workspace);
-  opts.executorDefaults = { cli: ex.cli || null, model: ex.model || null, isolate: ex.isolate === undefined ? null : ex.isolate, mode: ex.mode || null, corrupt: ex.corrupt === true, source: ex.exists ? path.join('.tt-state', 'executor.json').replace(/\\/g, '/') : null };
-  if (ex.corrupt) logger.warn('executor.json 存在但不可解析（损坏）——忽略，不猜内容（fail-soft）：' + path.join(workspace, '.tt-state', 'executor.json'));
-  if (ex.unknownCli) logger.warn('executor.json 的 cli=' + ex.cli + ' 不在已知清单（' + EXECUTOR_KNOWN_CLIS.join('/') + '）——跳过映射，不推断命令形态（presence≠可用）；如需宿主请显式 --exec');
-  // 约束 3：isolate 只透传登记，不改 spawn 行为
-  if (ex.isolate !== undefined && ex.isolate !== null) logger.warn('executor.json 的 isolate=' + JSON.stringify(ex.isolate) + ' 仅登记（executorDefaults.isolate）——隔离未实施，spawn 行为不变');
-  // --exec 缺省槽：executor.json > config.json（显式 --exec 时不映射）
-  if (!opts.exec && ex.exec) {
-    opts.exec = ex.exec;
-    logger.info('executor defaults (--exec from executor.json): ' + ex.exec.join(' ') + (ex.model ? '（model=' + ex.model + '，仅登记不注入——模型偏好属宿主自身配置）' : ''));
-  }
   if (!opts.exec && cfg && Array.isArray(cfg.executor && cfg.executor.command) && cfg.executor.command.length) opts.exec = cfg.executor.command;
   if (opts.execTimeoutMs === undefined && cfg && cfg.executor && Number.isInteger(cfg.executor.timeoutMs) && cfg.executor.timeoutMs > 0) opts.execTimeoutMs = cfg.executor.timeoutMs;
   // P1 失败自动恢复：config.json executor.hosts 为备选宿主来源（优先级低于命令行 --hosts，dispatch 内 resolveHosts 裁决）
   if (cfg && Array.isArray(cfg.executor && cfg.executor.hosts) && cfg.executor.hosts.length) opts.configHosts = cfg.executor.hosts;
-  // --hosts 缺省槽：executor.json > config.json（显式 --hosts 时不注入；同一命令与主宿主在
-  // resolveHosts/retryAcrossHosts 按 commandKey 去重，主宿主成功时备选链零额外行为）。
-  // 注意 opts.hosts 是「逗号分隔字符串」形态（命令行语义）；executor.json 注入走 opts.configHosts 数组形态。
-  if (ex.exec && (!opts.hosts || !String(opts.hosts).trim())) {
-    opts.configHosts = [ex.exec.slice()];
-    logger.info('executor defaults (--hosts from executor.json): ' + ex.exec.join(' '));
-  }
+  let workspaceArg = opts.workspace;
+  if (workspaceArg === '.' && cfg && cfg.projectRoot && !String(cfg.projectRoot).includes('<')) workspaceArg = cfg.projectRoot;
+  const workspace = path.resolve(workspaceArg);
+  const store = createStore(workspace);
   logger.info('state: idle');
   // --contract（绿地 OpenAPI）与 --contract-draft（棕地草案）互斥
   if (opts.contract && opts.contractDraft) { console.error('--contract 与 --contract-draft 互斥：真 OpenAPI 走真校验，棕地草案走降级确认'); return EXIT.ARGS; }

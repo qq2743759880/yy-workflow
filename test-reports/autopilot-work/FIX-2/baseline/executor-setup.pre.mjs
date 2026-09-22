@@ -64,16 +64,6 @@ const ROUNDTRIP_DEFAULT_TIMEOUT = 60000;
 /** executor.json schema 名（版本化，schema 漂移显式可见）。 */
 const EXECUTOR_SCHEMA = 'tt/executor-config@1';
 
-/**
- * FIX-2（executor.json↔orchestrator 接线）：schema 名与已知 CLI 清单单点导出。
- * orchestrator.mjs 启动时读 <workspace>/.tt-state/executor.json 把 cli 映射为 --exec 缺省，
- * 引用本导出而非各自维护字面量——schema 漂移 / 清单变更只有这一处。
- * 只导出常量，不改本向导任何既有行为（CLI > config.json 缺省映射在 orchestrator 侧实现）。
- */
-export { EXECUTOR_SCHEMA };
-/** 已知 CLI 清单（= TARGETS；presence≠可用，orchestrator 只映射命令名不做可用性推断）。 */
-export const KNOWN_CLIS = TARGETS.slice();
-
 /** roundtrip brief 内容：良性"回复 OK"，显式禁工具禁文件（纪律：探测不执行任何仓库代码）。 */
 const ROUNDTRIP_BRIEF = '这是一次连通性自检（连通性探测 brief）。请忽略任务语义，不要使用任何工具，不要读写任何文件，只回复两个字符：OK';
 
