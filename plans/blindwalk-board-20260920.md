@@ -4,10 +4,10 @@
 
 | task | 依赖 | 状态 | 盲行者 | 坑数 | 修复 task | 复验 |
 |---|---|---|---|---|---|---|
-| BW-1 全流程直跑（阶段 0→5 完整闭环，真项目：ChatGPT 本地文件审查助手） | 无 | ⏳ 派单就绪 | 执行平台 A | - | - | - |
-| BW-2 多分支 --session 第二小项目 | BW-1 | ⏸ blocked | 执行平台 A | - | - | - |
-| BW-3 资产零调用纠正场景（模糊 Prompt + Owner 依手册催办） | BW-1 | ⏸ blocked | 执行平台 B | - | - | - |
-| BW-4 中途断点重入（BW-1 中途杀会话再恢复） | BW-1 | ⏸ blocked | 执行平台 B | - | - | - |
+| BW-1 全流程直跑（阶段 0→5 完整闭环，真项目：ChatGPT 本地文件审查助手） | 无 | ✅ done（lpr 交付 32/32，16 坑） | 本会话 agent | 16 | BFX-A/B/C | ✅ |
+| BW-2 多分支 --session 第二小项目 | BW-1 | ✅ done（ledger 交付 49/49 三线隔离，20 坑） | 本会话 agent | 20 | BFX-A | ✅ |
+| BW-3 资产零调用纠正场景（模糊 Prompt + Owner 依手册催办） | BW-1 | ✅ done（file-tidy 交付 42/42，10 坑） | 本会话 agent | 10 | BFX-B/C | ✅ |
+| BW-4 中途断点重入（BW-1 中途杀会话再恢复） | BW-1 | ✅ done（passgen 交付 32/32，两段式断点重入成功） | 本会话 agent | 7 | BFX-A/C | ✅ |
 
 坑登记（来自 issues.md，编排者复现后分类）：
 

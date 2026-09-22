@@ -1,0 +1,50 @@
+{
+  "generatedAt": "2026-09-22T12:53:43.912Z",
+  "current": {
+    "ttJourneySha16": "9241030310a99bbd"
+  },
+  "pass": 8,
+  "fail": 0,
+  "rows": [
+    {
+      "name": "P1 会话隔离：--session a/b 各自 --update --step 0 落各自文件，共享 journey.json 不建",
+      "ok": true,
+      "detail": "exitA=0 exitB=0 a.step0=done b.step0=done 共享文件存在=false"
+    },
+    {
+      "name": "P2 不带 --session 的 --update 仍写共享 .tt-state/journey.json（零变化）",
+      "ok": true,
+      "detail": "exit=0 共享 step0=done"
+    },
+    {
+      "name": "P3 空工作区首跑 --prereq-check --step 0 → AUTO-INIT + 基线（等价 --update --step 0）+ exit 0 不死锁",
+      "ok": true,
+      "detail": "exit=0 AUTO-INIT=true 基线step0done=true"
+    },
+    {
+      "name": "P4 第二次 --prereq-check --step 0 幂等（无重复 AUTO-INIT，文件字节不变）",
+      "ok": true,
+      "detail": "exit=0 AUTO-INIT次数=0 字节不变=true"
+    },
+    {
+      "name": "P5 会话首跑：--session s1 --prereq-check --step 0 → 基线落 .tt-state/s1/journey.json，共享不建",
+      "ok": true,
+      "detail": "exit=0 AUTO-INIT=true s1.step0=done 共享存在=false"
+    },
+    {
+      "name": "P6 --session b --prereq-check --step 1 读 b 的 journey（step0 done → OK），a 文件不串写，共享不建",
+      "ok": true,
+      "detail": "exit=0 无AUTO-INIT=true a字节不变=true 共享存在=false"
+    },
+    {
+      "name": "P7 空工作区 --prereq-check --step 3 → AUTO-INIT 建基线后照常拦截（exit 1）",
+      "ok": true,
+      "detail": "exit=1 AUTO-INIT=true stderr拦截=true"
+    },
+    {
+      "name": "P8 --session b --update --step 1 --gate concept-signed → 写 b（前置链成立），a step1 仍 pending，共享不建",
+      "ok": true,
+      "detail": "exit=0 b.step1=done/concept-signed a.step1=pending 共享存在=false"
+    }
+  ]
+}

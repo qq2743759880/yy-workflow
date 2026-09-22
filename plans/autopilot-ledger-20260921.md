@@ -29,3 +29,11 @@
 - [P2] D-H2-4: docs/history 等 113 历史文档按安装面现状反推口径保留在发布面；如认定非发布面，EXCLUDE_DIRS 增一行即生效
 | LEAK-1 | PASS | agent_5ddab340 | orchestrator-L2(全量) | 2026-09-22T09:00:00Z | GRANDFATHER_BASELINE 清单 31 文件; scripts/make-release.mjs（基线复位）; test-reports/autopilot-work/LEAK-1/RESULTS.md |
 - [P2] D-LEAK-1-①: 67 处审计命中 scrub 至 0（69 处字面替换，含 2 处非计数 /Users/ 引述按语义一并清）；冻结例外=0（7 个"冻结"字样文件均为领域语义非文件级冻结标记）；基线常量置空、机制保留
+| BFX-A | PASS | agent_8c6a1391 | orchestrator-L2(串行终验) | 2026-09-22T10:30:00Z | scripts/tt-journey.mjs; test-reports/autopilot-work/BFX-A/RESULTS.md; test-reports/autopilot-work/BFX-A/run-probes.mjs |
+- [P2] D-BFXA-2: 默认渲染分支（无子命令）未接 --session（坑单范围外）；D-BFXA-3: updateJourney 既有 [DEBUG] stdout 噪声由编排者直修删除（收口）
+| BFX-B | PASS | agent_dc1aab40 | orchestrator-L2(串行终验) | 2026-09-22T10:30:00Z | scripts/review-gate.mjs; test-reports/autopilot-work/BFX-B/RESULTS.md |
+- [P2] D-BFXB-1: tasksDir 默认值一并跟随 --dir（同 bug 家族顺修）；D-BFXB-4: 9 列判定语义未放松（只加格式诊断提示）
+| BFX-C | PASS | agent_1cbebcdc | orchestrator-L2(串行终验) | 2026-09-22T10:30:00Z | SKILL.md; reference/dispatch-and-acceptance.md §5.7; reference/frontend-gate.md §6.7; test-reports/autopilot-work/BFX-C/RESULTS.md |
+- [P2] D-BFXC-1: 派单引用的"既定纪律"悬空短语实测不存在，按修复意图补建；D-BFXC-3: dispatch-and-acceptance.md 2000/2000 tok 压线（4 处既有行等义压缩腾位）
+| ACC-1 | PASS | orchestrator(直修终验) | orchestrator-L2 | 2026-09-22T10:45:00Z | 发布重生成（PURGED=1 LEAK 0+0）；junction 冒烟 4/4；安装面 tt-journey byte 归一（BW-2 漂移补丁覆盖）；空壳 plans/ 目录清除；regression 13/13 + validate 0 + FIX-2 探针 12/12 + BFX-A 探针 8/8 串行终验 |
+| DOC-1 | PASS | orchestrator | Owner(待复核) | 2026-09-22T10:45:00Z | plans/closeout-20260922.md; plans/blindwalk-board-20260920.md; test-reports/autopilot-work/BW-{1,2,3,4}/session-notes.md |

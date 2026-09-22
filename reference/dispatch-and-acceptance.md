@@ -27,7 +27,7 @@
 - **验收即出下一任务 prompt（强制）**：每完成一个任务验收，必须同时生成并输出下一任务开工 prompt（双件套）。
 - **跨平台切换返工循环**：同一 task 不过，不在原平台反复改——按"切平台→修→再测"推进直到通过；N=1 时切换子 agent/视角。
 - 纪律：每任务完成必须等验收指令才能做下一任务；员工跳序/连做 → 核查后纠正看板 + 注入记忆 + 追加纪律。
-- **资产调用硬约束（2026-09-02 加强）**：开工 prompt 列**具名资产路径**；完工报告**必含「资产消费证据」段**；产物须含**资产锚点 + ≥1 内核词**（`assetConsumed` 机验）。未消费资产 = 验收不通过 → 返工。编排者用 `scripts/asset-call-rate.mjs` 测调用率。
+- **资产调用硬约束**：开工 prompt 列**具名资产路径**；完工报告**必含「资产消费证据」段**；产物须含**资产锚点 + ≥1 内核词**（`assetConsumed` 机验）。未消费资产 = 验收不通过 → 返工。编排者用 `scripts/asset-call-rate.mjs` 测调用率。
 - **完工前自检（critique 三视角）**：子 agent 交付前按 `vendor/review/SKILL.md` critique 内核过一遍自己的改动（交互态/边界/错误反馈三视角），发现问题先修再交。
 
 ## 5.3 测试 agent（验收调度员）
@@ -42,10 +42,10 @@
 - **契约冻结机器校验**：`gate.mjs` 对契约文件做 hash 比对——被篡改 → `ContractViolationError` → **exit 4**。
 - **契约级 cascade（C-1）**：契约缺失 → `CONTRACT_NOT_FROZEN` skip；下游 cascade skip（`DEP_CONTRACT_NOT_FROZEN`），计划 `failed`（exit 5）。
 - **棕地契约模式**：`scripts/contract-reverse.mjs` 反推草案 → `--contract-draft`（前端凭草案开工）→ 后端确认后 `--contract` 升级；差异用 `scripts/contract-discrepancy.mjs` 上浮。
-- **一键回归/CI**：`node scripts/regression-all.mjs` 8 段回归；`node scripts/ci.mjs` = validate + review-gate + plan-review + regression-all。
+- **一键回归/CI**：`node scripts/regression-all.mjs` 全量回归；`node scripts/ci.mjs` = validate + review-gate + plan-review + regression-all。
 - **资产消费证据强化（D-1）**：带 `## Execution kernel` 的资产，产物须含**锚点 且 ≥1 内核词**（culori/semgrep 等）才计 `assetConsumed=true`；`regression-all` S8 断言。
 - **可验证边界**：所有判定给可机验客观边界（依赖图边 / git diff 交集 / 退出码 / 契约 hash），禁止仅凭主观。
-- **宿主 CLI 认证（真实教训）**：改用户代理配置前先备份、只经 env/CLI 参数接入、不写宿主配置——曾误改 `~/.claude/settings.json` 致 claude `Not logged in`。
+- **宿主 CLI 认证（真实教训）**：改用户代理配置前先备份、只经 env/CLI 参数接入、不写宿主配置——曾误改致 claude `Not logged in`。
 
 ## 5.5 产物落盘（引用传递，不复制内容）
 
@@ -62,4 +62,11 @@
 1. 每条验收批判（P2+）产出时，必须在 `plans/critique-backlog-tracker.md` 登记：修复措施 + 落点任务 + 验收指标。
 2. 滞后任务文档「批判承接」段引用 tracker；开工 prompt「必读」含 tracker 路径。
 3. 完工报告新增「批判承接核对」段；验收时逐条核对，未完成项标注 ❌ 不予 DONE。
-4. **开工前强制拉取待优化执行项**：`node $SKILL_DIR/scripts/critique-backlog-next.mjs [--task "<任务关键词>"]` 输出「⬜ 待落地」C-xx 清单；任务命中某 C-xx 时，完工报告「批判承接核对」段必须列完成证据，未完成标 ❌ 不予 DONE；无重叠写"无承接项"。
+4. **开工前拉取待优化执行项**：`node $SKILL_DIR/scripts/critique-backlog-next.mjs [--task "<关键词>"]` 输出待落地 C-xx 清单；任务命中某 C-xx → 完工报告批判承接核对段列完成证据，缺项 ❌ 不予 DONE；无重叠写"无承接项"。
+
+## 5.7 Owner 缺席代推进纪律（escape hatch）
+
+1. 决策点问一次（不复述等待）；无响应 → 取保守推荐默认值推进。
+2. 代签决策标注 `[待确认 owner]`；gate 记「代推进」，不冒充 owner 签收（不写 APPROVED）。
+3. 白话版补审页（概念/前提 plain 版）留给 owner，恢复在场后补审。
+4. 冻结契约变更不走代签，登记变更单待 Owner 批；唯一例外：向后兼容且不违约的数据正确性修复可先行并留痕待追认。

@@ -24,7 +24,7 @@
 | id | task | 白名单 | 状态 | 验收要点 |
 |---|---|---|---|---|
 | FIX-1 | 坑#2：六个命令文件前置机验补 `--workspace "$PROJECT_ROOT"` 语义（或等价 env 兜底，择一申报）；SKILL.md 注入纪律行同步 | commands/yy-*.md、SKILL.md、（如走 env）scripts/tt-journey.mjs | ✅已收（L2 PASS，方案A；P2×2） | 盲行沙箱复现：非 yy cwd 下 prereq-check 读到项目工作区 journey |
-| FIX-2 | executor.json↔orchestrator 接线：orchestrator 读 `<ws>/.tt-state/executor.json` 的 cli/模型偏好，映射到 --exec/config 段（presence≠可用，禁自动 roundtrip） | scripts/orchestrator.mjs、scripts/executor-setup.mjs | ⏳ | 向导选 claude→dry-run 派单命令确实变化；两文件隔离互不越权 |
+| FIX-2 | executor.json↔orchestrator 接线：orchestrator 读 `<ws>/.tt-state/executor.json` 的 cli/模型偏好，映射到 --exec/config 段（presence≠可用，禁自动 roundtrip） | scripts/orchestrator.mjs、scripts/executor-setup.mjs | ✅已收（L2 PASS，P1×1 P5 非确定性→FIX-3） | 向导选 claude→dry-run 派单命令确实变化；两文件隔离互不越权 |
 
 ## W2 修复批 B（工匠 agent ×1）
 
@@ -47,7 +47,7 @@
 
 | id | task | 状态 |
 |---|---|---|
-| BW-1 | 全流程盲行（ChatGPT 本地项目审查助手；prompt 见 blindwalk 协议 §2.2） | ⏳ |
+| BW-1 | 全流程盲行（ChatGPT 本地项目审查助手；prompt 见 blindwalk 协议 §2.2） | ✅已收（lpr 交付 32/32，16 坑→BFX） |
 
 验收 = session-notes 坑清单 + workspace/journey 取证 + db 日志复现；坑登记看板。
 
@@ -55,31 +55,31 @@
 
 | id | task | 状态 |
 |---|---|---|
-| BFX-1 | （BW-1 坑#1 修复——波门填写 brief） | ⏳占位 |
-| BFX-2 | （BW-1 坑#2 修复） | ⏳占位 |
-| BFX-3 | （视坑数增删，≤4 个） | ⏳占位 |
+| BFX-A | tt-journey --session 四分支接线 + 首跑 AUTO-INIT（BW 坑单 P0/P1） | ✅已收（探针 8/8） |
+| BFX-B | review-gate tracker 跟随 --dir + URL/格式诊断加固（BW 坑单 P0/P2） | ✅已收 |
+| BFX-C | owner 缺席纪律落文档 + 首跑说明 + 无 UI gate 口径（BW 坑单 P1/P2） | ✅已收（SKILL 809 tok） |
 
 ## W6-W8 盲行 2-4（**只入队不执行**）
 
 | id | task | 状态 |
 |---|---|---|
-| BW-2 | 多分支 --session 盲行（第二小项目） | ⏳ |
-| BW-3 | 资产零调用纠正场景（模糊 prompt，看盲行者/owner 依手册自救） | ⏳ |
-| BW-4 | 断点重入（中途杀会话再恢复） | ⏳ |
+| BW-2 | 多分支 --session 盲行（第二小项目） | ✅已收（ledger 49/49 三线隔离，20 坑→BFX-A） |
+| BW-3 | 资产零调用纠正场景（模糊 prompt，看盲行者/owner 依手册自救） | ✅已收（file-tidy 42/42，10 坑→BFX-B/C） |
+| BW-4 | 断点重入（中途杀会话再恢复） | ✅已收（passgen 32/32，两段式重入成功，7 坑） |
 
 ## W9 动态修复槽（工匠 agent ×1）
 
 | id | task | 状态 |
 |---|---|---|
-| BFX-4..6 | （BW-2/3/4 的坑，波门填写） | ⏳占位 |
+| BFX-4..6 | （余坑已按 P2 残留登记于 closeout-20260922.md §二，不修） | ➖坍缩 |
 
 ## W10 终验收口（工匠 agent ×1 + 编排者）
 
 | id | task | 状态 |
 |---|---|---|
-| ACC-1 | 全量回归 + junction 冒烟 + 发布目录重生成终验 | ⏳ |
-| DOC-1 | 看板/队列收口报告 + 记忆更新 + Owner 复核包 | ⏳ |
+| ACC-1 | 全量回归 + junction 冒烟 + 发布目录重生成终验 | ✅已收（13/13+冒烟4/4+发布0泄漏+byte归一） |
+| DOC-1 | 看板/队列收口报告 + 记忆更新 + Owner 复核包 | ✅已收（closeout-20260922.md） |
 
 ## 进度线
 
-- [ ] W1　- [ ] W2　- [ ] W3　- [ ] W4　- [ ] W5　- [ ] W6-W8　- [ ] W9　- [ ] W10
+- [x] W1　- [x] W2　- [x] W3　- [x] W4　- [x] W5　- [x] W6-W8　- [x] W9　- [x] W10（全队列收口 2026-09-22）

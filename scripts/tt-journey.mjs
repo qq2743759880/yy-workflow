@@ -144,7 +144,6 @@ export async function updateJourney({ workspace, sessionId, step, gate, artifact
       journey.plans.push({ planId: '__manual__', status: 'prereq-bypassed', updatedAt: nowIso(), reason: chk.reason });
     }
     await writeJourneyFile(workspace, journey, sessionId);
-    console.log('[DEBUG] reached stageVerification block, workspace=' + workspace);
     // H7 补全：--update 路径自动写 stageVerification（与 orchestrator syncJourney 同级，非 agent 自填）
     const stageVerification = {
       verified: chk.ok,
@@ -172,6 +171,26 @@ async function writeJourneyFile(workspace, journey, sessionId) {
   const file = journeyPath(workspace, sessionId);
   await fs.mkdir(path.dirname(file), { recursive: true });
   await fs.writeFile(file, JSON.stringify(journey, null, 2));
+}
+
+/**
+ * BFX-4 首跑自动初始化：journey.json 缺失时，--prereq-check 创建等价于
+ * --update --step 0 的基线状态（step0 done，其余 pending，plans 空），落盘。
+ * 幂等：持锁后二次确认文件仍不存在才写（并发下他人先建则直接复用）；
+ * 显式 --update 行为零变化（该分支不经过此函数）。
+ */
+async function autoInitBaseline(workspace, sessionId) {
+  return withJourneyLock(workspace, sessionId, async function() {
+    let journey = await readJourney(workspace, sessionId);
+    if (journey) return journey;
+    journey = newJourney();
+    journey.steps = ensureSteps(journey);
+    journey.steps[0].status = 'done';
+    journey.steps[0].updated_at = nowIso();
+    journey.updated_at = nowIso();
+    await writeJourneyFile(workspace, journey, sessionId);
+    return journey;
+  });
 }
 
 /**
@@ -528,11 +547,13 @@ async function main() {
   if (has('prereq-check')) {
     const n = Number(arg('step'));
     if (!Number.isInteger(n) || n < 0 || n > 8) { console.error('--prereq-check 需要 --step <0-8>'); process.exitCode = 2; return; }
-    const journey = await readJourney(workspace);
+    const sid = arg('session'); // BFX-2：与 --read/--project 分支同语义，session 路径为 .tt-state/<sid>/journey.json
+    let journey = await readJourney(workspace, sid);
     if (!journey) {
-      console.error('journey 未初始化（先跑 orchestrator 或 --update）');
-      process.exitCode = 1;
-      return;
+      // BFX-4 首跑自动初始化：基线等价 --update --step 0（幂等），消除 prereq-check 死锁；
+      // AUTO-INIT 走 stdout，后续检查照常进行，exit 语义不变。
+      journey = await autoInitBaseline(workspace, sid);
+      console.log('AUTO-INIT: journey 未初始化，已自动创建基线（等价 --update --step 0）→ ' + journeyPath(workspace, sid));
     }
     journey.steps = ensureSteps(journey);
     const r = prereqCheck(journey, n);
@@ -544,10 +565,11 @@ async function main() {
   if (has('update')) {
     const step = arg('step');
     if (step === undefined) { console.error('--update 需要 --step <0-8>'); process.exitCode = 2; return; }
+    const sid = arg('session'); // BFX-2：session 隔离，更新写 .tt-state/<sid>/journey.json；缺省仍写共享 journey.json
     try {
-      const journey = await updateJourney({ workspace, step: Number(step), gate: arg('gate'), artifact: arg('artifact'), force: has('force') });
+      const journey = await updateJourney({ workspace, sessionId: sid, step: Number(step), gate: arg('gate'), artifact: arg('artifact'), force: has('force') });
       console.log(renderJourney(journey));
-      console.log('journey 已更新：' + journeyPath(workspace));
+      console.log('journey 已更新：' + journeyPath(workspace, sid));
       process.exitCode = 0;
     } catch (error) {
       if (error instanceof PrereqError) { console.error('prereq 未满足: ' + error.message); process.exitCode = 3; return; }

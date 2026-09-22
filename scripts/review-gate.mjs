@@ -29,7 +29,10 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
-const URL_RE = /https?:\/\/\S+/i;
+/* P2-1（BFX-B）：URL 终止符加中英文标点边界——`\S+` 会把「https://x.com/a（注）」整段吞成 URL，
+ * 后续可达性探测必 404（误杀真实对标）。现排除 CJK 标点区（U+3000-U+303F：。、《》「」【】等）与
+ * 全角区（U+FF00-U+FFEF：（）！？；，等）及引号/尖括号；合法 URL 字符（字母数字 -._~:/?#[]@!$&'()*+,;=%）不受影响。 */
+const URL_RE = /https?:\/\/[^\s\u3000-\u303f\uff00-\uffef"'<>]+/i;
 const DATE_RE = /\b\d{4}[-/]\d{1,2}[-/]\d{1,2}\b/;
 const LEVEL_RE = /\bP[012]\b/i;
 
@@ -296,6 +299,13 @@ export function parseCritique(text) {
 
 const TRACKER_PATH = ['plans', 'critique-backlog-tracker.md'];
 const TASKS_DIR = ['docs', 'history', 'tasks'];
+
+/** 工作区相对路径解析（BFX-1）：跟随 --dir 指向的项目工作区；未指定 --dir 时 dir=ROOT（默认行为向后兼容）。
+ *  修复前硬编码 path.join(ROOT, ...)，外部工作区跑批判 gate 时 tracker 读取/登记落在技能安装目录 → 必 FAIL。
+ *  显式注入（trackerPath/tasksDir 形参，自测走临时目录）仍最优先。 */
+export function resolveWorkspacePath(dir, relSegments, override) {
+  return override || path.join(path.resolve(dir || ROOT), ...relSegments);
+}
 const CRIT_HEADER_RE = /^#{2,4}\s+C\d+\s*[:.\-]?\s*/i;
 const NUM_ITEM_RE = /^\s*\d+[.、)]\s+\S/;
 
@@ -507,14 +517,15 @@ export function buildTaskDoc(entry, { serial, file, taskDoc }) {
 }
 
 /** 登记核心：解析批判文件 → 按「来源文件名+批判标题」查重 → 追加 tracker 行 + 生成任务文档。
- *  trackerPath/tasksDir 可注入（自测走临时目录，避免写仓库）；默认 ROOT 下 plans/ 与 docs/history/tasks/。 */
+ *  trackerPath/tasksDir 可注入（自测走临时目录，避免写仓库）；默认跟随 dir（BFX-1：--dir 工作区，
+ *  未指定 --dir 时 dir=ROOT 向后兼容）下的 plans/ 与 docs/history/tasks/。 */
 export function registerFromFiles({ dir, id, trackerPath, tasksDir }) {
   const read = (f) => { try { return fs.readFileSync(path.join(dir, f), 'utf8'); } catch { return null; } };
   const critiqueFile = `${id}-技术批判.md`;
   const critiqueText = read(critiqueFile);
   if (!critiqueText) return { ok: false, error: '缺少批判文档 ' + critiqueFile, added: [], skipped: [], docs: [] };
-  const tPath = trackerPath || path.join(ROOT, ...TRACKER_PATH);
-  const tDir = tasksDir || path.join(ROOT, ...TASKS_DIR);
+  const tPath = resolveWorkspacePath(dir, TRACKER_PATH, trackerPath);
+  const tDir = resolveWorkspacePath(dir, TASKS_DIR, tasksDir);
   let trackerText = '';
   try { trackerText = fs.readFileSync(tPath, 'utf8'); } catch { trackerText = ''; }
   const entries = parseCritiqueEntries(critiqueText).filter((e) => e.valid);
@@ -549,16 +560,30 @@ export function registerFromFiles({ dir, id, trackerPath, tasksDir }) {
   return { ok: true, error: null, added, skipped, docs };
 }
 
+/** 疑似批判表格启发式（P2-2）：≥3 行含 ≥2 个 `|` 的行（表头/分隔/数据行形态），但解析结果 0 条时用于格式诊断提示。
+ *  只影响报错可诊断性，不参与任何判定语义（判定阈值不变）。 */
+export function looksLikeCritiqueTable(text) {
+  if (!text) return false;
+  const pipeRows = String(text).split('\n').filter((l) => (l.trim().match(/\|/g) || []).length >= 2);
+  return pipeRows.length >= 3;
+}
+
+/** 批判表格格式要求提示（P2-2）：解析 0 条但正文疑似表格时附在 FAIL detail，指明可被解析器认出的列格式。 */
+const CRIT_TABLE_FORMAT_HINT = '（检测到疑似表格但解析出 0 条批判——表格需含列：# | 批判点 | 竞品对标 | 差距 | 优化方案 | 最小验证 | 收益/成本 | 级别（表头须含「批判点」「竞品对标」字样且 ≥2 条数据行）；或改用 ## C{n} / 数字列表块式，每条含竞品 URL + 日期）';
+
 /** 校验一份批判交付。返回 { ok, checks: [{name, pass, detail}] }。
  * 统一走 parseCritiqueEntries（与 registerFromFiles 同一解析器）：兼容模板表格与 ## C{n}/数字列表块式，
- * 避免「块式文档登记能解析但门槛 0/0 被拦」的双轨不一致。 */
+ * 避免「块式文档登记能解析但门槛 0/0 被拦」的双轨不一致。
+ * P2-2：解析 0 条且正文疑似存在表格（≥3 个 `|` 分隔行）时，FAIL detail 明确提示表格列格式要求
+ * （不放宽判定语义，只改善报错可诊断性）。 */
 export function checkReview({ critiqueText, fixText, trackerText, id }) {
   const checks = [];
   const entries = critiqueText ? parseCritiqueEntries(critiqueText) : [];
   const total = entries.length;
   const valid = entries.filter((e) => e.valid).length;
   checks.push({ name: '批判文档存在', pass: !!critiqueText, detail: critiqueText ? `${total} 条` : '缺失' });
-  checks.push({ name: '有效批判≥3（含URL+日期）', pass: valid >= 3, detail: `有效 ${valid}/${total}` });
+  const validDetail = `有效 ${valid}/${total}` + (total === 0 && looksLikeCritiqueTable(critiqueText) ? CRIT_TABLE_FORMAT_HINT : '');
+  checks.push({ name: '有效批判≥3（含URL+日期）', pass: valid >= 3, detail: validDetail });
   checks.push({ name: '优化修改方案存在', pass: !!fixText, detail: fixText ? '存在' : '缺失' });
   const tracked = !!trackerText && (trackerText.includes(id) || /critique-backlog-tracker/.test(trackerText || ''));
   checks.push({ name: 'tracker 已登记', pass: tracked, detail: tracked ? `含 ${id}` : `未含 ${id}` });
@@ -692,6 +717,53 @@ export function selfTest() {
   const blockBadR = checkReview({ critiqueText: blockBad, fixText: '# 方案', trackerText: '# taskNN', id: 'taskNN' });
   if (!blockGoodR.ok) throw new Error('self-test FAIL: 块式 ## C{n} 批判应通过门槛 ' + JSON.stringify(blockGoodR.checks));
   if (blockBadR.ok) throw new Error('self-test FAIL: 块式无 URL/日期 批判应被拦截');
+  // P2-1（BFX-B）：URL 后跟中文标点（（注）/。）不再误吞进 URL——可达性判定基于干净 URL
+  const cjkRows = parseCritiqueEntries([
+    '# taskU8 技术批判',
+    '',
+    '| # | 批判点 | 竞品对标(URL+日期+结论) | 差距 | 优化方案 | 最小验证 | 收益/成本 | 级别 |',
+    '|---|---|---|---|---|---|---|---|',
+    '| 1 | 中文括号后缀 | https://example.com/prod（注） 2026-09-01 结论A | d | p | v | 1/2 | P1 |',
+    '| 2 | 中文句号后缀 | https://example.com/doc。 2026/09/01 结论B | d | p | v | 1/2 | P1 |',
+    '| 3 | 中文顿号后缀 | https://example.com/x，注 2026-09-01 结论C | d | p | v | 1/2 | P1 |',
+  ].join('\n'));
+  if (cjkRows.length !== 3 || cjkRows.some((e) => !e.valid)) throw new Error('self-test FAIL: 中文标点 URL 行应解析为 3 条有效批判，实得 ' + JSON.stringify(cjkRows));
+  for (const e of cjkRows) {
+    if (/[（）。，、；！？】」』》]/.test(e.url)) throw new Error('self-test FAIL: URL 误吞中文标点 ' + JSON.stringify(e.url));
+  }
+  if (cjkRows[0].url !== 'https://example.com/prod') throw new Error('self-test FAIL: （注）后缀 URL 应干净截断，实得 ' + JSON.stringify(cjkRows[0].url));
+  if (cjkRows[1].url !== 'https://example.com/doc') throw new Error('self-test FAIL: 。后缀 URL 应干净截断，实得 ' + JSON.stringify(cjkRows[1].url));
+  const cjkBlock = parseCritiqueEntries(['## C1 中文标点块式', '- 竞品对标：https://docs.b.com/prod（注）。 2026-09-02 结论', '- 级别：P1'].join('\n'));
+  if (cjkBlock.length !== 1 || cjkBlock[0].url !== 'https://docs.b.com/prod' || !cjkBlock[0].valid) throw new Error('self-test FAIL: 块式中文标点 URL 应干净解析 ' + JSON.stringify(cjkBlock));
+  // 正常 URL（含查询参数/路径）不受新边界影响
+  const plainUrl = parseCritiqueEntries(['| # | 批判点 | 竞品对标(URL+日期+结论) | 差距 | 优化方案 | 最小验证 | 收益/成本 | 级别 |', '|---|---|---|---|---|---|---|---|', '| 1 | 正常URL | https://github.com/a/b?x=1&y=2#frag 2026-09-01 结论 | d | p | v | 1/2 | P1 |', '| 2 | 正常URL2 | https://github.com/c 2026-09-01 结论 | d | p | v | 1/2 | P1 |'].join('\n'));
+  if (plainUrl.length !== 2 || !plainUrl.every((e) => e.valid)) throw new Error('self-test FAIL: 正常 URL 应不受影响 ' + JSON.stringify(plainUrl.map((e) => e.url)));
+  if (plainUrl[0].url !== 'https://github.com/a/b?x=1&y=2#frag') throw new Error('self-test FAIL: 查询参数 URL 被截断 ' + JSON.stringify(plainUrl[0].url));
+  // P2-2（BFX-B）：自由格式表格解析 0 条 → FAIL detail 含格式要求提示（判定语义不放松：仍 FAIL）
+  const freeFormTable = [
+    '| 来源 | 说明 | 备注 |',
+    '|---|---|---|',
+    '| A | 性能差，见 https://x.com/perf 2026-09-01 | 待议 |',
+    '| B | 无对标 | 待议 |',
+  ].join('\n');
+  const freeFormR = checkReview({ critiqueText: freeFormTable, fixText: '# 方案', trackerText: '# t', id: 't' });
+  const validCheck = freeFormR.checks.find((c) => c.name.includes('有效批判≥3'));
+  if (freeFormR.ok) throw new Error('self-test FAIL: 自由格式表格不应通过（判定语义不得放松）');
+  if (!validCheck || validCheck.pass !== false || !validCheck.detail.includes('表格需含列')) throw new Error('self-test FAIL: 自由格式表格解析 0 条应提示格式要求，实得 ' + JSON.stringify(validCheck));
+  // 对照：块式合法批判 0 条场景不误提示（无表格形态）
+  const blockBadR2 = checkReview({ critiqueText: blockBad, fixText: '# 方案', trackerText: '# t', id: 't' });
+  const validCheck2 = blockBadR2.checks.find((c) => c.name.includes('有效批判≥3'));
+  if (validCheck2.detail.includes('表格需含列')) throw new Error('self-test FAIL: 非表格形态不应误提示格式要求，实得 ' + validCheck2.detail);
+  // BFX-1：tracker 路径解析跟随工作区（--dir），无 dir 时回落 ROOT（向后兼容），显式注入最优先
+  const tmpWs = fs.mkdtempSync(path.join(os.tmpdir(), 'tt-bfx1-'));
+  try {
+    if (resolveWorkspacePath(tmpWs, TRACKER_PATH) !== path.join(tmpWs, 'plans', 'critique-backlog-tracker.md')) throw new Error('self-test FAIL: resolveWorkspacePath 应跟随 dir');
+    if (resolveWorkspacePath(undefined, TRACKER_PATH) !== path.join(ROOT, ...TRACKER_PATH)) throw new Error('self-test FAIL: 无 dir 应回落 ROOT（向后兼容）');
+    const injected = path.join(tmpWs, 'override.md');
+    if (resolveWorkspacePath(tmpWs, TRACKER_PATH, injected) !== injected) throw new Error('self-test FAIL: 显式注入应最优先');
+  } finally {
+    fs.rmSync(tmpWs, { recursive: true, force: true });
+  }
   // P2FIX2：块式 `### 优化方案` 标题行 + 内容 → plan/minVerify 提取到内容（而非残留 `###`）
   const headingBlock = parseCritiqueEntries([
     '# taskHH 技术批判',
@@ -824,6 +896,26 @@ function selfTestAutoRegister() {
     const r2 = registerFromFiles({ dir: tmp, id: 'taskZZ', trackerPath: tmpTracker, tasksDir: tmpTasks });
     if (r2.added.length !== 0) throw new Error('self-test FAIL: 重跑应幂等（0 新增），实得 ' + r2.added.length);
     if (r2.skipped.length !== 3) throw new Error('self-test FAIL: 重跑应跳过 3 条重复，实得 ' + r2.skipped.length);
+    // BFX-1（BFX-B）：默认路径（不注入 trackerPath/tasksDir）跟随 dir——外部工作区 tracker/任务文档落工作区，不写技能安装目录
+    const rootTrackerBefore = fs.existsSync(path.join(ROOT, ...TRACKER_PATH)) ? fs.readFileSync(path.join(ROOT, ...TRACKER_PATH)) : null;
+    const tmp3 = fs.mkdtempSync(path.join(os.tmpdir(), 'tt-bfx1-ws-'));
+    try {
+      fs.mkdirSync(path.join(tmp3, 'plans'), { recursive: true });
+      fs.writeFileSync(path.join(tmp3, 'plans', 'critique-backlog-tracker.md'), seed, 'utf8');
+      fs.writeFileSync(path.join(tmp3, 'taskWW-技术批判.md'), critique.replace(/taskZZ/g, 'taskWW'), 'utf8');
+      fs.writeFileSync(path.join(tmp3, 'taskWW-优化修改方案.md'), fix, 'utf8');
+      const r3 = registerFromFiles({ dir: tmp3, id: 'taskWW' }); // 不注入 trackerPath/tasksDir → 必须落 tmp3
+      if (!r3.ok) throw new Error('self-test FAIL: BFX-1 默认路径登记失败 ' + r3.error);
+      if (r3.added.length !== 3) throw new Error('self-test FAIL: BFX-1 默认路径应登记 3 条，实得 ' + r3.added.length);
+      const wsTracker = fs.readFileSync(path.join(tmp3, 'plans', 'critique-backlog-tracker.md'), 'utf8');
+      for (const a of r3.added) if (!wsTracker.includes(a.row)) throw new Error('self-test FAIL: 工作区 tracker 缺行 ' + a.serial);
+      if (!fs.existsSync(path.join(tmp3, 'docs', 'history', 'tasks', `critique-${r3.added[0].serial}-task.md`))) throw new Error('self-test FAIL: 任务文档应落工作区 docs/history/tasks/');
+      const rootTrackerAfter = fs.existsSync(path.join(ROOT, ...TRACKER_PATH)) ? fs.readFileSync(path.join(ROOT, ...TRACKER_PATH)) : null;
+      const same = rootTrackerBefore === null ? rootTrackerAfter === null : rootTrackerBefore.equals(rootTrackerAfter);
+      if (!same) throw new Error('self-test FAIL: 默认路径登记不应改动 ROOT 技能目录 tracker（BFX-1）');
+    } finally {
+      fs.rmSync(tmp3, { recursive: true, force: true });
+    }
     for (const d of r1.docs) {
       const p = path.join(tmpTasks, `critique-${d.serial}-task.md`);
       if (!fs.existsSync(p)) throw new Error('self-test FAIL: 任务文档缺失 ' + d.taskDoc);
@@ -965,7 +1057,7 @@ async function main() {
   // 批判反哺自动化：校验通过后自动登记 tracker + 生成优化任务文档
   if (args.includes('--auto-register')) {
     let trackerText = '';
-    try { trackerText = fs.readFileSync(path.join(ROOT, ...TRACKER_PATH), 'utf8'); } catch { /* keep '' */ }
+    try { trackerText = fs.readFileSync(resolveWorkspacePath(dir, TRACKER_PATH), 'utf8'); } catch { /* keep '' */ }
     const result = checkReview({
       critiqueText: read(`${id}-技术批判.md`),
       fixText: read(`${id}-优化修改方案.md`),
@@ -996,7 +1088,7 @@ async function main() {
 
   // 常规校验（无 --auto-register）
   let trackerText = '';
-  try { trackerText = fs.readFileSync(path.join(ROOT, ...TRACKER_PATH), 'utf8'); } catch { /* keep '' */ }
+  try { trackerText = fs.readFileSync(resolveWorkspacePath(dir, TRACKER_PATH), 'utf8'); } catch { /* keep '' */ }
   const result = checkReview({
     critiqueText: read(`${id}-技术批判.md`),
     fixText: read(`${id}-优化修改方案.md`),

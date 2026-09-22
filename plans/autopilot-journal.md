@@ -94,3 +94,13 @@
 - 顺序裁定：LEAK-1 先行（发布刷新等写面静默纪律；BW 以安装面为运行面，先清后盲行）
 - LEAK-1 收口 PASS：67→0（69 处字面替换），GRANDFATHER_BASELINE 置空、机制保留，冻结例外=0；编排者 L2 亲跑发布幂等（LEAK新增=0 基线豁免=0）+ regression 13/13 + validate 0
 - BW 批次：BW-1 全流程盲行先行（看板依赖 BW-2/3/4 ⊂ BW-1），盲行者工作区 project-run-0922 全新隔离
+
+## 2026-09-22 BW×4 收口 + BFX 批 + W10 终验（全队列关账）
+- BW-1..4 全收：lpr（32/32）/ ledger（49/49 三线隔离）/ file-tidy（42/42 模糊收敛）/ passgen（32/32 两段式断点重入）；53 条坑单归档 test-reports/autopilot-work/BW-*/
+- BW-2 agent 两度 600s 无活动挂掉，三派加"禁长阻塞命令"纪律后成功（并自然接续了首次残留现场，意外成为恢复场景实证）
+- 坑分类→BFX 三单：review-gate tracker 跨项目 P0（两盲行者独立踩中）、--session 透传 P0、首跑鸡生蛋 P1（三盲行者全踩）、缺席纪律悬空 P1（四盲行者全踩）+ URL/格式/无UI gate P2×3
+- BFX 三单并行交付；编排者直修：updateJourney [DEBUG] 噪声删除、发布面空壳 plans/ 清除
+- L2 串行终验（写面静默后）：regression 13/13 + validate 0 + FIX-2 探针 12/12 + BFX-A 探针 8/8
+- ACC-1：make-release 重生成（PURGED=1 LEAK 0+0）+ junction 冒烟 4/4 + 安装面 tt-journey byte 归一（BW-2 曾在安装面打自救补丁，被终验抓出——安装面漂移检查列入 BW 收口固定步骤）
+- DOC-1：plans/closeout-20260922.md（Owner 复核包）；看板 4/4 ✅；队列 W1-W10 全收
+- 队列关账；Owner 侧遗留 = BW 工作区 [待确认 owner] 代签项补审 + passgen C-1 变更单（非阻塞）

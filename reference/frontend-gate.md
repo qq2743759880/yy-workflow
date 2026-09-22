@@ -66,3 +66,7 @@
 | 外部（引用） | TTHP 协议包（handoff） | 任务交接协议 | 契约冻结退化为文件+人工核对 |
 
 > 引用任何增强资产前先探测存在性；不引用不存在的资产（`reference/asset-integration.md`）。
+
+## 6.7 无 UI 项目：gate 词汇替代口径
+
+无 UI 的项目（CLI/库/后端服务）不适用 HTML 原型与 Gate A 审美签收：以**可运行产物 + 实跑证据**（真实命令输出 / HTTP 响应 / 测试通过）替代 gate-a-approved 作为开工前置与验收依据；journey 照常落账（gate 字段填实际证据类型，如实命名，不冒用 `HTML_APPROVED`）。双 gate 退化为一层客观机验，红线 3（独立实证验收）不变。
