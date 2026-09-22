@@ -5,3 +5,4 @@ artifacts/
 
 test-reports/**/.sandbox/
 .workbuddy/
+.tmp-demo/
