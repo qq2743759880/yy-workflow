@@ -330,15 +330,26 @@ const stripFm = (t) => t.replace(/^---\r?\n[\s\S]*?\r?\n---/, "");
 // ── 断言 H6：渐进披露结构（reference/ 文件齐备 + SKILL.md 指针表覆盖）──
 {
   const REF_DIR = path.join(ROOT, "reference");
-  const expectedRefs = [
-    "variables-and-config.md", "asset-integration.md", "documentation.md", "task-decomposition.md",
-    "planning.md", "dispatch-and-acceptance.md", "frontend-gate.md", "critique-protocol.md", "yy-tt-diff.md",
-  ];
+  // 单一事实源（坑#7 解耦）：reference 文件清单不再硬编码于此——从 SKILL.md 指针表动态派生。
+  // SKILL.md 指针表是渐进披露的唯一入口，删除/新增一个 reference 文件只需改 SKILL.md，
+  // 无需同步改本断言（渐进披露不增改造成本）。指针形态：`reference/<name>.md`（正文任意位置）。
+  const skillSrc = stripFm(fs.readFileSync(SKILL, "utf8").replace(/\r\n/g, "\n"));
+  const expectedRefs = [...new Set([...skillSrc.matchAll(/reference\/([a-z0-9-]+\.md)/g)].map((m) => m[1]))].sort();
+  assertHard("H6a-0 SKILL.md 指针表派生 reference 清单非空（单源可派生）", expectedRefs.length >= 5, `派生 ${expectedRefs.length} 个: ${expectedRefs.join(", ")}`);
   const missingRefs = expectedRefs.filter((n) => !fs.existsSync(path.join(REF_DIR, n)));
-  assertHard("H6a reference/ 文件齐备（10 个）", missingRefs.length === 0, missingRefs.length ? `缺失: ${missingRefs.join(", ")}` : `${expectedRefs.length}/${expectedRefs.length} 在场`);
-  const skillText = stripFm(fs.readFileSync(SKILL, "utf8").replace(/\r\n/g, "\n"));
-  const uncovered = expectedRefs.filter((n) => !skillText.includes(`reference/${n}`));
-  assertHard("H6b SKILL.md 指针表覆盖全部 reference/ 文件（删指针 FAIL）", uncovered.length === 0, uncovered.length ? `未覆盖: ${uncovered.join(", ")}` : "10/10 指针在场");
+  assertHard("H6a reference/ 指针表登记文件齐备（动态）", missingRefs.length === 0, missingRefs.length ? `缺失: ${missingRefs.join(", ")}` : `${expectedRefs.length}/${expectedRefs.length} 在场`);
+  // H6b 语义不变：指针表中每个 reference 文件名必须在 SKILL.md 出现（由构造天然成立，
+  // 保留显式断言防派生正则将来被改坏——若 expectedRefs 为空或正则失配，此断言抓回归）。
+  const uncovered = expectedRefs.filter((n) => !skillSrc.includes(`reference/${n}`));
+  assertHard("H6b SKILL.md 指针表覆盖全部 reference/ 文件（派生自同源）", uncovered.length === 0, uncovered.length ? `未覆盖: ${uncovered.join(", ")}` : `${expectedRefs.length}/${expectedRefs.length} 指针在场`);
+  // 反向断言：reference/ 目录里存在但指针表未登记的文件 → 提醒（不 FAIL，允许草稿期文件）
+  let refOrphan = [];
+  try {
+    for (const n of fs.readdirSync(REF_DIR)) {
+      if (n.endsWith(".md") && !expectedRefs.includes(n)) refOrphan.push(n);
+    }
+  } catch (e) { /* reference 目录缺失由 H6a FAIL 覆盖 */ }
+  assertHard("H6a-1 reference/ 无未登记孤儿文件（新增须先登记指针）", refOrphan.length === 0, refOrphan.length ? `孤儿: ${refOrphan.join(", ")}` : "零孤儿");
   const refOver = [];
   for (const n of expectedRefs) {
     const fp = path.join(REF_DIR, n);
