@@ -16,7 +16,8 @@
  *   p11 配置指引文档版本字段存在性（三份 docs/executor-setup/*.md）
  *   p12 summary-read 既有模式回归（--help / 空 workspace 列表 exit 0，仅追加未破坏既有功能）
  *
- * 沙箱：<本目录>/.sandbox/run-<stamp>-<pid>/，跑完不清理（结果原样留证）。
+ * 沙箱：<本目录>/.sandbox/run-<stamp>-<pid>/，跑完不清理本轮（结果原样留证），
+ * 仅在收尾修剪历史 run-*：只保留最近 RETAIN_RUNS 个（防爆盘）。
  * mock CLI：mock-cli-ok.mjs（回 OK）/ mock-cli-hang.mjs（挂起）——经 TT_EXECSETUP_<NAME>
  * 环境变量注入，不经 PATH，不碰真实 CLI、不消耗真实 API 配额、不执行任何仓库业务代码。
  *
@@ -27,6 +28,10 @@ import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+// 沙箱修剪保留数：跑完不清理本轮（结果原样留证），仅修剪历史 run-* 目录、
+// 只保留最近 RETAIN_RUNS 个，防止 .sandbox 无限膨胀爆盘。
+const RETAIN_RUNS = 5;
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '..', '..', '..'); // T9-wizard → rebuild-20260920 → test-reports → yy
@@ -278,14 +283,31 @@ async function main() {
   console.log('\n== 汇总: ' + pass + '/' + results.length + ' PASS ==');
   const out = { stamp: STAMP, sandbox: SANDBOX, total: results.length, pass, results };
   fs.writeFileSync(path.join(HERE, 'out-probe-results.json'), JSON.stringify(out, null, 2) + '\n', 'utf8');
-  fsp.readdir(path.join(HERE, '.sandbox')).then(async (entries) => {
-    // 沙箱修剪：只保留最近 5 个 run-*
-    const runs = entries.filter((e) => e.startsWith('run-')).sort();
-    for (const old of runs.slice(0, Math.max(0, runs.length - 5))) {
-      await fsp.rm(path.join(HERE, '.sandbox', old), { recursive: true, force: true }).catch(() => {});
-    }
-  });
+  await pruneSandboxes();
   return pass === results.length ? 0 : 1;
+}
+
+/**
+ * 沙箱修剪：只匹配 run-<stamp>-<pid> 形态的【目录】（run- 前缀 + 中段戳 + 末段数字），
+ * 按 mtime（兜底名字）排序，淘汰最旧的、只保留最近 RETAIN_RUNS 个。
+ * 非 run-* 前缀的目录/文件（留证物）一律不动；run- 前缀的普通文件也不动（只修剪目录）；
+ * 修剪任一步失败均静默降级（不影响探针结果与退出码）。
+ */
+async function pruneSandboxes() {
+  const root = path.join(HERE, '.sandbox');
+  try {
+    const entries = await fsp.readdir(root, { withFileTypes: true });
+    const runDirs = entries.filter((e) => e.isDirectory() && /^run-.+-\d+$/.test(e.name));
+    const dated = await Promise.all(runDirs.map((e) =>
+      fsp.stat(path.join(root, e.name))
+        .then((s) => ({ name: e.name, mtime: s.mtimeMs }))
+        .catch(() => ({ name: e.name, mtime: 0 })) // stat 失败按最旧处理，靠名字兜底
+    ));
+    dated.sort((a, b) => b.mtime - a.mtime || (a.name < b.name ? -1 : 1));
+    for (const old of dated.slice(RETAIN_RUNS)) {
+      await fsp.rm(path.join(root, old.name), { recursive: true, force: true }).catch(() => {});
+    }
+  } catch (e) { /* 静默降级：修剪失败不阻塞主流程 */ }
 }
 
 process.exitCode = await main();

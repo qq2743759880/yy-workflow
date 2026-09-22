@@ -16,6 +16,8 @@
  *   S10 token 量尺 gate（B0-②）   —— token-audit --gate：快照对比，token 回退 ≥10% → FAIL（C-30 收尾口径）
  *   S11 引用链机验（C-25/C-33）    —— owner-review-linkcheck：templates/owner-review 文件级引用悬空 → FAIL 具名；tab 损坏残留（\t emplates/）→ FAIL 具名
  *   S12 kickoff 漂移门（C-26）     —— kickoff-drift-check：kickoff 五簇资产清单 vs matrix.mjs CLUSTERS 双向 diff，静默漂移 → FAIL 具名
+ *   S13 junction 部署形态 smoke    —— junction 在场 → 真实执行 4 入口探针（复用 test-reports/fix-20260921/junction-smoke.mjs）；缺失 → SKIP（不进 PASS/FAIL，exit 0）
+ *                                    探测路径可被环境变量 TT_JUNCTION_PROBE_PATH 覆盖（HARD-1 无 junction 模拟手段，生产勿设）。
  *
  * 注：S4-S6 在临时 workspace 中运行（os.tmpdir），结束后清理，不污染仓库。
  *
@@ -30,6 +32,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { resolveAdapter } from './lib/adapters/index.mjs';
+import { runJunctionSmoke } from '../test-reports/fix-20260921/junction-smoke.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -53,6 +56,7 @@ const PHASE2 = [
 
 let pass = 0;
 let fail = 0;
+let skip = 0;
 const failures = [];
 
 function section(name, ok, detail) {
@@ -208,7 +212,19 @@ async function main() {
   const s12 = await run(process.execPath, ['scripts/kickoff-drift-check.mjs']);
   section('S12 kickoff 漂移门（C-26）', s12.ok, s12.ok ? '五簇资产双向一致 ✓' : 'exit=' + s12.code + '（详见 DRIFT 缺失/多出具名输出）');
 
-  console.log('\n结果: ' + pass + ' PASS / ' + fail + ' FAIL');
+  // S13 junction 部署形态 smoke（HARD-1）：junction 在场（本机安装形态）→ 真实执行 4 入口探针，
+  // 内部 4/4 PASS 且无 FAIL 才计段 PASS；junction 缺失/真实目录安装 → 记 SKIP（显式打印，
+  // 不进 PASS/FAIL 计数，整套回归照常 exit 0）。探测路径可被 TT_JUNCTION_PROBE_PATH 覆盖（模拟用）。
+  const s13 = runJunctionSmoke();
+  for (const l of s13.lines) console.log(l);
+  if (s13.skipped) {
+    skip += 1;
+    console.log('SKIP S13 junction 部署形态 smoke  （junction 缺失/真实目录安装——本探针只覆盖 junction 形态，不计 PASS/FAIL）');
+  } else {
+    section('S13 junction 部署形态 smoke', s13.fail === 0 && s13.pass > 0, s13.pass + '/' + (s13.pass + s13.fail) + ' 内部探针 PASS');
+  }
+
+  console.log('\n结果: ' + pass + ' PASS / ' + fail + ' FAIL' + (skip ? ' / ' + skip + ' SKIP' : ''));
   if (failures.length) { for (const f of failures) console.log('  FAILED: ' + f); process.exitCode = 1; }
   else { console.log('回归基线通过。'); }
 }

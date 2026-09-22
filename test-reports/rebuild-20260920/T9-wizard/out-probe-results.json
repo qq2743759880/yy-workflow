@@ -1,6 +1,6 @@
 {
-  "stamp": "20260921015823-10380",
-  "sandbox": "D:\\.ai-hub\\skills\\yy\\test-reports\\rebuild-20260920\\T9-wizard\\.sandbox\\run-20260921015823-10380",
+  "stamp": "20260922092929-1940",
+  "sandbox": "D:\\.ai-hub\\skills\\yy\\test-reports\\rebuild-20260920\\T9-wizard\\.sandbox\\run-20260922092929-1940",
   "total": 13,
   "pass": 13,
   "results": [
@@ -20,13 +20,13 @@
       "id": "p03",
       "desc": "roundtrip 成功路径：mock CLI stdin 往返 → ROUNDTRIP_OK，两档分开标注",
       "pass": true,
-      "detail": "{\"presence\":\"PRESENCE_YES\",\"roundtrip\":\"ROUNDTRIP_OK\",\"ms\":233}"
+      "detail": "{\"presence\":\"PRESENCE_YES\",\"roundtrip\":\"ROUNDTRIP_OK\",\"ms\":255}"
     },
     {
       "id": "p04",
       "desc": "roundtrip 超时路径：挂起 mock → ROUNDTRIP_TIMEOUT（1.5s 超时诚实报，exit 1）",
       "pass": true,
-      "detail": "{\"presence\":\"PRESENCE_YES\",\"roundtrip\":\"ROUNDTRIP_TIMEOUT\",\"ms\":1583}"
+      "detail": "{\"presence\":\"PRESENCE_YES\",\"roundtrip\":\"ROUNDTRIP_TIMEOUT\",\"ms\":1596}"
     },
     {
       "id": "p04b",

@@ -78,3 +78,13 @@
 - 限制声明：复测 agent 无图像输入能力，14 张截图仅文件级验证，视觉维度待有图像能力下游复核
 - 队列：FE×5 ✅、FIX×4 ✅、FE-3 复测 ✅；HARD×3 + BW×4 只入队待命
 - GitHub push 恢复：1ed42d9..063861a 已推（代理恢复）
+
+## 2026-09-22 FIX-5 + HARD×3 收口（Owner 放行批次；三写面并行）
+- Owner 2026-09-22 指令"继续派发子 agent 按流程规范执行队列 task"= L0 批次放行（W2 遗留 FIX-5 + W3 HARD×3）；BW×4 维持 9-21"只入队不执行"裁定
+- 三路并发（写面正交：regression-all / make-release / T9-wizard），无撞窗
+- HARD-1 L2 全量重执行 PASS：13 PASS/0 FAIL（S13 junction smoke 4/4 真实执行）；SKIP 场景 12+1skip exit 0 由执行者双形态验证，编排者复核 D-H1-01 realpath 修正合理（旧判定是缺陷非语义放宽）
+- HARD-2/3 L2 全量重执行 PASS：编排者亲跑 dry-run 零落盘 + 真实发布幂等（robocopy exit=0 无变化）+ 泄露审计 0 新增（grandfather 31 文件 67 处冻结）；purge 样本（假残留+目录残留）消失且入 PURGED 清单；安全阀负向测试 3 形态全 exit 2
+- FIX-5 L2(1=B) PASS：13/13 复跑 + run-* 计数=5 不增；修剪 await 化 + mtime 降序 + 非 run-* 留证不误伤
+- 范围审计：git status 改动全部落在三张派单白名单内，零越权
+- 【待 Owner】D-H2-1：发布面 67 处历史本机痕迹已 grandfather 冻结（只减不增），清零开单与否待裁决
+- 队列：FE×5 ✅、FIX×5 ✅、HARD×3 ✅；W4 BW×4 只入队待命、W10 终验收口未启

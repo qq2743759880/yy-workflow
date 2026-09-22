@@ -16,7 +16,7 @@
 | FE-0 | build-guide-content.mjs 构建期内容提取 | ✅已收（L2 PASS，P2×1） |
 | FE-1 | 页面骨架+新 styles.css（A 现状导航；taste Design Read + ui-ux-pro-max 铁律） | ✅已收（L2 PASS，P2×2） |
 | FE-2 | B 阶段手册 + C 资产手册（消费 content.js；复制按钮） | ✅已收（L2 PASS，P2×2） |
-| FE-3 | web-gui-tester 全 GUI 盲测（黑盒+截图+只读 DOM 交叉验证；修复分离） | ⏳ |
+| FE-3 | web-gui-tester 全 GUI 盲测（黑盒+截图+只读 DOM 交叉验证；修复分离） | ✅已收（复测 19/19 PASS，真剪贴板 PASS；D×3 FIXED_VERIFIED） |
 | FE-4 | 交付收口（README/release 刷新/部署验证） | ✅已收（L2 PASS，P1×1 竞态机制/P2×1 运行时字符串） |
 
 ## W1 修复批 A（工匠 agent ×1，顺延至 FE 后）
@@ -32,15 +32,15 @@
 |---|---|---|---|---|
 | FIX-3 | 坑#7：validate-structure 的 expectedRefs 硬编码解耦（从 SKILL.md 指针表派生或独立清单文件单一事实源） | scripts/validate-structure.mjs | ⏳ | 删一个 reference 文件不再需要改断言（用临时文件实测） |
 | FIX-4 | T9 遗留：--validate-handoff 冒号列表 key 误判边缘加固 | scripts/summary-read.mjs | ✅已收（L2 PASS，含基线重放；P2×1 口径裁定） | 构造冒号列表正文样本，三必填字段判定不变 |
-| FIX-5 | T9 遗留：runner 沙箱修剪策略统一（保留数入常量） | test-reports/rebuild-20260920/T9-wizard/ | ⏳ | 连跑 3 轮沙箱目录数不增 |
+| FIX-5 | T9 遗留：runner 沙箱修剪策略统一（保留数入常量） | test-reports/rebuild-20260920/T9-wizard/ | ✅已收（L2 1=B；P2×3） | 连跑 3 轮沙箱目录数不增 |
 
 ## W3 加固化批（工匠 agent ×1）
 
 | id | task | 白名单 | 状态 | 验收要点 |
 |---|---|---|---|---|
-| HARD-1 | junction-smoke 并入回归入口（无 junction 时 SKIP 语义） | scripts/regression-all.mjs、test-reports/fix-20260921/ | ⏳ | 本机全绿；删 junction 后整套仍 12/12+1skip |
-| HARD-2 | 发布目录一键脚本 `scripts/make-release.mjs`（robocopy 规则+泄露 grep 审计+purge+可选 mklink 一条龙） | scripts/make-release.mjs | ⏳ | 产出目录过审计零命中；重跑幂等 |
-| HARD-3 | 发布面 purge 纪律固化进脚本（含本轮手工删 memory 残留的教训） | 同上 | ⏳ | 从干净 release 重生成，无残留旧文件 |
+| HARD-1 | junction-smoke 并入回归入口（无 junction 时 SKIP 语义） | scripts/regression-all.mjs、test-reports/fix-20260921/ | ✅已收（L2 全量重执行 13/13；P2×1 realpath 修正） | 本机全绿；删 junction 后整套仍 12/12+1skip |
+| HARD-2 | 发布目录一键脚本 `scripts/make-release.mjs`（robocopy 规则+泄露 grep 审计+purge+可选 mklink 一条龙） | scripts/make-release.mjs | ✅已收（L2 全量重执行幂等；P2×4，D-H2-1 待 Owner） | 产出目录过审计零命中；重跑幂等 |
+| HARD-3 | 发布面 purge 纪律固化进脚本（含本轮手工删 memory 残留的教训） | 同上 | ✅已收（与 HARD-2 同 agent 串行收口；purge 样本验证） | 从干净 release 重生成，无残留旧文件 |
 
 ## W4 盲行 1（盲行者 agent ×1，**只入队不执行**——排最后）
 

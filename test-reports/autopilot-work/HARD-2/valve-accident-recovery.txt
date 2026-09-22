@@ -1,0 +1,23 @@
+== make-release ==
+STEP 0 安全阀校验（realpath 归一 + .git 哨兵）
+  junction 归一: C:\Users\Administrator\.agents\skills\yy -> D:\.ai-hub\tmp\yy-release
+STEP 1 purge：扫描目标中发布清单之外的条目
+  PURGED [file] count-leaks.mjs
+  PURGED [file] dry-run-output.txt
+  PURGED [file] dryrun-after.txt
+  PURGED [file] dryrun-before.txt
+  PURGED [file] dryrun2-after.txt
+  PURGED [file] dryrun2-before.txt
+  PURGED [file] make-valve-fixture.mjs
+  PURGED [file] release-run1.txt
+  PURGED [file] release-run2.txt
+  PURGED [file] release-run3-purge.txt
+  PURGED [file] snapshot-install.mjs
+  PURGED [dir] valve-test
+STEP 2 robocopy 刷新发布面
+  robocopy exit=1（已刷新）
+STEP 3 泄露审计（对产物目录，零命中才通过）
+  GRANDFATHERED: 31 文件 67 处（基线冻结的历史遗留，只许减少不许增加）
+  新增命中 0，审计通过
+STEP 4 --mklink（未启用，跳过）
+RESULT: 发布完成 | PURGED=12 | LEAK新增=0 | LEAK基线豁免=67
