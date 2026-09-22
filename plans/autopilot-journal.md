@@ -64,3 +64,9 @@
 - 修法质量：键行白名单化+收集区限列表项（+18/-5），双根因一次修（派单点名的+自测新挖的）
 - FIX-2 派单落 handoffs/fix/FIX-2-dispatch.md（executor.json↔orchestrator 接线，presence≠可用约束），L1 已启动（区 B 已静默）
 - 队列：FE-0..4 ✅、FIX-1 ✅、FIX-4 ✅、FIX-2 🔄、FE-3 复测 🔄
+## 2026-09-22 FIX-2 收口（并行波门 4）→ FIX-3 派发
+- L2 复核 PASS：哈希复算一致（141427ff/8e78b9e0）、接线语义亲自复现（opencode shim 注入 + isolate warning + 显式覆盖优先级 + 零回归归一 diff 逐字节）
+- **P1：P5 探针非确定性**——modes.exec>0 依赖模型拆解出带 asset 的子任务，编排者 3 连挂（首跑 exec=1 是模型行为差异非接线缺陷）；接线本体经编排者端到端亲自复现正确。P5 断言交 FIX-3 改确定性
+- D-FIX2-3 教训自证（shim 反斜杠被 cmd 层吃 → String.fromCharCode(92) 构造，探针注释里留痕）
+- FIX-3 派单（validate 断言解耦 + P5 探针确定性），L1 已启动；executor.json↔orchestrator 正式接通（Owner 上次抓出的"过度推论"漏洞闭环）
+- 队列：FE×5 ✅、FIX-1/2/4 ✅、FIX-3 🔄、FE-3 复测 🔄、HARD×3 + BW×4（只入队）待命
