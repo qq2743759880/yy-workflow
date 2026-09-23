@@ -114,3 +114,10 @@
 | Micro Checkpoint Protocol（>10min 任务必须 checkpoint：done/current/next/risk/files_changed） | **adopt 全盘** | CR-1 三灭一成即 A/B 实证；写进 autopilot 协议 |
 | 路线重排（Asset Intelligence→Prompt Composer→Project Memory→Brain Layer） | **adopt 排序，两项修正** | 排序符合"先证据后智能"；批 1 与在跑 AS 系列重合不重启。修正①：Batch 3 Project Memory（.agent/）**不默认放行**——被切除记忆层的第三次回归尝试，与全局记忆有实质区别（工作区级+fail-closed+LS-1 模式已验证）但推翻旧裁定须 Owner 显式拍板，且必须带三约束（工作区作用域/fail-closed 写入/消费仅 prereq 提示级）；修正②：Brain Layer **维持拒绝**——排序调整不改变架构事实（LLM 即 brain；brain.mjs=模板加载器无增量或 LLM 调用毁确定性探针），其合理形态是批 2 Prompt Compiler 的扩展而非新 runtime 层 |
 | Agent Operating System 愿景 | **登记不动** | 北极星叙事，无近期动作；警惕愿景驱动加层（本项目已有两次"先建层后填内容"教训） |
+
+## 决策权纪律（Owner 指正 2026-09-23，最高优先级）
+
+- **外部审计者/顾问分析的定位 = 编排者建议的输入**，不是 Owner 裁定。本项目历史上两份外部方案（迭代优化方案 docx、两轮审计分析）均有"现状评估失实/上下文不全"的实测记录，逐条批判性校准后方可吸收。
+- **Owner-gated 决策（旧裁定推翻、fail-closed 语义选择、记忆层回归、批次放行）只有 Owner 本人能关账**；编排者不得因"两份分析都这么说"而代签——多数意见不构成授权。
+- 编排者对 Owner-gated 项的做法：给出推荐方案 + 依据 + 可回退实现（标注"临时态待追认"），台账归因必须精确到"谁裁的"。
+- 本条由 D-REG1-1 错误归因事件（编排者把审计建议实现后归因为"Owner 拍板"）触发，作为永久纪律登记。

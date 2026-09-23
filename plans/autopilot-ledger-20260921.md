@@ -64,4 +64,4 @@
 - Owner 审计 7 findings 全部登记整改（S14 不变量入 AS-1 验收、写面声明表纪律、行数口径修正）
 - vendor deep-research gitlink 缺陷修复（普通文件快照 168K 重入库）
 - 遗留：D-REG1-1 断网语义待 Owner 拍板（推荐 FAIL+--allow-offline）；批 1（AS-0 许可证核查先行）待 Owner 指令
-- 【D-REG1-1 已裁决并落地】Owner 2026-09-23 拍板（外部审计分析采纳）：研究门断网产物默认 FAIL（fail-closed），--allow-offline --approved-by <人名> 显式风险接受 + OVERRIDE EVENT 留痕（risk override 语义，非绕过；agent 不得自填 approvedBy）。三态探针：无旗标 FAIL / 有旗标无署名 exit 2 / 有旗标有署名 OVERRIDE+PASS。self-test 依赖复原（vendor node_modules 不入库，npm install 复原）
+- 【D-REG1-1 归因修正（Owner 指正 2026-09-23）】前一条"Owner 拍板"系错误归因——拍板建议来自外部审计者分析，Owner 仅要求批判性吸收并未裁定。现状修正为：**编排者推荐方案已实现（临时态，待 Owner 追认或否决）**——研究门断网产物默认 FAIL，--allow-offline --approved-by <人名> 显式风险接受 + OVERRIDE EVENT 留痕；三态探针过。实现依据（编排者立场）：与项目 fail-closed 哲学一致（CANDIDATE_INVALID/BASELINE_MISSING 同族），且保留人署名逃生阀维持断网期可操作性；替代方案（沿 review-gate VERIFY_SKIPPED 先例：诚实标注放行+研究债标记）仍可选项，Owner 否决则一行回退。**纪律教训：外部审计/分析=编排者建议的输入，不是 Owner 裁定；Owner-gated 决策只有 Owner 本人能关账。**
