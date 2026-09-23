@@ -55,3 +55,12 @@
 - [P2] D-SB1-1: 接手半成品修 5 处实质 bug（stage 归一化互串/冻结闸门误杀裁决回写/built→passed 静默/waived 无约束/空队列判 PASS）；hidden 保密为纪律级保证非硬隔离（如实声明）；prereq-check 挂点延后批 2
 | LS-1 | PASS | agent_77766e1f | orchestrator-L2(伪造/有效双态亲自复跑) | 2026-09-23T17:40:00Z | scripts/lessons.mjs（fail-closed 写入+session 隔离）; scripts/tt-journey.mjs（prereq 提示段 7 行）; test-reports/autopilot-work/LS-1/RESULTS.md |
 - [P2] D-LS1-1: journey init 自动挂 lessons 创建未做（init 段越权面），以 --init 幂等承担；状态口径 ✅=accepted 等价、⬜/❌=拒绝，已写脚本头注释待 L2 追认（编排者追认通过）
+| EA-1 | PASS | agent_2b5873ff | orchestrator-L2(表审读+复算口径核查) | 2026-09-23T18:10:00Z | test-reports/asset-eval-20260923/BASELINE.md（16 行基线） |
+- [P1] D-EA1-1【最硬输入】：16 资产中 15 个零真实消费（腿② 署名级口径），唯一 dev-planner 有 4/4 署名级消费痕迹；drop-7 清单与零现组完全对齐，frontend-design/planning/skill-sentinel 零现但走 replace（选型决策非测量差异）——观察项登记
+
+## 批 0 收口（2026-09-23，九单全收）
+- 交付：EX-1 能力握手（探针 8/8）/ RG-1 研究门（vendor deep-research 原码 + step 1.5）/ AV-1 manifest schema 冻结单（Owner 签收位 PENDING）/ TK-1 task v2 七字段+机验器 / ON-1 接入向导六字段+决策卡 / CR-1 批判三元绑定 fail-closed / SB-1 盲测队列状态机 / LS-1 lessons fail-closed / EA-1 基线测量
+- L2 串行终验（写面静默后）：regression 13/13 + validate 0 + make-release 发布刷新 + junction 冒烟
+- Owner 审计 7 findings 全部登记整改（S14 不变量入 AS-1 验收、写面声明表纪律、行数口径修正）
+- vendor deep-research gitlink 缺陷修复（普通文件快照 168K 重入库）
+- 遗留：D-REG1-1 断网语义待 Owner 拍板（推荐 FAIL+--allow-offline）；批 1（AS-0 许可证核查先行）待 Owner 指令
