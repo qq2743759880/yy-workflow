@@ -101,3 +101,16 @@
 8.【推断】批 0 九单并行是历史最大并发（此前最多 4），回归面争抢概率高——终验纪律（写面静默后编排者串行跑）必须执行
 9.【推断】V3-ACC 盲行选题须避开工已用过的 4 类项目（审查助手/记账/文件整理/密码器），防学习效应
 10.【实测】本施工图取代 asset-v2-frontend-plan-20260923.md 的批次表与其 v3 方案的任务表；两文件的调研结论与 schema 设计仍有效
+
+## v3.1 修订（2026-09-23，外部审计批判性吸收——adopt/adapt/reject 裁定）
+
+| 提案 | 裁定 | 理由与修正 |
+|---|---|---|
+| Asset Migration Contract v1（shadow run→evidence compare→traffic switch→delete old） | **adopt 核心，砍永久层** | 只适用 replace 4；Shadow Run=临时夹具同 fixture 喂新旧资产 diff 消费证据（跑完即删）；"Migration Adapter"不得为永久制品（违胶水≤150 行纪律）；Traffic Switch=CLUSTERS candidates 切换；drop 7/全新引入不适用 |
+| change-lock.json | **adopt 降级** | 锁是建议性的，真强制力=派发拒发+收口 diff 归属核查；字段必须含 expiry（防悬挂锁，store.js 10s 过期锁先例）；不引入 branch-protection 级重机制 |
+| F-004 risk override（FAIL+--allow-offline+Receipt Override Event） | **adopt 已落地**（5e08545） | 修正：approvedBy 必须人署名（--approved-by <name>），agent 不得自填；三态探针过 |
+| Manifest 字段扩 10 个（capabilities/inputs/outputs/dependencies/examples/failure_modes/replacement） | **adopt 降为 v2.1 增量** | 三核心字段保持必填底线；新六字段**可选**、仅对 replace/新增资产强制（fail-closed 提取=字段都要有源文档依据，全量补齐卡死批 1；给待换资产写详尽 manifest 是浪费）；走 schema v2.1 change 单不重开 AV-1 |
+| runtime-invariants 预检（duplicate export/unreachable adapter/invalid manifest ref） | **adopt 全盘** | 事实修正：blindqueue 重复声明是 L2 node --check 抓的（文件坏了 self-test 根本跑不起来）——正说明该自动化。落地 scripts/preflight.mjs 全静态零 LLM，进回归新段 |
+| Micro Checkpoint Protocol（>10min 任务必须 checkpoint：done/current/next/risk/files_changed） | **adopt 全盘** | CR-1 三灭一成即 A/B 实证；写进 autopilot 协议 |
+| 路线重排（Asset Intelligence→Prompt Composer→Project Memory→Brain Layer） | **adopt 排序，两项修正** | 排序符合"先证据后智能"；批 1 与在跑 AS 系列重合不重启。修正①：Batch 3 Project Memory（.agent/）**不默认放行**——被切除记忆层的第三次回归尝试，与全局记忆有实质区别（工作区级+fail-closed+LS-1 模式已验证）但推翻旧裁定须 Owner 显式拍板，且必须带三约束（工作区作用域/fail-closed 写入/消费仅 prereq 提示级）；修正②：Brain Layer **维持拒绝**——排序调整不改变架构事实（LLM 即 brain；brain.mjs=模板加载器无增量或 LLM 调用毁确定性探针），其合理形态是批 2 Prompt Compiler 的扩展而非新 runtime 层 |
+| Agent Operating System 愿景 | **登记不动** | 北极星叙事，无近期动作；警惕愿景驱动加层（本项目已有两次"先建层后填内容"教训） |
