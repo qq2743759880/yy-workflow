@@ -626,6 +626,12 @@ async function main() {
     const r = prereqCheck(journey, n);
     if (!r.ok) { console.error(r.reason); process.exitCode = 1; return; }
     console.log(r.reason);
+    // LS-1：lessons 提示行（只提示不注入正文，防 prompt 膨胀；缺失/损坏均静默跳过）。
+    try {
+      const lessons = await import('./lessons.mjs');
+      const cnt = await lessons.countLessons(workspace, sid);
+      if (cnt.verified > 0) console.log('LESSONS: 本工作区有 ' + cnt.verified + ' 条已验证教训（lessons.mjs --workspace ' + workspace + ' --list 查看）');
+    } catch { /* 提示尽力而为，不阻塞 prereq 判定 */ }
     process.exitCode = 0;
     return;
   }

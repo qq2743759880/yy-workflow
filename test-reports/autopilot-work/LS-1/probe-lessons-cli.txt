@@ -1,0 +1,35 @@
+== T1 --init ==
+INIT OK: test-reports\autopilot-work\LS-1\tmp-ws\.tt-state\lessons.md
+exit=0
+== T2 append 有效来源 C-16(✅已闭环=accepted 等价) ==
+APPEND OK: L-1（来源 C-16 status=accepted(✅已闭环)）→ test-reports\autopilot-work\LS-1\tmp-ws\.tt-state\lessons.md
+exit=0
+== T2b append 有效来源 C-25(✅) unverified 默认 ==
+APPEND OK: L-2（来源 C-25 status=accepted(✅已闭环)）→ test-reports\autopilot-work\LS-1\tmp-ws\.tt-state\lessons.md
+exit=0
+== T3 fail-closed 伪造 id C-999 ==
+REFUSED: 无有效批判来源——批判条目 C-999 在 tracker 中不存在（伪造 id / 无来源），拒绝落盘
+exit=1
+== T4 fail-closed 无关 id X-1 ==
+REFUSED: 无有效批判来源——批判条目 X-1 在 tracker 中不存在（伪造 id / 无来源），拒绝落盘
+exit=1
+== T5 fail-closed 未过 gate C-29(⬜) ==
+REFUSED: 无有效批判来源——来源批判条目 C-29 批判条目状态为「⬜」，非 accepted/converted，拒绝落盘
+exit=1
+== T5b fail-closed 未过 gate C-32(⬜) ==
+REFUSED: 无有效批判来源——来源批判条目 C-32 批判条目状态为「⬜」，非 accepted/converted，拒绝落盘
+exit=1
+== T6 fail-closed 无来源(tracker 临时移走) ==
+REFUSED: 无有效批判来源——plans/critique-backlog-tracker.md 缺失或不可读，拒绝落盘
+exit=1
+== T7 --list / --count ==
+L-1 | 2026-09-23 | C-16 | journey 更新前 | 置 done 前必须跑 prereq-check | verified
+L-2 | 2026-09-23 | C-25 | linkcheck 场景 | 悬空引用必须机验 | unverified
+total=2
+verified=1
+== T8 v2 看板探针 ==
+APPEND OK: L-3（来源 LS-9 status=accepted）→ test-reports\autopilot-work\LS-1\tmp-ws\.tt-state\lessons.md
+exit=0
+-- v2 registered 行应拒绝 --
+REFUSED: 无有效批判来源——v2 看板条目 [LS-10] 状态为「registered」，非 accepted/converted，拒绝落盘
+exit=1

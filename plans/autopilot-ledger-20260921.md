@@ -53,3 +53,5 @@
 - 批 0 派发遗漏自纠：LS-1（lessons.md）与 EA-1（基线测量）此前漏派，本节登记后立即补派
 | SB-1 | PASS | agent_e0a578f1 | orchestrator-L2(self-test 24/24 亲自复跑) | 2026-09-23T17:10:00Z | scripts/blindqueue.mjs（CLI 全套+状态机 fail-closed+冻结防篡改+blind 视图掩蔽+四态看板）; test-reports/autopilot-work/SB-1/RESULTS.md |
 - [P2] D-SB1-1: 接手半成品修 5 处实质 bug（stage 归一化互串/冻结闸门误杀裁决回写/built→passed 静默/waived 无约束/空队列判 PASS）；hidden 保密为纪律级保证非硬隔离（如实声明）；prereq-check 挂点延后批 2
+| LS-1 | PASS | agent_77766e1f | orchestrator-L2(伪造/有效双态亲自复跑) | 2026-09-23T17:40:00Z | scripts/lessons.mjs（fail-closed 写入+session 隔离）; scripts/tt-journey.mjs（prereq 提示段 7 行）; test-reports/autopilot-work/LS-1/RESULTS.md |
+- [P2] D-LS1-1: journey init 自动挂 lessons 创建未做（init 段越权面），以 --init 幂等承担；状态口径 ✅=accepted 等价、⬜/❌=拒绝，已写脚本头注释待 L2 追认（编排者追认通过）
