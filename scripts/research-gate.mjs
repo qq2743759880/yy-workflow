@@ -10,8 +10,10 @@
  *   node scripts/research-gate.mjs --workspace <dir> [--self-test]
  *   node scripts/research-gate.mjs --kernel-probe          # 内核真跑探针（无 key 也须走通错误路径）
  * 退出码：0 = PASS；1 = gate FAIL（fail-closed）；2 = 用法/IO 错误。
- * 网络 SKIP 语义（待 Owner 裁决，D-REG1-1）：兜底源整体不可达 → 检索证据标 VERIFY_SKIPPED，
- *   按诚实标注放行格式校验（沿 review-gate VERIFY_SKIPPED 先例：不误杀也不假装验证过）。
+ * 网络语义（D-REG1-1 已裁决，2026-09-23）：兜底源整体不可达的产物（evidence 同时含 github-api 与
+ *   npm-registry「不可达」标记）默认 **FAIL**（fail-closed——无研究依据不得继续规划）；
+ *   显式 `--allow-offline --approved-by <name>` 才放行，且必须打印 OVERRIDE EVENT（risk override：
+ *   人为承担风险并留痕，非绕过；approvedBy 必须是人署名，agent 不得自填）。
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -207,6 +209,25 @@ async function main() {
       try { docs[k] = fs.readFileSync(p, 'utf8'); } catch { console.error('FAIL docs/' + f + ' 缺失: ' + p); process.exitCode = 1; return; }
     }
     console.log('[research-gate] 校验 ' + ws + '/docs/{prior-art,market}.md（fail-closed）');
+    // D-REG1-1 裁决（risk override 语义，2026-09-23）：兜底源整体不可达的产物默认 FAIL——
+    // 无研究依据不得继续规划；--allow-offline --approved-by <name> 显式风险接受 + OVERRIDE EVENT 留痕。
+    const offlineArtifact = /github-api:.*不可达/.test(docs['prior-art']) && /npm-registry:.*不可达/.test(docs['prior-art']);
+    const approvedBy = arg('approved-by');
+    if (offlineArtifact && !argv.includes('--allow-offline')) {
+      console.error('\n[FAIL] 检索兜底源整体不可达（无研究依据）——research-done 不得置位。');
+      console.error('       显式风险接受：--allow-offline --approved-by <人名>（将记录 OVERRIDE EVENT，approvedBy 须为人署名）');
+      process.exitCode = 1;
+      return;
+    }
+    if (offlineArtifact && argv.includes('--allow-offline')) {
+      if (!approvedBy) {
+        console.error('[FAIL] --allow-offline 必须伴随 --approved-by <人名>（risk override 须人署名，agent 不得自填）');
+        process.exitCode = 2;
+        return;
+      }
+      const override = { gate: 'research', status: 'bypassed', reason: 'offline mode', riskAccepted: true, approvedBy, at: new Date().toISOString() };
+      console.log('OVERRIDE_EVENT ' + JSON.stringify(override));
+    }
     const results = { 'prior-art': verifyPriorArt(docs['prior-art']), 'market': verifyMarket(docs['market']) };
     for (const [tag, r] of Object.entries(results)) for (const c of r.checks) console.log((c.ok ? 'PASS' : 'FAIL') + ' ' + tag + '/' + c.name + '  ' + c.detail);
     const pass = results['prior-art'].ok && results['market'].ok;
