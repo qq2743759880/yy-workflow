@@ -39,3 +39,24 @@
 | C-35 | 验收指标无机验量尺：token-audit.mjs 不存在，M1 批判 C-21（P1）修复同样 0 落地，本轮 token 验收指标（≤1.5k/≤2.5k）只能第三方工具手测；批判产出的「修复动作」系统性 0 落地连量尺都停尸 | P2 | B0-② 落地 scripts/token-audit.mjs（CJK 加权估算+近似口径注明+快照 JSON 落 docs/history+regression 断言不回退） | 脚本输出各文件估算值与快照；删快照 regression FAIL；瘦身后快照对比入报告 | ✅ 2026-09-08 独立验收 PASS（token-audit.mjs CJK 加权量尺落地：默认快照 12 文件落盘 docs/history、--gate 回退≥10% FAIL 实测、regression S10 全绿） |
 
 - [x] 2026-09-08 M2-R2 批判登记 6 条（C-30~C-35，竞品 URL 均当日真实抓取且结论回填，P0×1/P1×4/P2×1，修改方案见 yy/plans/tasks/M2-R2-优化修改方案.md；C-25~C-29 遗留经实测确认 0/5 落地，修复批次 B0~B6 已排期）
+
+## 批判协议 v2 三元绑定看板（CR-1 模板面，2026-09-23）
+
+> 本节仅模板面升级（CR-1 批 0）：**既有上方各段登记行一字不动**（历史段 `| C-` 行不参与本节 v2 统计，validate H8 口径不变）。新批判按本节字段入库；机读统计由 `node scripts/review-gate.mjs --tracker-stats plans/critique-backlog-tracker.md` 输出，并须与下方 CR1-STATS 块人工同步回填。
+> 字段口径：`claim`（一句话主张）/ `evidence`（竞品对标 URL+日期 或 evidence: 声明）/ `source`（knowledge-base:路径 | search-tool | standard-doc | none——none 须逐条标注「本批判无外部源，仅基于项目内部资料」，缺 source 的批判判 INVALID，fail-closed）/ `severity`（P0/P1/P2）/ `status`（registered|accepted|converted|done|rejected）/ `converted_task_id`（转化单 id，未转化写 —）/ `实施方案引用`（implementation_steps 所在文档路径，未转化写 —）。
+> 转化纪律：批判转 task 走 `node scripts/review-gate.mjs --convert-critique <批判文档>`（七字段内置断言，缺 implementation_steps 拒绝落盘）；只写目标结果不给施工步的转化判 INVALID。
+
+| claim | evidence | source | severity | status | converted_task_id | 实施方案引用 |
+|---|---|---|---|---|---|---|
+| （claim：一句话批判主张） | （URL+日期 或 evidence: 声明） | （knowledge-base:路径 / search-tool / standard-doc / none） | （P0/P1/P2） | （registered） | （—） | （—） |
+
+<!-- CR1-STATS
+total: 0
+registered: 0
+accepted: 0
+converted: 0
+done: 0
+rejected: 0
+conversion_rate: 0
+no_source: 0
+CR1-STATS-END -->

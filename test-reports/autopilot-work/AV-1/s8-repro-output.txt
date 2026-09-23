@@ -1,0 +1,4 @@
+positive ok: true | modes: {"exec":8}
+first subtask: be-architect | mode: exec | adapter: prompt | assetConsumed: true
+artifact files: [ 'brief.md', 'plan.md', 'result.txt' ]
+plan.md: "# # Backend Architect Agent\n\ncsalvato/system-design-template"

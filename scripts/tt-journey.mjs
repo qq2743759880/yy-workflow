@@ -6,12 +6,18 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 export const JOURNEY_SCHEMA = 'yy/journey@1';
-export const GATE_VOCAB = ['concept-signed', 'premise-signed', 'contract-frozen', 'gate-a-approved'];
+// RG-1：研究门 gate 'research-done' 加入词汇表（B 面写入口径）；lib/journey.mjs / lib/phase.mjs
+// 的 4 闸冻结投影不受影响（投影按各自 GATE_VOCAB 过滤，research-done 仅在 B 面 journey.json 与
+// 本 CLI 语义中生效，投影面不含——偏差 D-REG1-2 已登记）。
+export const GATE_VOCAB = ['concept-signed', 'premise-signed', 'contract-frozen', 'gate-a-approved', 'research-done'];
 
-// 9 节点（0-8）对齐 SKILL.md §0b 闭环全景。gate 为主干正向节点的人工闸（回跳层无独立 gate）。
+// 9 主干节点（0-8）+ 研究门 1.5（RG-1，位于 1 与 3 之间的 gate 型节点；非整数 step id，
+// 仅 journey/研究门语义使用，phase.mjs A 面 target 不接受——偏差 D-REG1-2）。
+// gate 为主干正向节点的人工闸（回跳层无独立 gate）。
 export const STEPS = [
   { step: 0, name: '资产整合', gate: null },
   { step: 1, name: '文档化', gate: 'concept-signed' },
+  { step: 1.5, name: '研究门', gate: 'research-done' },
   { step: 2, name: '重执行1', gate: null },
   { step: 3, name: '拆任务', gate: 'premise-signed' },
   { step: 4, name: '重执行1,2', gate: null },
@@ -20,13 +26,17 @@ export const STEPS = [
   { step: 7, name: '并行派单', gate: 'gate-a-approved' },
   { step: 8, name: '批判反哺', gate: null },
 ];
-// 正向主干（不含回跳层）：下一阶段按此顺序取当前之后第一个未完成节点。
-const FORWARD_LINE = [0, 1, 3, 5, 7, 8];
+/** step id 合法集（1.5 为非整数 id，normalizeStep 按 id 集校验）。 */
+export const STEP_IDS = STEPS.map(function(s) { return s.step; });
+// 正向主干（不含回跳层）：下一阶段按此顺序取当前之后第一个未完成节点（1.5 为研究门）。
+const FORWARD_LINE = [0, 1, 1.5, 3, 5, 7, 8];
 
-// 防跳阶段前置机验（task04）：step n → 依赖步（+ 需通过的 gate）。step0 无前置；
-// step8 允许依赖步 in_progress 或 done。未列出的 step（4/6 回跳层）视为无强制前置。
+// 防跳阶段前置机验（task04 + RG-1）：step n → 依赖步（+ 需通过的 gate）。step0 无前置；
+// step8 允许依赖步 in_progress 或 done。未列出的 step（2/4/6 回跳层）视为无强制前置。
+// RG-1：step 1.5 研究门前置 = step 1 done + gate concept-signed。
 const PREREQ_MAP = {
   1: [{ step: 0 }],
+  1.5: [{ step: 1, gate: 'concept-signed' }],
   2: [{ step: 1 }],
   3: [{ step: 1, gate: 'concept-signed' }],
   5: [{ step: 3 }],
@@ -69,6 +79,20 @@ function normalizeStep(n) {
   return n;
 }
 
+/**
+ * RG-1：解析含 1.5 研究门的 step 参数（--step 1.5 / --step 0-8 均可）。
+ * 内部数组/映射仍以 step id 精确匹配（steps 数组顺序=STEPS 定义序）。
+ */
+export function normalizeStepWithGate(n) {
+  if (Number(n) === 1.5) return 1.5;
+  return normalizeStep(Number(n));
+}
+
+/** RG-1：按 step id 取 STEPS 定义行（STEPS 数组顺序与 id 序一致，1.5 在 1 与 2 之间）。 */
+export function stepDef(id) {
+  return STEPS.find(function(s) { return s.step === id; }) || null;
+}
+
 /** 读 journey.json；不存在返回 null。坏 JSON 抛错。 */
 export async function readJourney(workspace, sessionId) {
   const file = journeyPath(workspace, sessionId);
@@ -98,12 +122,15 @@ export function ensureSteps(journey) {
 /**
  * --prereq-check --step <n>：防跳阶段机验。返回 { ok, reason }。
  * 校验依据 PREREQ_MAP：依赖步未 done（缺 gate 时更要求 gate 已过）→ 拦截。
+ * RG-1：按 step id 在 steps 数组中精确查找（数组含 1.5 后不能按位置索引——1.5 位于
+ * 数组下标 2，但 id 空间 0-8 的整数下标不再与 id 一致）。
  */
 export function prereqCheck(journey, n) {
   const deps = PREREQ_MAP[n];
   if (!deps || deps.length === 0) return { ok: true, reason: 'prereq OK: step ' + n };
+  const byId = new Map(journey.steps.map(function(s) { return [s.step, s]; }));
   for (const dep of deps) {
-    const node = journey.steps[dep.step];
+    const node = byId.get(dep.step);
     const done = node && (node.status === 'done' || (dep.inProgressOk && node.status === 'in_progress'));
     if (!done) {
       return { ok: false, reason: '阶段 ' + dep.step + ' 未完成（' + (node ? node.status : '缺失') + '），步骤 ' + n + ' 不得开工' + (dep.gate ? '（缺 gate: ' + dep.gate + '）' : '') };
@@ -123,7 +150,7 @@ export function prereqCheck(journey, n) {
  * C2 并发：整体读-改-写经 withJourneyLock 包裹。
  */
 export async function updateJourney({ workspace, sessionId, step, gate, artifact, force }) {
-  const n = normalizeStep(step);
+  const n = normalizeStepWithGate(step);
   if (gate != null && !GATE_VOCAB.includes(gate)) throw new Error('未知 gate: ' + gate + '（词汇表：' + GATE_VOCAB.join(' / ') + '）');
   return withJourneyLock(workspace, sessionId, async function() {
     let journey = await readJourney(workspace, sessionId);
@@ -133,7 +160,9 @@ export async function updateJourney({ workspace, sessionId, step, gate, artifact
     const chk = prereqCheck(journey, n);
     if (!chk.ok && !force) throw new PrereqError(chk.reason + '；--force 可越过');
     const bypassed = !chk.ok && force;
-    const node = journey.steps[n];
+    // RG-1：按 step id 取节点（1.5 引入后数组下标 ≠ step id）
+    const node = journey.steps.find(function(s) { return s.step === n; });
+    if (!node) throw new Error('step ' + n + ' 不在 STEPS 定义中');
     node.status = 'done';
     if (gate != null && !node.gates_passed.includes(gate)) node.gates_passed.push(gate);
     if (artifact != null && !node.artifacts.includes(artifact)) node.artifacts.push(artifact);
@@ -185,8 +214,10 @@ async function autoInitBaseline(workspace, sessionId) {
     if (journey) return journey;
     journey = newJourney();
     journey.steps = ensureSteps(journey);
-    journey.steps[0].status = 'done';
-    journey.steps[0].updated_at = nowIso();
+    // RG-1：按 step id 取节点（数组含 1.5 后下标≠id）
+    const base0 = journey.steps.find(function(s) { return s.step === 0; });
+    base0.status = 'done';
+    base0.updated_at = nowIso();
     journey.updated_at = nowIso();
     await writeJourneyFile(workspace, journey, sessionId);
     return journey;
@@ -260,8 +291,9 @@ function inferJourney(workspace, sources) {
   // 并行派单（step 7）完成 ⇒ 主执行已跑过；failed/skipped 依 status 标注 plans 入口。
   const hasPlan = sources.length > 0;
   if (hasPlan) {
-    journey.steps[7].status = 'done';
-    journey.steps[7].updated_at = nowIso();
+    const s7 = journey.steps.find(function(s) { return s.step === 7; });
+    s7.status = 'done';
+    s7.updated_at = nowIso();
   }
   const now = nowIso();
   for (const src of sources) {
@@ -298,9 +330,11 @@ function currentAndNext(journey) {
   if (current) {
     const ci = FORWARD_LINE.indexOf(current.step);
     if (ci >= 0) {
+      // RG-1：按 step id 取候选节点（1.5 引入后数组下标≠step id）
+      const byId = new Map(steps.map(function(s) { return [s.step, s]; }));
       for (let i = ci + 1; i < FORWARD_LINE.length; i += 1) {
-        const cand = steps[FORWARD_LINE[i]];
-        if (cand.status !== 'done') { next = cand; break; }
+        const cand = byId.get(FORWARD_LINE[i]);
+        if (cand && cand.status !== 'done') { next = cand; break; }
       }
     }
   }
@@ -358,18 +392,21 @@ const SELF_TEST_NAMES = [
   'GWT6 C1 防跳：step5 未 done + update step7 → PrereqError，journey.json 内容不变',
   'GWT7 C1 越过留痕：step5 未 done + update step7 --force → step7 done 且 plans[] 含 prereq-bypassed',
   'GWT8 C2 并发锁：进程内并行 + 跨进程 spawn（--lock-probe）不同 planId → 双条目全存活、无锁版本丢条目',
+  'GWT9 RG-1 研究门：step1 未 done 拦截 1.5；铺链后 prereq-check 过 + update 1.5 --gate research-done 落盘；缺 gate 再拦截',
 ];
 
 async function runSelfTest() {
   const results = [];
   const ws = await fs.mkdtemp(path.join(process.env.TEMP || '/tmp', 'tt-journey-st-'));
   const reset = async function() { await fs.rm(ws, { recursive: true, force: true }); await fs.mkdir(ws, { recursive: true }); };
+  // RG-1：1.5 引入后数组下标≠step id，自测统一按 id 定位
+  const byId = function(j, id) { return j.steps.find(function(s) { return s.step === id; }); };
 
   // GWT1
   await reset();
   let j = newJourney();
-  for (const n of [0, 1, 2, 3]) j.steps[n].status = 'done';
-  j.steps[5].status = 'in_progress';
+  for (const n of [0, 1, 2, 3]) byId(j, n).status = 'done';
+  byId(j, 5).status = 'in_progress';
   await writeJourneyFile(ws, j);
   let rendered = renderJourney(j);
   results.push([
@@ -388,14 +425,14 @@ async function runSelfTest() {
   await updateJourney({ workspace: ws, step: 3, gate: 'premise-signed' });
   await updateJourney({ workspace: ws, step: 5, gate: 'contract-frozen' });
   j = await readJourney(ws);
-  const after1 = JSON.parse(JSON.stringify(j.steps[5].gates_passed));
-  const u1 = j.steps[5].updated_at;
+  const after1 = JSON.parse(JSON.stringify(byId(j, 5).gates_passed));
+  const u1 = byId(j, 5).updated_at;
   await updateJourney({ workspace: ws, step: 5, gate: 'contract-frozen', artifact: 'artifacts/p1/contract.json' });
   j = await readJourney(ws);
-  const after2 = j.steps[5].gates_passed;
+  const after2 = byId(j, 5).gates_passed;
   const gateDedup = after1.length === 1 && after2.length === 1 && after2[0] === 'contract-frozen';
-  const statusDone = j.steps[5].status === 'done';
-  const artifactAdded = j.steps[5].artifacts.includes('artifacts/p1/contract.json');
+  const statusDone = byId(j, 5).status === 'done';
+  const artifactAdded = byId(j, 5).artifacts.includes('artifacts/p1/contract.json');
   results.push(['GWT2', gateDedup && statusDone && artifactAdded, 'node scripts/tt-journey.mjs --update --step 5 --gate contract-frozen', 'gate 去重=' + gateDedup + ' done=' + statusDone + ' artifact=' + artifactAdded]);
 
   // GWT3
@@ -414,7 +451,7 @@ async function runSelfTest() {
   const src4 = await inferSources(ws);
   let j4 = inferJourney(ws, src4);
   const r4 = renderJourney(j4, { inferred: true, source: 'artifacts/p1/state-summary.json' });
-  const step7 = j4.steps[7].status;
+  const step7 = byId(j4, 7).status;
   const exists4 = await readJourney(ws);
   results.push(['GWT4', step7 === 'done' && r4.includes('INFERRED') && r4.includes('artifacts/p1/state-summary.json') && exists4 === null, 'node scripts/tt-journey.mjs --workspace <dir>', 'step7=' + step7 + ' 标注来源=' + r4.includes('artifacts/p1/state-summary.json') + ' 未落盘=' + (exists4 === null)]);
 
@@ -422,20 +459,22 @@ async function runSelfTest() {
   await reset();
   await updateJourney({ workspace: ws, step: 0, artifact: 'contracts/p1.json' });
   j = await readJourney(ws);
-  const topOk = j.schema === JOURNEY_SCHEMA && Array.isArray(j.steps) && j.steps.length === 9 && Array.isArray(j.plans) && typeof j.updated_at === 'string';
+  const topOk = j.schema === JOURNEY_SCHEMA && Array.isArray(j.steps) && j.steps.length === 10 && Array.isArray(j.plans) && typeof j.updated_at === 'string';
   let stepsOk = true;
   for (const s of j.steps) {
     const fields = Object.keys(s);
     if (fields.length !== ALLOWED_STEP_FIELDS.length || ALLOWED_STEP_FIELDS.some(function(f) { return !(f in s); })) { stepsOk = false; break; }
-    if (s.step < 0 || s.step > 8 || typeof s.name !== 'string' || !VALID_STATUS.includes(s.status) || !Array.isArray(s.gates_passed) || !Array.isArray(s.artifacts)) { stepsOk = false; break; }
+    const idOk = Number.isInteger(s.step) ? (s.step >= 0 && s.step <= 8) : s.step === 1.5;
+    if (!idOk || typeof s.name !== 'string' || !VALID_STATUS.includes(s.status) || !Array.isArray(s.gates_passed) || !Array.isArray(s.artifacts)) { stepsOk = false; break; }
   }
+  const idsOk = j.steps.map(function(s) { return s.step; }).join(',') === '0,1,1.5,2,3,4,5,6,7,8';
   const plansEmpty = j.plans.length === 0;
-  results.push(['GWT5', topOk && stepsOk && plansEmpty, 'node scripts/tt-journey.mjs --update --step 0', '顶层=' + topOk + ' steps9字段=' + stepsOk]);
+  results.push(['GWT5', topOk && stepsOk && idsOk && plansEmpty, 'node scripts/tt-journey.mjs --update --step 0', '顶层=' + topOk + ' steps10字段=' + stepsOk + ' id序=' + idsOk]);
 
   // GWT6（C1 防跳）：step5 未 done → update step7 抛 PrereqError，journey.json 内容不变
   await reset();
   j = newJourney();
-  j.steps[5].status = 'in_progress';
+  byId(j, 5).status = 'in_progress';
   await writeJourneyFile(ws, j);
   const before6 = JSON.stringify(await readJourney(ws));
   let caught6 = null;
@@ -447,12 +486,12 @@ async function runSelfTest() {
   // GWT7（C1 越过留痕）：同场景 + --force → step7 done，plans[] 含 __manual__/prereq-bypassed
   await reset();
   j = newJourney();
-  j.steps[5].status = 'in_progress';
+  byId(j, 5).status = 'in_progress';
   await writeJourneyFile(ws, j);
   await updateJourney({ workspace: ws, step: 7, gate: 'gate-a-approved', force: true });
   j = await readJourney(ws);
   const bypass = j.plans.find(function(p) { return p.planId === '__manual__' && p.status === 'prereq-bypassed'; });
-  const step7done7 = j.steps[7].status === 'done';
+  const step7done7 = byId(j, 7).status === 'done';
   results.push(['GWT7', Boolean(bypass) && step7done7 && typeof bypass.updatedAt === 'string', 'node scripts/tt-journey.mjs --update --step 7 --force', 'step7done=' + step7done7 + ' 留痕=' + Boolean(bypass)]);
 
   // GWT8（C2 并发锁）：先证明无锁写会丢条目（负对照），再断言锁版双进程写全存活。
@@ -496,6 +535,32 @@ async function runSelfTest() {
     lockedDetail = '锁版A=' + hasA + ' 锁版B=' + hasB + ' 无锁丢条目(负对照)=' + raceLost;
     results.push(['GWT8', lockedOk, 'spawn 2 子进程 --lock-probe（不同 planId）× 10 轮 + 进程内锁断言', lockedDetail]);
   }
+
+  // GWT9（RG-1 研究门）：step 1.5 前置 = step1 done + concept-signed。
+  // ① step1 未 done → update 1.5 拦截；② 铺好前置（0→1+gate）→ prereq-check 1.5 过、
+  // update 1.5 --gate research-done 成功；③ 未过 gate 时 --prereq-check --step 1.5 exit 1。
+  await reset();
+  await writeJourneyFile(ws, newJourney());
+  let caught9 = null;
+  try { await updateJourney({ workspace: ws, step: 1.5, gate: 'research-done' }); } catch (error) { caught9 = error; }
+  const blocked9 = caught9 instanceof PrereqError && caught9.exitCode === 3 && caught9.message.includes('阶段 1');
+  await updateJourney({ workspace: ws, step: 0 });
+  await updateJourney({ workspace: ws, step: 1, gate: 'concept-signed' });
+  j = await readJourney(ws);
+  const chk15Ok = prereqCheck(j, 1.5).ok;
+  await updateJourney({ workspace: ws, step: 1.5, gate: 'research-done', artifact: 'docs/prior-art.md' });
+  j = await readJourney(ws);
+  const node15 = byId(j, 1.5);
+  const gateOk9 = node15 && node15.status === 'done' && node15.gates_passed.includes('research-done') && node15.artifacts.includes('docs/prior-art.md');
+  // 前置刚满足后 1.5 可过；若抹掉 step1 的 gate（模拟 Owner 未签收）→ prereq-check 拦截
+  const afterGate = byId(j, 1);
+  const keepGates = afterGate.gates_passed.slice();
+  afterGate.gates_passed = [];
+  await writeJourneyFile(ws, j);
+  const chk15Blocked = !prereqCheck(await readJourney(ws), 1.5).ok;
+  afterGate.gates_passed = keepGates;
+  await writeJourneyFile(ws, j);
+  results.push(['GWT9', blocked9 && chk15Ok && gateOk9 && chk15Blocked, 'node scripts/tt-journey.mjs --prereq-check --step 1.5 / --update --step 1.5 --gate research-done', '未done拦截=' + blocked9 + ' 铺链后过=' + chk15Ok + ' update+gate落盘=' + gateOk9 + ' 缺gate拦截=' + chk15Blocked]);
 
   await fs.rm(ws, { recursive: true, force: true });
   return results;
@@ -545,8 +610,10 @@ async function main() {
   }
 
   if (has('prereq-check')) {
-    const n = Number(arg('step'));
-    if (!Number.isInteger(n) || n < 0 || n > 8) { console.error('--prereq-check 需要 --step <0-8>'); process.exitCode = 2; return; }
+    const rawStep = arg('step');
+    const n = Number(rawStep);
+    // RG-1：1.5 = 研究门（合法非整数 id）；其余仍限 0-8 整数。
+    if (!(Number(rawStep) === 1.5) && (!Number.isInteger(n) || n < 0 || n > 8)) { console.error('--prereq-check 需要 --step <0-8 或 1.5>'); process.exitCode = 2; return; }
     const sid = arg('session'); // BFX-2：与 --read/--project 分支同语义，session 路径为 .tt-state/<sid>/journey.json
     let journey = await readJourney(workspace, sid);
     if (!journey) {
@@ -564,7 +631,7 @@ async function main() {
   }
   if (has('update')) {
     const step = arg('step');
-    if (step === undefined) { console.error('--update 需要 --step <0-8>'); process.exitCode = 2; return; }
+    if (step === undefined) { console.error('--update 需要 --step <0-8 或 1.5>'); process.exitCode = 2; return; }
     const sid = arg('session'); // BFX-2：session 隔离，更新写 .tt-state/<sid>/journey.json；缺省仍写共享 journey.json
     try {
       const journey = await updateJourney({ workspace, sessionId: sid, step: Number(step), gate: arg('gate'), artifact: arg('artifact'), force: has('force') });

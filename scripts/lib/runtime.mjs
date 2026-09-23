@@ -56,6 +56,23 @@ function emitStatus(plan, subtask, status, opts, extra) {
     });
   } catch (error) { /* 事件回调异常不得改变执行语义 */ }
 }
+// EX-1 能力门控：子任务资产 → 所需能力（能力名固定枚举：write_files/run_cmd/network/spawn_subagent/mcp_client）。
+// 映射原则：专用 CLI adapter 资产（真跑外部命令）需要 run_cmd；prompt 兜底资产仅需 write_files（指令包落盘）。
+// 映射是静态保守声明——探测失败/缺能力 → dispatch 内诚实降级，不静默改用弱能力。
+export function getRequiredCapabilities(asset) {
+  switch (asset) {
+    case 'implementation':
+    case 'dev-backend':
+    case 'be-implementer':
+    case 'sdlc':
+    case 'be-validator':
+    case 'portman':
+      return ['write_files', 'run_cmd'];
+    default:
+      return ['write_files'];
+  }
+}
+
 export async function dispatch(subtask, ctx, opts = {}) {
   let logger = opts.logger;
   if (!logger) logger = createLogger(opts.verbose);
@@ -84,6 +101,26 @@ export async function dispatch(subtask, ctx, opts = {}) {
     }
   }
   try { await gate.before(subtask, opts); } catch (error) { logger.warn('gate.before skipped: ' + error.message); }
+  // 能力门控（EX-1）：检查子任务所需能力 vs 执行器实际能力，缺能力 → 诚实降级（不静默用弱能力）。
+  // 门控在 gate.before 之后、真实执行之前——dry-run/skipped 短路已在前，无副作用。
+  const requiredCaps = getRequiredCapabilities(subtask.asset);
+  const actualCaps = (opts.executorDefaults && opts.executorDefaults.capabilities) || null;
+  if (actualCaps) {
+    const missingCaps = requiredCaps.filter(function(cap) { return !actualCaps[cap]; });
+    if (missingCaps.length > 0) {
+      subtask.missingCaps = missingCaps;
+      logger.warn('subtask ' + subtask.id + ' (' + subtask.asset + ') 执行器能力缺失: ' + missingCaps.join(', ')
+        + ' → 诚实降级（' + (actualCaps.write_files ? 'mode=prompt brief-only 兜底' : 'mode=skipped') + '），不静默用弱能力');
+      if (actualCaps.write_files) {
+        subtask.status = 'skipped'; subtask.mode = 'prompt'; subtask.adapter = 'none'; subtask.error = 'CAPABILITY_MISSING';
+      } else {
+        subtask.status = 'skipped'; subtask.mode = 'skipped'; subtask.adapter = 'none'; subtask.error = 'CAPABILITY_MISSING';
+      }
+      emitStatus(null, subtask, 'skipped', opts, { elapsedMs: 0 });
+      try { await gate.after(subtask, opts); } catch (error) { logger.warn('gate.after skipped: ' + error.message); }
+      return { ok: true, skipped: true, artifactPath: null, error: 'CAPABILITY_MISSING' };
+    }
+  }
   let result;
   try {
     // P1 失败自动恢复：prompt 后端 + 存在宿主（--exec 主宿主或 --hosts 备选宿主）→ 跨宿主/跨视角重试链。
@@ -177,6 +214,12 @@ export async function executePlan(plan, opts = {}) {
         plan.degraded = true;
         plan.warnings.push('⚠ requireExec 强制：' + briefOnly.length + ' 个子任务 brief-only 兜底（' + briefOnly.map(function(s) { return s.asset; }).join(', ') + '）——T2 资产需 --exec 宿主真实执行，不可纯 prompt 兜底');
       }
+    }
+    // 能力门控汇总警告：CAPABILITY_MISSING 降级留痕（诚实性——缺能力不假报执行）
+    const capMissing = plan.subtasks.filter(function(s) { return s.error === 'CAPABILITY_MISSING'; });
+    if (capMissing.length) {
+      plan.degraded = true;
+      plan.warnings.push('能力门控：' + capMissing.length + ' 个子任务因执行器能力缺失降级（' + capMissing.map(function(s) { return s.asset + (s.missingCaps ? ':缺' + s.missingCaps.join('/') : '') ; }).join(', ') + '）——mode=prompt/skipped 诚实降级，不静默用弱能力');
     }
     // P1 失败自动恢复诚实标注：换宿主/换视角重试后仍失败 → 明确 degraded + warning（recovery 链已记录，不假报成功）
     const hostRecovered = plan.subtasks.filter(function(s) { return Array.isArray(s.recovery) && s.recovery.length > 0; });

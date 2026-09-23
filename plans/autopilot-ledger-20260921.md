@@ -37,3 +37,19 @@
 - [P2] D-BFXC-1: 派单引用的"既定纪律"悬空短语实测不存在，按修复意图补建；D-BFXC-3: dispatch-and-acceptance.md 2000/2000 tok 压线（4 处既有行等义压缩腾位）
 | ACC-1 | PASS | orchestrator(直修终验) | orchestrator-L2 | 2026-09-22T10:45:00Z | 发布重生成（PURGED=1 LEAK 0+0）；junction 冒烟 4/4；安装面 tt-journey byte 归一（BW-2 漂移补丁覆盖）；空壳 plans/ 目录清除；regression 13/13 + validate 0 + FIX-2 探针 12/12 + BFX-A 探针 8/8 串行终验 |
 | DOC-1 | PASS | orchestrator | Owner(待复核) | 2026-09-22T10:45:00Z | plans/closeout-20260922.md; plans/blindwalk-board-20260920.md; test-reports/autopilot-work/BW-{1,2,3,4}/session-notes.md |
+
+## Owner 独立审计（2026-09-23，批 0 中期）——7 findings 全部成立，整改登记
+- F-001【High·成立】单任务完成≠v3 完成：批 0 仅交付 schema/门/模板层，批 1（AS-0/2/3/AV-2/AS-1）、批 2（AV-3/AV-4/FE-5/6/7/PB-1）、批 3（V3-ACC 全链路盲行）全部未跑——措辞纪律：后续报告一律用"批 N 单任务交付"，禁用"v3 完成"
+- F-002【High·成立】regression 13/13 只证旧态自洽：S3 PHASE2 仍含 agent-research/be-provider/be-resilience/colorize/agent-vision-toolkit——整改：AS-1（drop 7）验收新增硬性不变量 S14：①drop 资产 import/引用 0 命中 ②replace 资产真实消费探针 ③manifest 驱动路由断言 ④旧 adapter 不可达；PHASE2 清单与 CLUSTERS 同步收缩
+- F-003【High·成立】EX-1/ON-1 并行写 executor-setup.mjs 致结构破损（EX-1 修复归位）——整改：并行批次强制"写面声明表"（派单时逐文件登记唯一 owner），同文件双写禁止；收口时 git diff 逐文件归属核查（写进执行方案 §纪律）
+- F-004【Medium·成立】RG-1 断网 SKIP 语义存争议——现状=诚实标注放行；Owner 审计指出退化风险；**推荐改 FAIL+显式 escape hatch（--allow-offline 显式旗标+留痕），待 Owner 拍板**
+- F-005【Medium·成立】AV-1 是 schema contract 非 manifest population——AV-2 未跑，manifest 正式值为空占位，属批 1 范围
+- F-006【Medium·成立】SB-1 无 RESULTS.md 交付证据——且 L2 复核发现 blindqueue.mjs 有 `frozenQueue` 重复声明 SyntaxError（`node --check` FAIL），续跑 agent 产出破损，需修复+补全自测
+- F-007【Medium·成立】CR-1 三派全灭（provider 错误×2+取消×1），review-gate.mjs 无三元绑定改动，CR-1 目录空——第四次派发中
+- RG-1 行数口径【Owner SUSPECTED·成立】："主逻辑 146 行"为自定义统计；全文件 220 行实测——登记为口径偏差，探针行数声明今后一律用全文件 wc -l
+| CR-1 | PASS | agent_07ac6f1e | orchestrator-L2(自测复现+证据审读) | 2026-09-23T16:40:00Z | scripts/review-gate.mjs（--critique-sources/--rubric/--convert-critique/--tracker-stats + 三元绑定 fail-closed）; plans/critique-backlog-tracker.md（v2 模板节追加，历史行未动）; test-reports/autopilot-work/CR-1/RESULTS.md |
+- [P2] D-CR1-01: 三元绑定 CLI 校验仅在显式传参时启用，不传参保 legacy（S7 兼容）；纯缺 source INVALID 语义由 checkCritiqueBinding 导出承担
+- [P2] D-CR1-02: 真实 tracker v2 段暂无入库行，--tracker-stats 对真实 tracker exit 1 属模板面先行预期态
+- 批 0 派发遗漏自纠：LS-1（lessons.md）与 EA-1（基线测量）此前漏派，本节登记后立即补派
+| SB-1 | PASS | agent_e0a578f1 | orchestrator-L2(self-test 24/24 亲自复跑) | 2026-09-23T17:10:00Z | scripts/blindqueue.mjs（CLI 全套+状态机 fail-closed+冻结防篡改+blind 视图掩蔽+四态看板）; test-reports/autopilot-work/SB-1/RESULTS.md |
+- [P2] D-SB1-1: 接手半成品修 5 处实质 bug（stage 归一化互串/冻结闸门误杀裁决回写/built→passed 静默/waived 无约束/空队列判 PASS）；hidden 保密为纪律级保证非硬隔离（如实声明）；prereq-check 挂点延后批 2

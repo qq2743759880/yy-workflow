@@ -117,7 +117,7 @@ async function main() {
     }
     const okItem = exists && adapterOk && marker && kernelSection && hasProbe;
     if (!okItem) p2ok = false;
-    const detail = (exists ? '[vendor OK]' : '[vendor 缺失]') + (adapterOk ? (target.dedicatedAdapter ? ' [adapter 已接线]' : ' [prompt/auto 可达]') : ' [adapter 未接线]')
+    const detail = (exists ? '[vendor OK]' : '[vendor 缺失]') + (adapterOk ? (target.dedicatedAdapter ? ' [能力探测验证: 专用 adapter 支持 write_files/run_cmd]' : ' [prompt/auto 可达]') : ' [无专用 adapter，prompt/auto 兜底]')
       + (kernelSection ? ' [kernel 段]' : ' [缺 Execution kernel 段]')
       + (hasProbe ? ' [probe]' : ' [缺 probe]')
       + (marker ? ' [marker OK]' : ' [marker 缺失/否定或 stub: ' + missing.join(',') + ']');
@@ -125,7 +125,7 @@ async function main() {
   }
   console.log('S3 Phase 2 替换清单（占位卡点，替换启动前须保持全绿）：');
   for (const l of p2lines) console.log(l);
-  section('S3 Phase 2 替换清单', p2ok, p2ok ? '（3 个高杠杆目标现状契约完整）' : '（有目标未接线/缺失/内核 marker 漂移，替换前先修）');
+  section('S3 Phase 2 替换清单', p2ok, p2ok ? '（3 个高杠杆目标现状契约完整）' : '（有目标缺专用 adapter/缺失/内核 marker 漂移，替换前先修）');
 
   // S4-S6 真实 smoke（临时 workspace，结束后清理）
   const tmpWs = fs.mkdtempSync(path.join(os.tmpdir(), 'tt-regression-'));

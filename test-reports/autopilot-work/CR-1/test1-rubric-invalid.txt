@@ -1,0 +1,10 @@
+PASS 批判文档存在  3 条
+PASS 有效批判≥3（含URL+日期）  有效 3/3
+PASS 优化修改方案存在  存在
+PASS tracker 已登记  含 taskT1
+PASS rubric criteria ≥1  1 条
+PASS rubric 每条 id/name 非空  OK
+FAIL rubric weight 非负数且总和>0  criteria[0] weight 非法
+
+[FAIL] taskT1 CR-1 批判协议 v2 校验未过（三元绑定 fail-closed / rubric 口径非法）——detail 已指名条目
+EXIT=1

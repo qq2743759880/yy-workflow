@@ -1,0 +1,12 @@
+WARN: prereq bypassed by --force（阶段 5 未完成（in_progress），步骤 7 不得开工（缺 gate: contract-frozen））——已在 plans[] 留痕
+PASS GWT1
+PASS GWT2
+PASS GWT3
+PASS GWT4
+PASS GWT5
+PASS GWT6
+PASS GWT7
+PASS GWT8
+PASS GWT9
+tt-journey self-test: 全部通过
+exit=0

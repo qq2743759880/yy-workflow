@@ -1,0 +1,12 @@
+[PASS] N1 --dry-run 打印六组预览（大白话）且零落盘  · exit=0 预览=有 大白话理由=有 零落盘=是
+[PASS] N2 --apply 落盘（临时目录）六字段与派单默认表一致  · exit=0 六键齐=是 sha16=d14113ddee93c4f1
+[PASS] N3 幂等：同输入连续两次落盘逐字节一致  · byte-identical=true sha16=d14113ddee93c4f1
+[PASS] N4 已有 config：只补缺不覆盖（既有值/自定义键保留 + 缺项补齐）  · 既有值保留=是 自定义键保留=是 缺项补齐=是
+[PASS] N5 CLI flag 覆盖生效（--subagentSource codex-cli / --blindwalk false / --mcpTools 列表）  · exit=0 flag 落盘=是
+[PASS] N5b 单字段 flag 覆盖 + 其余字段取默认（优先级 flag > 默认）  · exit=0
+[PASS] N6 CLI flag 非法值 fail-closed：exit 2 + 指引 + 不落盘  · exit=2 指引=有 落盘=无
+[PASS] N7 templates/decision-card.md 字段齐全（9/9）  · 全字段在场
+[PASS] N8 templates/handoff-prompt.md 字段齐全（9/9）  · 全字段在场
+[PASS] N9 落盘 YAML PyYAML 可解析 + blindwalk 布尔/mcp 列表类型正确  · YAML OK: {"orchestrator.subagentSource": "session", "orchestrator.delegationMode": "self-dispatch", "critique.sources": "none", "report.style": "plain", "blindwalk.enabled": true, "mcp.tools": []}
+
+结果: 10 PASS / 0 FAIL

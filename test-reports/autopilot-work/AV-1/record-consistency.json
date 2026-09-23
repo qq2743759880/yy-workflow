@@ -1,0 +1,25 @@
+{
+  "at": "2026-09-23T08:36:06.139Z",
+  "results": [
+    {
+      "name": "B1 baseVersion = schema 文档 sha256（终版）",
+      "ok": true,
+      "detail": "cea6f30d5155e2ca"
+    },
+    {
+      "name": "B2 idempotencyKey 复现（终版）",
+      "ok": true,
+      "detail": "8f8e3c2bafce67b1"
+    },
+    {
+      "name": "B3 scopeId 绑定 plan+version+class",
+      "ok": true,
+      "detail": "contracts/asset-manifest-v2.md@cea6f30d5…"
+    },
+    {
+      "name": "B4 sourceEvidence[0] 指向 schema 终版 sha",
+      "ok": true,
+      "detail": "contracts/asset-manifest-v2.md#cea6f30d5155e2cac44…"
+    }
+  ]
+}

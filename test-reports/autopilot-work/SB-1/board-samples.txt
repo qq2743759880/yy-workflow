@@ -1,0 +1,29 @@
+=== 看板 3 条目样本：1 passed / 1 failed / 1 waived ===
+--- 裁决前（全部 hidden，CONCERNS 口径）---
+| 阶段名 | 条目数 | built 率 | blind-pass 率 | fail 归属 task | 裁决 | 阻塞下游阶段 |
+| --- | --- | --- | --- | --- | --- | --- |
+| stage-1 | 3 | 100.0% | 0.0% | — | CONCERNS | 是 |
+--- T1=passed T2=failed T3=hidden → FAIL（fail 归属 task-Q）---
+| 阶段名 | 条目数 | built 率 | blind-pass 率 | fail 归属 task | 裁决 | 阻塞下游阶段 |
+| --- | --- | --- | --- | --- | --- | --- |
+| stage-1 | 3 | 100.0% | 33.3% | task-Q | FAIL | 是 |
+--- waiver 逃生拒绝（FAIL 口径下 T3 不可 waived）---
+[blindqueue] 非法状态路径: waived 限 CONCERNS 级——队列存在 failed 条目（FAIL 口径），拒绝 waiver 逃生
+EXIT=2 (期望 2)
+--- 最终 T1/T3=passed T2=failed → FAIL ---
+| 阶段名 | 条目数 | built 率 | blind-pass 率 | fail 归属 task | 裁决 | 阻塞下游阶段 |
+| --- | --- | --- | --- | --- | --- | --- |
+| stage-1 | 3 | 100.0% | 66.7% | task-Q | FAIL | 是 |
+
+=== 对照：WAIVED 裁决样本（stage-2，无 failed 条目时合法 waive）===
+| 阶段名 | 条目数 | built 率 | blind-pass 率 | fail 归属 task | 裁决 | 阻塞下游阶段 |
+| --- | --- | --- | --- | --- | --- | --- |
+| stage-2 | 1 | 100.0% | 0.0% | — | WAIVED | 是 |
+--- waived 留痕（决策与留痕段）---
+| qid | 裁决 | 理由 | 时间 |
+| --- | --- | --- | --- |
+
+=== 对照：PASS 裁决（stage-3，全绿不阻塞）===
+| 阶段名 | 条目数 | built 率 | blind-pass 率 | fail 归属 task | 裁决 | 阻塞下游阶段 |
+| --- | --- | --- | --- | --- | --- | --- |
+| stage-3 | 1 | 100.0% | 100.0% | — | PASS | 否 |

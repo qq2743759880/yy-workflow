@@ -54,6 +54,8 @@ async function readConfig() {
 
 /** executor.json 已知 CLI 清单单点引用（executor-setup.mjs 导出；清单/schema 漂移只有一处维护点）。 */
 const EXECUTOR_KNOWN_CLIS = await import('./executor-setup.mjs').then(function(m) { return m.KNOWN_CLIS; }).catch(function() { return ['claude', 'codex', 'openclaw', 'cursor', 'trae', 'opencode']; });
+/** EX-1 能力握手：默认能力集单点引用（executor-setup.mjs 导出；能力名固定枚举不随平台命名）。 */
+const EXECUTOR_DEFAULT_CAPABILITIES = await import('./executor-setup.mjs').then(function(m) { return m.DEFAULT_CAPABILITIES; }).catch(function() { return { write_files: true, run_cmd: true, network: true, spawn_subagent: true, mcp_client: false }; });
 
 /**
  * 读 executor.json 并映射缺省。返回 {exists, corrupt, cli, model, isolate, mode, exec, source}。
@@ -570,7 +572,28 @@ async function main() {
   // FIX-2：executor.json 接线。优先级（两个缺省槽各自成立）：显式命令行 > executor.json > config.json > 无。
   // executor.json 是「workspace 级」配置，按最终 workspace 读取；向导输出是新近用户意图，优先于 config 旧缺省。
   const ex = await readExecutorDefaults(workspace);
-  opts.executorDefaults = { cli: ex.cli || null, model: ex.model || null, isolate: ex.isolate === undefined ? null : ex.isolate, mode: ex.mode || null, corrupt: ex.corrupt === true, source: ex.exists ? path.join('.tt-state', 'executor.json').replace(/\\/g, '/') : null };
+  // 能力接线（EX-1）：读取 executor.json 的 capabilities 块（Agent Card 式自描述）。
+  // 文件缺失/损坏 → null（dispatch 无门控信息时按旧行为执行，不臆造能力）；JSON 可读但无 capabilities
+  // 键 → 回落 DEFAULT_CAPABILITIES（executor-setup 单点导出；MCP 未探测 → false，不假报）。
+  // 注意：顶层 fs 是 node:fs/promises（无 readFileSync），同步读用 fss（node:fs）。
+  const exCaps = ex.corrupt || !ex.exists ? null : (function() {
+    try {
+      const raw = fss.readFileSync(path.join(workspace, '.tt-state', 'executor.json'), 'utf8');
+      const parsed = JSON.parse(raw);
+      return parsed.capabilities || EXECUTOR_DEFAULT_CAPABILITIES;
+    } catch (e) {
+      return EXECUTOR_DEFAULT_CAPABILITIES;
+    }
+  })();
+  opts.executorDefaults = { 
+    cli: ex.cli || null, 
+    model: ex.model || null, 
+    isolate: ex.isolate === undefined ? null : ex.isolate, 
+    mode: ex.mode || null, 
+    corrupt: ex.corrupt === true, 
+    source: ex.exists ? path.join('.tt-state', 'executor.json').replace(/\\/g, '/') : null,
+    capabilities: exCaps
+  };
   if (ex.corrupt) logger.warn('executor.json 存在但不可解析（损坏）——忽略，不猜内容（fail-soft）：' + path.join(workspace, '.tt-state', 'executor.json'));
   if (ex.unknownCli) logger.warn('executor.json 的 cli=' + ex.cli + ' 不在已知清单（' + EXECUTOR_KNOWN_CLIS.join('/') + '）——跳过映射，不推断命令形态（presence≠可用）；如需宿主请显式 --exec');
   // 约束 3：isolate 只透传登记，不改 spawn 行为
@@ -589,7 +612,7 @@ async function main() {
   // 注意 opts.hosts 是「逗号分隔字符串」形态（命令行语义）；executor.json 注入走 opts.configHosts 数组形态。
   if (ex.exec && (!opts.hosts || !String(opts.hosts).trim())) {
     opts.configHosts = [ex.exec.slice()];
-    logger.info('executor defaults (--hosts from executor.json): ' + ex.exec.join(' '));
+    logger.info('executor defaults (--hosts from executor.json): ' + ex.exec.join(' ') + (exCaps ? ' capabilities=' + JSON.stringify(exCaps) : ''));
   }
   logger.info('state: idle');
   // --contract（绿地 OpenAPI）与 --contract-draft（棕地草案）互斥

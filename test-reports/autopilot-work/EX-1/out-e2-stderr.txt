@@ -1,0 +1,5 @@
+[tt] [warn] subtask plan-mue3f61o-1 (implementation) 执行器能力缺失: run_cmd → 诚实降级（mode=prompt brief-only 兜底），不静默用弱能力
+[tt] [warn] subtask plan-mue3f61o-2 (be-validator) 执行器能力缺失: run_cmd → 诚实降级（mode=prompt brief-only 兜底），不静默用弱能力
+[tt] [warn] subtask plan-mue3f61o-4 (sdlc) 执行器能力缺失: run_cmd → 诚实降级（mode=prompt brief-only 兜底），不静默用弱能力
+[tt] [warn] plan degraded: requireExec 资产 brief-only 兜底或部分降级——需 --exec 宿主或装 CLI 工具
+WARN: journey 派生 prereq 校验未过（阶段 7 未完成（pending），步骤 8 不得开工）——事实记录不阻断，继续写入

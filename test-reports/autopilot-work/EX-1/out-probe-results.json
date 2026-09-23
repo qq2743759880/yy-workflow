@@ -1,0 +1,47 @@
+{
+  "generatedAt": "2026-09-23T12:42:36.034Z",
+  "pass": 8,
+  "fail": 0,
+  "rows": [
+    {
+      "name": "E1 executor.json 带 capabilities → 启动读取不崩溃 + FIX-2 映射语义保持",
+      "ok": true,
+      "detail": "exit=6 映射日志=有"
+    },
+    {
+      "name": "E2 缺 run_cmd → CLI adapter 资产诚实降级（error=CAPABILITY_MISSING + 日志留痕 + 不静默 exec）",
+      "ok": true,
+      "detail": "cli资产=3 降级=3 warning=有 汇总留痕=有 无exec=true"
+    },
+    {
+      "name": "E3 连 write_files 也缺 → mode=skipped（诚实降级不假报）",
+      "ok": true,
+      "detail": "skipped(CAPABILITY_MISSING)=1/8 无exec=true"
+    },
+    {
+      "name": "E4 capabilities 全 true → exec 派单不受门控影响（向后兼容）",
+      "ok": true,
+      "detail": "exit=0 modes.exec=1 无误伤=true"
+    },
+    {
+      "name": "E5 executor-setup --save 落盘 Agent Card 式 capabilities 块（五能力布尔 + detectedAt + name/version）",
+      "ok": true,
+      "detail": "exit=0 capabilities=五能力齐 detectedAt=ISO name=executor version=2.0.0"
+    },
+    {
+      "name": "E6 措辞纪律：scripts/ 全目录 grep \"已接线\" → 0 命中",
+      "ok": true,
+      "detail": "零残留"
+    },
+    {
+      "name": "E7 opencode adapter 注释降为回归渠道之一（不进主路径描述 + 能力探测措辞）",
+      "ok": true,
+      "detail": "回归渠道措辞=有 非主路径声明=有 能力探测措辞=有"
+    },
+    {
+      "name": "E8 corrupt executor.json → 如实 warning 不假报（fail-soft 诚实上报保持）",
+      "ok": true,
+      "detail": "exit=0 warning=有"
+    }
+  ]
+}

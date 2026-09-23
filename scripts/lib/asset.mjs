@@ -1,6 +1,63 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
+
+/**
+ * CANDIDATE_INVALID 错误码：资产 manifest 字段提取失败时 fail-closed 抛出
+ * （与 evolution.propose 同口径：缺字段即拒绝，不臆造数据）。
+ */
+export const CANDIDATE_INVALID = 'CANDIDATE_INVALID';
+
+/** 必填字段清单（AV-2 manifest 每行必须齐备） */
+const REQUIRED_MANIFEST_FIELDS = ['id', 'name', 'role', 'capability', 'cluster', 'when_to_use', 'when_not_to_use', 'verification', 'source'];
+
+/**
+ * 校验 manifest 行必填字段齐全；缺必填字段 → 抛 CANDIDATE_INVALID（fail-closed）。
+ * @param {object} row — manifest 单行
+ * @param {string} [row.source] — 可选，用于诊断（源文档定位）
+ */
+function assertManifestRow(row) {
+  const missing = REQUIRED_MANIFEST_FIELDS.filter((k) => row[k] === undefined || row[k] === null || row[k] === '' || (Array.isArray(row[k]) && row[k].length === 0));
+  if (missing.length > 0) {
+    const err = Object.assign(new Error(`manifest row ${row?.id ?? '<unknown>'}: 必填字段缺失 ${missing.join(', ')}（fail-closed CANDIDATE_INVALID）`), { code: CANDIDATE_INVALID, missingFields: missing });
+    throw err;
+  }
+}
+
+/**
+ * 从外部 manifest 文件读取并校验（仅读取接口，不改既有逻辑）。
+ * 缺必填字段 → 抛 CANDIDATE_INVALID。
+ * @param {string} manifestPath — manifest JSON 文件路径
+ * @returns {Promise<object[]>>} 校验过的 manifest 行数组
+ */
+export async function readManifest(manifestPath) {
+  const text = await fs.readFile(manifestPath, 'utf8');
+  const rows = JSON.parse(text);
+  if (!Array.isArray(rows)) {
+    const err = Object.assign(new Error(`manifest 非数组: ${manifestPath}（fail-closed CANDIDATE_INVALID）`), { code: CANDIDATE_INVALID });
+    throw err;
+  }
+  return rows.map((row) => { assertManifestRow(row); return row; });
+}
+
+/**
+ * 从 manifest 对象（buildManifest / loadManifest 返回）读取并校验。
+ * 缺必填字段 → 抛 CANDIDATE_INVALID。
+ * @param {{entries: object[]}} manifest — manifest 对象（含 entries 数组）
+ * @returns {object[]} 校验过的条目数组（原始 entries，不含 manifest 元字段）
+ */
+export function readManifestEntries(manifest) {
+  const entries = manifest?.entries;
+  if (!Array.isArray(entries)) {
+    const err = Object.assign(new Error(`manifest.entries 非数组（fail-closed CANDIDATE_INVALID）`), { code: CANDIDATE_INVALID });
+    throw err;
+  }
+  return entries.map((entry) => {
+    assertManifestRow(entry);
+    return entry;
+  });
+}
+
 /** 剥离 frontmatter（--- 头块），返回正文。无 frontmatter 时原样返回。 */
 function stripFrontmatter(text) {
   const clean = String(text).replace(/\r\n/g, '\n');

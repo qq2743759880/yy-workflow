@@ -67,7 +67,7 @@
 |  | AS-2 | replace 4 逐资产施工（§二表，每资产独立单：vendor+胶水+探针） | AS-0 |
 |  | AS-3 | 引入施工（§四表） | AS-0、TK-1 |
 |  | AV-2 | manifest 生成器（数据源=新 9+ 资产，缺字段 fail-closed） | AV-1、AS-2 |
-|  | AS-1 | drop 7（最后执行，§三 6 处联动） | AS-2/AS-3 全关账 |
+|  | AS-1 | drop 7（最后执行，§三 6 处联动）**+ 验收新增 S14 不变量段（Owner 审计 F-002）：①drop 资产 import/引用 0 命中 ②replace 资产真实消费探针 ③manifest 驱动路由断言 ④旧 adapter 不可达；PHASE2 清单与 CLUSTERS 同步收缩** | AS-2/AS-3 全关账 |
 | 2（接线+前端） | AV-3 | activation/matrix 消费 manifest（负向剔除+留痕） | AV-2、AS-1 |
 |  | AV-4 | fixtures m01-m05 + S8b 断言（regression-all 14 段） | AV-3 |
 |  | FE-5 | 资产卡渲染 manifest 内容（render-core/content.js） | AV-2 |
@@ -82,6 +82,12 @@
 **消费强制**：V3-ACC 盲行的盲测队列必含"每个新/换资产 ≥1 次真实消费"检查项——盲行不过=资产白引入。
 **持续监控**：asset-call-rate 对每次盲行 state.json 出消费表；**任一资产连续两轮盲行零调用 → 自动进 drop 评审**（写进 evolution 纪律，防新资产重蹈 colorize 覆辙）。
 **升级**：VENDORED.md 记 pin 历史，季更（git pull + 探针重跑 + 回归全绿才换 pin）；胶水永不改 vendored 文件。
+
+## 并行写面纪律（Owner 审计 F-003 后新增，违反即退回）
+
+- 每批派发前编排者产出**写面声明表**：task × 文件的唯一 owner 映射，同文件双写禁止；确需共同触碰的文件（如 executor-setup 被向导与能力握手同时需要）→ 该文件归属其中一个单，另一单以只读+D-偏差登记方式通过。
+- 收口时 `git diff` 逐文件归属核查：改动文件不在自己派单白名单+写面声明表内 → 越权，退回。
+- 批 0 实证：EX-1/ON-1 双写 executor-setup.mjs 致游离 if 块+重复 const（EX-1 修复），本节为防复发固化。
 
 ## 残留登记（10 条）
 

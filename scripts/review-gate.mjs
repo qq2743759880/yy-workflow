@@ -18,6 +18,19 @@
  *   plans/critique-backlog-tracker.md（新序号延续 C-13/C-14…）+ 生成
  *   docs/history/tasks/critique-<序号>-task.md 优化任务文档，然后 exit 0；未过仍 exit 1。
  *   幂等：按「来源文件名 + 批判标题」查重，重跑不重复登记。
+ * 批判协议 v2（CR-1）：三元绑定 claim→evidence→source（fail-closed）+ rubric 口径 + 转化纪律。
+ *   --critique-sources <path>[,<path>...]|none
+ *     来源=向导 ON-1 落盘 orchestrator.config.yaml 的 critique.sources 段。给定路径 → 全局
+ *     knowledge-base 绑定（条目可用 `source:` 标签逐条覆盖）；字面 none → 全局 source=none，
+ *     每条批判必须含「本批判无外部源，仅基于项目内部资料」标注（不得静默）；完全不给本参数时
+ *     由 checkCritiqueBinding 直接调用语义接管：条目必须自带 source 声明，缺失判 INVALID。
+ *   --rubric <rubric.json>：批判评估口径（{criteria:[{id,name,weight}]}），结构不合法 FAIL 具名。
+ *     --critique-sources / --rubric 任一在场 → 追加三元绑定校验（无 source 判 INVALID，detail 指名）。
+ *   --convert-critique <批判文档路径> [--out <输出目录>]：批判转 task（templates/task-v2.md 七字段
+ *     口径，内置断言，不 import validate-task.mjs）。断言：implementation_steps 1-7 步（target 为
+ *     工作区相对路径且真实存在）/ executor_acceptance 含非空 verify_command / checkpoints 覆盖全部
+ *     steps。缺 implementation_steps（批判条目无优化方案）→ 拒绝落盘 exit 1（detail 指名条目）。
+ *   --tracker-stats <tracker路径>：机读统计 v2 看板（收录数/各状态计数/转化率/无 source 计数）。
  */
 import fs from 'node:fs';
 import http from 'node:http';
@@ -364,6 +377,7 @@ function parseTableEntries(dataRows) {
       plan: cells[5] || '',
       minVerify: cells[6] || '',
       raw: row,
+      text: row,
       valid: !!(url && date),
     });
   }
@@ -436,6 +450,7 @@ function entryFromBlock(block) {
     plan: fieldOf(block.lines, [/优化方案/, /修复措施/, /修复方案/, /方案\s*[:：]/]),
     minVerify: fieldOf(block.lines, [/最小验证/, /验收指标/, /验证\s*[:：]/]),
     raw: head,
+    text,
     valid: !!(text.match(URL_RE) && text.match(DATE_RE)),
   };
 }
@@ -588,6 +603,290 @@ export function checkReview({ critiqueText, fixText, trackerText, id }) {
   const tracked = !!trackerText && (trackerText.includes(id) || /critique-backlog-tracker/.test(trackerText || ''));
   checks.push({ name: 'tracker 已登记', pass: tracked, detail: tracked ? `含 ${id}` : `未含 ${id}` });
   return { ok: checks.every((c) => c.pass), checks };
+}
+
+/* ===== CR-1 批判协议 v2：三元绑定 claim→evidence→source + rubric 口径 + 看板统计 + 转化纪律 ===== */
+
+/** source 枚举（CR-1 任务 A）：knowledge-base（知识库路径）/ search-tool（搜索工具）/ standard-doc（标准文档）/ none。 */
+export const SOURCE_ENUM = ['knowledge-base', 'search-tool', 'standard-doc', 'none'];
+/** source=none 时的强制逐条标注文案（不得静默）。 */
+export const NO_SOURCE_NOTE = '本批判无外部源，仅基于项目内部资料';
+/** 条目内 source 声明标签：`source: none` / `source：standard-doc` / `source: knowledge-base:docs/kb.md`。 */
+const SOURCE_LABEL_RE = /(?:^|[\s|*\-#（(])source\s*[:：=]\s*([^\s|，,；;（）()]+)/i;
+
+/** 解析条目文本中的 source 声明。返回 { kind, value } 或 null（未声明）。
+ *  kind ∈ SOURCE_ENUM；`knowledge-base:<path>` 或裸路径（含 / 或 .md）→ kind=knowledge-base。 */
+export function parseSourceLabel(text) {
+  const m = String(text || '').match(SOURCE_LABEL_RE);
+  if (!m) return null;
+  let v = m[1].trim();
+  if (/^knowledge-base[:：]/i.test(v)) v = v.slice('knowledge-base'.length + 1);
+  let kind = v.toLowerCase();
+  if (!SOURCE_ENUM.includes(kind)) {
+    if (kind.startsWith('knowledge-base/') || /[/.]/.test(v)) kind = 'knowledge-base';
+    else return { kind: 'INVALID', value: v };
+  }
+  return { kind, value: v };
+}
+
+/** 三元绑定校验（CR-1 任务 A，fail-closed）。每条批判必须 claim→evidence→source 三元齐备：
+ *  - claim = 批判条目标题（解析器产出）；
+ *  - evidence = 竞品对标 URL+日期（既有硬闸门）或显式 `evidence:` 声明；
+ *  - source = 条目 `source:` 标签（优先）或 --critique-sources 全局绑定；无 source 判 INVALID（detail 指名）；
+ *  - source=none 的条目必须含 NO_SOURCE_NOTE 标注（缺标注同判 INVALID）。
+ *  opts.critiqueSources：null=未给参数（条目必须自带声明）；['none']=全局 none；['a.md','b.md']=全局 knowledge-base。
+ *  返回 { ok, checks:[{name,pass,detail}], invalid:[{index,title,reason}], total, noneCount }。 */
+export function checkCritiqueBinding({ critiqueText, critiqueSources = null }) {
+  const entries = critiqueText ? parseCritiqueEntries(critiqueText) : [];
+  const checks = [];
+  const invalid = [];
+  let noneCount = 0;
+  const globalKind = critiqueSources === null ? null : (critiqueSources.length === 1 && critiqueSources[0].toLowerCase() === 'none' ? 'none' : 'knowledge-base');
+  const globalDesc = globalKind === 'none' ? 'none（向导未配置外部源）' : globalKind === 'knowledge-base' ? `knowledge-base: ${critiqueSources.join(', ')}` : null;
+  checks.push({ name: '批判条目可解析（三元绑定作用域）', pass: entries.length > 0, detail: entries.length ? `${entries.length} 条` : '0 条（无可绑定条目）' });
+  for (let i = 0; i < entries.length; i += 1) {
+    const e = entries[i];
+    const name = `三元绑定 条目${i + 1}「${truncate(e.title, 30)}」`;
+    const text = `${e.title}\n${e.text || ''}`;
+    const declared = parseSourceLabel(text);
+    let reason = null;
+    if (declared && declared.kind === 'INVALID') {
+      reason = `source 值「${declared.value}」不在枚举 ${SOURCE_ENUM.join('/')} 内`;
+    } else if (!declared && globalKind === null) {
+      reason = '缺 source（claim→evidence→source 三元绑定 fail-closed：须显式声明 knowledge-base/search-tool/standard-doc/none 之一，或经 --critique-sources 全局绑定）';
+    }
+    const kind = declared && declared.kind !== 'INVALID' ? declared.kind : (globalKind || 'INVALID');
+    if (!reason && kind === 'none') {
+      noneCount += 1;
+      if (!text.includes(NO_SOURCE_NOTE) && !/无外部源|仅基于项目内部资料/.test(text)) {
+        reason = `source=none 须逐条标注「${NO_SOURCE_NOTE}」（不得静默）`;
+      }
+    }
+    if (!reason && !(e.valid || /evidence\s*[:：=]/i.test(text))) {
+      reason = '缺 evidence（竞品对标 URL+日期 或显式 evidence: 声明）';
+    }
+    if (reason) invalid.push({ index: i + 1, title: e.title, reason });
+    checks.push({
+      name,
+      pass: !reason,
+      detail: reason ? `INVALID：${reason}` : `claim→evidence→source 绑定 OK（source=${kind}${declared ? '（条目声明）' : globalDesc ? '（全局绑定）' : ''}）`,
+    });
+  }
+  checks.push({ name: '无 source 条目数（source=none 需逐条标注，不静默）', pass: true, detail: `none=${noneCount}${noneCount ? '（各条已要求标注「无外部源」）' : ''}` });
+  return { ok: invalid.length === 0, checks, invalid, total: entries.length, noneCount };
+}
+
+/** 加载并校验 rubric（CR-1：--rubric <path>）。合法结构 = JSON 含 criteria 数组 ≥1 条，
+ *  每条 {id,name} 非空、weight 为非负数、总权重 >0。返回 { ok, error, rubric, checks }。 */
+export function checkRubric(rubricPath) {
+  let raw;
+  try { raw = fs.readFileSync(path.resolve(rubricPath), 'utf8'); } catch (e) { return { ok: false, error: 'rubric 文件读取失败: ' + e.message, checks: [] }; }
+  let rubric;
+  try { rubric = JSON.parse(raw); } catch (e) { return { ok: false, error: 'rubric JSON 解析失败: ' + e.message, checks: [] }; }
+  const checks = [];
+  const crit = Array.isArray(rubric.criteria) ? rubric.criteria : [];
+  checks.push({ name: 'rubric criteria ≥1', pass: crit.length >= 1, detail: `${crit.length} 条` });
+  const badField = crit.findIndex((c) => !c || !String(c.id || '').trim() || !String(c.name || '').trim());
+  checks.push({ name: 'rubric 每条 id/name 非空', pass: badField === -1, detail: badField === -1 ? 'OK' : `criteria[${badField}] 缺 id/name` });
+  const badWeight = crit.findIndex((c) => typeof c.weight !== 'number' || !(c.weight >= 0));
+  const sumW = crit.reduce((n, c) => n + (typeof c.weight === 'number' && c.weight >= 0 ? c.weight : 0), 0);
+  checks.push({ name: 'rubric weight 非负数且总和>0', pass: badWeight === -1 && sumW > 0, detail: badWeight !== -1 ? `criteria[${badWeight}] weight 非法` : `Σweight=${sumW}` });
+  return { ok: checks.every((c) => c.pass), error: null, rubric, checks };
+}
+
+/* —— CR-1 任务 B：看板 v2 统计（机读）—— */
+
+/** 从 tracker 文本解析 v2 统计块（<!-- CR1-STATS ... -->）——既有登记行零改动的前提下提供机验口径。 */
+export function parseTrackerStatsBlock(trackerText) {
+  const m = String(trackerText || '').match(/<!--\s*CR1-STATS([\s\S]*?)-->/);
+  if (!m) return null;
+  const stats = {};
+  for (const lm of String(m[1]).matchAll(/^\s*([a-z_]+)\s*:\s*([^\s]+)\s*$/gm)) stats[lm[1]] = lm[2];
+  return stats;
+}
+
+/** 机读统计 v2 看板行（列序：| claim | evidence | source | severity | status | converted_task_id | 实施方案引用 |）。
+ *  只统计 v2 模板段（「批判协议 v2」节内）的数据行；既有 `| C-` 历史行不参与。
+ *  返回 { total, registered, accepted, converted, done, rejected, conversionRate, noSource }。 */
+export function computeTrackerStats(trackerText) {
+  const text = String(trackerText || '').replace(/\r\n/g, '\n');
+  const secIdx = text.indexOf('批判协议 v2');
+  const rowsSource = secIdx !== -1 ? text.slice(secIdx) : text;
+  const rows = rowsSource.split('\n').map((l) => l.trim()).filter((l) => l.startsWith('|') && !/^\|[\s:|-]+\|$/.test(l) && !/claim/.test(l));
+  const STATUS = ['registered', 'accepted', 'converted', 'done', 'rejected'];
+  const counts = { registered: 0, accepted: 0, converted: 0, done: 0, rejected: 0 };
+  let total = 0;
+  let noSource = 0;
+  for (const row of rows) {
+    const cells = row.split('|').map((c) => c.trim()).slice(1, -1);
+    if (cells.length < 5) continue;
+    const claim = cells[0];
+    if (!claim || /^\（|^（/.test(claim)) continue; // 模板占位行不计数
+    total += 1;
+    const status = (cells[4] || '').toLowerCase();
+    if (STATUS.includes(status)) counts[status] += 1;
+    const src = (cells[2] || '').toLowerCase();
+    if (!src || src === 'none' || src.includes('无外部源')) noSource += 1;
+  }
+  const convertedLike = counts.converted + counts.done;
+  return {
+    total,
+    ...counts,
+    conversionRate: total ? Math.round(convertedLike / total * 100) : 0,
+    noSource,
+  };
+}
+
+/* —— CR-1 任务 C：--convert-critique 转化纪律（templates/task-v2.md 七字段口径，内置断言，不 import validate-task.mjs）—— */
+
+/** 内置七字段断言（口径对齐 templates/task-v2.md §一）。doc = 转化生成的任务对象。
+ *  返回 { ok, errors: [具名 detail] }。 */
+export function assertTaskSevenFields(doc) {
+  const errors = [];
+  const steps = doc.implementation_steps || [];
+  if (!Array.isArray(steps) || steps.length < 1 || steps.length > 7) {
+    errors.push(`implementation_steps 步数须 ∈[1,7]，实得 ${Array.isArray(steps) ? steps.length : '非数组'}`);
+  } else {
+    steps.forEach((s, i) => {
+      for (const k of ['target', 'action', 'rationale']) {
+        if (!s || !String(s[k] || '').trim()) errors.push(`implementation_steps[${i}].${k} 非空字符串缺失`);
+      }
+      if (s && String(s.target || '').trim() && (path.isAbsolute(String(s.target)) || !fs.existsSync(path.join(doc._dir || process.cwd(), String(s.target))))) {
+        errors.push(`implementation_steps[${i}].target 须为工作区相对路径且真实存在：${s.target}`);
+      }
+    });
+  }
+  const acc = doc.executor_acceptance || [];
+  if (!Array.isArray(acc) || acc.length < 1) errors.push('executor_acceptance ≥1 条缺失');
+  else acc.forEach((a, i) => {
+    if (!a || !String(a.ac || '').trim()) errors.push(`executor_acceptance[${i}].ac 缺失`);
+    if (!a || !String(a.verify_command || '').trim()) errors.push(`executor_acceptance[${i}].verify_command 非空缺失`);
+    if (!a || !Number.isInteger(a.expected_exit) || a.expected_exit < 0 || a.expected_exit > 255) errors.push(`executor_acceptance[${i}].expected_exit 须为 0-255 整数`);
+  });
+  const cps = doc.trajectory_checkpoints || [];
+  const covered = new Set((Array.isArray(cps) ? cps : []).map((c) => c && c.step));
+  for (let i = 1; i <= steps.length; i += 1) {
+    if (!covered.has(i)) errors.push(`trajectory_checkpoints 未覆盖 step ${i}（须覆盖全部 1..${steps.length}）`);
+  }
+  (Array.isArray(cps) ? cps : []).forEach((c, i) => {
+    if (c && (typeof c.step !== 'number' || c.step < 1 || c.step > steps.length)) errors.push(`trajectory_checkpoints[${i}].step 越界：${c.step}`);
+    if (!c || !String(c.artifact || '').trim() || !String(c.evidence || '').trim()) errors.push(`trajectory_checkpoints[${i}] artifact/evidence 非空缺失`);
+  });
+  const { complexity_touched_files: tf, complexity_dep_depth: dd, complexity_score: score, must_split } = doc;
+  if (!(typeof score === 'number' && score === (typeof tf === 'number' ? tf : 0) + (typeof dd === 'number' ? dd : 0) * 2)) {
+    errors.push(`complexity_score 须等于 touched_files + dep_depth×2（实得 score=${score}, touched=${tf}, depth=${dd}）`);
+  }
+  if (must_split !== ((typeof score === 'number' ? score : 0) > 12 || (typeof tf === 'number' ? tf : 0) > 5)) {
+    errors.push(`must_split 须等于规则 score>12 或 touched_files>5（实得 ${must_split}）`);
+  }
+  const b = doc.boundaries || {};
+  for (const k of ['always', 'never']) {
+    const arr = Array.isArray(b[k]) ? b[k] : [];
+    if (arr.length < 1 || arr.length > 3 || arr.some((x) => !String(x || '').trim())) errors.push(`boundaries.${k} 须 1-3 条非空字符串`);
+  }
+  const em = Array.isArray(b.edge_matrix) ? b.edge_matrix : [];
+  if (em.length < 1 || em.some((r) => !r || !String(r.input || '').trim() || !String(r.expected || '').trim())) errors.push('boundaries.edge_matrix ≥1 行且 input/expected 非空');
+  return { ok: errors.length === 0, errors };
+}
+
+/** 批判条目 → task 七字段对象（七字段内置齐备）。工作区根 = 批判文档所在目录。
+ *  implementation_steps 来自条目「优化方案/修复措施」——缺失即调用方拒绝落盘（fail-closed）。 */
+export function entryToTaskDoc(entry, { serial, file, dir }) {
+  const plan = String(entry.plan || '').trim();
+  const target = file; // 承接批判的落点：原批判文件（工作区相对路径、真实存在）
+  const verify = /node\s+\S+\.mjs/.test(entry.minVerify || '') ? entry.minVerify.trim() : 'node scripts/review-gate.mjs --self-test';
+  const touched = new Set([target]).size;
+  return {
+    _dir: dir,
+    task_id: `critique-convert-${serial}`,
+    title: normalizeText(entry.title),
+    status: 'pending',
+    complexity_touched_files: touched,
+    complexity_dep_depth: 0,
+    complexity_score: touched + 0 * 2,
+    must_split: touched > 5,
+    spec_budget_tokens: 1200,
+    implementation_steps: [{ target, action: plan, rationale: `承接批判：${normalizeText(entry.title)}` }],
+    executor_acceptance: [{ ac: entry.minVerify ? normalizeText(entry.minVerify) : `完成「${truncate(plan, 32)}」并通过回归`, verify_command: verify, expected_exit: 0 }],
+    trajectory_checkpoints: [{ step: 1, artifact: `批判 ${serial} 的修复措施已落具体文件（claim→evidence→source 三元可溯）`, evidence: `对照原批判 ${file} 的「优化方案」逐句核对` }],
+    boundaries: {
+      always: ['承接批判目标逐条落地', '改动落在派单白名单内'],
+      never: ['跳过 verify_command 实跑', '改写既有 tracker 登记行'],
+      edge_matrix: [{ input: '批判条目缺优化方案（implementation_steps 缺失）', expected: '转化拒绝落盘并具名条目' }],
+    },
+    dev_record: { changed_files: [], notes: '（完工后回填）', deviations: '（完工后回填，无偏离写「无」）' },
+  };
+}
+
+/** task 七字段对象 → markdown 文档（task-v2 机读格式：frontmatter + ```json 字段块）。 */
+export function renderTaskDoc(doc) {
+  const fm = [
+    '---',
+    `task_id: ${doc.task_id}`,
+    `title: ${doc.title}`,
+    `status: ${doc.status}`,
+    `complexity_touched_files: ${doc.complexity_touched_files}`,
+    `complexity_dep_depth: ${doc.complexity_dep_depth}`,
+    `complexity_score: ${doc.complexity_score}`,
+    `must_split: ${doc.must_split}`,
+    `spec_budget_tokens: ${doc.spec_budget_tokens}`,
+    '---',
+  ].join('\n');
+  const block = (name, obj) => '```json ' + name + '\n' + JSON.stringify(obj, null, 2) + '\n```';
+  return [
+    fm,
+    '',
+    `# ${doc.title}（批判转化单，CR-1 七字段口径）`,
+    '',
+    `> 由 review-gate --convert-critique 生成；承接批判 claim→evidence→source 三元绑定（CR-1）。`,
+    '',
+    '## GWT 验收',
+    `- Given 批判已通过三元绑定校验 When 执行者按 implementation_steps 施工 Then executor_acceptance 逐条 exit 0`,
+    '',
+    block('implementation_steps', doc.implementation_steps),
+    '',
+    block('executor_acceptance', doc.executor_acceptance),
+    '',
+    block('trajectory_checkpoints', doc.trajectory_checkpoints),
+    '',
+    block('boundaries', doc.boundaries),
+    '',
+    block('dev_record', doc.dev_record),
+    '',
+  ].join('\n');
+}
+
+/** 转化核心：解析批判文档 → 逐条建七字段任务 → 内置断言全过才落盘（任一失败=全拒，fail-closed）。
+ *  返回 { ok, error, refused:[{index,title,reason}], written:[paths], docs }。 */
+export function convertCritique({ critiquePath, outDir, dir }) {
+  let text;
+  try { text = fs.readFileSync(path.resolve(critiquePath), 'utf8'); } catch (e) { return { ok: false, error: '批判文档读取失败: ' + e.message, refused: [], written: [], docs: [] }; }
+  const wsDir = dir || path.dirname(path.resolve(critiquePath));
+  const entries = parseCritiqueEntries(text);
+  if (!entries.length) return { ok: false, error: '批判文档解析出 0 条条目（转化拒绝）', refused: [], written: [], docs: [] };
+  const refused = [];
+  const built = [];
+  entries.forEach((e, i) => {
+    const plan = String(e.plan || '').trim();
+    if (!plan) { refused.push({ index: i + 1, title: e.title, reason: '缺 implementation_steps（批判条目无「优化方案/修复措施」——只写目标结果不给施工步的转化判 INVALID）' }); return; }
+    built.push(entryToTaskDoc(e, { serial: String(i + 1).padStart(2, '0'), file: path.basename(critiquePath), dir: wsDir }));
+  });
+  if (refused.length) return { ok: false, error: null, refused, written: [], docs: [] };
+  const assertFail = [];
+  built.forEach((d, i) => {
+    const r = assertTaskSevenFields(d);
+    if (!r.ok) r.errors.forEach((er) => assertFail.push(`条目${i + 1}「${truncate(d.title, 24)}」：${er}`));
+  });
+  if (assertFail.length) return { ok: false, error: '七字段断言未过（拒绝落盘）：' + assertFail.join('；'), refused: [], written: [], docs: [] };
+  const out = outDir ? path.resolve(outDir) : path.join(path.dirname(path.resolve(critiquePath)), 'converted-tasks');
+  fs.mkdirSync(out, { recursive: true });
+  const written = [];
+  built.forEach((d, i) => {
+    const p = path.join(out, `critique-convert-${String(i + 1).padStart(2, '0')}-task.md`);
+    fs.writeFileSync(p, renderTaskDoc(d), { encoding: 'utf8' });
+    written.push(p);
+  });
+  return { ok: true, error: null, refused: [], written, docs: built };
 }
 
 /* ===== C-31③：gate 产物「阶段机验」字段验收核对（三态：缺失 / 未回填 / 已回填）=====
@@ -846,6 +1145,167 @@ export function selfTest() {
       fs.rmSync(tmpGate, { recursive: true, force: true });
     }
   }
+  // CR-1 批判协议 v2 自测：三元绑定 fail-closed / rubric / 看板统计 / 转化纪律
+  { // ① 含 source 通过；缺 source INVALID 且 detail 指名；source=none 须标注；非法枚举 INVALID
+    const withSource = [
+      '## C1 有源批判一',
+      '- 问题：导出层无幂等',
+      '- 级别：P1',
+      '- source: knowledge-base:docs/kb/arch.md',
+      '- 竞品对标：https://github.com/kb1 2026-09-20 结论A',
+      '- 优化方案：改 modules/a.ts 加幂等锁',
+      '- 最小验证：node scripts/review-gate.mjs --self-test',
+      '',
+      '## C2 无源批判二',
+      '- 问题：错误提示不友好',
+      '- 级别：P2',
+      '- source: none（本批判无外部源，仅基于项目内部资料）',
+      '- 竞品对标：https://github.com/kb2 2026-09-20 结论B',
+      '- 优化方案：改 modules/b.ts 文案',
+      '',
+    ].join('\n');
+    const okR = checkCritiqueBinding({ critiqueText: withSource, critiqueSources: null });
+    if (!okR.ok) throw new Error('self-test FAIL: 含 source 声明的批判应通过三元绑定 ' + JSON.stringify(okR.invalid));
+    if (okR.noneCount !== 1) throw new Error('self-test FAIL: source=none 计数应为 1，实得 ' + okR.noneCount);
+    const noSource = [
+      '## C1 缺源批判',
+      '- 问题：某模块慢',
+      '- 级别：P1',
+      '- 竞品对标：https://github.com/ns 2026-09-20 结论C',
+      '- 优化方案：加缓存',
+      '',
+    ].join('\n');
+    const badR = checkCritiqueBinding({ critiqueText: noSource, critiqueSources: null });
+    if (badR.ok) throw new Error('self-test FAIL: 缺 source 的批判应判 INVALID（fail-closed）');
+    if (!badR.invalid.length || !badR.invalid[0].reason.includes('缺 source')) throw new Error('self-test FAIL: 缺 source INVALID detail 应指名缺 source，实得 ' + JSON.stringify(badR.invalid));
+    // 全局绑定（--critique-sources 路径）：条目无显式 source 也绑定通过；全局 none：须逐条标注
+    const gOk = checkCritiqueBinding({ critiqueText: noSource, critiqueSources: ['docs/kb/x.md'] });
+    if (!gOk.ok) throw new Error('self-test FAIL: --critique-sources 全局绑定应通过，实得 ' + JSON.stringify(gOk.invalid));
+    const gNone = checkCritiqueBinding({ critiqueText: noSource, critiqueSources: ['none'] });
+    if (gNone.ok) throw new Error('self-test FAIL: 全局 none 且无标注应 INVALID（不得静默）');
+    const gNoneOk = checkCritiqueBinding({ critiqueText: noSource.replace('优化方案', NO_SOURCE_NOTE + '\n- 优化方案'), critiqueSources: ['none'] });
+    if (!gNoneOk.ok) throw new Error('self-test FAIL: 全局 none 逐条标注后应通过，实得 ' + JSON.stringify(gNoneOk.invalid));
+    // 非法枚举
+    const badEnum = checkCritiqueBinding({ critiqueText: noSource.replace('- 竞品对标', '- source: wechat\n- 竞品对标'), critiqueSources: null });
+    if (badEnum.ok || !badEnum.invalid[0].reason.includes('枚举')) throw new Error('self-test FAIL: 非法 source 枚举应 INVALID 具名，实得 ' + JSON.stringify(badEnum.invalid));
+  }
+  { // rubric 结构校验：合法过 / 非法 FAIL 具名
+    const tmpR = fs.mkdtempSync(path.join(os.tmpdir(), 'tt-rubric-'));
+    try {
+      const goodP = path.join(tmpR, 'good.json');
+      fs.writeFileSync(goodP, JSON.stringify({ name: 'rubric-sample', criteria: [{ id: 'R1', name: '三元绑定完备', weight: 40 }, { id: 'R2', name: '可落地施工步', weight: 60 }] }), 'utf8');
+      const g = checkRubric(goodP);
+      if (!g.ok) throw new Error('self-test FAIL: 合法 rubric 应通过 ' + JSON.stringify(g.checks));
+      const badP = path.join(tmpR, 'bad.json');
+      fs.writeFileSync(badP, JSON.stringify({ criteria: [{ id: 'R1', name: '缺权重' }] }), 'utf8');
+      const b = checkRubric(badP);
+      if (b.ok) throw new Error('self-test FAIL: 缺 weight 的 rubric 应 FAIL');
+      const emptyP = path.join(tmpR, 'empty.json');
+      fs.writeFileSync(emptyP, JSON.stringify({ criteria: [] }), 'utf8');
+      if (checkRubric(emptyP).ok) throw new Error('self-test FAIL: 空 criteria rubric 应 FAIL');
+    } finally {
+      fs.rmSync(tmpR, { recursive: true, force: true });
+    }
+  }
+  { // ② 看板 v2 统计：样本入库 → 各状态计数正确 / 无 source 计数>0 / 转化率
+    const seed = [
+      '# critique-backlog-tracker',
+      '',
+      '## M1 历史段（既有登记行，不参与 v2 统计）',
+      '| C-01 | 历史批判 | P1 | 修复 | ✅ |',
+      '',
+      '## 批判协议 v2 三元绑定看板（CR-1）',
+      '',
+      '| claim | evidence | source | severity | status | converted_task_id | 实施方案引用 |',
+      '|---|---|---|---|---|---|---|',
+      '| 导出层无幂等 | URL+日期 2026-09-20 | docs/kb/arch.md | P1 | registered | — | — |',
+      '| 错误文案差 | URL+日期 2026-09-20 | none（无外部源） | P2 | accepted | — | — |',
+      '| 缓存穿透 | URL+日期 2026-09-21 | standard-doc | P1 | converted | task42 | plans/tasks/x.md |',
+      '| 日志泄露 | URL+日期 2026-09-21 | search-tool | P0 | done | task43 | plans/tasks/y.md |',
+      '| 时区错乱 | URL+日期 2026-09-21 | none（无外部源） | P2 | rejected | — | — |',
+      '',
+      '<!-- CR1-STATS',
+      'total: 5',
+      'no_source: 2',
+      '-->',
+    ].join('\n');
+    const s = computeTrackerStats(seed);
+    if (s.total !== 5) throw new Error('self-test FAIL: v2 看板收录数应 5（历史 C- 行不计），实得 ' + s.total);
+    if (s.registered !== 1 || s.accepted !== 1 || s.converted !== 1 || s.done !== 1 || s.rejected !== 1) throw new Error('self-test FAIL: 各状态计数错误 ' + JSON.stringify(s));
+    if (s.noSource !== 2) throw new Error('self-test FAIL: 无 source 计数应 2，实得 ' + s.noSource);
+    if (s.conversionRate !== 40) throw new Error('self-test FAIL: 转化率应 40%（converted+done / total），实得 ' + s.conversionRate);
+    const blk = parseTrackerStatsBlock(seed);
+    if (!blk || blk.total !== '5' || blk.no_source !== '2') throw new Error('self-test FAIL: CR1-STATS 块解析错误 ' + JSON.stringify(blk));
+  }
+  { // ③ 转化纪律：缺 implementation_steps 拒绝落盘；合规 → 落盘含 verify_command；断言具名
+    const tmpC = fs.mkdtempSync(path.join(os.tmpdir(), 'tt-conv-'));
+    try {
+      const lack = [
+        '## C1 只写目标不给施工步',
+        '- 问题：某性能差',
+        '- 级别：P1',
+        '- source: knowledge-base:docs/kb/p.md',
+        '- 竞品对标：https://github.com/cv1 2026-09-20 结论A',
+        '',
+        '## C2 合规条目',
+        '- 问题：另一缺陷',
+        '- 级别：P2',
+        '- source: standard-doc',
+        '- 竞品对标：https://github.com/cv2 2026-09-20 结论B',
+        '- 优化方案：改 modules/c.ts 边界检查',
+        '- 最小验证：node scripts/review-gate.mjs --self-test',
+        '',
+      ].join('\n');
+      const lackPath = path.join(tmpC, 'taskLX-技术批判.md');
+      fs.writeFileSync(lackPath, lack, 'utf8');
+      const outLack = path.join(tmpC, 'out-lack');
+      const rLack = convertCritique({ critiquePath: lackPath, outDir: outLack });
+      if (rLack.ok) throw new Error('self-test FAIL: 缺 implementation_steps 的转化应拒绝');
+      if (!rLack.refused.length || !rLack.refused[0].reason.includes('implementation_steps')) throw new Error('self-test FAIL: 拒绝 detail 应指名 implementation_steps，实得 ' + JSON.stringify(rLack.refused));
+      if (fs.existsSync(outLack) && fs.readdirSync(outLack).length) throw new Error('self-test FAIL: 拒绝时不应落盘任何文件');
+      const okDoc = [
+        '## C1 合规条目一',
+        '- 问题：接口无校验',
+        '- 级别：P1',
+        '- source: knowledge-base:docs/kb/v.md',
+        '- 竞品对标：https://github.com/cv3 2026-09-20 结论C',
+        '- 优化方案：改 modules/d.ts 加 schema 校验',
+        '- 最小验证：node scripts/review-gate.mjs --self-test',
+        '',
+        '## C2 合规条目二',
+        '- 问题：日志含明文密钥',
+        '- 级别：P0',
+        '- source: search-tool',
+        '- 竞品对标：https://github.com/cv4 2026-09-20 结论D',
+        '- 优化方案：改 modules/e.ts 脱敏',
+        '',
+      ].join('\n');
+      const okPath = path.join(tmpC, 'taskOK-技术批判.md');
+      fs.writeFileSync(okPath, okDoc, 'utf8');
+      const outOk = path.join(tmpC, 'out-ok');
+      const rOk = convertCritique({ critiquePath: okPath, outDir: outOk });
+      if (!rOk.ok) throw new Error('self-test FAIL: 合规转化应落盘 ' + JSON.stringify(rLack.refused));
+      if (rOk.written.length !== 2) throw new Error('self-test FAIL: 应落盘 2 份转化单，实得 ' + rOk.written.length);
+      for (const w of rOk.written) {
+        const md = fs.readFileSync(w, 'utf8');
+        if (!md.includes('verify_command')) throw new Error('self-test FAIL: 落盘转化单应含 verify_command: ' + w);
+        if (!md.includes('implementation_steps')) throw new Error('self-test FAIL: 落盘转化单应含 implementation_steps: ' + w);
+      }
+      if (!rOk.docs[0].executor_acceptance[0].verify_command.includes('review-gate')) throw new Error('self-test FAIL: minVerify 为 CLI 时 verify_command 应采用原验证命令');
+      // 内置断言具名性：verify_command 清空 → 具名 FAIL
+      const broken = JSON.parse(JSON.stringify(rOk.docs[0]));
+      broken.executor_acceptance[0].verify_command = '';
+      broken._dir = tmpC;
+      const aR = assertTaskSevenFields(broken);
+      if (aR.ok || !aR.errors.some((e) => e.includes('verify_command'))) throw new Error('self-test FAIL: verify_command 置空应具名 FAIL，实得 ' + JSON.stringify(aR.errors));
+      const cpBroken = JSON.parse(JSON.stringify(rOk.docs[0]));
+      cpBroken.trajectory_checkpoints = [];
+      cpBroken._dir = tmpC;
+      if (assertTaskSevenFields(cpBroken).ok) throw new Error('self-test FAIL: checkpoints 不覆盖 steps 应 FAIL');
+    } finally {
+      fs.rmSync(tmpC, { recursive: true, force: true });
+    }
+  }
   selfTestAutoRegister();
   return { good: goodR, bad: badR, goodPlan: goodPlanR, badPlan: badPlanR, emptyPlan: emptyPlanR, boilerPlan: boilerPlanR, barePlan: barePlanR };
 }
@@ -1041,6 +1501,34 @@ async function main() {
     console.log(tplMissing.length ? '\n[FAIL] ' + tplMissing.length + '/' + tplAll.length + ' gate 模板缺「阶段机验」字段: ' + tplMissing.join(', ') : '\n[OK] ' + tplAll.length + '/' + tplAll.length + ' gate 模板「阶段机验」字段全部在场');
     return tplMissing.length ? 1 : 0;
   }
+  // CR-1 任务 C：--convert-critique 批判转 task（七字段内置断言，任一失败拒绝落盘）
+  const ci = args.indexOf('--convert-critique');
+  if (ci !== -1 && args[ci + 1] && !args[ci + 1].startsWith('--')) {
+    const oi = args.indexOf('--out');
+    const outDir = oi !== -1 && args[oi + 1] && !args[oi + 1].startsWith('--') ? args[oi + 1] : null;
+    const r = convertCritique({ critiquePath: args[ci + 1], outDir });
+    for (const rf of r.refused) console.log('REFUSED 条目' + rf.index + '「' + rf.title + '」  ' + rf.reason);
+    if (!r.ok) {
+      console.error('FAIL 批判转化拒绝落盘  ' + (r.error || r.refused.map((x) => x.reason).join('；')));
+      return 1;
+    }
+    for (const w of r.written) console.log('WRITTEN ' + w);
+    const vcmd = r.docs.map((d) => d.executor_acceptance.map((a) => a.verify_command).join(' && ')).join(' && ');
+    console.log('\n[OK] 批判转化落盘 ' + r.written.length + ' 份（七字段断言全过，verify_command 在场: ' + truncate(vcmd, 64) + '）');
+    return 0;
+  }
+  // CR-1 任务 B：--tracker-stats 机读看板统计
+  const ti = args.indexOf('--tracker-stats');
+  if (ti !== -1 && args[ti + 1] && !args[ti + 1].startsWith('--')) {
+    let tText = '';
+    try { tText = fs.readFileSync(path.resolve(args[ti + 1]), 'utf8'); } catch (e) { console.error('FAIL tracker 读取失败: ' + e.message); return 1; }
+    const block = parseTrackerStatsBlock(tText);
+    const s = computeTrackerStats(tText);
+    console.log('STATS total=' + s.total + ' registered=' + s.registered + ' accepted=' + s.accepted + ' converted=' + s.converted + ' done=' + s.done + ' rejected=' + s.rejected + ' conversionRate=' + s.conversionRate + '% noSource=' + s.noSource);
+    if (block) console.log('STATS-BLOCK ' + JSON.stringify(block));
+    console.log((s.total > 0 ? '[OK] ' : '[FAIL] ') + 'v2 看板统计（收录 ' + s.total + ' 条 / 无 source ' + s.noSource + ' 条）');
+    return s.total > 0 ? 0 : 1;
+  }
   let dir = ROOT;
   const di = args.indexOf('--dir'); if (di !== -1 && args[di + 1]) dir = path.resolve(args[di + 1]);
   const ai = args.indexOf('--auto-register');
@@ -1054,6 +1542,24 @@ async function main() {
   }
   const read = (f) => { try { return fs.readFileSync(path.join(dir, f), 'utf8'); } catch { return null; } };
 
+  // CR-1 任务 A：三元绑定（--critique-sources）+ rubric 口径（--rubric）——任一在场即启用，fail-closed
+  let v2Checks = [];
+  let v2Fail = false;
+  const csi = args.indexOf('--critique-sources');
+  if (csi !== -1 && args[csi + 1]) {
+    const sources = args[csi + 1].split(',').map((s) => s.trim()).filter(Boolean);
+    const b = checkCritiqueBinding({ critiqueText: read(`${id}-技术批判.md`), critiqueSources: sources });
+    v2Checks = v2Checks.concat(b.checks);
+    if (!b.ok) v2Fail = true;
+  }
+  const ri = args.indexOf('--rubric');
+  if (ri !== -1 && args[ri + 1] && !args[ri + 1].startsWith('--')) {
+    const rr = checkRubric(args[ri + 1]);
+    v2Checks = v2Checks.concat(rr.checks);
+    if (!rr.ok) v2Fail = true;
+  }
+  const printV2 = () => { for (const c of v2Checks) console.log((c.pass ? 'PASS' : 'FAIL') + ' ' + c.name + '  ' + c.detail); };
+
   // 批判反哺自动化：校验通过后自动登记 tracker + 生成优化任务文档
   if (args.includes('--auto-register')) {
     let trackerText = '';
@@ -1065,8 +1571,9 @@ async function main() {
       id,
     });
     for (const c of result.checks) console.log((c.pass ? 'PASS' : 'FAIL') + ' ' + c.name + '  ' + c.detail);
-    if (!result.ok) {
-      console.log(`\n[FAIL] ${id} 批判闸门未过（硬闸门：有效批判≥3/竞品对标/tracker），未登记`);
+    printV2();
+    if (!result.ok || v2Fail) {
+      console.log(`\n[FAIL] ${id} 批判闸门未过（硬闸门：有效批判≥3/竞品对标/tracker${v2Fail ? '/CR-1 三元绑定+rubric' : ''}），未登记`);
       return 1;
     }
     const reg = registerFromFiles({ dir, id });
@@ -1096,6 +1603,13 @@ async function main() {
     id,
   });
   for (const c of result.checks) console.log((c.pass ? 'PASS' : 'FAIL') + ' ' + c.name + '  ' + c.detail);
+  printV2();
+
+  // CR-1 fail-closed：三元绑定 / rubric 未过 → 直接 FAIL（优先于 URL 真验）
+  if (v2Fail) {
+    console.log(`\n[FAIL] ${id} CR-1 批判协议 v2 校验未过（三元绑定 fail-closed / rubric 口径非法）——detail 已指名条目`);
+    return 1;
+  }
 
   if (result.ok && args.includes('--verify-urls')) {
     const critText = read(`${id}-技术批判.md`);

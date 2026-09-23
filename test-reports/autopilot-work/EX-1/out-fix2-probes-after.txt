@@ -1,0 +1,17 @@
+== FIX-2 探针 == 基线来源: git-show:auto-fe-base sha16=5535cce84ed6419e
+== 当前 orchestrator.mjs sha16=7bedaf15d3a03c77 ==
+
+[PASS] P1 executor.json cli=claude → --plan --dry-run 派单缺省含 claude 命令形态  · exit=6 映射日志=有（宿主拆解诚实中止，映射即证据，不真调 CLI）
+[PASS] P2 显式 --exec 覆盖 executor.json（exec=1，无映射日志）  · exit=0 modes.exec>0=true 显式优先
+[PASS] P3 cli=unknown-cli → warning + 不崩溃（fail-soft）  · exit=0 warning=有 未映射=true
+[PASS] P4 无 executor.json → 基线归一化 diff 零差异（含 stdout 归一 diff）  · exit 0=0，11 文件逐字节归一相等
+[PASS] P5 executor.json cli=opencode 缺省注入接线（映射日志+opencode.cmd 形态+isolate warning）  · exit=0 映射日志=有 命令形态含opencode.cmd=是 isolate警告=有
+[PASS] P6 executor.json mode=A-direct → 不映射（向导 A/C 模式无宿主命令语义）  · exit=0 未映射=true 无 exec 模式=true
+[PASS] P7 corrupt executor.json → warning + 不崩溃 + 不映射  · exit=0 warning=有
+[PASS] P8 isolate=sandbox → warning「隔离未实施」+ spawn 行为不变（exec>0）  · exit=0 warning=有 exec=1
+[PASS] P9 显式 --hosts 胜过 executor.json 注入  · exit=0 未注入=true
+[PASS] P10 既有验证路径回归（互斥/非法值 → exit 2）  · resume+dry-run=2 backend=bogus=2
+[PASS] P11 executor.json mode=C-handoff → 不映射  · exit=0
+[PASS] P12 mode=B-cli 但 cli 缺失 → 不映射不崩溃（缺字段不猜）  · exit=0
+
+== 汇总: 12/12 PASS ==

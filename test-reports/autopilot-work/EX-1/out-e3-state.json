@@ -1,0 +1,211 @@
+{
+  "id": "plan-mue3f71v",
+  "task": "backend login module",
+  "cluster": "T2_BACKEND",
+  "contract": "backend interface and error contract",
+  "requireExec": true,
+  "preconditions": [
+    "be-architect 接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
+    "实现类子任务须经 --exec 宿主真实执行，禁纯 prompt 兜底（requireExec）",
+    "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1）；上游 done 且 assetConsumed=true 后下游才派单"
+  ],
+  "phases": 4,
+  "subtasks": [
+    {
+      "id": "plan-mue3f71v-0",
+      "planId": "plan-mue3f71v",
+      "asset": "be-architect",
+      "contract": "contracts\\plan-mue3f71v.json",
+      "status": "done",
+      "artifactPath": null,
+      "attempts": 1,
+      "phase": 0,
+      "dependsOn": [],
+      "preconditions": [
+        "be-architect 接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
+        "实现类子任务须经 --exec 宿主真实执行，禁纯 prompt 兜底（requireExec）",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1）；上游 done 且 assetConsumed=true 后下游才派单"
+      ],
+      "task": "backend login module",
+      "contractMode": "frozen",
+      "missingCaps": [
+        "write_files"
+      ],
+      "mode": "skipped",
+      "adapter": "none",
+      "error": "CAPABILITY_MISSING"
+    },
+    {
+      "id": "plan-mue3f71v-1",
+      "planId": "plan-mue3f71v",
+      "asset": "implementation",
+      "contract": "contracts\\plan-mue3f71v.json",
+      "status": "skipped",
+      "artifactPath": null,
+      "attempts": 0,
+      "phase": 1,
+      "dependsOn": [
+        "plan-mue3f71v-0"
+      ],
+      "preconditions": [
+        "be-architect 接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
+        "实现类子任务须经 --exec 宿主真实执行，禁纯 prompt 兜底（requireExec）",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1）；上游 done 且 assetConsumed=true 后下游才派单"
+      ],
+      "task": "backend login module",
+      "contractMode": "frozen",
+      "mode": "skipped",
+      "error": "DEP_PRECONDITION"
+    },
+    {
+      "id": "plan-mue3f71v-2",
+      "planId": "plan-mue3f71v",
+      "asset": "be-provider",
+      "contract": "contracts\\plan-mue3f71v.json",
+      "status": "skipped",
+      "artifactPath": null,
+      "attempts": 0,
+      "phase": 1,
+      "dependsOn": [
+        "plan-mue3f71v-0"
+      ],
+      "preconditions": [
+        "be-architect 接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
+        "实现类子任务须经 --exec 宿主真实执行，禁纯 prompt 兜底（requireExec）",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1）；上游 done 且 assetConsumed=true 后下游才派单"
+      ],
+      "task": "backend login module",
+      "contractMode": "frozen",
+      "mode": "skipped",
+      "error": "DEP_PRECONDITION"
+    },
+    {
+      "id": "plan-mue3f71v-3",
+      "planId": "plan-mue3f71v",
+      "asset": "be-resilience",
+      "contract": "contracts\\plan-mue3f71v.json",
+      "status": "skipped",
+      "artifactPath": null,
+      "attempts": 0,
+      "phase": 1,
+      "dependsOn": [
+        "plan-mue3f71v-0"
+      ],
+      "preconditions": [
+        "be-architect 接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
+        "实现类子任务须经 --exec 宿主真实执行，禁纯 prompt 兜底（requireExec）",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1）；上游 done 且 assetConsumed=true 后下游才派单"
+      ],
+      "task": "backend login module",
+      "contractMode": "frozen",
+      "mode": "skipped",
+      "error": "DEP_PRECONDITION"
+    },
+    {
+      "id": "plan-mue3f71v-4",
+      "planId": "plan-mue3f71v",
+      "asset": "sdlc",
+      "contract": "contracts\\plan-mue3f71v.json",
+      "status": "skipped",
+      "artifactPath": null,
+      "attempts": 0,
+      "phase": 2,
+      "dependsOn": [
+        "plan-mue3f71v-1",
+        "plan-mue3f71v-2",
+        "plan-mue3f71v-3",
+        "plan-mue3f71v-5"
+      ],
+      "preconditions": [
+        "be-architect 接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
+        "实现类子任务须经 --exec 宿主真实执行，禁纯 prompt 兜底（requireExec）",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1）；上游 done 且 assetConsumed=true 后下游才派单"
+      ],
+      "task": "backend login module",
+      "contractMode": "frozen",
+      "mode": "skipped",
+      "error": "DEP_PRECONDITION"
+    },
+    {
+      "id": "plan-mue3f71v-5",
+      "planId": "plan-mue3f71v",
+      "asset": "security",
+      "contract": "contracts\\plan-mue3f71v.json",
+      "status": "skipped",
+      "artifactPath": null,
+      "attempts": 0,
+      "phase": 1,
+      "dependsOn": [
+        "plan-mue3f71v-0"
+      ],
+      "preconditions": [
+        "be-architect 接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
+        "实现类子任务须经 --exec 宿主真实执行，禁纯 prompt 兜底（requireExec）",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1）；上游 done 且 assetConsumed=true 后下游才派单"
+      ],
+      "task": "backend login module",
+      "contractMode": "frozen",
+      "mode": "skipped",
+      "error": "DEP_PRECONDITION"
+    },
+    {
+      "id": "plan-mue3f71v-6",
+      "planId": "plan-mue3f71v",
+      "asset": "review",
+      "contract": "contracts\\plan-mue3f71v.json",
+      "status": "skipped",
+      "artifactPath": null,
+      "attempts": 0,
+      "phase": 2,
+      "dependsOn": [
+        "plan-mue3f71v-1",
+        "plan-mue3f71v-2",
+        "plan-mue3f71v-3",
+        "plan-mue3f71v-5"
+      ],
+      "preconditions": [
+        "be-architect 接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
+        "实现类子任务须经 --exec 宿主真实执行，禁纯 prompt 兜底（requireExec）",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1）；上游 done 且 assetConsumed=true 后下游才派单"
+      ],
+      "task": "backend login module",
+      "contractMode": "frozen",
+      "mode": "skipped",
+      "error": "DEP_PRECONDITION"
+    },
+    {
+      "id": "plan-mue3f71v-7",
+      "planId": "plan-mue3f71v",
+      "asset": "be-validator",
+      "contract": "contracts\\plan-mue3f71v.json",
+      "status": "skipped",
+      "artifactPath": null,
+      "attempts": 0,
+      "phase": 3,
+      "dependsOn": [
+        "plan-mue3f71v-4",
+        "plan-mue3f71v-6"
+      ],
+      "preconditions": [
+        "be-architect 接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
+        "实现类子任务须经 --exec 宿主真实执行，禁纯 prompt 兜底（requireExec）",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1）；上游 done 且 assetConsumed=true 后下游才派单"
+      ],
+      "task": "backend login module",
+      "contractMode": "frozen",
+      "mode": "skipped",
+      "error": "DEP_PRECONDITION"
+    }
+  ],
+  "status": "done",
+  "createdAt": "2026-09-23T12:42:34.484Z",
+  "_depPrecondition": 7,
+  "degraded": true,
+  "modes": {
+    "skipped": 8
+  },
+  "warnings": [
+    "7 个子任务因上游未满足资产消费前置被跳过（DEP_PRECONDITION）——上游须真实执行并产出资产消费证据后再 --resume 续跑下游",
+    "能力门控：1 个子任务因执行器能力缺失降级（be-architect:缺write_files）——mode=prompt/skipped 诚实降级，不静默用弱能力"
+  ]
+}

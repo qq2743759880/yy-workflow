@@ -1,0 +1,33 @@
+=== [E2E-1] journey 未初始化 → --prereq-check --step 1.5（auto-init 基线后 step1 pending）→ 期望 exit 1 ===
+AUTO-INIT: journey 未初始化，已自动创建基线（等价 --update --step 0）→ C:\Users\Administrator\AppData\Local\Temp\rg1-e2e\.tt-state\journey.json
+阶段 1 未完成（pending），步骤 1.5 不得开工（缺 gate: concept-signed）
+exit=1
+
+=== [E2E-2] 铺链 --update --step 0 / --step 1 --gate concept-signed → prereq-check 1.5 → 期望 exit 0 ===
+prereq OK: step 1.5
+exit=0
+
+=== [E2E-3] --update --step 1.5 --gate research-done --artifact docs/prior-art.md → 期望 exit 0 ===
+yy/journey@1
+✓ 0 资产整合
+✓ 1 文档化   [gates: concept-signed]
+✓ 1.5 研究门   [gates: research-done]   [artifacts: docs/prior-art.md]
+○ 2 重执行1
+○ 3 拆任务
+exit=0
+
+=== [E2E-4] journey.json 内 step1.5 节点内容 + 全 id 序 ===
+{"step":1.5,"name":"研究门","status":"done","gates_passed":["research-done"],"artifacts":["docs/prior-art.md"],"updated_at":"2026-09-23T10:42:07.607Z"}
+ids: 0,1,1.5,2,3,4,5,6,7,8
+
+=== [E2E-5] 抹掉 step1 gate（模拟 Owner 未签收）→ prereq-check 1.5 → 期望 exit 1 ===
+阶段 1 未完成（缺 gate: concept-signed），步骤 1.5 不得开工
+exit=1
+
+=== [E2E-6] 同状态 --update --step 1.5 → 期望 PrereqError exit 3（journey 不落盘）===
+prereq 未满足: 阶段 1 未完成（缺 gate: concept-signed），步骤 1.5 不得开工；--force 可越过
+exit=3
+
+=== [E2E-7] 既有语义不破坏：--prereq-check --step 3 旧规则（step1 未过 gate）照常拦截 exit 1 ===
+阶段 1 未完成（缺 gate: concept-signed），步骤 3 不得开工
+exit=1

@@ -1,0 +1,8 @@
+执行器解析结果（读取顺序：--executor 显式 > executor.json > 缺信息 exit 2）：
+{
+  "mode": "B-cli",
+  "cli": "claude",
+  "model": null,
+  "isolate": null,
+  "source": "flag-explicit"
+}

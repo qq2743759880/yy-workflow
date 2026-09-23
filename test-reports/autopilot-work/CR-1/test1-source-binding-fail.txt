@@ -1,0 +1,12 @@
+PASS 批判文档存在  3 条
+PASS 有效批判≥3（含URL+日期）  有效 3/3
+PASS 优化修改方案存在  存在
+PASS tracker 已登记  含 taskT2
+PASS 批判条目可解析（三元绑定作用域）  3 条
+PASS 三元绑定 条目1「有源批判」  claim→evidence→source 绑定 OK（source=search-tool（条目声明））
+FAIL 三元绑定 条目2「缺源批判（本条故意不带 source 标签）」  INVALID：source=none 须逐条标注「本批判无外部源，仅基于项目内部资料」（不得静默）
+PASS 三元绑定 条目3「再一条有源批判」  claim→evidence→source 绑定 OK（source=standard-doc（条目声明））
+PASS 无 source 条目数（source=none 需逐条标注，不静默）  none=1（各条已要求标注「无外部源」）
+
+[FAIL] taskT2 CR-1 批判协议 v2 校验未过（三元绑定 fail-closed / rubric 口径非法）——detail 已指名条目
+EXIT=1

@@ -1,0 +1,61 @@
+{
+  "changeRecordId": "cr-20260923T040000Z-1a2b3c4d",
+  "basePlan": "contracts/asset-manifest-v2.md",
+  "baseVersion": "cea6f30d5155e2cac441cee9f17eb17d63b155d6005c7b158e7554184804f887",
+  "reason": "Asset Manifest v2 schema 冻结面变更（批 0 AV-1）：新建 contracts/asset-manifest-v2.md 定义 16 资产行 schema（id/name/role/capability/cluster/when_to_use/when_not_to_use/verification/source）+ 提取源纪律（缺字段 fail-closed CANDIDATE_INVALID，与 evolution.propose 同口径）+ AS 系列 drop 7 重组声明（行数随重组变化，schema 不绑定 16）+ 迁移说明（后续增改走 evolution.propose）。三字段直击 R2 T3-04 A6 词汇缺口与 BW-3 模糊 prompt 资产零调用缺口。",
+  "impactClass": "CONTRACT",
+  "owner": "Owner",
+  "sourceEvidence": [
+    "contracts/asset-manifest-v2.md#cea6f30d5155e2cac441cee9f17eb17d63b155d6005c7b158e7554184804f887",
+    "handoffs/v3/AV-1-dispatch.md#d78681472332d325a5f91feb86a40ab26eb66fad720b70110364e56089c7219d",
+    "plans/execution-plan-v3-20260923.md#cf4d010fc48bfc5b1dcff32fd3f5be672511502e29260678519ba85589ce5ee9 (§二/§四 AV-1 派单上下文)",
+    "plans/asset-v2-frontend-plan-20260923.md#a7878ee0a92df18bed8836a96fbf1951f25689d8fc164b68eef4afe02105db0c (§二 schema 设计：三字段采纳与 CANDIDATE_INVALID 口径)",
+    "test-reports/autopilot-work/AV-1/RESULTS.md (本变更实施证据与自测记录)"
+  ],
+  "invalidatedNodes": [
+    "AV-2 (manifest 生成器：须按本 schema 实现，缺字段 fail-closed CANDIDATE_INVALID)",
+    "AV-3 (activation 接线：消费 when_to_use/when_not_to_use，负向剔除+debug 留痕)"
+  ],
+  "newVersionRef": null,
+  "supersededBy": null,
+  "status": "active",
+  "recordedAt": "2026-09-23T04:00:00.000Z",
+  "recordedBy": "AV-1-L1-exec",
+  "idempotencyKey": "8f8e3c2bafce67b17fa9a75e0e16045a6acf97730d87667f9a198fefd133e989",
+  "approvalId": "apr-20260923T035000Z-1a2b3c4d",
+  "touchedFiles": [
+    "contracts/asset-manifest-v2.md",
+    "scripts/lib/asset.mjs"
+  ],
+  "schemaVersion": "asset-manifest-v2@1.0.0",
+  "migration": {
+    "from": "v1（无统一 manifest：资产元数据散落 vendor frontmatter / matrix.mjs CLUSTERS / webview content.js 三处，when_to_use/when_not_to_use/verification 三字段不存在）",
+    "to": "v2（schema 定义冻结于 contracts/asset-manifest-v2.md；16 行 v2 数据由 AV-2 生成器按提取源纪律产出 contracts/asset-manifest-v2.json，走冻结确认后进 manifest）",
+    "steps": [
+      "1. 本单冻结 schema 定义（字段/类型/必填性/提取源纪律/CANDIDATE_INVALID fail-closed 口径）",
+      "2. AV-2 生成器从 16 资产源文档头部结构化区提取三字段 → contracts/asset-manifest-v2.json；缺字段 fail-closed，禁止编造",
+      "3. 16 行 v2 数据是内容不是代码：走冻结确认后进 manifest，后续增改走 evolution.propose",
+      "4. 行数随 AS 系列资产重组变化（drop 7 后为 9+），schema 不绑定 16；AS-1 执行时按 §三 drop 单增删行并重走 change.record"
+    ],
+    "rollback": "supersede-not-delete：本单被后续回滚 change record 取代（supersedes 指针），schema 文档回退以 git 历史为准（tombstone）"
+  },
+  "ownerApprovalReceipt": {
+    "approvalId": "apr-20260923T035000Z-1a2b3c4d",
+    "target": {
+      "scope": "change",
+      "scopeId": "contracts/asset-manifest-v2.md@cea6f30d5155e2cac441cee9f17eb17d63b155d6005c7b158e7554184804f887:CONTRACT"
+    },
+    "reason": "Asset Manifest v2 schema（三字段采纳：when_to_use/when_not_to_use/verification）——Owner 采纳裁定见 plans/asset-v2-frontend-plan-20260923.md 头注（Owner 三需求输入）与 plans/execution-plan-v3-20260923.md §四 AV-1 施工单",
+    "approvedBy": "owner",
+    "approvedAt": "2026-09-23T03:50:00.000Z",
+    "expiresAt": null,
+    "approvalEvidence": "PENDING_OWNER_RECEIPT",
+    "relatedReceipts": []
+  },
+  "ownerSignOff": {
+    "status": "PENDING",
+    "note": "Owner 签收位：本单按 CONTRACT 类提交，ownerApprovalReceipt.approvalEvidence 须由 Owner 签发后回填 <指令文件路径>#<SHA256> 并将 status 改为 SIGNED（approvalId 不变）；签发前本 schema 文档为待确认草稿态，不得进 AV-2 施工",
+    "signedAt": null,
+    "signedBy": null
+  }
+}

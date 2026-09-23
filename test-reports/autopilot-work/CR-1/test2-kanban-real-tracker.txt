@@ -1,0 +1,4 @@
+STATS total=0 registered=0 accepted=0 converted=0 done=0 rejected=0 conversionRate=0% noSource=0
+STATS-BLOCK {"total":"0","registered":"0","accepted":"0","converted":"0","done":"0","rejected":"0","conversion_rate":"0","no_source":"0"}
+[FAIL] v2 看板统计（收录 0 条 / 无 source 0 条）
+EXIT=1

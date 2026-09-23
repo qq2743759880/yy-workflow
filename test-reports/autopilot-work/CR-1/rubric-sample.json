@@ -1,0 +1,11 @@
+{
+  "name": "critique-protocol-v2-rubric",
+  "version": "1.0",
+  "description": "CR-1 批判协议 v2 评估口径样例（--rubric 口径：criteria>=1，id/name 非空，weight 非负数且总和>0）。供 review-gate.mjs --rubric 消费。",
+  "criteria": [
+    { "id": "R1", "name": "三元绑定完备（claim→evidence→source）", "weight": 40, "description": "每条批判三要素齐备；缺 source 判 INVALID（fail-closed，detail 指名条目）" },
+    { "id": "R2", "name": "证据真实可溯", "weight": 30, "description": "evidence 须为真实可达竞品对标 URL+日期，或显式 evidence: 声明" },
+    { "id": "R3", "name": "施工步可落地", "weight": 20, "description": "转化单 implementation_steps 1-7 步、target 为工作区相对路径且真实存在" },
+    { "id": "R4", "name": "无外部源披露", "weight": 10, "description": "source=none 时逐条标注「本批判无外部源，仅基于项目内部资料」，不得静默" }
+  ]
+}
