@@ -84,7 +84,7 @@
 
 **回答**：是——Manifest v2 的 `verification` 字段是效果评级的载体，但"功能效果未验证"本身要先测基线再评级，评估完成前不接入工作流主链（评级结果作为 evolution.propose 的 evidence，这正是资产进化机制的既定入口）。
 
-- **EA-1 基线（实测优先）**：4 个 BW 工作区跑 `asset-call-rate.mjs`/`asset-io-report.mjs` → 每资产：被路由次数、consumed=true/false 率、never-called 清单。**16 资产里大概率有一批从未被真实调用**——这就是评级的最硬输入。
+- **EA-1 基线（实测优先）**：~~4 个 BW 工作区跑 asset-call-rate~~ **实测修正（2026-09-23）**：BW 四工作区走 N=1 手动模式，只有 journey.json 无 state.json，asset-call-rate（--state 口径）无法直接计量。EA-1 改为两条腿：①用现有 S8 探针/回归产物里的 state.json 计量（机验链路内的消费证据）；②BW 消费证据从 session-notes/工作区残留人工取证（dev-planner 前提挑战、frontend-design 等）。**16 资产里大概率有一批从未被真实调用**——这就是评级的最硬输入。
 - **EA-2 竞品对标（按簇并行调研）**：
   - 实现簇：implementation ↔ BMAD-METHOD / claude-flow / SuperClaude
   - 流程簇：sdlc / dev-planner ↔ claude-taskmaster / BMAD phases
