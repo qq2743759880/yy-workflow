@@ -157,3 +157,20 @@
 4. 批 1 交付物增列 **Asset Migration Playbook v1**（plans/asset-migration-playbook.md）：首个 replace 全门栈蒸馏成模板，其余三个 replace 按 playbook 执行并反向校验其完备性——"playbook 比 4 个替换值钱"
 5. superpowers 圈选维持挂起（审计者背书≠Owner 圈选；其论证附圈选单旁供参考）
 6. 措辞校准：Migration Framework 机器就位 ≠ 已验证；证明点 = be-validator 一仗
+
+## v3.5 修订（2026-09-23，第六轮审计采纳）
+
+1. **迁移生命周期目录**：Playbook v1 规范单次迁移的制品集（baseline-before/migration-plan/shadow-result/promotion/rollback.json），由首次迁移实例化——不预建空目录
+2. **Provider Identity Contract 具形**：provider YAML schema（source github:<org>/<repo> / install 通道 / verification.command + **expected.exit_code**）——并入 asset-migration contract 增补（与 v3.4 第 1 条合并执行）
+3. **Manifest 边界纪律（新增永久规则）**：manifest 只回答"是什么/何时可用"，禁止塞 prompt/rules/examples/runtime/history——防其膨胀成第二个配置数据库；执行归属 Runtime Adapter。写入 manifest-build.mjs 头注释与 migration contract
+4. **AV-3 定名 Asset Eligibility Resolver v1**：runtime 不得直接拿 asset，必须过 resolver→approved asset（修复 F-007 runtime 直依赖 CLUSTERS）；输入中 requirements/constraints 为**可选提示**，主键仍 asset name（v3.2 边界第三次确认）
+5. **影子跑 Evidence Contract**：对比不止 error 数——expected-findings.json + **accepted_difference 规则**（如 rule-name 映射变更）；新工具发现更多问题≠失败，超差部分阻断晋升交 L2/Owner 评审；accepted_difference 表在影子跑**前**定稿
+6. **回滚演练 Failure Injection 具体化**：人为令 Spectral adapter 不可用 → runtime 检测 → 回滚 → 旧 adapter 可用 → receipt
+7. **第二波严格串行七步**：AV-3 resolver → 迁移夹具 → Shadow Run → Rollback Drill → Promotion → Playbook v1 → 复制三个 replace（禁 AV-3 与 replace 并行）
+
+### 拦下一条（必须登记）
+- 审计者顺手引入第二套状态机（PLANNED→VERIFIED→SHADOW→PROMOTED→DEPRECATED→REMOVED）——**与 asset-migration.md 冻结契约的 ACTIVE→SHADOW→MIGRATING→PRIMARY→DEPRECATED→REMOVED 竞争**。裁定：契约状态机为唯一权威（它已走 change.record），Playbook 的证据要求映射到契约状态机，不另立状态机（防双事实源——本批自查出的 legacy loader 双入口教训同理）
+
+### 重申两条（与既往裁定一致，无新行动）
+- superpowers 四技能推荐第三次出现（AS-0/五轮/六轮审计全同）——仍待 Owner 圈选，审计共识不构成圈选
+- D-REG1-1 维持 Experimental（=已登记的临时态），观察 override 比例/false-block 比例后再定永久策略
