@@ -93,3 +93,8 @@
 - 第七位审计裁定（superpowers 专项）：F-001 成立——五态显式区分（recommended≠selected≠vendored≠registered≠bound）登记为状态卫生纪律；"文化规范 vs 系统资产"判据采纳（现态=文化规范+候选资产，圈选后才资产化）；Owner 圈选时将生成机器可读 selection manifest（skill/commit hash/Owner 署名/绑定阶段）为正式批准记录；编排者独立边际价值修正：writing-plans 与 TK-1 task v2 七字段高度重叠，四者中边际价值最低（可选缓选），其余三者（verification-before-completion/systematic-debugging/test-driven-development）为真补洞
 - 圈选材料：test-reports/asset-eval-20260923/LICENSES.md §6（15 清单+短名单+不推荐理由）；绑定期望建议=按 journey 阶段消费（cluster 留空/全簇），Owner 圈选时可一并表态
 - 【Owner 圈选落地（2026-09-24）】superpowers selection manifest v1：选 3（verification-before-completion→stage8 before_final_receipt / systematic-debugging→failure_recovery 三触发 / test-driven-development→stage7+shadow run 前）、缓 2（writing-plans reserve、receiving-code-review 重叠）；判定依据=能力缺口分析（Owner 原话："不是因为审计共识"）；架构裁定=治理增强层 governance-skills/ 独立于 16 资产注册表（不进 CLUSTERS/manifest）；vendor 落地 3 目录 14 文件（commit 5bf4e780 快照，VENDORED.md 记录）；运行时消费接线列为后续任务
+| AS-2-first | PASS | agent_ec4f5ee6 | orchestrator-L2(spectral+eligible+回归+preflight 亲跑; 影子对照审读) | 2026-09-24T12:10:00Z | scripts/lib/adapters/portman.mjs（spectral 驱动 127 行+EXPLICIT_COMPAT_MODE）; vendor/be-validator/rulesets/spectral-oas.yaml; test-reports/autopilot-work/AS-2-first/（fixtures/影子 8 件/migration-record 五元组）; contracts/discrepancies/cr-20260924T120000Z-as2f1rst-promotion.json（编排者补立, Owner PENDING） |
+- 【Migration Reference Implementation 首战告捷】影子跑 PASS 零 forbidden；"新工具发现更多问题"场景实证——旧 portman 对缺陷密集文档 0 检出（转换器非 linter），Spectral 9 findings 全 accepted；回滚三场景过（含 Gate-1 legacy 禁静默实测）；新 manifest hash 84e2c7ab 绑定验证
+- D-2（裁定追认）：expected_rule_ids 影子跑前依 smoke 修订（amendments 留痕）=accepted_difference 表"先于影子跑定稿"的正确执行
+- D-4（转 Owner 复核）：契约校验面扩 .yaml/.yml 属能力提升面
+- 五轮审计预判逐一兑现：accepted_difference/EXPLICIT_COMPAT_MODE/回滚前置验证/五元组全部真实用了

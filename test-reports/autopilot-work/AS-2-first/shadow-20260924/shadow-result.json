@@ -1,0 +1,114 @@
+{
+  "recordedAt": "2026-09-24T09:50:32.822Z",
+  "fixture": {
+    "yaml": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\AS-2-first\\fixtures\\bad-openapi.yaml",
+    "json_twin": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\AS-2-first\\fixtures\\bad-openapi.json"
+  },
+  "old_engine": {
+    "asset": "be-validator(portman)",
+    "harness_result": {
+      "ok": true,
+      "degraded": false,
+      "error": null
+    },
+    "contract": {
+      "pass": true,
+      "diff": null,
+      "checkedAt": "2026-09-24T09:50:22.999Z",
+      "tool": "portman",
+      "version": "1.35.0",
+      "mode": "exec",
+      "scope": "real portman 1.35.0 --local lint/collection against D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\AS-2-first\\fixtures\\bad-openapi.json"
+    },
+    "interpretation": "pass=true / 0 findings：portman 为转换器非 linter，对缺陷密集文档零检出（expected-findings.json old_engine 记录一致）"
+  },
+  "new_engine": {
+    "exit_code": 1,
+    "parse_ok": true,
+    "finding_count": 9,
+    "severity_dist": {
+      "warn": 8,
+      "error": 1
+    },
+    "rule_ids": [
+      "info-contact",
+      "info-description",
+      "oas3-api-servers",
+      "operation-operationId",
+      "operation-success-response",
+      "operation-tag-defined",
+      "operation-tags",
+      "path-params"
+    ],
+    "version": "6.16.3"
+  },
+  "comparison": {
+    "finding_count": {
+      "old": 0,
+      "new": 9,
+      "delta": "new 引擎多报 9 条（accepted-with-registration）"
+    },
+    "severity_dist_new": {
+      "warn": 8,
+      "error": 1
+    },
+    "exit_code": {
+      "old_semantics": "adapter ok=true（portman exit 0）",
+      "new": 1,
+      "expected": 1
+    },
+    "rule_ids": {
+      "expected": [
+        "oas3-api-servers",
+        "info-description",
+        "info-contact",
+        "operation-operationId",
+        "operation-success-response",
+        "operation-tag-defined",
+        "operation-tags",
+        "path-params"
+      ],
+      "actual": [
+        "info-contact",
+        "info-description",
+        "oas3-api-servers",
+        "operation-operationId",
+        "operation-success-response",
+        "operation-tag-defined",
+        "operation-tags",
+        "path-params"
+      ]
+    },
+    "forbidden_checks": {
+      "missing_detection": [],
+      "crash": false,
+      "invalid_exit_code": false
+    },
+    "forbidden_verdict": "PASS（零 forbidden_difference）",
+    "diffClassification": {
+      "rule_name_changed": "accepted（旧引擎无规则名 pass/diff 布尔面；新引擎 Spectral rule id 报告——见 expected-findings.json accepted_difference）",
+      "severity_mapping_changed": "accepted（旧 pass 布尔 → 新 error/warn 分级；映射：有 error 级 → pass=false）",
+      "message_changed": "accepted（portman 输出摘要 → Spectral findings 摘要）",
+      "new_findings": {
+        "policy": "accepted-with-registration（新引擎检出多于旧引擎≠失败；逐条登记 migration-record.json 新增清单交 L2/Owner 复核，v3.5）",
+        "old_engine_finding_count": 0,
+        "new_engine_finding_count": 9,
+        "registry": [
+          "info-contact",
+          "info-description",
+          "oas3-api-servers",
+          "operation-operationId",
+          "operation-success-response",
+          "operation-tag-defined",
+          "operation-tags",
+          "path-params"
+        ]
+      },
+      "disappeared_findings": "none expected（旧引擎 0 检出，无消失面）"
+    }
+  },
+  "artifacts": {
+    "spectral_stdout": "shadow-20260924/spectral-shadow-stdout.json",
+    "old_contract_result": "shadow-20260924/old-engine-record.json（.json 输入）"
+  }
+}

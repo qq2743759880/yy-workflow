@@ -1,0 +1,6 @@
+# be-validator 正式 ruleset（AS-2-first 迁移晋升后固化，Migration Reference Implementation）。
+# Provider identity：Spectral 官方默认 OAS 规则集（@stoplight/spectral-cli 6.16.3 内置 spectral:oas），
+# 不自造规则、不改默认 severity——findings 可归因到上游官方规则（github:stoplightio/spectral）。
+# 影子跑/回滚演练证据：test-reports/autopilot-work/AS-2-first/（shadow-20260924/shadow-result.json、rollback-drill.json）。
+extends:
+  - spectral:oas
