@@ -10,7 +10,7 @@
  *   node scripts/research-gate.mjs --workspace <dir> [--self-test]
  *   node scripts/research-gate.mjs --kernel-probe          # 内核真跑探针（无 key 也须走通错误路径）
  * 退出码：0 = PASS；1 = gate FAIL（fail-closed）；2 = 用法/IO 错误。
- * 网络语义（D-REG1-1 已裁决，2026-09-23）：兜底源整体不可达的产物（evidence 同时含 github-api 与
+ * 网络语义（D-REG1-1 编排者推荐方案·临时态待 Owner 追认，2026-09-23；归因修正见 ledger）：兜底源整体不可达的产物（evidence 同时含 github-api 与
  *   npm-registry「不可达」标记）默认 **FAIL**（fail-closed——无研究依据不得继续规划）；
  *   显式 `--allow-offline --approved-by <name>` 才放行，且必须打印 OVERRIDE EVENT（risk override：
  *   人为承担风险并留痕，非绕过；approvedBy 必须是人署名，agent 不得自填）。

@@ -65,3 +65,11 @@
 - vendor deep-research gitlink 缺陷修复（普通文件快照 168K 重入库）
 - 遗留：D-REG1-1 断网语义待 Owner 拍板（推荐 FAIL+--allow-offline）；批 1（AS-0 许可证核查先行）待 Owner 指令
 - 【D-REG1-1 归因修正（Owner 指正 2026-09-23）】前一条"Owner 拍板"系错误归因——拍板建议来自外部审计者分析，Owner 仅要求批判性吸收并未裁定。现状修正为：**编排者推荐方案已实现（临时态，待 Owner 追认或否决）**——研究门断网产物默认 FAIL，--allow-offline --approved-by <人名> 显式风险接受 + OVERRIDE EVENT 留痕；三态探针过。实现依据（编排者立场）：与项目 fail-closed 哲学一致（CANDIDATE_INVALID/BASELINE_MISSING 同族），且保留人署名逃生阀维持断网期可操作性；替代方案（沿 review-gate VERIFY_SKIPPED 先例：诚实标注放行+研究债标记）仍可选项，Owner 否决则一行回退。**纪律教训：外部审计/分析=编排者建议的输入，不是 Owner 裁定；Owner-gated 决策只有 Owner 本人能关账。**
+
+## 第三位审计者发现裁定（2026-09-23，Owner 转发批判性分析）
+- VC-001/002/005 CONFIRMED 与台账一致；F-001/002/004 实为"批 1 待跑"重述（计划依赖序已含：AV-2 先于 AS-1、replace 三件套门槛）——无新增行动
+- 【采纳·立即整改】VC-002 附注：research-gate.mjs 代码注释仍写"D-REG1-1 已裁决"——ledger 归因修正后代码注释漏改，属同一错误的残留面。已改为"编排者推荐方案·临时态待 Owner 追认"（本节同 commit）
+- 【采纳·入 S14 验收】Legacy loader 双入口旁路风险（asset.mjs 仍支持 SKILL.md/<name>.md 旧入口）：迁移期共存是有意向后兼容，但 AS-1 收口时 S14 不变量从"旧 adapter 不可达"扩展为"旧 loader 路径同样不可达或显式门控"
+- 【采纳·入 preflight 范围】buildManifest() 单源检查：manifest 生成必须单一来源，防 runtime 调旧 buildManifest 绕过 asset-manifest-v2——列入 preflight.mjs 检查项
+- 【校准·非缺陷】F-003 "15/16 零消费 SUSPECTED"：审计者自述未读 BASELINE.md，属其证据边界非数据缺陷；但其中间结论采纳——消费证据为**署名级**非正文调取级（BASELINE.md D-偏差 3 已如实登记），AS-1 drop 判据若需调取级证据，须在影子跑中补
+- 【校准】F-002/004 SUSPECTED（migration runtime/写面强制未实现）：正确，但就是批 1 待跑事项，非方案缺陷
