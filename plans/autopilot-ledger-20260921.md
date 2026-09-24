@@ -86,3 +86,7 @@
 - D-1（转 Owner 追认）：P2 存量同名导出 legacy WARN 分级（含 CANDIDATE_INVALID 双哨兵码）——裁定：追认通过，新增强制/存量豁免合理
 - D-3：migration contract 为草稿态（Owner 签收 PENDING），不构成 AS-2-first 放行依据——按纪律执行
 - 第一波 4/4 全收；批 1 第二波启动（v3.5 七步串行）
+| AV-3 | PASS | agent_492526be | orchestrator-L2(CLI 四态亲测+14段回归+preflight 亲跑) | 2026-09-24T11:40:00Z | scripts/lib/activation.mjs（resolveAssetEligibility）; scripts/eligible.mjs; scripts/lib/runtime.mjs（资格门+Gate-2 hash 绑定）; test-reports/autopilot-work/AV-3/RESULTS.md |
+- Gate-2 实测：dispatch 日志 manifest_sha256 == f770140c…（AV-2 产物 hash 亲算一致）；不一致路径软门记账
+- D-AV3-2（转 AS-2 裁定）：资格门 skipped 后 runGroup 置 done 与 EX-1 形态一致——诚实性由 mode/error/warnings 承载；硬门化（改为 blocked）随首个 replace 晋升裁定
+- 第二波 Step1 收口；Step2-5（be-validator→Spectral 迁移范例）派发

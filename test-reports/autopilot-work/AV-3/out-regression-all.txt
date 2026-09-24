@@ -1,0 +1,51 @@
+# TT regression-all（一键回归卡点）
+
+PASS S1 validate-structure
+PASS S2 test-retry
+S3 Phase 2 替换清单（占位卡点，替换启动前须保持全绿）：
+  ✓ implementation — 实现簇(dev-backend+be-implementer) → opencode 执行内核 [vendor OK] [能力探测验证: 专用 adapter 支持 write_files/run_cmd] [kernel 段] [probe] [marker OK]
+  ✓ sdlc — sdlc → BMAD-METHOD + cline 执行层 [vendor OK] [能力探测验证: 专用 adapter 支持 write_files/run_cmd] [kernel 段] [probe] [marker OK]
+  ✓ be-validator — be-validator → portman/contracteer 契约校验 [vendor OK] [能力探测验证: 专用 adapter 支持 write_files/run_cmd] [kernel 段] [probe] [marker OK]
+  ✓ agent-research — 调研 hub → gpt-researcher 单点对标 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+  ✓ skill-sentinel — skill 安全扫描 → SkillSpector 对标 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+  ✓ security — 安全簇 → semgrep + gitleaks 扫描内核 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+  ✓ frontend-design — 前端设计簇 → shadcn-ui/ui + bolt.new 内核 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+  ✓ planning — 需求规划 → MetaGPT / crewAI 对标 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+  ✓ review — 评审簇 → qodo-ai/pr-agent + continue 内核 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+  ✓ be-architect — 架构设计 → system-design-template 对标 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+  ✓ be-provider — LLM provider → tsyringe / InversifyJS 对标 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+  ✓ be-resilience — 韧性 → cockatiel / Polly 对标 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+  ✓ colorize — 前端配色 → culori/chroma-js/poline 计算内核 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+  ✓ agent-vision-toolkit — 视觉质检 → OmniParser v2 + UI-TARS VLM 内核 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+PASS S3 Phase 2 替换清单  （3 个高杠杆目标现状契约完整）
+PASS S4 契约工作流 smoke  contracts/<planId>.json 冻结 ✓ resume 复用 ✓ 篡改→exit4 ✓
+PASS S5 宿主执行 smoke  stdout → exec ✓；写文件(无 stdout) → exec ✓；空输出 → prompt 降级 ✓
+PASS S6 资产缓存 smoke  assets-cache.json 生成 ✓ 二次运行复用 ✓
+PASS S7 review-gate  self-test ✓ 填好plan→PASS ✓ 模板未填→拦截 ✓
+PASS S8 资产消费证据  exec=8 false(正)=0 false(负)=>1（kernel 资产仅锚点 → false，强化生效）
+PASS S9 域声明机验  missing→DOMAIN_DECL_MISSING ✓ true→ok ✓ 旧数据→N/A ✓
+PASS S10 token 量尺 gate（B0-②）  快照对比 PASS ✓
+PASS S11 引用链机验（C-25/C-33）  悬空引用 0 / tab 损坏 0 ✓
+PASS S12 kickoff 漂移门（C-26）  五簇资产双向一致 ✓
+[PASS] tt-journey 经 junction 渲染 145B
+[PASS] executor-setup 经 junction presence 有输出 896B
+[PASS] review-gate 经 junction 打印诊断 41B
+[PASS] tt-tui 经 junction 打印诊断 159B
+PASS S13 junction 部署形态 smoke  4/4 内部探针 PASS
+# preflight（v3 批 1 静态不变量预检：零 LLM / 零网络 / 确定性）
+PASS  P1 语法门 (node --check)  — 85 个 .mjs 全过编译器级预检
+PASS  P2 导出查重（跨模块同名）  — 无新增同名导出冲突（存量 legacy 登记 WARN: main(8), ERROR_CODES(7), run(12), name(5), CANDIDATE_INVALID(2), EXIT(2), JOURNEY_SCHEMA(2), GATE_VOCAB(3), STEPS(3), STATE(2), TRANSITIONS(3), STATE_VERSION(2), formatApprovalEvidence(2)）
+  WARN P2 存量同名导出 13 组（LEGACY_DUP_EXPORTS 登记，非阻断）：main(8), ERROR_CODES(7), run(12), name(5), CANDIDATE_INVALID(2), EXIT(2), JOURNEY_SCHEMA(2), GATE_VOCAB(3), STEPS(3), STATE(2), TRANSITIONS(3), STATE_VERSION(2), formatApprovalEvidence(2)
+PASS  P3 ADAPTERS 一致性  — 注册 6 个 adapter（implementation, dev-backend, be-implementer, sdlc, be-validator, portman），映射路径与资产名全部有效
+PASS  P4 CLUSTERS ↔ 磁盘  — 16 资产 vendor/<name>/ 文档齐全（唯一事实源 scripts/lib/matrix.mjs；AS-1 drop 后随 candidates 收缩自动通过）
+PASS  P5 buildManifest 单源  — 唯一写方 scripts/manifest-build.mjs ✓（命中 0 处合法写调用）
+PASS  P6 DROP_ALLOWED 断言  — 扫描 16 行：无 drop-pending 行（当前无 drop 意图）
+PASS  P7 change-lock 核查  — active 锁 0/0，--changed 0 条改动路径 0 冲突
+
+结果: 7 PASS / 0 FAIL / 0 SKIP
+preflight 通过。
+PASS S14 preflight invariants  7 项静态不变量全过
+S15 migration invariants（占位）：AS-1 drop 执行时填充（EXPLICIT_COMPAT_MODE 门 / import 零命中 / manifest 路由断言 / 旧 adapter 不可达）
+
+结果: 14 PASS / 0 FAIL
+回归基线通过。

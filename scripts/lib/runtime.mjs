@@ -6,6 +6,7 @@ import { withRetry, retryAcrossHosts, resolveHosts } from './resilience.mjs';
 import { RetryableError, TimeoutError } from './errors.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 // ---------------------------------------------------------------------------
@@ -32,6 +33,18 @@ function resolveActivationMode(env = process.env) {
   if (v === 'lib') return { mode: 'lib' };
   if (v === 'legacy' || v === '') return { mode: 'legacy' };
   return { mode: 'legacy', warning: 'YY_ACTIVATION=' + v + ' 非法，降级 legacy（不阻断）' };
+}
+// AV-3（v3.5）：Gate-2 manifest hash 绑定 + 资格门的默认 manifest 读面（与 activation.mjs ASSET_MANIFEST_V2_PATH 同一路径；
+// 本地复算常量以避免 eager import activation.mjs 改变模块加载图——resolver 仍走 dispatch 内动态 import，与 activationPrepare 接线同法）。
+const DEFAULT_MANIFEST_PATH = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'contracts', 'asset-manifest-v2.json');
+/** 资格门失败码派生：resolver reason[] 内的 fail-closed 令牌 → INELIGIBLE_* 具名码（对齐 EX-1 CAPABILITY_MISSING 诚实降级）。 */
+function eligibilityCode(reasons) {
+  const text = (reasons || []).join(' | ');
+  if (text.includes('CANDIDATE_INVALID')) return 'INELIGIBLE_CANDIDATE_INVALID';
+  if (text.includes('ASSET_NOT_FOUND')) return 'INELIGIBLE_ASSET_NOT_FOUND';
+  if (text.includes('INELIGIBLE_DROP_PENDING')) return 'INELIGIBLE_DROP_PENDING';
+  if (text.includes('INELIGIBLE_WHEN_NOT_TO_USE')) return 'INELIGIBLE_WHEN_NOT_TO_USE';
+  return 'INELIGIBLE';
 }
 export function createContextBus() {
   const values = new Map();
@@ -77,6 +90,42 @@ export async function dispatch(subtask, ctx, opts = {}) {
   let logger = opts.logger;
   if (!logger) logger = createLogger(opts.verbose);
   if (opts.dryRun) { console.log('[dry-run] 将执行 ' + subtask.asset); return { ok: true, dryRun: true, artifactPath: null, error: null }; }
+  // AV-3（v3.5）：Gate-2 manifest hash 绑定 + 资格门——runtime 不得直接拿 asset，必须过 resolver→approved asset
+  // （修复 F-007）。manifest 不在场 → 维持旧行为（向后兼容，与 preflight P6 同口径）；
+  // 批 1 hash 不一致仅记账 warning 不阻断（AS-2 晋升时升级硬门）；resolver fail-closed（eligible=false）→
+  // mode=skipped + error=INELIGIBLE_*（对齐 EX-1 CAPABILITY_MISSING 诚实降级模式，不静默派单）。
+  // EX-1 能力门控段（下方）零改动；本门在其之前（dispatch 前过 resolver）。测试可 opts.skipEligibilityGate 跳过。
+  const manifestPath = opts.manifestPath || DEFAULT_MANIFEST_PATH;
+  let manifestPresent = true;
+  try { await fs.access(manifestPath); } catch (e) { manifestPresent = false; }
+  if (manifestPresent && !opts.skipEligibilityGate) {
+    try {
+      const raw = await fs.readFile(manifestPath);
+      const manifestSha256 = crypto.createHash('sha256').update(raw).digest('hex');
+      if (ctx && typeof ctx.set === 'function') ctx.set('manifest_sha256', manifestSha256);
+      logger.info('Gate-2 manifest_sha256=' + manifestSha256 + ' (' + manifestPath + ')');
+      const expectedSha = opts.manifestExpectedSha256 || process.env.YY_MANIFEST_EXPECTED_SHA256 || null;
+      if (expectedSha && expectedSha !== manifestSha256) {
+        logger.warn('MANIFEST_SHA256_MISMATCH: manifest_sha256=' + manifestSha256 + ' != 期望 ' + expectedSha
+          + '（Gate-2 批 1 记账不阻断；AS-2 晋升时升级硬门）');
+      }
+      const { resolveAssetEligibility } = await import('./activation.mjs');
+      const eligibility = await resolveAssetEligibility(
+        { asset: subtask.asset, requirements: opts.eligibilityRequirements, constraints: opts.eligibilityConstraints },
+        { manifestPath }
+      );
+      subtask.eligibility = { eligible: eligibility.eligible, reason: eligibility.reason };
+      if (!eligibility.eligible) {
+        const code = eligibilityCode(eligibility.reason);
+        subtask.status = 'skipped'; subtask.mode = 'skipped'; subtask.adapter = 'none'; subtask.error = code;
+        logger.warn('subtask skipped: ' + code + ' (asset=' + subtask.asset + ') —— 资格门 fail-closed（AV-3，不过 resolver 不派单）: ' + eligibility.reason.join(' | '));
+        emitStatus(null, subtask, 'skipped', opts, { elapsedMs: 0 });
+        return { ok: true, skipped: true, artifactPath: null, error: code };
+      }
+    } catch (e) {
+      logger.warn('资格门/Gate-2 异常，按旧行为继续（向后兼容，不阻断）: ' + e.message);
+    }
+  }
   const adapter = resolveAdapterDI(subtask.asset, opts.backend, opts);
   if (!adapter) { subtask.status = 'skipped'; subtask.mode = 'skipped'; subtask.adapter = 'none'; logger.warn('asset adapter unavailable: ' + subtask.asset); return { ok: true, skipped: true, artifactPath: null, error: 'ADAPTER_NOT_AVAILABLE' }; }
   // B5: activation.prepare 三级激活（仅 YY_ACTIVATION=lib 且 prompt 后端时）；
@@ -220,6 +269,12 @@ export async function executePlan(plan, opts = {}) {
     if (capMissing.length) {
       plan.degraded = true;
       plan.warnings.push('能力门控：' + capMissing.length + ' 个子任务因执行器能力缺失降级（' + capMissing.map(function(s) { return s.asset + (s.missingCaps ? ':缺' + s.missingCaps.join('/') : '') ; }).join(', ') + '）——mode=prompt/skipped 诚实降级，不静默用弱能力');
+    }
+    // AV-3 资格门汇总警告：INELIGIBLE_* 诚实降级留痕（v3.5——runtime 必须过 resolver，fail-closed 不派单）
+    const ineligible = plan.subtasks.filter(function(s) { return typeof s.error === 'string' && s.error.indexOf('INELIGIBLE_') === 0; });
+    if (ineligible.length) {
+      plan.degraded = true;
+      plan.warnings.push('资格门：' + ineligible.length + ' 个子任务未通过 asset eligibility resolver（' + ineligible.map(function(s) { return s.asset + ':' + s.error; }).join(', ') + '）——mode=skipped 诚实降级，不过 resolver 不派单（AV-3 v3.5）');
     }
     // P1 失败自动恢复诚实标注：换宿主/换视角重试后仍失败 → 明确 degraded + warning（recovery 链已记录，不假报成功）
     const hostRecovered = plan.subtasks.filter(function(s) { return Array.isArray(s.recovery) && s.recovery.length > 0; });

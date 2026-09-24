@@ -1,0 +1,345 @@
+[
+  {
+    "id": "agent-research",
+    "name": "agent-research",
+    "role": "本目录是随包内置的科研能力集合，包含 29 个独立子技能。",
+    "capability": "Agent 科研技能集（hub）——聚合 29 个科研子技能：文献检索/综述、论文各章节写作、 实验代码、数据分析、图表生成、引用管理、 novelty 评估、答辩 rebuttal 等。 供编排者（主 agent）在\"调研 / 论文 / 实验\"类任务中按需调用其子技能。",
+    "cluster": [
+      "T3_AI_RAG_MCP"
+    ],
+    "when_to_use": [
+      "科研类任务：文献检索/综述、论文各章节写作、实验设计与代码、数据分析、引用管理等（hub 聚合 29 个子技能，调用时指向 vendor/agent-research/<sub-skill>/SKILL.md）"
+    ],
+    "when_not_to_use": [
+      "工程类任务的常规技术选型/竞品核验（EA-1 实测：BW 四项目该类调研由编排者直接检索完成，本资产零命中——宁窄勿编）"
+    ],
+    "verification": "产物须署名具体子技能目录与其产出；执行内核按 vendor 头部——默认以 deep-research/literature-search 子技能为调研内核，端到端自主调研时 probe `gpt-researcher --version` 可用则作单点内核，否则用内置子技能流程；S3 marker（gpt-researcher）+消费锚点机验",
+    "source": "vendor/agent-research/SKILL.md#L1-L8",
+    "drop_pending": false,
+    "drop_allowed": false
+  },
+  {
+    "id": "agent-vision-toolkit",
+    "name": "agent-vision-toolkit",
+    "role": "Five local CLIs that give a text-only agent eyes.",
+    "capability": "Local vision CLIs: glance (describe/ask/OCR an image), ground (locate a target, pixel box), detect (element inventory), trace (image to SVG geometry), crop (cut a pixel box to a file), and scripts/html_shot.py (HTML file to image). Use for any task involving an image — questions, text, splitting and transcribing long screenshots or chat histories, locating elements, comparing, rebuilding as HTML/SVG, digitizing a sketch or diagram, reading values off a chart, operating a GUI from screenshots — and to re-check an image yourself when a description you were given lacks a detail.",
+    "cluster": [
+      "T4_FRONTEND"
+    ],
+    "when_to_use": [
+      "任务涉及图像：描述/提问/OCR（glance）、定位（ground）、清点（detect）、轮廓几何（trace）、裁剪（crop）、长截图拆分 OCR、HTML→截图（html_shot.py）等，按 vendor 问句-工具表选型"
+    ],
+    "when_not_to_use": [
+      "任务无图像输入/输出（纯文本/代码任务）",
+      "视觉配置缺失（五 CLI 依赖共享 vision config：VISION_API_KEY/VISION_BASE_URL/VISION_MODEL 未配置）时"
+    ],
+    "verification": "产物为五 CLI 真实执行的坐标/框/文件等输出（坐标在 0-1000 网格上按图换算，非像素精确；像素级精确走 trace）；vendor 纪律：有内置工具的像素工作禁用 Pillow 手写重复实现；S3 marker（OmniParser/UI-TARS）+消费锚点机验",
+    "source": "vendor/agent-vision-toolkit/SKILL.md#L1-L13",
+    "drop_pending": false,
+    "drop_allowed": false
+  },
+  {
+    "id": "be-architect",
+    "name": "be-architect",
+    "role": "You are an expert backend architect specializing in Node.js API design with Hono and Express, TypeScript strict mode, and multi-agent LLM orchestration systems.",
+    "capability": "API design, resource modeling, route structure, middleware layering, and error strategy for Hono/Express backends",
+    "cluster": [
+      "T1_DATABASE",
+      "T2_BACKEND"
+    ],
+    "when_to_use": [
+      "任务需要设计 Node.js Hono/Express 后端 API：RESTful 资源建模、路由结构、中间件分层（Auth→Validation→Rate Limit→Error→Logging）",
+      "任务需要先产出接口/错误契约供下游冻结（RFC 9457 Problem Details 错误策略、每端点 OpenAPI 自动生成）"
+    ],
+    "when_not_to_use": [
+      "任务不涉及后端 API 设计（纯前端、运维、文档类）",
+      "接口契约已冻结、仅需落地代码（走 implementation，不重复做架构设计）"
+    ],
+    "verification": "产物为架构/契约文档：路由结构、中间件分层、错误策略（RFC 9457）章节齐全；执行内核按 vendor 头部声明——probe csalvato/system-design-template 可用则参考其阶段化模板，缺失则用内置 Hono/Express 分层约定并诚实标注降级（不假报已用外部模板）；消费侧走 S8 锚点+内核词机验（assetConsumed=true，D-1）",
+    "source": "vendor/be-architect/be-architect.md#L1-L5",
+    "drop_pending": false,
+    "drop_allowed": false
+  },
+  {
+    "id": "be-provider",
+    "name": "be-provider",
+    "role": "You implement multi-provider external API adapters, especially for LLM APIs (OpenAI, Anthropic, Google, Meta, DeepSeek, Moonshot).",
+    "capability": "Multi-provider LLM API adapters — streaming, token counting, cost tracking, rate limiting, graceful fallback",
+    "cluster": [
+      "T1_DATABASE",
+      "T2_BACKEND",
+      "T3_AI_RAG_MCP"
+    ],
+    "when_to_use": [
+      "需要对接多 LLM provider（OpenAI/Anthropic/Google/Meta/DeepSeek/Moonshot）的统一适配层：流式（SSE/chunked）、token 计数、成本追踪、限速、跨 provider 优雅回退",
+      "外部 API adapter 需要依赖注入组装（tsyringe/InversifyJS 或内置工厂模式）"
+    ],
+    "when_not_to_use": [
+      "非 LLM/外部 API 的普通后端业务逻辑任务",
+      "只调单一 provider SDK、无需适配层与回退策略的简单集成"
+    ],
+    "verification": "产物为 provider adapter 代码/文档（统一接口、流式、限速、回退）；执行内核按 vendor 头部——真调 `node $SKILL_DIR/scripts/di-container.mjs`（tsyringe CJS + inversify ESM 双容器真实解析 Provider 图），probe npm ls tsyringe inversify 可用后按需选用，缺失降级内置工厂并诚实标注；S3 marker+消费锚点机验",
+    "source": "vendor/be-provider/be-provider.md#L1-L5",
+    "drop_pending": false,
+    "drop_allowed": false
+  },
+  {
+    "id": "be-resilience",
+    "name": "be-resilience",
+    "role": "You implement resilience patterns for Node.js backends — circuit breakers, retries, timeouts, graceful degradation, health checks, and bulkhead isolation.",
+    "capability": "Circuit breakers, exponential backoff retries, timeouts, graceful degradation, health checks, bulkhead isolation",
+    "cluster": [
+      "T2_BACKEND",
+      "T5_OPS"
+    ],
+    "when_to_use": [
+      "后端需要韧性模式：熔断、指数退避重试、超时、优雅降级、健康检查、舱壁隔离（vendor 首段：对易抖动上游服务与 LLM provider API 尤其关键）"
+    ],
+    "when_not_to_use": [
+      "无外部调用/依赖的本地脚本或纯计算任务",
+      "上游稳定且已有宿主框架级重试机制、无需应用层韧性的简单 CRUD"
+    ],
+    "verification": "产物含韧性模式实现/文档（withRetry/withCircuitBreaker/Bulkhead 或 opossum 模式）；执行内核按 vendor 头部——真调 `node $SKILL_DIR/scripts/resilience-check.mjs`（cockatiel 退避重试+熔断、polly-js 等待重试真实执行），probe npm ls cockatiel polly 后按需选用，缺失降级内置实现并诚实标注；S3 marker+消费锚点机验",
+    "source": "vendor/be-resilience/be-resilience.md#L1-L5",
+    "drop_pending": false,
+    "drop_allowed": false
+  },
+  {
+    "id": "be-validator",
+    "name": "be-validator",
+    "role": "You design and implement Zod schemas for request/response validation, generate OpenAPI specs, enforce RFC 9457 error responses, and handle input sanitization.",
+    "capability": "Zod schemas, OpenAPI generation, RFC 9457 error responses, input sanitization",
+    "cluster": [
+      "T1_DATABASE",
+      "T2_BACKEND",
+      "T3_AI_RAG_MCP",
+      "T5_OPS"
+    ],
+    "when_to_use": [
+      "需要设计请求/响应 Zod schema、自动生成 OpenAPI 3.1 规格、统一 RFC 9457 错误响应",
+      "需要输入消毒（XSS 防护、SQL 注入防护、payload 体积限制）与后端契约验收"
+    ],
+    "when_not_to_use": [
+      "无后端接口面的纯静态页面/文档任务",
+      "接口契约尚未定义（先 be-architect 出契约，再做校验落地）"
+    ],
+    "verification": "产物含 Zod schema、OpenAPI 生成物、RFC 9457 错误 schema 与质量清单（vendor L190 Quality Checklist）；执行内核按 vendor L205 Execution kernel（portman/contracteer 对标）——专用 adapter 真实执行，regression S3 保留 OpenAPI/contract marker；消费锚点+内核词 D-1 机验",
+    "source": "vendor/be-validator/be-validator.md#L1-L5",
+    "drop_pending": true,
+    "drop_allowed": false
+  },
+  {
+    "id": "colorize",
+    "name": "colorize",
+    "role": "Strategically introduce color to designs that are too monochromatic, gray, or lacking in visual warmth and personality.",
+    "capability": "The feature or component to colorize (optional)",
+    "cluster": [
+      "T4_FRONTEND"
+    ],
+    "when_to_use": [
+      "设计过于单色/灰白/缺乏视觉温度与个性时，策略性引入颜色（frontmatter：Add strategic color to features that are too monochromatic or lack visual interest）"
+    ],
+    "when_not_to_use": [
+      "已有品牌色体系与清晰视觉层次的设计（无色彩机会可 Assess）",
+      "作为前端实现必经主步骤（EA-1 实测真实项目零调用、计划 §六点名防「colorize 覆辙」——仅点状增强场景启用）"
+    ],
+    "verification": "产前须完成 MANDATORY PREPARATION：目标受众/用途/品牌个性/已有品牌色上下文收集，无法确证即 AskUserQuestion 澄清（禁猜测出 AI slop 色）；先执行 frontend-design skill 的 DO/DON'T 再动手；产物含配色决策依据",
+    "source": "vendor/colorize/SKILL.md#L1-L10",
+    "drop_pending": false,
+    "drop_allowed": false
+  },
+  {
+    "id": "dev-planner",
+    "name": "dev-planner",
+    "role": "You are the planning agent for feature development.",
+    "capability": "Analyzes feature requirements, breaks them into frontend/backend tasks, defines acceptance criteria in Given/When/Then format, writes handoff specs. Challenges premises before decomposing (gstack office-hours pattern). Use at the start of any new feature development. Triggers: plan feature, feature breakdown, requirements analysis, 기능 기획, 요구사항 분석.",
+    "cluster": [
+      "T3_AI_RAG_MCP"
+    ],
+    "when_to_use": [
+      "新功能开发起点：需求分析、前后端任务分解、Given/When/Then 验收标准、handoff spec（frontmatter 触发词：plan feature / feature breakdown / requirements analysis）",
+      "分解前需前提挑战（Premise Challenge：Why now/现状/最窄楔子/未来适配，PREMISES 确认表）"
+    ],
+    "when_not_to_use": [
+      "需求已明确且已拆解、可直接派单执行的任务（无分解价值）",
+      "用户拒绝 premise 确认且按 vendor 纪律不得产出任务分解的场合（premises never skippable）"
+    ],
+    "verification": "产物 spec（.claude/specs/dev-{slug}.md）含 GWT 验收标准 + premise 段 + plan-review 段（须过 `review-gate.mjs --plan`）；分解前设计文档先行检索（docs/designs grep）并声明 build-on/start-fresh；EA-1 基线：BW 4/4 工作区含「需求前提挑战（dev-planner Step 0）」署名，消费语义已实测",
+    "source": "vendor/dev-planner/dev-planner.md#L1-L5",
+    "drop_pending": false,
+    "drop_allowed": false
+  },
+  {
+    "id": "frontend-design",
+    "name": "frontend-design",
+    "role": "Single entry for five capabilities.",
+    "capability": "Unified frontend design cluster covering generation, taste, design data, component selection, and prototyping",
+    "cluster": [
+      "T4_FRONTEND"
+    ],
+    "when_to_use": [
+      "前端界面生成与设计决策：Design Read→三拨盘（DESIGN_VARIANCE/MOTION_INTENSITY/VISUAL_DENSITY）→Pre-Flight Check 的 taste 工作流",
+      "需要真查设计数据再定风格/配色/字体/组件/动效（search.py 查 ux/style/color/typography/gsap/chart 目录）与组件选型、原型化"
+    ],
+    "when_not_to_use": [
+      "无前端/界面产物的任务（纯后端、脚本、文档）",
+      "无法走两步必做纪律的场合（vendor 原文：每个设计任务写码前 MUST 跑 taste 工作流 + search.py 真查，禁跳过）"
+    ],
+    "verification": "产物体现两步必做证据：taste-skill 工作流产出（Design Read 一行+三拨盘取值）+ search.py 真实查询行（python 缺失时读 CSV 或显式声明跳过，禁伪造查询结果）；Pre-Flight 50+ 项矩阵过检；S3 marker（shadcn/bolt.new）+消费锚点机验",
+    "source": "vendor/frontend-design/SKILL.md#L1-L5",
+    "drop_pending": false,
+    "drop_allowed": false
+  },
+  {
+    "id": "frontend-visual-validation",
+    "name": "frontend-visual-validation",
+    "role": "本 Skill 指导如何在真实浏览器中验证 Web 前端页面的视觉效果，形成\"截图 → 审查 → 修正 → 复测\"闭环。",
+    "capability": "Web 前端视觉验证闭环 — 启动 dev server、Playwright 截图、对照 tokens/规格审查、输出结构化视觉报告、驱动修正。触发：前端页面实现后需要真实浏览器视觉验收时。",
+    "cluster": [
+      "T4_FRONTEND"
+    ],
+    "when_to_use": [
+      "Web 前端页面/组件实现并应用样式后，需要真实浏览器视觉验收（截图→审查→修正→复测闭环）",
+      "需要视觉回归（L0 像素 diff 全量）与语义抽样（L1 VLM 只审 diff 影响页+关键页）"
+    ],
+    "when_not_to_use": [
+      "非 Web 前端（vendor 原文：当前项目只覆盖 Web 前端）",
+      "项目无前端工程（package.json+Vite dev script）或 Playwright 不可用、输入规格缺失时（前置不满足即阻塞上报）"
+    ],
+    "verification": "产物为结构化视觉报告：L0 `toHaveScreenshot()` 像素基线比对（375/768/1024/1280/1440 视口），L1 只审 `visual-diff-pages.mjs` 清单+关键页；dev server 无法启动→输出明确阻塞报告不伪造截图；基线只在规格改变时更新（禁为通过盲目覆盖）",
+    "source": "vendor/frontend-visual-validation/SKILL.md#L1-L5",
+    "drop_pending": false,
+    "drop_allowed": false
+  },
+  {
+    "id": "implementation",
+    "name": "implementation",
+    "role": "Unified implementation agent: turn requirements and frozen contracts into runnable backend code and land it in the repository.",
+    "capability": "Unified implementation agent: turn requirements and frozen contracts into runnable backend code and land it in the repository.",
+    "cluster": [
+      "T1_DATABASE",
+      "T2_BACKEND",
+      "T3_AI_RAG_MCP"
+    ],
+    "when_to_use": [
+      "需求与冻结契约齐备、要把任务落地为可运行后端代码并提交仓库（vendor 首段：turn requirements and frozen contracts into runnable backend code）",
+      "子任务要求 mode=exec 真实执行（经 opencode 专用 adapter 或 prompt backend --exec 宿主通道产出非空交付物）"
+    ],
+    "when_not_to_use": [
+      "契约尚未冻结（先由 be-architect/be-provider 产出并冻结契约，再进实现）",
+      "纯规划/评审/调研类任务（无代码落地交付物）"
+    ],
+    "verification": "产物为源代码+测试，落 artifacts/<subtaskId>/ 相对路径；执行内核=opencode adapter：probe `opencode --version` 可用则真实 spawn 执行，CLI 缺失诚实降级 OPENCODE_NOT_AVAILABLE（mode=skipped 附安装提示），禁伪报 exec 成功；regression S3 保留 opencode marker",
+    "source": "vendor/implementation/implementation.md#L1-L5",
+    "drop_pending": false,
+    "drop_allowed": false
+  },
+  {
+    "id": "planning",
+    "name": "planning",
+    "role": "For formal team review use reference/formal-prd.md.",
+    "capability": "Unified PRD and planning cluster for formal PRDs and Vibe Coding PRDs",
+    "cluster": [
+      "T4_FRONTEND"
+    ],
+    "when_to_use": [
+      "需要正式 PRD 供团队评审（reference/formal-prd.md：产品上下文/目标/用户/功能/优先级/验收/风险）",
+      "需要 Vibe Coding PRD（四确认关卡顺序过：需求定义→功能优先级→技术栈→原型，禁跳门）"
+    ],
+    "when_not_to_use": [
+      "已有 dev-planner handoff spec、无需 PRD 级评审的小步任务（EA-1：BW 规划由 dev-planner 承担，本资产零现——宁窄勿编）"
+    ],
+    "verification": "产物为 formal-prd 或 vibe-prd 文档，四确认关卡逐门留痕（未过前门不得进后门）；执行内核按 vendor 头部（MetaGPT/crewAI 对标）——probe 可用则参考，缺失用内置流程并诚实标注；S3 marker（MetaGPT/crewAI）+消费锚点机验",
+    "source": "vendor/planning/SKILL.md#L1-L5",
+    "drop_pending": false,
+    "drop_allowed": false
+  },
+  {
+    "id": "review",
+    "name": "review",
+    "role": "Critique: discover UX, architecture, and quality problems using reference/critique.md.",
+    "capability": "Unified review cluster for critique, automated verification, and polish",
+    "cluster": [
+      "T2_BACKEND",
+      "T4_FRONTEND",
+      "T5_OPS"
+    ],
+    "when_to_use": [
+      "对已有产出做 critique：发现 UX/架构/质量问题（reference/critique.md）",
+      "需要对发现做自动化验证（nested testing agent 产出可复现证据）与 polish（最小安全改动，YAGNI 纪律）"
+    ],
+    "when_not_to_use": [
+      "还没有可评审对象（产出未存在，先实现后评审）",
+      "超出任务范围的大改/重构（polish 纪律：不做不服务任务的工作）"
+    ],
+    "verification": "产物为评审 finding 清单，每条含证据与可复现步骤（agents/be-tester.md 验证记录）；执行内核按 vendor 头部（qodo-ai/pr-agent 行级批注 + continuedev/continue 规则即代码）——probe 可用则接入，缺失降级内置 critique.md+be-tester.md 流程并诚实标注；消费锚点+内核词机验",
+    "source": "vendor/review/SKILL.md#L1-L5",
+    "drop_pending": false,
+    "drop_allowed": false
+  },
+  {
+    "id": "sdlc",
+    "name": "sdlc",
+    "role": "BMAD-METHOD is the methodology layer.",
+    "capability": "BMAD-METHOD phase orchestration with cline plan and exec execution",
+    "cluster": [
+      "T1_DATABASE",
+      "T2_BACKEND"
+    ],
+    "when_to_use": [
+      "任务需要 plan→develop→review→summarize 四阶段全流程编排（BMAD-METHOD 方法论层 + cline 执行层）",
+      "需要六 agent（control/developer/peer/sprint/summary/supervisor）分角色的阶段文档产出"
+    ],
+    "when_not_to_use": [
+      "单步小任务，无需四阶段全流程编排与阶段文档",
+      "只要直接执行、不要监督/对等/总结闭环的任务"
+    ],
+    "verification": "产物为 phase-plan/develop/review/summarize.md 阶段文档；执行内核=cline（scripts/lib/adapters/bmad-cline.mjs）：probe `cline --version` 可用则 spawn 真执行，缺失诚实降级 planned-only（--backend cli 模式为 SDLC_NOT_AVAILABLE），timeout 返回 TIMEOUT，禁伪报成功；S3 保留 cline/BMAD marker",
+    "source": "vendor/sdlc/SKILL.md#L1-L5",
+    "drop_pending": false,
+    "drop_allowed": false
+  },
+  {
+    "id": "security",
+    "name": "security",
+    "role": "Execute in three stages: audit discovery, hardening fixes, and backend specialist verification.",
+    "capability": "Unified security cluster for audit, hardening, and backend security verification",
+    "cluster": [
+      "T2_BACKEND",
+      "T4_FRONTEND",
+      "T5_OPS"
+    ],
+    "when_to_use": [
+      "安全审计三阶段：audit 发现与定级 → harden（错误处理/i18n/溢出/边界/降级）→ backend specialist 核查（auth、注入、敏感数据、密钥、依赖、CORS、CSRF、SSRF）"
+    ],
+    "when_not_to_use": [
+      "无代码产物的纯调研/规划任务",
+      "作为功能实现主链路（security 是横切审查资产，不承担常规功能实现）"
+    ],
+    "verification": "产物含审计发现清单（含严重级）；执行内核=semgrep+gitleaks 真扫：`node $SKILL_DIR/scripts/security-scan.mjs <目标目录>` 输出发现并 exit 1（有发现）；probe `semgrep --version`/`gitleaks --version`，工具缺失则在 audit 产物明确标注「SAST/密钥扫描未执行（工具缺失）」，不假报无高危",
+    "source": "vendor/security/SKILL.md#L1-L5",
+    "drop_pending": false,
+    "drop_allowed": false
+  },
+  {
+    "id": "skill-sentinel",
+    "name": "skill-sentinel",
+    "role": "Agent Skill 包安全扫描器（Python 工具）。",
+    "capability": "Agent Skill 包安全扫描器。扫描 SKILL.md 中的恶意模式、凭据泄露、C2 基础设施，用于插件市场/社区资产上线前安全审查。触发：安装第三方 skill 前、社区资产审查、插件市场安全扫描。",
+    "cluster": [
+      "T5_OPS"
+    ],
+    "when_to_use": [
+      "插件市场/社区资产上线前安全审查：扫描 SKILL.md 恶意模式（prompt injection、凭据泄露、C2 基础设施）",
+      "安装第三方 skill 前的强制扫描（20+ 检测模式威胁情报库）"
+    ],
+    "when_not_to_use": [
+      "对非 skill 包（普通代码库/服务端）的安全扫描（走 security 资产）",
+      "vendor 头部 P2 诚实标注：本机自带工具（analyze-skill.sh/python -m skill_sentinel）未实际部署——probe 不过时仅作声明层引用，不得伪报已扫描"
+    ],
+    "verification": "执行口径按 vendor 头部：probe `python -m skill_sentinel --help` 可用则扫描目标 skill 目录并出报告；不可用→明确标注「扫描未执行（工具未部署）」，不假报通过；对标升级候选 NVIDIA/SkillSpector（SARIF 输出为迁移目标）；S3 marker（SkillSpector/skill_sentinel）+消费锚点机验",
+    "source": "vendor/skill-sentinel/SKILL.md#L1-L5",
+    "drop_pending": false,
+    "drop_allowed": false
+  }
+]

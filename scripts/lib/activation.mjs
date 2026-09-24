@@ -30,7 +30,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 import { buildManifest } from './manifest.mjs';
+import { readManifest } from './asset.mjs';
 import { CLUSTERS } from './matrix.mjs';
 
 // ---------------------------------------------------------------------------
@@ -85,6 +87,11 @@ export const BRIEF_FILENAME = 'brief.md';
 
 /** catalogCacheIdentity 口径标识（C-R2 §7.2：内容寻址 sourceHash，非 mtime；本常量为 per-entry 投影前缀） */
 export const CATALOG_CACHE_IDENTITY_VERSION = 'r3-catalog-cache-identity-v1';
+
+/** AV-2 manifest 产物路径（AV-3 resolver 默认读面；产物由 scripts/manifest-build.mjs 唯一构建，本模块只读不写） */
+export const ASSET_MANIFEST_V2_PATH = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'contracts', 'asset-manifest-v2.json'
+);
 
 // ---------------------------------------------------------------------------
 // 内部工具（响应壳 / 哈希 / 文件）
@@ -210,6 +217,122 @@ function projectPhaseEligibility(assetId, plan, subtask) {
     }
   }
   return { eligible, reason, phase };
+}
+
+// ---------------------------------------------------------------------------
+// AV-3：Asset Eligibility Resolver v1（v3.5 定名；输出形态 v3.4：{selected_asset, eligible, reason[]}）
+// ---------------------------------------------------------------------------
+
+/**
+ * resolveAssetEligibility —— 资格判定（v3.5：runtime 不得直接拿 asset，必须过 resolver→approved asset；
+ * 修复 F-007 runtime 直依赖 CLUSTERS）。批 1 边界（v3.2 第三次确认）：主键 = asset name（name-based），
+ * requirements/constraints 仅为可选提示，不参与主键解析；required_capability 计划输入维持批 2 边界。
+ *
+ * 规则（AV-3 派单，序号即判定序）：
+ *   1. 读 contracts/asset-manifest-v2.json（AV-1 readManifest 接口）——manifest 缺失/坏 →
+ *      eligible=false，reason 含 CANDIDATE_INVALID（fail-closed）；
+ *   2. when_not_to_use 负向命中 → eligible=false，reason 引用命中条目（INELIGIBLE_WHEN_NOT_TO_USE）；
+ *   3. when_to_use 正向命中 → reason 记 "manifest match"；无命中不否决（理由=无负向、无正向依据，如实标注）；
+ *   4. drop_pending:true && drop_allowed:false → eligible=false（INELIGIBLE_DROP_PENDING，防并行绕过
+ *      DROP_ALLOWED 硬门，v3.2 裁定）；
+ *   5. 纯函数零 LLM 零网络：判定只依赖输入 hints 与 manifest 行文本的确定性子串匹配
+ *      （token 切分见 hintTokens；大小写不敏感）。资产不在 manifest → ASSET_NOT_FOUND fail-closed。
+ *
+ * 命中语义（v1 确定性口径，局限如实声明）：提示串整体或其 token（CJK 连续段 / ASCII 词段，≥2 字符）
+ * 与 when_to_use / when_not_to_use 条目做大小写不敏感的子串匹配——宽匹配（宁多报 reason 少漏报），
+ * 逐条引用命中条目与命中 token，判定全程可审计；不做同义词/语义扩展（零 LLM）。
+ *
+ * 输入 input: { asset: string, requirements?: string[], constraints?: Record<string,string> }
+ * opts: { manifestPath?, manifestRows? }  —— manifestRows 注入供单测纯函数化（零 IO）；默认读产物文件
+ * 输出: { selected_asset, eligible, reason: string[] }  // reason 为人读+机读混合令牌（含 fail-closed 码）
+ */
+export async function resolveAssetEligibility(input, opts = {}) {
+  const asset = input && typeof input.asset === 'string' ? input.asset.trim() : '';
+  if (!asset) {
+    return { selected_asset: input && input.asset !== undefined ? input.asset : null, eligible: false, reason: ['INPUT_INVALID: asset 缺失或非字符串（fail-closed，name-based 主键必填）'] };
+  }
+
+  // 规则 1：manifest 读面（AV-1 readManifest 接口；缺必填字段/非数组/坏 JSON 均抛 CANDIDATE_INVALID 同码）
+  let rows;
+  try {
+    if (Array.isArray(opts.manifestRows)) rows = opts.manifestRows;
+    else rows = await readManifest(opts.manifestPath || ASSET_MANIFEST_V2_PATH);
+  } catch (error) {
+    return {
+      selected_asset: asset,
+      eligible: false,
+      reason: [`manifest 缺失/不可读/行校验失败（CANDIDATE_INVALID fail-closed）: ${error.code ?? ''} ${error.message}`.trim()],
+    };
+  }
+  const row = rows.find((r) => r && (r.name === asset || r.id === asset));
+  if (!row) {
+    return {
+      selected_asset: asset,
+      eligible: false,
+      reason: [`asset 不在 manifest（ASSET_NOT_FOUND fail-closed，name-based 主键无行）: ${asset}（manifest 共 ${rows.length} 行）`],
+    };
+  }
+
+  // 提示收集：requirements 字符串 + constraints 标量值（均为可选提示，v3.2/v3.5 边界）
+  const hints = [];
+  for (const r of (Array.isArray(input.requirements) ? input.requirements : [])) {
+    if (r !== undefined && r !== null && String(r).trim()) hints.push(String(r).trim());
+  }
+  if (input.constraints && typeof input.constraints === 'object' && !Array.isArray(input.constraints)) {
+    for (const v of Object.values(input.constraints)) {
+      if (v !== undefined && v !== null && typeof v !== 'object' && String(v).trim()) hints.push(String(v).trim());
+    }
+  }
+  const tokens = [...new Set(hints.flatMap(hintTokens))];
+
+  // 规则 2：负向命中（fail-closed，逐条引用命中条目与命中 token）
+  const reason = [];
+  let failed = false;
+  for (const entry of (Array.isArray(row.when_not_to_use) ? row.when_not_to_use : [])) {
+    const el = String(entry).toLowerCase();
+    const hit = tokens.find((t) => el.includes(t));
+    if (hit !== undefined) {
+      failed = true;
+      reason.push(`when_not_to_use 负向命中（INELIGIBLE_WHEN_NOT_TO_USE）: 提示 token「${hit}」命中条目「${entry}」`);
+    }
+  }
+
+  // 规则 4：drop_pending && !drop_allowed → fail-closed（v3.2 DROP_ALLOWED 硬门，防并行绕过计划顺序）
+  if (row.drop_pending === true && row.drop_allowed === false) {
+    failed = true;
+    reason.push('drop_pending=true 且 drop_allowed=false（INELIGIBLE_DROP_PENDING fail-closed，DROP_ALLOWED 硬门防并行绕过）');
+  }
+
+  // 规则 3：正向命中（只记 manifest match，不否决语义由 eligible 计算承担）
+  let positiveHit = false;
+  for (const entry of (Array.isArray(row.when_to_use) ? row.when_to_use : [])) {
+    const el = String(entry).toLowerCase();
+    const hit = tokens.find((t) => el.includes(t));
+    if (hit !== undefined) {
+      positiveHit = true;
+      reason.push(`manifest match: 提示 token「${hit}」命中 when_to_use 条目「${entry}」`);
+    }
+  }
+
+  // 规则 3 无命中不否决：无负向、无正向依据 → 如实标注（不编造正向依据）
+  if (!failed && !positiveHit) {
+    reason.push(hints.length
+      ? '无正向依据：requirements/constraints 未命中 when_to_use 条目——如实标注，不否决（无负向命中）'
+      : '无正向依据：未提供 requirements/constraints 提示——如实标注，不否决（无负向命中）');
+  }
+
+  return { selected_asset: asset, eligible: !failed, reason };
+}
+
+/** 提示 token 切分：CJK 连续段 + ASCII 词段（≥2 字符；连字符段再拆子词——"openapi-validation"→openapi/validation），另加提示串整体小写形。 */
+function hintTokens(hint) {
+  const lower = String(hint).toLowerCase();
+  const out = new Set(lower.trim() ? [lower.trim()] : []);
+  for (const t of (lower.match(/[\u4e00-\u9fff]+|[a-z0-9][a-z0-9_.+-]*/g) || [])) {
+    if (t.length >= 2) out.add(t);
+    for (const sub of t.split(/[-_.+]+/)) if (sub.length >= 2) out.add(sub);
+  }
+  return [...out];
 }
 
 // ---------------------------------------------------------------------------
@@ -616,7 +739,8 @@ export function run(op, input) {
 export default {
   run, activationPrepare, renderBrief, extractPayloadFromBrief,
   stripFrontmatter, extractAnchorAndKernel, estimateTokens, resolveMode,
-  resolveManifestPath, ACTIVATION_LEVELS, DEFAULT_ACTIVATION_LEVEL, MODES, MODE_ENV,
+  resolveManifestPath, resolveAssetEligibility, ACTIVATION_LEVELS, DEFAULT_ACTIVATION_LEVEL, MODES, MODE_ENV,
   ERROR_CODES, TOKEN_METHOD, BUDGET_LIMIT, CATALOG_IDS, BRIEF_BODY_HEADING,
   METADATA_PLACEHOLDER, BRIEF_FILENAME, CATALOG_CACHE_IDENTITY_VERSION,
+  ASSET_MANIFEST_V2_PATH,
 };

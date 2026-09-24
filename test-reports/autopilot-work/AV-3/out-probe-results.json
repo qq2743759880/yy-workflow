@@ -1,0 +1,336 @@
+{
+  "runAt": "2026-09-24T09:31:29.073Z",
+  "expected_manifest_sha256": "f770140ca4bc0e458a7eaa74b21a3956e45e34112a1c24132337a27e849a3360",
+  "recomputed_manifest_sha256": "f770140ca4bc0e458a7eaa74b21a3956e45e34112a1c24132337a27e849a3360",
+  "results": [
+    {
+      "id": "A1",
+      "name": "正向命中（be-validator + openapi 类提示）→ eligible=true + manifest match",
+      "pass": true,
+      "evidence": {
+        "selected_asset": "be-validator",
+        "eligible": true,
+        "reason": [
+          "manifest match: 提示 token「openapi」命中 when_to_use 条目「需要设计请求/响应 Zod schema、自动生成 OpenAPI 3.1 规格、统一 RFC 9457 错误响应」"
+        ]
+      }
+    },
+    {
+      "id": "A2",
+      "name": "负向命中（构造 when_not_to_use 场景）→ false + 具名引用命中条目",
+      "pass": true,
+      "evidence": {
+        "selected_asset": "be-validator",
+        "eligible": false,
+        "reason": [
+          "when_not_to_use 负向命中（INELIGIBLE_WHEN_NOT_TO_USE）: 提示 token「纯静态页面」命中条目「无后端接口面的纯静态页面/文档任务」"
+        ]
+      }
+    },
+    {
+      "id": "A3",
+      "name": "drop_pending:true && drop_allowed:false → false（INELIGIBLE_DROP_PENDING）",
+      "pass": true,
+      "evidence": {
+        "selected_asset": "be-validator",
+        "eligible": false,
+        "reason": [
+          "drop_pending=true 且 drop_allowed=false（INELIGIBLE_DROP_PENDING fail-closed，DROP_ALLOWED 硬门防并行绕过）"
+        ]
+      }
+    },
+    {
+      "id": "A4",
+      "name": "manifest 篡改（坏 JSON）→ false + CANDIDATE_INVALID（fail-closed）",
+      "pass": true,
+      "evidence": {
+        "selected_asset": "be-validator",
+        "eligible": false,
+        "reason": [
+          "manifest 缺失/不可读/行校验失败（CANDIDATE_INVALID fail-closed）:  Unexpected token 'n', \"{\"rows\": [ truncat\" is not valid JSON"
+        ]
+      }
+    },
+    {
+      "id": "A5",
+      "name": "asset 不在 manifest → false（ASSET_NOT_FOUND fail-closed）",
+      "pass": true,
+      "evidence": {
+        "selected_asset": "not-in-manifest",
+        "eligible": false,
+        "reason": [
+          "asset 不在 manifest（ASSET_NOT_FOUND fail-closed，name-based 主键无行）: not-in-manifest（manifest 共 16 行）"
+        ]
+      }
+    },
+    {
+      "id": "B1",
+      "name": "CLI 正向：--requirements openapi-validation → JSON eligible=true",
+      "pass": true,
+      "evidence": {
+        "code": 0,
+        "j": {
+          "selected_asset": "be-validator",
+          "eligible": true,
+          "reason": [
+            "manifest match: 提示 token「openapi」命中 when_to_use 条目「需要设计请求/响应 Zod schema、自动生成 OpenAPI 3.1 规格、统一 RFC 9457 错误响应」"
+          ]
+        }
+      }
+    },
+    {
+      "id": "B2",
+      "name": "CLI 负向：JSON eligible=false + 命中条目引用",
+      "pass": true,
+      "evidence": {
+        "code": 0,
+        "j": {
+          "selected_asset": "be-validator",
+          "eligible": false,
+          "reason": [
+            "when_not_to_use 负向命中（INELIGIBLE_WHEN_NOT_TO_USE）: 提示 token「纯静态页面」命中条目「无后端接口面的纯静态页面/文档任务」"
+          ]
+        }
+      }
+    },
+    {
+      "id": "B3",
+      "name": "CLI --manifest 临时 drop 副本 → false（drop_pending 探针不改真产物）",
+      "pass": true,
+      "evidence": {
+        "code": 0,
+        "j": {
+          "selected_asset": "be-validator",
+          "eligible": false,
+          "reason": [
+            "drop_pending=true 且 drop_allowed=false（INELIGIBLE_DROP_PENDING fail-closed，DROP_ALLOWED 硬门防并行绕过）"
+          ]
+        }
+      }
+    },
+    {
+      "id": "B4",
+      "name": "CLI --manifest 坏 JSON → false + CANDIDATE_INVALID",
+      "pass": true,
+      "evidence": {
+        "code": 0,
+        "j": {
+          "selected_asset": "be-validator",
+          "eligible": false,
+          "reason": [
+            "manifest 缺失/不可读/行校验失败（CANDIDATE_INVALID fail-closed）:  Unexpected token 'n', \"{\"rows\": [ truncat\" is not valid JSON"
+          ]
+        }
+      }
+    },
+    {
+      "id": "B5",
+      "name": "CLI 用法错误 → exit 2 + stderr 具名",
+      "pass": true,
+      "evidence": {
+        "code": 2,
+        "stderr": "[eligible] --asset <name> 必填（name-based 主键）\n用法: node scripts/eligible.mjs --asset <name> [--requirements a,b] [--constraints k=v,k2=v2] [--manifest <path>]"
+      }
+    },
+    {
+      "id": "C1",
+      "name": "重算 sha256(contracts/asset-manifest-v2.json) == f770140c…（AV-2 build 产物现值）",
+      "pass": true,
+      "evidence": {
+        "recomputed": "f770140ca4bc0e458a7eaa74b21a3956e45e34112a1c24132337a27e849a3360",
+        "expected": "f770140ca4bc0e458a7eaa74b21a3956e45e34112a1c24132337a27e849a3360"
+      }
+    },
+    {
+      "id": "C2",
+      "name": "Gate-2：dispatch 日志含 manifest_sha256 且 == 重算 build 产物 hash；ctx/state 记账",
+      "pass": true,
+      "evidence": {
+        "ctx": {
+          "manifest_sha256": "f770140ca4bc0e458a7eaa74b21a3956e45e34112a1c24132337a27e849a3360",
+          "artifact:t1": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\AV-3\\tmp\\ws-QCpulI\\artifacts\\t1\\out.md"
+        },
+        "logLine": "Gate-2 manifest_sha256=f770140ca4bc0e458a7eaa74b21a3956e45e34112a1c24132337a27e849a3360 (D:\\.ai-hub\\skills\\yy\\contracts\\asset-manifest-v2.json)"
+      }
+    },
+    {
+      "id": "C3",
+      "name": "Gate-2 hash 不一致 → 具名 warning 记账且不阻断（批 1 软门）",
+      "pass": true,
+      "evidence": {
+        "logs": [
+          "[warn] MANIFEST_SHA256_MISMATCH: manifest_sha256=f770140ca4bc0e458a7eaa74b21a3956e45e34112a1c24132337a27e849a3360 != 期望 deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef（Gate-2 批 1 记账不阻断；AS-2 晋升时升级硬门）"
+        ],
+        "sub": {
+          "status": "done",
+          "mode": "exec",
+          "adapter": "stub",
+          "error": null,
+          "eligibility": {
+            "eligible": true,
+            "reason": [
+              "manifest match: 提示 token「openapi」命中 when_to_use 条目「需要设计请求/响应 Zod schema、自动生成 OpenAPI 3.1 规格、统一 RFC 9457 错误响应」"
+            ]
+          },
+          "missingCaps": null
+        }
+      }
+    },
+    {
+      "id": "D1",
+      "name": "资格门 skipped 路径：eligible=false → mode=skipped + error=INELIGIBLE_DROP_PENDING + adapter 零执行",
+      "pass": true,
+      "evidence": {
+        "result": {
+          "ok": true,
+          "skipped": true,
+          "artifactPath": null,
+          "error": "INELIGIBLE_DROP_PENDING"
+        },
+        "sub": {
+          "status": "skipped",
+          "mode": "skipped",
+          "adapter": "none",
+          "error": "INELIGIBLE_DROP_PENDING",
+          "eligibility": {
+            "eligible": false,
+            "reason": [
+              "drop_pending=true 且 drop_allowed=false（INELIGIBLE_DROP_PENDING fail-closed，DROP_ALLOWED 硬门防并行绕过）"
+            ]
+          },
+          "missingCaps": null
+        },
+        "ran": 0
+      }
+    },
+    {
+      "id": "D2",
+      "name": "资格门 ASSET_NOT_FOUND 路径 → error=INELIGIBLE_ASSET_NOT_FOUND",
+      "pass": true,
+      "evidence": {
+        "result": {
+          "ok": true,
+          "skipped": true,
+          "artifactPath": null,
+          "error": "INELIGIBLE_ASSET_NOT_FOUND"
+        },
+        "sub": {
+          "status": "skipped",
+          "mode": "skipped",
+          "adapter": "none",
+          "error": "INELIGIBLE_ASSET_NOT_FOUND",
+          "eligibility": {
+            "eligible": false,
+            "reason": [
+              "asset 不在 manifest（ASSET_NOT_FOUND fail-closed，name-based 主键无行）: not-in-manifest（manifest 共 16 行）"
+            ]
+          },
+          "missingCaps": null
+        }
+      }
+    },
+    {
+      "id": "D3",
+      "name": "正常路径零行为变化：resolver 过 → adapter 真执行 done（对照基线）",
+      "pass": true,
+      "evidence": {
+        "result": {
+          "ok": true,
+          "executed": true,
+          "artifactPath": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\AV-3\\tmp\\ws-NpAoat\\artifacts\\t1\\out.md"
+        },
+        "sub": {
+          "status": "done",
+          "mode": "exec",
+          "adapter": "stub",
+          "error": null,
+          "eligibility": {
+            "eligible": true,
+            "reason": [
+              "manifest match: 提示 token「openapi」命中 when_to_use 条目「需要设计请求/响应 Zod schema、自动生成 OpenAPI 3.1 规格、统一 RFC 9457 错误响应」"
+            ]
+          },
+          "missingCaps": null
+        },
+        "ran": 1
+      }
+    },
+    {
+      "id": "D4",
+      "name": "无 manifest → 维持旧行为（无 Gate-2 记账、adapter 真执行 done）",
+      "pass": true,
+      "evidence": {
+        "result": {
+          "ok": true,
+          "executed": true,
+          "artifactPath": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\AV-3\\tmp\\ws-9JYxIY\\artifacts\\t1\\out.md"
+        },
+        "sub": {
+          "status": "done",
+          "mode": "exec",
+          "adapter": "stub",
+          "error": null,
+          "eligibility": null,
+          "missingCaps": null
+        },
+        "ctx": {
+          "artifact:t1": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\AV-3\\tmp\\ws-9JYxIY\\artifacts\\t1\\out.md"
+        }
+      }
+    },
+    {
+      "id": "D5",
+      "name": "与 EX-1 共存：资格门过 + 能力缺失 → CAPABILITY_MISSING 诚实降级（mode=prompt，段零改动）",
+      "pass": true,
+      "evidence": {
+        "sub": {
+          "status": "skipped",
+          "mode": "prompt",
+          "adapter": "none",
+          "error": "CAPABILITY_MISSING",
+          "eligibility": {
+            "eligible": true,
+            "reason": [
+              "manifest match: 提示 token「openapi」命中 when_to_use 条目「需要设计请求/响应 Zod schema、自动生成 OpenAPI 3.1 规格、统一 RFC 9457 错误响应」"
+            ]
+          },
+          "missingCaps": [
+            "run_cmd"
+          ]
+        }
+      }
+    },
+    {
+      "id": "D6",
+      "name": "executePlan 汇总：INELIGIBLE_* → plan.warnings 具名聚合 + degraded=true",
+      "pass": true,
+      "evidence": {
+        "warnings": [
+          "资格门：1 个子任务未通过 asset eligibility resolver（be-validator:INELIGIBLE_DROP_PENDING）——mode=skipped 诚实降级，不过 resolver 不派单（AV-3 v3.5）"
+        ],
+        "degraded": true
+      }
+    },
+    {
+      "id": "D7",
+      "name": "executePlan 正常路径：无资格门 warning（零行为变化对照）",
+      "pass": true,
+      "evidence": {
+        "warnings": [],
+        "status": "done",
+        "degraded": false
+      }
+    },
+    {
+      "id": "E1",
+      "name": "新增导出仅 2 个专名（resolveAssetEligibility / ASSET_MANIFEST_V2_PATH），既有导出全存",
+      "pass": true,
+      "evidence": {
+        "newExports": [
+          "ASSET_MANIFEST_V2_PATH",
+          "resolveAssetEligibility"
+        ]
+      }
+    }
+  ]
+}
