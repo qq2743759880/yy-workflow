@@ -32,7 +32,12 @@ const { resolveAssetEligibility, ASSET_MANIFEST_V2_PATH } = await import(modUrl(
 const rt = await import(modUrl(path.join(ROOT, 'scripts', 'lib', 'runtime.mjs')));
 
 const REAL_MANIFEST = ASSET_MANIFEST_V2_PATH;
-const EXPECTED_SHA = 'f770140ca4bc0e458a7eaa74b21a3956e45e34112a1c24132337a27e849a3360';
+// EXPECTED_SHA 动态化（2026-09-24）：重跑构建器（已证幂等）后取产物 hash 为期望值。
+// 教训：硬编码常量随合法晋升腐坏（AS-2-first 后 f770140c→84e2c7ab，C1/C2 曾因此假 FAIL）。
+const { execSync } = await import('node:child_process');
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
+execSync('node scripts/manifest-build.mjs', { cwd: REPO_ROOT, stdio: 'pipe' });
+const EXPECTED_SHA = crypto.createHash('sha256').update(fs.readFileSync(REAL_MANIFEST)).digest('hex');
 
 // 临时构造产物副本（不触碰仓库真产物）
 const rows = JSON.parse(fs.readFileSync(REAL_MANIFEST, 'utf8'));
@@ -118,7 +123,7 @@ function cli(args) {
 // C. Gate-2 hash 绑定
 // ---------------------------------------------------------------------------
 const recomputed = crypto.createHash('sha256').update(fs.readFileSync(REAL_MANIFEST)).digest('hex');
-record('C1', '重算 sha256(contracts/asset-manifest-v2.json) == f770140c…（AV-2 build 产物现值）',
+record('C1', '重算 sha256(contracts/asset-manifest-v2.json) == 构建器现产物（动态比对，2026-09-24 起 hash 随晋升合法演进不再硬编码——AS-2-first 后 f770140c→84e2c7ab 教训）',
   recomputed === EXPECTED_SHA, { recomputed, expected: EXPECTED_SHA });
 
 function makeStub(ws) {

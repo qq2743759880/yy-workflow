@@ -1,3 +1,11 @@
+/**
+ * ⚠️ 边界声明（第九审计 F-003 采纳，2026-09-24）：本模块 = 遗留的运行时资产发现缓存
+ * （扫 vendor SKILL.md frontmatter → {name,type,path,version,description,keywords}，缓存于
+ * <ws>/.tt-state/manifest.json，供 brief 组装/关键词路由）。它 **不是** 治理 manifest：
+ *  - 治理 manifest 唯一构建器 = scripts/manifest-build.mjs（产物 contracts/asset-manifest-v2.json）；
+ *  - 本模块 **禁止** 写 contracts/ 下任何文件（preflight 断言把关）；
+ *  - 全面统一（Option B）留批 2 Prompt Compiler 一起做。
+ */
 import fs from 'node:fs/promises'; 
 import path from 'node:path'; 
 function parseFrontmatter(text) { 

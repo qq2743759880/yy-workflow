@@ -99,3 +99,13 @@
 - D-4（转 Owner 复核）：契约校验面扩 .yaml/.yml 属能力提升面
 - 五轮审计预判逐一兑现：accepted_difference/EXPLICIT_COMPAT_MODE/回滚前置验证/五元组全部真实用了
 - 【第八轮"审计"处置：上下文错配，零条目采纳为 YY 发现】审计引用的全部证据路径（.ai-hub/plans/dev-plan-v0.4-draft.md、batch-ledgers/batch-b6-acceptance.md、contracts/style-font-pipeline-v1.json、service.py、artifacts/t6-unet/）经实测在 D:\.ai-hub 与 YY 仓库均不存在；审计对象为另一字体管线/图像分割项目。不采信、不登记为 YY finding。可迁移原则（仅登记不执行）：①契约冻结状态必须机器同步（YY 已满足：change 单 ownerApprovalReceipt 机器字段+validateOwnerApprovalReceipt 强制）②实验型资产须可重放证据包（YY 证据纪律部分覆盖，playbook 可增补）③strategy registry vs 硬绑定（YY 已有真 registry：ADAPTERS Map+resolveAdapter+资格门，先在于被审项目）④placeholder 语义残留扫描（YY 的 PENDING 类标记为有意设计，扫描需白名单，低优候选）
+
+## 第九轮审计处置（2026-09-24，两份拼接报告，结论相反——地面真值裁决）
+- **前半（真实读仓）：两项真发现全部采纳**
+  - F-004【P0 已修】runtime 资格门 catch 全吞 = fail-open（resolver 崩溃→按旧行为派单=绕过资格门）。编排者直修：fail-closed（manifest 在场但判定失败→skipped+RESOLVER_INTERNAL_ERROR/CANDIDATE_INVALID；向后兼容仅限 manifest 缺失分支）。探针实证：坏 manifest→skipped+具名+adapter 零执行（修复前此场景放行）
+  - F-003【P0 已修·Option A】scripts/lib/manifest.mjs 遗留运行时缓存（{name,type,path,version,keywords}，写 .tt-state/manifest.json，orchestrator/activation 活调用）与治理 manifest 同名混淆——裁定：保留缓存用途+头注释边界声明+preflight 新增 P5b（遗留模块禁写 contracts/）；Option B 全面统一留批 2 Prompt Compiler
+  - F-001/F-002/F-005：与既有登记一致（binding_todo/legacy loader 双入口/S14 扩展已在案），无新增行动
+  - 顺序采纳：两项 P0 修复先于复制三个 replace（防规模扩大重新引入已解决问题）
+- **后半（上下文损坏）：全部 NOT CONFIRMED 判定无效**——其 MCP 返回 governance-skills/AS-2-first/VENDORED.md 全部 FILE_NOT_FOUND，与前半审计者**同消息内实际读到这些文件内容**直接矛盾，且与地面真值矛盾（文件在库、已提交推送、hash 在案）。模式与第八轮（font-pipeline 错配）相同：**上下文受限审计者的 NOT FOUND ≠ 文件不存在**。其"扩张范围申请"（读 scripts/**、migration-record）恰是前半审计者已经做过的事
+- **治理沉淀**：多位审计者输出互相矛盾时，以地面真值（文件+hash+提交历史）裁决；编排者须指出矛盾而非各采一半
+- 附带修复：AV-3 探针 C1/C2 硬编码 hash 随 AS-2-first 合法晋升腐坏致假 FAIL——EXPECTED_SHA 动态化（重跑构建器取现值），21/21 复绿

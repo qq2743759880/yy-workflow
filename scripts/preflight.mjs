@@ -244,6 +244,23 @@ function checkManifestSingleSource() {
 }
 
 // ---------------------------------------------------------------------------
+// P5b 遗留 manifest.mjs 写域断言（第九审计 F-003 采纳）：遗留运行时缓存模块
+// （scripts/lib/manifest.mjs，写 <ws>/.tt-state/manifest.json）禁止写 contracts/ ——
+// 防同名"manifest"双事实源混淆升级为真实越权。全面统一（Option B）留批 2。
+// ---------------------------------------------------------------------------
+function checkLegacyManifestScope() {
+  const legacy = path.join(ROOT, 'scripts', 'lib', 'manifest.mjs');
+  if (!fs.existsSync(legacy)) { record('P5b', 'legacy manifest.mjs 写域', 'SKIP', 'scripts/lib/manifest.mjs 不在场'); return; }
+  const src = fs.readFileSync(legacy, 'utf8');
+  const violations = [];
+  src.split('\n').forEach((line, i) => {
+    if (/writeFile|createWriteStream/.test(line) && /contracts/.test(line)) violations.push(`L${i + 1}`);
+  });
+  if (violations.length) record('P5b', 'legacy manifest.mjs 写域', 'FAIL', `LEGACY_MANIFEST_CONTRACTS_WRITE: ${violations.join(', ')}（遗留缓存禁写 contracts/）`);
+  else record('P5b', 'legacy manifest.mjs 写域', 'PASS', '遗留缓存写域限于 stateDir，零 contracts/ 写调用（边界声明在文件头）');
+}
+
+// ---------------------------------------------------------------------------
 // P6 DROP_ALLOWED 断言
 // ---------------------------------------------------------------------------
 function checkDropAllowed() {
@@ -353,6 +370,7 @@ async function main() {
   checkAdapters(adaptersFile, clusters); // P3
   checkClustersOnDisk(clusters, clustersFile); // P4
   checkManifestSingleSource();   // P5
+  checkLegacyManifestScope();    // P5b
   checkDropAllowed();            // P6
   checkChangeLock(changedRaw, currentOwner); // P7
 

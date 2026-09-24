@@ -1,7 +1,7 @@
 {
-  "runAt": "2026-09-24T09:31:29.073Z",
-  "expected_manifest_sha256": "f770140ca4bc0e458a7eaa74b21a3956e45e34112a1c24132337a27e849a3360",
-  "recomputed_manifest_sha256": "f770140ca4bc0e458a7eaa74b21a3956e45e34112a1c24132337a27e849a3360",
+  "runAt": "2026-09-24T11:16:47.593Z",
+  "expected_manifest_sha256": "84e2c7ab4db924e0b9b517b3ad084a7fce2709ca04526584e0d6a181bb08e525",
+  "recomputed_manifest_sha256": "84e2c7ab4db924e0b9b517b3ad084a7fce2709ca04526584e0d6a181bb08e525",
   "results": [
     {
       "id": "A1",
@@ -134,11 +134,11 @@
     },
     {
       "id": "C1",
-      "name": "重算 sha256(contracts/asset-manifest-v2.json) == f770140c…（AV-2 build 产物现值）",
+      "name": "重算 sha256(contracts/asset-manifest-v2.json) == 构建器现产物（动态比对，2026-09-24 起 hash 随晋升合法演进不再硬编码——AS-2-first 后 f770140c→84e2c7ab 教训）",
       "pass": true,
       "evidence": {
-        "recomputed": "f770140ca4bc0e458a7eaa74b21a3956e45e34112a1c24132337a27e849a3360",
-        "expected": "f770140ca4bc0e458a7eaa74b21a3956e45e34112a1c24132337a27e849a3360"
+        "recomputed": "84e2c7ab4db924e0b9b517b3ad084a7fce2709ca04526584e0d6a181bb08e525",
+        "expected": "84e2c7ab4db924e0b9b517b3ad084a7fce2709ca04526584e0d6a181bb08e525"
       }
     },
     {
@@ -147,10 +147,10 @@
       "pass": true,
       "evidence": {
         "ctx": {
-          "manifest_sha256": "f770140ca4bc0e458a7eaa74b21a3956e45e34112a1c24132337a27e849a3360",
-          "artifact:t1": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\AV-3\\tmp\\ws-QCpulI\\artifacts\\t1\\out.md"
+          "manifest_sha256": "84e2c7ab4db924e0b9b517b3ad084a7fce2709ca04526584e0d6a181bb08e525",
+          "artifact:t1": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\AV-3\\tmp\\ws-3fQyrB\\artifacts\\t1\\out.md"
         },
-        "logLine": "Gate-2 manifest_sha256=f770140ca4bc0e458a7eaa74b21a3956e45e34112a1c24132337a27e849a3360 (D:\\.ai-hub\\skills\\yy\\contracts\\asset-manifest-v2.json)"
+        "logLine": "Gate-2 manifest_sha256=84e2c7ab4db924e0b9b517b3ad084a7fce2709ca04526584e0d6a181bb08e525 (D:\\.ai-hub\\skills\\yy\\contracts\\asset-manifest-v2.json)"
       }
     },
     {
@@ -159,7 +159,7 @@
       "pass": true,
       "evidence": {
         "logs": [
-          "[warn] MANIFEST_SHA256_MISMATCH: manifest_sha256=f770140ca4bc0e458a7eaa74b21a3956e45e34112a1c24132337a27e849a3360 != 期望 deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef（Gate-2 批 1 记账不阻断；AS-2 晋升时升级硬门）"
+          "[warn] MANIFEST_SHA256_MISMATCH: manifest_sha256=84e2c7ab4db924e0b9b517b3ad084a7fce2709ca04526584e0d6a181bb08e525 != 期望 deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef（Gate-2 批 1 记账不阻断；AS-2 晋升时升级硬门）"
         ],
         "sub": {
           "status": "done",
@@ -237,7 +237,7 @@
         "result": {
           "ok": true,
           "executed": true,
-          "artifactPath": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\AV-3\\tmp\\ws-NpAoat\\artifacts\\t1\\out.md"
+          "artifactPath": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\AV-3\\tmp\\ws-wsY9MS\\artifacts\\t1\\out.md"
         },
         "sub": {
           "status": "done",
@@ -263,7 +263,7 @@
         "result": {
           "ok": true,
           "executed": true,
-          "artifactPath": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\AV-3\\tmp\\ws-9JYxIY\\artifacts\\t1\\out.md"
+          "artifactPath": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\AV-3\\tmp\\ws-QOxQfP\\artifacts\\t1\\out.md"
         },
         "sub": {
           "status": "done",
@@ -274,7 +274,7 @@
           "missingCaps": null
         },
         "ctx": {
-          "artifact:t1": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\AV-3\\tmp\\ws-9JYxIY\\artifacts\\t1\\out.md"
+          "artifact:t1": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\AV-3\\tmp\\ws-QOxQfP\\artifacts\\t1\\out.md"
         }
       }
     },

@@ -123,7 +123,14 @@ export async function dispatch(subtask, ctx, opts = {}) {
         return { ok: true, skipped: true, artifactPath: null, error: code };
       }
     } catch (e) {
-      logger.warn('资格门/Gate-2 异常，按旧行为继续（向后兼容，不阻断）: ' + e.message);
+      // fail-closed（第八审计 F-004 采纳，2026-09-24）：manifest 在场但判定失败（坏 JSON/CANDIDATE_INVALID/
+      // resolver 崩溃）= 资格无法建立 = 不得静默按旧行为派单（否则 resolver bug = 绕过资格门）。
+      // 向后兼容仅限 manifest 缺失（上方 manifestPresent 分支）。
+      const code = 'RESOLVER_INTERNAL_ERROR';
+      subtask.status = 'skipped'; subtask.mode = 'skipped'; subtask.adapter = 'none'; subtask.error = code;
+      logger.warn('subtask skipped: ' + code + ' (asset=' + subtask.asset + ') —— 资格门异常 fail-closed（manifest 在场但判定失败，不静默放行）: ' + e.message);
+      emitStatus(null, subtask, 'skipped', opts, { elapsedMs: 0 });
+      return { ok: true, skipped: true, artifactPath: null, error: code };
     }
   }
   const adapter = resolveAdapterDI(subtask.asset, opts.backend, opts);
