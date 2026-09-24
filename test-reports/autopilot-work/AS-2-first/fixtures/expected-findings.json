@@ -1,0 +1,95 @@
+{
+  "schema": "as2-first-expected-findings@1.0.0",
+  "finalized_before_shadow_run": true,
+  "finalized_at": "2026-09-24T09:41:30Z",
+  "fixture": {
+    "canonical": "test-reports/autopilot-work/AS-2-first/fixtures/bad-openapi.yaml",
+    "legacy_twin": "test-reports/autopilot-work/AS-2-first/fixtures/bad-openapi.json",
+    "twin_reason": "旧 adapter 文件型契约门只认 .json 后缀（portman.mjs: contract.endsWith('.json')）；YAML 为新引擎 canonical 输入，.json 孪生为旧路径输入，两者语义等价（同一违规集）。"
+  },
+  "old_engine": {
+    "asset": "be-validator(portman)",
+    "evidence": "test-reports/autopilot-work/AS-2-first/shadow-20260924/old-engine-record.json（.json 输入实测）+ old-engine-record-yaml.json（.yaml 输入实测）",
+    "json_input_behavior": {
+      "exit_code_semantics": "portman --local 转换成功 → adapter ok=true",
+      "pass": true,
+      "finding_count": 0,
+      "finding_detail": "portman 是 OpenAPI→Postman 转换器非 linter：对结构性合法但缺陷密集的文档（缺 servers/operationId/2xx/未声明 tag/path 参数）零检出；仅对结构性损坏文档报 OAS File Error。",
+      "degraded": false
+    },
+    "yaml_input_behavior": {
+      "pass": null,
+      "degraded": true,
+      "detail": "YAML 契约被旧 adapter 当描述字符串降级（pass:null），不做真校验——旧引擎文件型契约面只有 .json。"
+    }
+  },
+  "new_engine_expected": {
+    "asset": "be-validator(spectral)",
+    "engine": "@stoplight/spectral-cli 6.16.3（npm，Apache-2.0，AS-0 实测；装后 spectral --version 核实）",
+    "ruleset": "extends spectral:oas（影子跑 ruleset：test-reports/autopilot-work/AS-2-first/rulesets/spectral-oas-shadow.yaml）",
+    "expected_rule_ids": [
+      "oas3-api-servers",
+      "info-description",
+      "info-contact",
+      "operation-operationId",
+      "operation-success-response",
+      "operation-tag-defined",
+      "operation-tags",
+      "path-params"
+    ],
+    "min_findings": 8,
+    "expected_severity_dist": { "error": 1, "warn": 8 },
+    "expected_exit_code": 1,
+    "exit_code_semantics": "spectral lint 默认 fail-severity=error：存在 error 级 finding → exit 1；无 error 级 → exit 0。本 fixture 含 operation-success-response/path-params/operation-operationId 等 error 级 → 必 exit 1。",
+    "assertion": "实测 exit_code == expected_exit_code 且 rule_ids ⊆ 实测 finding 集且 finding_count ≥ min_findings"
+  },
+  "accepted_difference": [
+    {
+      "type": "rule_name_changed",
+      "rule": "旧引擎无规则名（pass/diff 布尔面）；新引擎以 Spectral rule id 报告。映射关系按 rule id 记录，不做一一对应强求。",
+      "basis": "第七轮审计 v3.6 第 3 条：rule_name_changed 为允许差异"
+    },
+    {
+      "type": "severity_mapping_changed",
+      "rule": "旧引擎只有 pass 布尔；新引擎 error/warn/info/hint 分级。分级到 contract.pass 的映射：存在 error 级 → pass=false，否则 pass=true（warn 不判失败，diff 留痕）。",
+      "basis": "v3.6 允许差异 + 映射规则影子跑前显式声明"
+    },
+    {
+      "type": "message_changed",
+      "rule": "报告文案由 portman 输出摘要变为 Spectral findings JSON 摘要。",
+      "basis": "v3.6 允许差异"
+    },
+    {
+      "type": "new_findings",
+      "rule": "新引擎检出多于旧引擎（本 fixture 必然：旧引擎 0 检出）≠失败；全部逐条登记 migration-record.json 新增清单，随五元组交 L2/Owner 复核（v3.5：超差部分阻断晋升交 L2/Owner 评审——本 fixture 的新增即全部 8 类，属『旧引擎零检出』的预期结构性差异，登记不阻断）。",
+      "basis": "v3.5 影子跑 Evidence Contract"
+    }
+  ],
+  "forbidden_difference": [
+    {
+      "type": "missing_detection",
+      "definition": "expected_rule_ids 中任一规则对应缺陷类，新引擎对等价输入未报出（漏检）。无论新旧引擎一律判失败（第七轮审计裁定）。",
+      "detection": "影子跑比对实测 rule_ids 与 expected_rule_ids 差集"
+    },
+    {
+      "type": "crash",
+      "definition": "新引擎进程 crash / adapter 未捕获异常 / 未按声明 JSON 结构产出（Spectral --format json 输出不可解析且非合法非零退出语义）。一律判失败。",
+      "detection": "harness 捕获异常 or JSON.parse 失败"
+    },
+    {
+      "type": "invalid_exit_code",
+      "definition": "exit code 与引擎语义不符：有 error 级 finding 却 exit 0，或 lint 干净却非 0（输出格式异常场景除外——该场景期望诚实报错 receipt failure，非静默）。一律判失败。",
+      "detection": "实测 exit_code != expected_exit_code（正常路径场景）"
+    }
+  ],
+  "amendments": [
+    {
+      "at": "2026-09-24T09:50:00Z",
+      "before_official_shadow_run": true,
+      "change": "expected_rule_ids 移除 openapi-tags，加入 operation-tags；增补 expected_severity_dist {error:1, warn:8}",
+      "reason": "Step 2b 引擎核实 smoke（spectral-probe.json）显示 openapi-tags 在 spectral:oas 默认规则集 recommended:false 不触发（node_modules/@stoplight/spectral-rulesets/dist/oas/index.js L226 'openapi-tags' recommended:false 亲测），与 Step 2a 夹具设计要求『默认规则集 oas 一定抓的』不符——属夹具规则预期误列，非引擎漏检（missing_detection 判据按『defect class 未报出』口径亦不成立：tag 未声明缺陷由 operation-tag-defined 报出）。operation-tags 实测触发（/pets/{petId} 无 tags）。修订留痕不静默，交 L2 复核。",
+      "evidence": "test-reports/autopilot-work/AS-2-first/shadow-20260924/spectral-probe.json（smoke 记录，共 9 findings：1 error + 8 warn）"
+    }
+  ],
+  "shadow_fail_rule": "任一 forbidden_difference 命中 → 影子跑 FAIL，不粉饰不硬推晋升；FAIL 本身即有效迁移证据（回滚保留旧路径）。"
+}

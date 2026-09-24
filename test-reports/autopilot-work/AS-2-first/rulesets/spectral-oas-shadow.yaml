@@ -1,0 +1,5 @@
+# AS-2-first 影子跑 ruleset（Step 2b，临时影子跑用；正式 ruleset 晋升后固化 vendor/be-validator/rulesets/）
+# Provider identity：Spectral 官方默认 OAS 规则集（@stoplight/spectral-cli 6.16.3 内置 spectral:oas），
+# 不自造规则、不改默认 severity——保证 findings 可归因到上游官方规则。
+extends:
+  - spectral:oas

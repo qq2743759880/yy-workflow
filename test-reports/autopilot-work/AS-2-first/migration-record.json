@@ -1,0 +1,41 @@
+{
+  "schema": "as2-first-migration-record@1.0.0",
+  "dispatch": "handoffs/v3/AS-2-first-dispatch.md",
+  "contract": "contracts/asset-migration.md (asset-migration@1.0.0)",
+  "state_machine": {
+    "current_state": "ACTIVE",
+    "transitions": []
+  },
+  "old_asset": {
+    "vendor_path": "vendor/be-validator",
+    "adapter": "scripts/lib/adapters/portman.mjs",
+    "adapter_refs_gate0": [
+      "scripts/lib/adapters/index.mjs: ADAPTERS.set('be-validator', portman)",
+      "scripts/lib/adapters/index.mjs: ADAPTERS.set('portman', portman)",
+      "scripts/regression-all.mjs S3 PHASE2: be-validator dedicatedAdapter:true kernel [OpenAPI, contract]"
+    ],
+    "engine": "portman 1.35.0 (host-installed CLI)",
+    "baseline_ref": "test-reports/asset-eval-20260923/asset-baseline-before.json#be-validator",
+    "baseline_snapshot_at": "2026-09-24T08:45:39Z"
+  },
+  "new_asset": {
+    "vendor_path": "vendor/be-validator/rulesets/（晋升后固化正式 ruleset）",
+    "engine": "@stoplight/spectral-cli 6.16.3",
+    "introduction": "npm 依赖（--no-save 影子跑 / 晋升后 manifest verification 声明通道）",
+    "license_check": "Apache-2.0（test-reports/asset-eval-20260923/LICENSES.md §5：npm 字段 + 包内 LICENSE 全文实测 2026-09-24）",
+    "provider_identity": {
+      "official_source": "github:stoplightio/spectral（npm @stoplight/spectral-cli）",
+      "install_channel": "npm install @stoplight/spectral-cli --no-save（node_modules 不入库）",
+      "runtime_test": "spectral --version → 期望 6.16.3（装后必跑，npm semgrep 假包教训）"
+    }
+  },
+  "rollback_adapter": "be-validator(portman)",
+  "rollback_path_verified_before_shadow": null,
+  "shadow_result": null,
+  "rollback_drill": null,
+  "promotion_receipt": null,
+  "runtime_binding": null,
+  "new_findings_registry": [],
+  "deviations": [],
+  "updated_at": "2026-09-24T09:42:00Z"
+}

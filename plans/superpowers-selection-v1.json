@@ -1,0 +1,41 @@
+{
+  "superpowers_selection": {
+    "version": "v1",
+    "selected_at": "2026-09-24",
+    "ruled_by": "Owner（本文件即批准记录；判定依据=YY 当前能力缺口分析，非审计共识）",
+    "source": {
+      "repo": "https://github.com/obra/superpowers",
+      "commit": "5bf4e78011075bcfc0dc295f0724994cd123ee71",
+      "version": "v6.4.1 (2026-09-18)",
+      "license": "MIT (Copyright (c) 2025 Jesse Vincent)",
+      "vendored_at": "governance-skills/<skill>/（原仓库文件快照，commit 见 VENDORED.md）"
+    },
+    "architecture_note": "governance-skills/ 为治理增强层（系统能力），独立于 16 业务资产注册表（CLUSTERS/asset-manifest-v2）——按 Owner 裁定不入资产注册表",
+    "selected": [
+      {
+        "name": "verification-before-completion",
+        "reason": "Completion evidence discipline——固化 Evidence before DONE 哲学到 agent 行为层（系统层 Gate 已有，此补行为层）",
+        "binding_stage": "verification",
+        "activation": "before_final_receipt（agent 宣称完成之前）"
+      },
+      {
+        "name": "systematic-debugging",
+        "reason": "Failure-to-learning loop——补 Failure→Root Cause→Lesson 链，为 Evolution 层提供输入（YY 最大真空白）",
+        "binding_stage": "failure_recovery",
+        "activation": ["gate_failed", "regression_failed", "migration_failed"]
+      },
+      {
+        "name": "test-driven-development",
+        "reason": "Invariant-first implementation——测前置纪律（现有 S14/S15 为测后置）；对 Migration 尤其重要：先定 old/new behavior 与 allowed/forbidden difference 再写 adapter",
+        "binding_stage": "implementation",
+        "activation": "stage_7_implementation 或 migration shadow run 前"
+      }
+    ],
+    "deferred": [
+      { "name": "writing-plans", "reason": "与 TK-1 task v2 七字段高度重叠（编排者独立核对修正审计共识）；状态 reserve——planner 质量下降时再引入" },
+      { "name": "receiving-code-review", "reason": "与 CR-1 三元绑定/review-gate/review-bugbot 重叠" }
+    ],
+    "not_selected_note": "其余 10 个 skill 不选理由见 test-reports/asset-eval-20260923/LICENSES.md §6（会话级行为植入/与编排器职责重叠/面向其自身/工作流特化等）",
+    "binding_todo": "运行时消费接线（dispatch prompt/命令在对应阶段引用 skill 正文）为后续任务；本 manifest 先固化选择与绑定计划"
+  }
+}

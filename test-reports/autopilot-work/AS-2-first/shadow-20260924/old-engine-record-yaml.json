@@ -1,0 +1,16 @@
+{
+  "recordedAt": "2026-09-24T09:41:23.512Z",
+  "fixture": "bad-openapi.yaml",
+  "harnessResult": {
+    "ok": true,
+    "degraded": true,
+    "error": null
+  },
+  "contract": {
+    "pass": null,
+    "diff": "contract is descriptive text, not an OpenAPI file; real contract validation requires contracts/*.json — recorded but not validated",
+    "tool": "portman",
+    "version": "1.35.0",
+    "degraded": true
+  }
+}
