@@ -135,3 +135,16 @@
 | "批 1 可以进入" | **不构成放行** | 决策权纪律：审计者意见≠Owner 裁定；批次放行待 Owner |
 
 批 1 范围（v3.2 定稿）：AS-0 许可证核查 → preflight.mjs（含 buildManifest 单源+DROP_ALLOWED 断言）→ change-lock.json → migration contract 夹具 → AS-2 replace 4（影子跑+三硬门）→ AV-2 manifest 生成（含 drop_allowed 旗标）→ AS-1 drop 7 + S14（含 EXPLICIT_COMPAT_MODE 门）。目标重述如上。
+
+## v3.3 修订（2026-09-23，第五轮审计复审采纳）
+
+| 提案 | 裁定 | 说明 |
+|---|---|---|
+| Gate-0 Baseline Freeze（迁移前逐资产 asset-baseline-before.json：adapter/routes/consumption/manifest_hash） | **adopt** | EA-1 基线是聚合级，缺机器可读的逐资产迁移前快照；没有它，迁移后无法回答"原来是什么状态"，也喂不了 Gate-5 回滚演练 |
+| Gate-5 Rollback Proof（首个 replace 必须演练：new→simulate failure→rollback→old restore→receipt） | **adopt（限首个）** | 上一轮确未采纳，此次采纳——回滚演练喂的是"迁移系统本身"的验证；old asset 在 AS-1 前一直在 vendor，回滚=路由表+adapter 注册表还原，演练成本低 |
+| 单个 replace 先行验证，验证通过后复制流程到其余三个（禁四路并行 replace） | **adopt** | 与 D-FE4-6/BFX 并行教训同源；第一个 replace 是迁移系统的验收载体，其余三个是重复执行 |
+| 全链路探针作为批 1 成功定义（Task→manifest query→new asset→adapter→execution→receipt→old path rejected 跑通一次） | **adopt** | "Runtime Replacement Boundary 可证明"的操作化定义，进批 1 验收 |
+| D-REG1-1 标注 provisional policy + 观察指标（override 使用率/blocked task 事后价值） | **adopt 标注，指标暂不建** | 与已登记的"临时态待追认"一致；指标等真实使用数据，先不建度量机器 |
+| 执行顺序：AS-0 → Baseline Freeze → Preflight → Change Lock → Manifest Qualification → 单 replace 影子跑 → Runtime Binding 验证 → 复制 | **adopt** | 替换原批 1 顺序 |
+
+**编排者补充的风险（审计未提）**：Gate-0..5 + v3.2 三硬门=首个 replace 背了九道门。合理性在于批 1 的目标本来就是**造边界机器**（第一个 replace 是验收载体），机器成本摊给后续三次 replace 和未来 evolution；但必须显式声明：**全量门只压第一个 replace，复制的三个走同一机器、证据负担机械化为wizard式清单**——否则批 1 会变成"门的自嗨"，四个 replace 全量走完九道门是浪费。
