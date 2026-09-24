@@ -121,3 +121,17 @@
 - **Owner-gated 决策（旧裁定推翻、fail-closed 语义选择、记忆层回归、批次放行）只有 Owner 本人能关账**；编排者不得因"两份分析都这么说"而代签——多数意见不构成授权。
 - 编排者对 Owner-gated 项的做法：给出推荐方案 + 依据 + 可回退实现（标注"临时态待追认"），台账归因必须精确到"谁裁的"。
 - 本条由 D-REG1-1 错误归因事件（编排者把审计建议实现后归因为"Owner 拍板"）触发，作为永久纪律登记。
+
+## v3.2 修订（2026-09-23，第四位审计者批判性吸收）
+
+| 提案 | 裁定 | 落点 |
+|---|---|---|
+| Legacy loader 三阶段模型（Phase1 旧 loader 每次调用须 EXPLICIT_COMPAT_MODE 门，Phase2 删除） | **adopt** | S14 设计细化："迁移期共存≠无限共存"；旧 loader 调用必须显式旗标+留痕，禁静默并存 |
+| 消费证据词汇（Design consumption CONFIRMED / Runtime consumption UNKNOWN）+ drop 三条件（candidate+runtime invocation+quality 缺一不可） | **adopt** | AS-1 判据正式表述；影子跑补 runtime invocation 证据 |
+| DROP_ALLOWED=false 硬门（防并行 agent 绕过计划顺序） | **adopt** | 旗标挂资产 change 单/manifest 行，preflight+回归断言；流程序防护只防串行，旗标防并行 |
+| 批 1 三个硬验收门（Gate1 legacy BLOCKED/EXPLICIT_COMPAT_MODE；Gate2 runtime consumed hash==build hash；Gate3 replace 五元组 old/new/shadow_result/promotion_receipt/runtime_binding） | **adopt** | 批 1 验收标准正式化 |
+| 批 1 目标重述（"建立可证明的 runtime replacement boundary + 首批迁移验证"，非"完成资产替换"） | **adopt** | 防"文件换了所以完成"自欺 |
+| Capability-oriented dispatch（registry→eligibility resolver→replacement resolver→adapter；runtime 只知 capability 不知 asset name） | **adopt 方向，时序移批 2** | 批 1 保持 name-based dispatch + manifest 资格查询（AV-3 即 capability dispatch 第一版）；完整形态与 Prompt Compiler 同批（共享 manifest capability 字段）；理由：现派单链有 S8 实测消费证据，推倒违背"执行层稳定" |
+| "批 1 可以进入" | **不构成放行** | 决策权纪律：审计者意见≠Owner 裁定；批次放行待 Owner |
+
+批 1 范围（v3.2 定稿）：AS-0 许可证核查 → preflight.mjs（含 buildManifest 单源+DROP_ALLOWED 断言）→ change-lock.json → migration contract 夹具 → AS-2 replace 4（影子跑+三硬门）→ AV-2 manifest 生成（含 drop_allowed 旗标）→ AS-1 drop 7 + S14（含 EXPLICIT_COMPAT_MODE 门）。目标重述如上。
