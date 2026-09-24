@@ -73,3 +73,5 @@
 - 【采纳·入 preflight 范围】buildManifest() 单源检查：manifest 生成必须单一来源，防 runtime 调旧 buildManifest 绕过 asset-manifest-v2——列入 preflight.mjs 检查项
 - 【校准·非缺陷】F-003 "15/16 零消费 SUSPECTED"：审计者自述未读 BASELINE.md，属其证据边界非数据缺陷；但其中间结论采纳——消费证据为**署名级**非正文调取级（BASELINE.md D-偏差 3 已如实登记），AS-1 drop 判据若需调取级证据，须在影子跑中补
 - 【校准】F-002/004 SUSPECTED（migration runtime/写面强制未实现）：正确，但就是批 1 待跑事项，非方案缺陷
+| B1-GATE0 | PASS | agent_33ca25a4 | orchestrator-L2(结构亲验) | 2026-09-24T08:50:00Z | test-reports/asset-eval-20260923/asset-baseline-before.json（16 行迁移前快照，manifest_hash=null 忠实记录） |
+- 三源交叉零偏差（CLUSTERS/ADAPTERS/EA-1）；字段名与派单一致；after 对照由编排者在首批 replace 后另行生成
