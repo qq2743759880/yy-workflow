@@ -98,3 +98,4 @@
 - D-2（裁定追认）：expected_rule_ids 影子跑前依 smoke 修订（amendments 留痕）=accepted_difference 表"先于影子跑定稿"的正确执行
 - D-4（转 Owner 复核）：契约校验面扩 .yaml/.yml 属能力提升面
 - 五轮审计预判逐一兑现：accepted_difference/EXPLICIT_COMPAT_MODE/回滚前置验证/五元组全部真实用了
+- 【第八轮"审计"处置：上下文错配，零条目采纳为 YY 发现】审计引用的全部证据路径（.ai-hub/plans/dev-plan-v0.4-draft.md、batch-ledgers/batch-b6-acceptance.md、contracts/style-font-pipeline-v1.json、service.py、artifacts/t6-unet/）经实测在 D:\.ai-hub 与 YY 仓库均不存在；审计对象为另一字体管线/图像分割项目。不采信、不登记为 YY finding。可迁移原则（仅登记不执行）：①契约冻结状态必须机器同步（YY 已满足：change 单 ownerApprovalReceipt 机器字段+validateOwnerApprovalReceipt 强制）②实验型资产须可重放证据包（YY 证据纪律部分覆盖，playbook 可增补）③strategy registry vs 硬绑定（YY 已有真 registry：ADAPTERS Map+resolveAdapter+资格门，先在于被审项目）④placeholder 语义残留扫描（YY 的 PENDING 类标记为有意设计，扫描需白名单，低优候选）
