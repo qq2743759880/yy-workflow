@@ -1,0 +1,12 @@
+# preflight（v3 批 1 静态不变量预检：零 LLM / 零网络 / 确定性）
+PASS  P1 语法门 (node --check)  — 85 个 .mjs 全过编译器级预检
+FAIL  P2 导出查重（跨模块同名）  — DUP_EXPORT: ADAPTERS @ scripts/lib/adapters/__probe-index.mjs + scripts/lib/adapters/index.mjs; DUP_EXPORT: PROMPT_ADAPTER @ scripts/lib/adapters/__probe-index.mjs + scripts/lib/adapters/index.mjs; DUP_EXPORT: resolveAdapter @ scripts/lib/adapters/__probe-index.mjs + scripts/lib/adapters/index.mjs
+FAIL  P3 ADAPTERS 一致性  — ADAPTER_IMPORT_MISSING: scripts/lib/adapters/__probe-index.mjs import ghost 路径无效（scripts/lib/adapters/__ghost-adapter.mjs 不存在）; ADAPTER_MAP_MISSING: 'ghost-orphan-adapter' → scripts/lib/adapters/__ghost-adapter.mjs（文件不存在）; ADAPTER_NAME_UNKNOWN: 'ghost-orphan-adapter' 不在 CLUSTERS candidates ∪ ASSET_WHITELIST ∪ runtime 能力别名集
+PASS  P4 CLUSTERS ↔ 磁盘  — 16 资产 vendor/<name>/ 文档齐全（唯一事实源 scripts/lib/matrix.mjs；AS-1 drop 后随 candidates 收缩自动通过）
+PASS  P5 buildManifest 单源  — 唯一写方 scripts/manifest-build.mjs ✓（命中 0 处合法写调用）
+PASS  P6 DROP_ALLOWED 断言  — 扫描 16 行：无 drop-pending 行（当前无 drop 意图）
+PASS  P7 change-lock 核查  — active 锁 0/0，--changed 0 条改动路径 0 冲突
+
+结果: 5 PASS / 2 FAIL / 0 SKIP
+  FAILED: P2 导出查重（跨模块同名）
+  FAILED: P3 ADAPTERS 一致性

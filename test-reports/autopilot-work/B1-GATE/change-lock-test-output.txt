@@ -1,0 +1,30 @@
+== change-lock 全流程实测（重跑 2026-09-24T09:08:41Z，含 P7 联动修正复测）==
+--- 1) acquire owner=T-A file=scripts/preflight.mjs ttl=30
+OK acquired 'scripts/preflight.mjs' owner=T-A ttl=30min expires=2026-09-24T09:38:41.315Z
+exit=0
+--- 2) check 他人视角 (owner=T-B): 期望 exit 1
+FAIL LOCK_HELD: 'scripts/preflight.mjs' 被任务 'T-A' 持锁（expires=2026-09-24T09:38:41.315Z，reason=B1-GATE self-test）（当前任务 'T-B'）
+exit=1
+--- 3) release 非持锁人 (owner=T-B): 期望 exit 1
+FAIL NOT_OWNER: 'scripts/preflight.mjs' 由任务 'T-A' 持锁且未过期，任务 'T-B' 无权释放
+exit=1
+--- 4) 注入过期时间戳后 check (owner=T-B): 期望 OK exit 0
+OK 'scripts/preflight.mjs' 的锁（owner=T-A）已于 2026-09-24T00:00:00.000Z 过期——自动视为可抢
+exit=0
+--- 5) 过期锁自动可抢: acquire owner=T-B（期望提示原锁 owner=T-A）
+OK acquired 'scripts/preflight.mjs' owner=T-B ttl=30min expires=2026-09-24T09:38:42.568Z（原锁 owner=T-A 已于 2026-09-24T09:38:42.568Z 过期，自动可抢——本条为夺取）
+exit=0
+--- 6) release 持锁人 owner=T-B
+OK released 'scripts/preflight.mjs'（owner=T-B）
+exit=0
+--- 7) release 后 check: 期望 exit 0
+OK 'scripts/preflight.mjs' 无锁
+exit=0
+--- 8) preflight P7 联动（porcelain 前缀）: 锁 T-A 在场 + --changed ' M scripts/preflight.mjs' + 当前任务 T-ME → 期望 LOCKED_FILE_CHANGED FAIL exit 1
+FAIL  P7 change-lock 核查  — LOCKED_FILE_CHANGED: 'scripts/preflight.mjs' 被任务 'T-A' 持锁（expires=2026-09-24T09:38:43.348Z）而出现在 --changed 改动列表（当前任务 'T-ME'）
+结果: 6 PASS / 1 FAIL / 0 SKIP
+exit=1
+--- 9) release 后 P7 复测: 期望全绿 exit 0
+结果: 7 PASS / 0 FAIL / 0 SKIP
+preflight 通过。
+exit=0

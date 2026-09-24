@@ -11,7 +11,8 @@
 | contracts/manifest-sources/*.yaml（新建 sidecar） | AV-2 | vendor 文件不可改——数据源在 sidecar，引用 vendor 路径 |
 | test-reports/asset-eval-20260923/asset-baseline-before.json | B1-GATE0 | |
 | test-reports/asset-eval-20260923/LICENSES.md | AS-0 | 纯只读调研 |
-| scripts/lib/activation.mjs、scripts/lib/matrix.mjs | AV-3（第二波，未派） | 依赖 manifest 产物 |
+| scripts/lib/activation.mjs、scripts/lib/matrix.mjs | AV-3（第二波） | 依赖 manifest 产物 |
+| scripts/lib/runtime.mjs（仅 dispatch 资格查询接入点） | AV-3（第二波） | Gate-2 hash 绑定日志同点；EX-1 能力门控段零改动 |
 | scripts/lib/adapters/portman.mjs、vendor/be-validator/rulesets/ | AS-2-first（第二波，未派） | 首个 replace=be-validator 引擎换 Spectral |
 
 禁改（全批共享冻结面）：SKILL.md、commands/、webview/、既有 contracts 冻结件、plans/ 既有文件、vendor/ 内任何已入库文件。

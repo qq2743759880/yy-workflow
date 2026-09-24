@@ -82,3 +82,7 @@
 | AV-2 | PASS | agent_2f232a6a | orchestrator-L2(hash 亲验：重跑构建两次字节一致) | 2026-09-24T09:30:00Z | scripts/manifest-build.mjs（唯一构建器）; contracts/manifest-sources/×16; contracts/asset-manifest-v2.json（16 行，hash f770140c…）; test-reports/autopilot-work/AV-2/RESULTS.md |
 - 产物 hash 绑定材料就绪（Gate-2）；fail-closed 探针 ×4 具名拒绝亲核；B1-GATE 的 preflight P5/P6 已实证消费本产物（单源+旗标扫描）——两单接口对齐
 - D-AV2-1（转 L2 裁定）：cluster 多簇数组按 CLUSTERS 权威重算 vs AV-1 冻结表单值暂记——裁定：以 CLUSTERS 为权威，AV-1 冻结表 Owner 签收时同步修正（该表 receipt 本就 PENDING 草稿态）
+| B1-GATE | PASS | agent_79942163 | orchestrator-L2(preflight+14段回归+change-lock 全部亲跑) | 2026-09-24T10:20:00Z | scripts/preflight.mjs（P1-P7）; scripts/change-lock.mjs+plans/change-lock.json; contracts/asset-migration.md+cr-20260924T090000Z（Owner 签收位 PENDING）; test-reports/autopilot-work/B1-GATE/RESULTS.md |
+- D-1（转 Owner 追认）：P2 存量同名导出 legacy WARN 分级（含 CANDIDATE_INVALID 双哨兵码）——裁定：追认通过，新增强制/存量豁免合理
+- D-3：migration contract 为草稿态（Owner 签收 PENDING），不构成 AS-2-first 放行依据——按纪律执行
+- 第一波 4/4 全收；批 1 第二波启动（v3.5 七步串行）

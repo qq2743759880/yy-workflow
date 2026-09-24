@@ -279,13 +279,13 @@ function checkDropAllowed() {
 function parseChangedPaths(raw) {
   const out = [];
   for (let ln of String(raw ?? '').split(/\r?\n/)) {
-    ln = ln.trim();
-    if (!ln) continue;
-    // git status --porcelain 形：XY <path>；重命名形：XY a -> b（取 b）
+    if (!ln.trim()) continue;
+    // git status --porcelain 形：XY <path>（XY 两状态字符可含空格）——须在 trim 前剥离前缀，
+    // 否则 " M path" 的前导空格被 trim 掉后前缀识别失败（2026-09-24 实测回归）。重命名形：a -> b（取 b）。
     let p = ln;
     if (/^[MADRCU?!\s]{2}\s/.test(p)) p = p.slice(3);
     if (p.includes(' -> ')) p = p.split(' -> ').pop();
-    p = p.replace(/^["']|["']$/g, '').trim();
+    p = p.trim().replace(/^["']|["']$/g, '');
     if (p) out.push(p.replace(/\\/g, '/'));
   }
   return out;

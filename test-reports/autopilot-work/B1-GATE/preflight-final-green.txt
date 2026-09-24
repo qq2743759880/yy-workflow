@@ -1,0 +1,12 @@
+# preflight（v3 批 1 静态不变量预检：零 LLM / 零网络 / 确定性）
+PASS  P1 语法门 (node --check)  — 84 个 .mjs 全过编译器级预检
+PASS  P2 导出查重（跨模块同名）  — 无新增同名导出冲突（存量 legacy 登记 WARN: main(8), ERROR_CODES(7), run(12), name(5), CANDIDATE_INVALID(2), EXIT(2), JOURNEY_SCHEMA(2), GATE_VOCAB(3), STEPS(3), STATE(2), TRANSITIONS(3), STATE_VERSION(2), formatApprovalEvidence(2)）
+  WARN P2 存量同名导出 13 组（LEGACY_DUP_EXPORTS 登记，非阻断）：main(8), ERROR_CODES(7), run(12), name(5), CANDIDATE_INVALID(2), EXIT(2), JOURNEY_SCHEMA(2), GATE_VOCAB(3), STEPS(3), STATE(2), TRANSITIONS(3), STATE_VERSION(2), formatApprovalEvidence(2)
+PASS  P3 ADAPTERS 一致性  — 注册 6 个 adapter（implementation, dev-backend, be-implementer, sdlc, be-validator, portman），映射路径与资产名全部有效
+PASS  P4 CLUSTERS ↔ 磁盘  — 16 资产 vendor/<name>/ 文档齐全（唯一事实源 scripts/lib/matrix.mjs；AS-1 drop 后随 candidates 收缩自动通过）
+PASS  P5 buildManifest 单源  — 唯一写方 scripts/manifest-build.mjs ✓（命中 0 处合法写调用）
+PASS  P6 DROP_ALLOWED 断言  — 扫描 16 行：无 drop-pending 行（当前无 drop 意图）
+PASS  P7 change-lock 核查  — active 锁 0/0，--changed 0 条改动路径 0 冲突
+
+结果: 7 PASS / 0 FAIL / 0 SKIP
+preflight 通过。

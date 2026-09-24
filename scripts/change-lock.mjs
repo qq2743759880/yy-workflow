@@ -107,11 +107,13 @@ function main() {
       return;
     }
     const entry = { file, owner, task: owner, locked: nowIso, reason, expires };
+    const prevOwner = existing ? existing.owner : null; // 覆写前捕获（Object.assign 原地改写会污染提示）
+    const prevExpires = existing ? existing.expires : null;
     const expiredTakeover = existing && !isActive(existing, now) && existing.owner !== owner;
     if (existing) Object.assign(existing, entry, { file }); // 同 owner 续期 或 过期锁自动夺取（覆写五字段）
     else locks.push(entry);
     writeLocks(locks);
-    ok(`acquired '${file}' owner=${owner} ttl=${ttlMin}min expires=${expires}` + (expiredTakeover ? `（原锁 owner=${existing.owner} 已于 ${existing.expires} 过期，自动可抢——本条为夺取）` : ''));
+    ok(`acquired '${file}' owner=${owner} ttl=${ttlMin}min expires=${expires}` + (expiredTakeover ? `（原锁 owner=${prevOwner} 已于 ${prevExpires} 过期，自动可抢——本条为夺取）` : ''));
     return;
   }
 
