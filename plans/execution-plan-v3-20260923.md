@@ -174,3 +174,15 @@
 ### 重申两条（与既往裁定一致，无新行动）
 - superpowers 四技能推荐第三次出现（AS-0/五轮/六轮审计全同）——仍待 Owner 圈选，审计共识不构成圈选
 - D-REG1-1 维持 Experimental（=已登记的临时态），观察 override 比例/false-block 比例后再定永久策略
+
+## v3.6 修订（2026-09-23，第七轮审计采纳）
+
+1. **Playbook 结构定型：证据要求表 + 操作指南，非第二状态机**——契约状态机唯一权威，Playbook 按"进入某状态需要哪些证据"组织（evidence_required per state）。与 v3.5 拦下的第二状态机提案同源，此轮给出正确合并形态
+2. **Manifest 反垃圾场原则（长期架构原则）**：manifest 只答三问——是什么（capability）/何时考虑（when_to_use）/为什么信（verification）；永不容纳 prompt/workflow/execution/runtime state/history。作为规范措辞并入 manifest-build 头注释与 migration contract
+3. **Evidence Contract 增 forbidden_difference**：accepted_difference（rule_name_changed/severity_mapping_changed/message_changed）之外，必须显式列**禁止差异**（missing_detection/crash/invalid_exit_code）——这些无论新旧引擎一律判失败
+4. **迁移验证三场景**：正常路径（bad-openapi 发现问题）/ Failure Injection（binary missing→回滚）/ **输出格式异常→receipt failure**（第三条为新增，防"替换成功但证据通道坏了"的静默态）
+5. superpowers 优先级序（第四次收敛）：verification-before-completion > systematic-debugging（Failure→Evolution）> test-driven-development（Invariant）> writing-plans（增强非补洞）；receiving-code-review 暂缓——**仍待 Owner 圈选**
+6. D-REG1-1 指标增补第三项：blocked_task_success_rate（被阻断任务事后证明是否真缺研究依据）
+7. 批 1 成功定义的完整链命名：Detect→Migrate→Verify→Rollback→Promote→Learn
+
+执行注记：1/2/3 落点=asset-migration contract 增补（B1-GATE L2 后）+ AS-2-first 派单；AV-3 派单已符合第 4 条最小版（无 ranking）——运行中不改单。
