@@ -75,3 +75,7 @@
 - 【校准】F-002/004 SUSPECTED（migration runtime/写面强制未实现）：正确，但就是批 1 待跑事项，非方案缺陷
 | B1-GATE0 | PASS | agent_33ca25a4 | orchestrator-L2(结构亲验) | 2026-09-24T08:50:00Z | test-reports/asset-eval-20260923/asset-baseline-before.json（16 行迁移前快照，manifest_hash=null 忠实记录） |
 - 三源交叉零偏差（CLUSTERS/ADAPTERS/EA-1）；字段名与派单一致；after 对照由编排者在首批 replace 后另行生成
+| AS-0 | PASS | agent_c14ac3c3 | orchestrator-L2(结论审读) | 2026-09-24T09:10:00Z | test-reports/asset-eval-20260923/LICENSES.md（五源核查+superpowers 选品材料） |
+- 【关键发现】npm `semgrep` 是 ISC 占位假包（v0.0.1）——security replace 施工必须走 pip，禁 npm install semgrep（已写进 AS-2 前置约束）
+- task-master：templates 受 Commons-Clause 约束但仅剥夺 Sell 权，vendor 合法（携完整声明、不 Sell）；spec-kit MIT；skill-scanner Apache-2.0（API NOASSERTION 系误报）；Spectral Apache-2.0 本机实测安装成功
+- superpowers 推荐短名单（Owner 圈选中）：test-driven-development / systematic-debugging / writing-plans / verification-before-completion，备选 receiving-code-review
