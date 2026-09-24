@@ -1,0 +1,12 @@
+# sidecar：be-resilience（AV-2 批 1）——三字段方法论内容我方署责任，vendor 文件一字不改。
+# 内容依据：vendor/be-resilience/be-resilience.md 头部结构化区 + EA-1 BASELINE.md 消费语义。
+id: be-resilience
+when_to_use:
+  - 后端需要韧性模式：熔断、指数退避重试、超时、优雅降级、健康检查、舱壁隔离（vendor 首段：对易抖动上游服务与 LLM provider API 尤其关键）
+when_not_to_use:
+  - 无外部调用/依赖的本地脚本或纯计算任务
+  - 上游稳定且已有宿主框架级重试机制、无需应用层韧性的简单 CRUD
+verification: 产物含韧性模式实现/文档（withRetry/withCircuitBreaker/Bulkhead 或 opossum 模式）；执行内核按 vendor 头部——真调 `node $SKILL_DIR/scripts/resilience-check.mjs`（cockatiel 退避重试+熔断、polly-js 等待重试真实执行），probe npm ls cockatiel polly 后按需选用，缺失降级内置实现并诚实标注；S3 marker+消费锚点机验
+source: vendor/be-resilience/be-resilience.md#L1-L5
+drop_pending: false
+drop_allowed: false

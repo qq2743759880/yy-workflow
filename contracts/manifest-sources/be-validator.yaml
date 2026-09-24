@@ -1,0 +1,13 @@
+# sidecar：be-validator（AV-2 批 1）——三字段方法论内容我方署责任，vendor 文件一字不改。
+# 内容依据：vendor/be-validator/be-validator.md 头部结构化区（L205 起 Execution kernel=portman/contracteer）+ EA-1 BASELINE.md 消费语义。
+id: be-validator
+when_to_use:
+  - 需要设计请求/响应 Zod schema、自动生成 OpenAPI 3.1 规格、统一 RFC 9457 错误响应
+  - 需要输入消毒（XSS 防护、SQL 注入防护、payload 体积限制）与后端契约验收
+when_not_to_use:
+  - 无后端接口面的纯静态页面/文档任务
+  - 接口契约尚未定义（先 be-architect 出契约，再做校验落地）
+verification: 产物含 Zod schema、OpenAPI 生成物、RFC 9457 错误 schema 与质量清单（vendor L190 Quality Checklist）；执行内核按 vendor L205 Execution kernel（portman/contracteer 对标）——专用 adapter 真实执行，regression S3 保留 OpenAPI/contract marker；消费锚点+内核词 D-1 机验
+source: vendor/be-validator/be-validator.md#L1-L5
+drop_pending: false
+drop_allowed: false

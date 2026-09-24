@@ -79,3 +79,6 @@
 - 【关键发现】npm `semgrep` 是 ISC 占位假包（v0.0.1）——security replace 施工必须走 pip，禁 npm install semgrep（已写进 AS-2 前置约束）
 - task-master：templates 受 Commons-Clause 约束但仅剥夺 Sell 权，vendor 合法（携完整声明、不 Sell）；spec-kit MIT；skill-scanner Apache-2.0（API NOASSERTION 系误报）；Spectral Apache-2.0 本机实测安装成功
 - superpowers 推荐短名单（Owner 圈选中）：test-driven-development / systematic-debugging / writing-plans / verification-before-completion，备选 receiving-code-review
+| AV-2 | PASS | agent_2f232a6a | orchestrator-L2(hash 亲验：重跑构建两次字节一致) | 2026-09-24T09:30:00Z | scripts/manifest-build.mjs（唯一构建器）; contracts/manifest-sources/×16; contracts/asset-manifest-v2.json（16 行，hash f770140c…）; test-reports/autopilot-work/AV-2/RESULTS.md |
+- 产物 hash 绑定材料就绪（Gate-2）；fail-closed 探针 ×4 具名拒绝亲核；B1-GATE 的 preflight P5/P6 已实证消费本产物（单源+旗标扫描）——两单接口对齐
+- D-AV2-1（转 L2 裁定）：cluster 多簇数组按 CLUSTERS 权威重算 vs AV-1 冻结表单值暂记——裁定：以 CLUSTERS 为权威，AV-1 冻结表 Owner 签收时同步修正（该表 receipt 本就 PENDING 草稿态）

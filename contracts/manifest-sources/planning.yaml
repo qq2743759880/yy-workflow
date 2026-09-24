@@ -1,0 +1,12 @@
+# sidecar：planning（AV-2 批 1）——三字段方法论内容我方署责任，vendor 文件一字不改。
+# 内容依据：vendor/planning/SKILL.md 头部结构化区（四确认关卡）+ EA-1 BASELINE.md 消费语义（零现）。
+id: planning
+when_to_use:
+  - 需要正式 PRD 供团队评审（reference/formal-prd.md：产品上下文/目标/用户/功能/优先级/验收/风险）
+  - 需要 Vibe Coding PRD（四确认关卡顺序过：需求定义→功能优先级→技术栈→原型，禁跳门）
+when_not_to_use:
+  - 已有 dev-planner handoff spec、无需 PRD 级评审的小步任务（EA-1：BW 规划由 dev-planner 承担，本资产零现——宁窄勿编）
+verification: 产物为 formal-prd 或 vibe-prd 文档，四确认关卡逐门留痕（未过前门不得进后门）；执行内核按 vendor 头部（MetaGPT/crewAI 对标）——probe 可用则参考，缺失用内置流程并诚实标注；S3 marker（MetaGPT/crewAI）+消费锚点机验
+source: vendor/planning/SKILL.md#L1-L5
+drop_pending: false
+drop_allowed: false

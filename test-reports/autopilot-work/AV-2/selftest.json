@@ -1,0 +1,59 @@
+{
+  "date": "2026-09-24T08:57:00.732Z",
+  "product": "contracts/asset-manifest-v2.json",
+  "rows": 16,
+  "sha256": "f770140ca4bc0e458a7eaa74b21a3956e45e34112a1c24132337a27e849a3360",
+  "results": [
+    {
+      "name": "T1 构建产物 16/16 行",
+      "ok": true,
+      "detail": "rows=16"
+    },
+    {
+      "name": "T2 逐行 drop 旗标显式布尔 false 起步",
+      "ok": true,
+      "detail": "drop_pending=false, drop_allowed=false ×16（字段名与 B1-GATE 派单一致）"
+    },
+    {
+      "name": "T3 schema 必填字段齐全（asset-manifest-v2@1.0.0 九字段）",
+      "ok": true,
+      "detail": "ids=agent-research,agent-vision-toolkit,be-architect,be-provider,be-resilience,be-validator,colorize,dev-planner,frontend-design,frontend-visual-validation,implementation,planning,review,sdlc,security,skill-sentinel"
+    },
+    {
+      "name": "T4 asset.mjs readManifest() 读产物全字段通过",
+      "ok": true,
+      "detail": "CANDIDATE_INVALID 校验通过 16 行"
+    },
+    {
+      "name": "T5 asset.mjs readManifestEntries() 读 {entries} 口径通过",
+      "ok": true,
+      "detail": "16 行"
+    },
+    {
+      "name": "T6 单源确定性（同输入重跑字节一致）",
+      "ok": true,
+      "detail": "sha256=f770140ca4bc0e458a7eaa74b21a3956e45e34112a1c24132337a27e849a3360"
+    },
+    {
+      "name": "T-P1-缺字段 fail-closed",
+      "ok": true,
+      "detail": "CANDIDATE_INVALID sidecar security.yaml: 必填字段缺失或为空 \"verification\"（fail-closed CANDIDATE_INVALID）"
+    },
+    {
+      "name": "T-P2-source路径不存在 fail-closed",
+      "ok": true,
+      "detail": "CANDIDATE_INVALID sidecar review.yaml: source 路径不存在或不可读: vendor/review/NOT-EXIST.md（ENOENT）"
+    },
+    {
+      "name": "T-P3-drop非显式布尔 fail-closed",
+      "ok": true,
+      "detail": "CANDIDATE_INVALID sidecar planning.yaml: \"drop_allowed\" 必须为显式布尔字面量 true/false，实得 \"no\""
+    },
+    {
+      "name": "T-P4-缺整个sidecar fail-closed",
+      "ok": true,
+      "detail": "CANDIDATE_INVALID 资产 sdlc: 缺 sidecar contracts/manifest-sources/sdlc.yaml（fail-closed，禁止无源进 manifest）"
+    }
+  ],
+  "verdict": "ALL PASS"
+}

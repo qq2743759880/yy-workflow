@@ -1,0 +1,12 @@
+# sidecar：security（AV-2 批 1）——三字段方法论内容我方署责任，vendor 文件一字不改。
+# 内容依据：vendor/security/SKILL.md 头部结构化区 + EA-1 BASELINE.md 消费语义。
+id: security
+when_to_use:
+  - 安全审计三阶段：audit 发现与定级 → harden（错误处理/i18n/溢出/边界/降级）→ backend specialist 核查（auth、注入、敏感数据、密钥、依赖、CORS、CSRF、SSRF）
+when_not_to_use:
+  - 无代码产物的纯调研/规划任务
+  - 作为功能实现主链路（security 是横切审查资产，不承担常规功能实现）
+verification: 产物含审计发现清单（含严重级）；执行内核=semgrep+gitleaks 真扫：`node $SKILL_DIR/scripts/security-scan.mjs <目标目录>` 输出发现并 exit 1（有发现）；probe `semgrep --version`/`gitleaks --version`，工具缺失则在 audit 产物明确标注「SAST/密钥扫描未执行（工具缺失）」，不假报无高危
+source: vendor/security/SKILL.md#L1-L5
+drop_pending: false
+drop_allowed: false

@@ -18,6 +18,11 @@
  *   S12 kickoff 漂移门（C-26）     —— kickoff-drift-check：kickoff 五簇资产清单 vs matrix.mjs CLUSTERS 双向 diff，静默漂移 → FAIL 具名
  *   S13 junction 部署形态 smoke    —— junction 在场 → 真实执行 4 入口探针（复用 test-reports/fix-20260921/junction-smoke.mjs）；缺失 → SKIP（不进 PASS/FAIL，exit 0）
  *                                    探测路径可被环境变量 TT_JUNCTION_PROBE_PATH 覆盖（HARD-1 无 junction 模拟手段，生产勿设）。
+ *   S14 preflight invariants      —— preflight.mjs（v3 批 1 B1-GATE）：语法门/导出查重/ADAPTERS 一致性/
+ *                                    CLUSTERS↔磁盘/buildManifest 单源/DROP_ALLOWED/change-lock 核查，
+ *                                    任一 FAIL 即 regression FAIL（详见 scripts/preflight.mjs 头注）。
+ *   S15 migration invariants      —— 占位（B1-GATE 预埋）：迁移不变量段，AS-1 drop 执行时填充
+ *                                    （EXPLICIT_COMPAT_MODE 门 / drop 资产 import 零命中 / manifest 驱动路由断言）。
  *
  * 注：S4-S6 在临时 workspace 中运行（os.tmpdir），结束后清理，不污染仓库。
  *
@@ -223,6 +228,21 @@ async function main() {
   } else {
     section('S13 junction 部署形态 smoke', s13.fail === 0 && s13.pass > 0, s13.pass + '/' + (s13.pass + s13.fail) + ' 内部探针 PASS');
   }
+
+  // S14 preflight invariants（v3 批 1 B1-GATE）：scripts/preflight.mjs 全静态预检——
+  // 语法门（blindqueue 重复声明教训：文件坏了 self-test 跑不起来，只有编译器级预检能抓）/
+  // 跨模块导出查重 / ADAPTERS 注册一致性 / CLUSTERS↔磁盘 / buildManifest 单源 /
+  // DROP_ALLOWED 断言（manifest 产物缺失时内部 SKIP，不 FAIL）/ change-lock 核查。
+  // FAIL 即 regression FAIL；manifest 产物在场后 P6 自动生效（不用改本段）。
+  const s14 = await run(process.execPath, ['scripts/preflight.mjs', '--owner', 'regression-all']);
+  console.log(s14.out.trimEnd());
+  section('S14 preflight invariants', s14.ok, s14.ok ? '7 项静态不变量全过' : 'exit=' + s14.code + '（具名 FAILED 见上方 preflight 输出）');
+
+  // S15 migration invariants（占位，B1-GATE 预埋）：迁移不变量段——AS-1 drop 执行时填充：
+  // ①EXPLICIT_COMPAT_MODE 门（v3.2：旧 loader 调用须显式旗标+留痕，禁静默并存）
+  // ②drop 资产 import/引用 0 命中 ③manifest 驱动路由断言 ④旧 adapter 不可达。
+  // 填充时本注释整段替换为真实断言（参照 S14 的 run() 模式）；此前不参与 PASS/FAIL 计数。
+  console.log('S15 migration invariants（占位）：AS-1 drop 执行时填充（EXPLICIT_COMPAT_MODE 门 / import 零命中 / manifest 路由断言 / 旧 adapter 不可达）');
 
   console.log('\n结果: ' + pass + ' PASS / ' + fail + ' FAIL' + (skip ? ' / ' + skip + ' SKIP' : ''));
   if (failures.length) { for (const f of failures) console.log('  FAILED: ' + f); process.exitCode = 1; }

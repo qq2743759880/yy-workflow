@@ -1,0 +1,13 @@
+# sidecar：be-architect（AV-2 批 1）——三字段方法论内容我方署责任，vendor 文件一字不改。
+# 内容依据：vendor/be-architect/be-architect.md 头部结构化区 + test-reports/asset-eval-20260923/BASELINE.md 消费语义。
+id: be-architect
+when_to_use:
+  - 任务需要设计 Node.js Hono/Express 后端 API：RESTful 资源建模、路由结构、中间件分层（Auth→Validation→Rate Limit→Error→Logging）
+  - 任务需要先产出接口/错误契约供下游冻结（RFC 9457 Problem Details 错误策略、每端点 OpenAPI 自动生成）
+when_not_to_use:
+  - 任务不涉及后端 API 设计（纯前端、运维、文档类）
+  - 接口契约已冻结、仅需落地代码（走 implementation，不重复做架构设计）
+verification: 产物为架构/契约文档：路由结构、中间件分层、错误策略（RFC 9457）章节齐全；执行内核按 vendor 头部声明——probe csalvato/system-design-template 可用则参考其阶段化模板，缺失则用内置 Hono/Express 分层约定并诚实标注降级（不假报已用外部模板）；消费侧走 S8 锚点+内核词机验（assetConsumed=true，D-1）
+source: vendor/be-architect/be-architect.md#L1-L5
+drop_pending: false
+drop_allowed: false

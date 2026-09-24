@@ -43,8 +43,7 @@
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { CLUSTERS } from './lib/matrix.mjs';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 import { ASSET_WHITELIST } from './lib/evolution.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -62,6 +61,10 @@ const LEGACY_DUP_EXPORTS = new Set([
   // EXIT：lib/errors.mjs export const EXIT vs lib/orchestrator.mjs export { EXIT }（本地 const 重导出）；
   // 唯一跨模块具名消费者 scripts/orchestrator.mjs 只 import 自 lib/errors.mjs，无冲突实证（2026-09-24 实测）。
   'EXIT',
+  // CANDIDATE_INVALID：lib/asset.mjs 与 manifest-build.mjs（AV-2）各自 export const 且值完全等同
+  // （'CANDIDATE_INVALID' 哨兵码，项目错误码惯例同 ERROR_CODES 逐模块声明），具名 import 无运行时冲突。
+  // preflight 上线当日即抓到该新增同名导出（2026-09-24），按值等同哨兵码归 legacy 登记（D-偏差 D-1）。
+  'CANDIDATE_INVALID',
 ]);
 
 const results = [];
@@ -143,9 +146,9 @@ function checkDupExports(files) {
 // ---------------------------------------------------------------------------
 // P3 ADAPTERS 一致性
 // ---------------------------------------------------------------------------
-function checkAdapters(adaptersFile, clustersFile) {
+function checkAdapters(adaptersFile, clusters) {
   const known = new Set(ASSET_WHITELIST);
-  for (const c of CLUSTERS) for (const a of c.candidates) known.add(a);
+  for (const c of clusters) for (const a of c.candidates) known.add(a);
   // runtime.mjs 能力映射 case 集 = 执行内核别名（dev-backend/be-implementer/portman…）
   const runtimeFile = path.join(SCRIPTS_DIR, 'lib', 'runtime.mjs');
   if (fs.existsSync(runtimeFile)) {
@@ -177,19 +180,17 @@ function checkAdapters(adaptersFile, clustersFile) {
   if (registered.length === 0) problems.push('ADAPTER_REGISTRY_EMPTY: index.mjs 无任何 ADAPTERS.set 注册（注册表意外为空）');
   if (problems.length) record('P3', 'ADAPTERS 一致性', 'FAIL', problems.join('; '));
   else record('P3', 'ADAPTERS 一致性', 'PASS', `注册 ${registered.length} 个 adapter（${registered.join(', ')}），映射路径与资产名全部有效`);
-  // clustersFile 仅用于 P4；此处形参占位保持签名一致
-  void clustersFile;
 }
 
 // ---------------------------------------------------------------------------
 // P4 CLUSTERS ↔ 磁盘
 // ---------------------------------------------------------------------------
-function checkClustersOnDisk(clustersFile) {
+function checkClustersOnDisk(clusters, clustersFile) {
   const rel = path.relative(ROOT, clustersFile).replace(/\\/g, '/');
   const missing = [];
   let total = 0;
   const seen = new Set();
-  for (const c of CLUSTERS) {
+  for (const c of clusters) {
     for (const name of c.candidates) {
       if (seen.has(name)) continue;
       seen.add(name);
@@ -327,7 +328,7 @@ function argValue(argv, flag, fallback) {
   return i >= 0 && i + 1 < argv.length ? argv[i + 1] : fallback;
 }
 
-function main() {
+async function main() {
   const argv = process.argv.slice(2);
   const changedRaw = argValue(argv, '--changed', '');
   const currentOwner = argValue(argv, '--owner', process.env.TT_TASK ?? 'unknown');
@@ -335,11 +336,22 @@ function main() {
   const clustersFile = path.resolve(ROOT, argValue(argv, '--clusters-file', 'scripts/lib/matrix.mjs'));
 
   console.log('# preflight（v3 批 1 静态不变量预检：零 LLM / 零网络 / 确定性）');
+  let clusters = null;
+  try {
+    // 动态加载 clusters 事实源（默认 scripts/lib/matrix.mjs 的 CLUSTERS；--clusters-file 供探针注入复现）
+    const mod = await import(pathToFileURL(clustersFile).href);
+    clusters = mod.CLUSTERS ?? null;
+  } catch { clusters = null; }
+  if (!Array.isArray(clusters)) {
+    record('P0', 'clusters 事实源加载', 'FAIL', `CLUSTERS_SOURCE_INVALID: ${path.relative(ROOT, clustersFile).replace(/\\/g, '/')} 不可加载或未导出 CLUSTERS 数组`);
+    process.exitCode = 1;
+    return;
+  }
   const files = listScriptsMjs();
   checkSyntax(files);            // P1
   checkDupExports(files);        // P2
-  checkAdapters(adaptersFile, clustersFile); // P3
-  checkClustersOnDisk(clustersFile); // P4
+  checkAdapters(adaptersFile, clusters); // P3
+  checkClustersOnDisk(clusters, clustersFile); // P4
   checkManifestSingleSource();   // P5
   checkDropAllowed();            // P6
   checkChangeLock(changedRaw, currentOwner); // P7

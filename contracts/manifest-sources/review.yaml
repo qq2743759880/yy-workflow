@@ -1,0 +1,13 @@
+# sidecar：review（AV-2 批 1）——三字段方法论内容我方署责任，vendor 文件一字不改。
+# 内容依据：vendor/review/SKILL.md 头部结构化区 + EA-1 BASELINE.md 消费语义。
+id: review
+when_to_use:
+  - 对已有产出做 critique：发现 UX/架构/质量问题（reference/critique.md）
+  - 需要对发现做自动化验证（nested testing agent 产出可复现证据）与 polish（最小安全改动，YAGNI 纪律）
+when_not_to_use:
+  - 还没有可评审对象（产出未存在，先实现后评审）
+  - 超出任务范围的大改/重构（polish 纪律：不做不服务任务的工作）
+verification: 产物为评审 finding 清单，每条含证据与可复现步骤（agents/be-tester.md 验证记录）；执行内核按 vendor 头部（qodo-ai/pr-agent 行级批注 + continuedev/continue 规则即代码）——probe 可用则接入，缺失降级内置 critique.md+be-tester.md 流程并诚实标注；消费锚点+内核词机验
+source: vendor/review/SKILL.md#L1-L5
+drop_pending: false
+drop_allowed: false

@@ -1,0 +1,12 @@
+# sidecar：colorize（AV-2 批 1）——三字段方法论内容我方署责任，vendor 文件一字不改。
+# 内容依据：vendor/colorize/SKILL.md 头部结构化区（MANDATORY PREPARATION）+ EA-1 BASELINE.md 消费语义（零调用）。
+id: colorize
+when_to_use:
+  - 设计过于单色/灰白/缺乏视觉温度与个性时，策略性引入颜色（frontmatter：Add strategic color to features that are too monochromatic or lack visual interest）
+when_not_to_use:
+  - 已有品牌色体系与清晰视觉层次的设计（无色彩机会可 Assess）
+  - 作为前端实现必经主步骤（EA-1 实测真实项目零调用、计划 §六点名防「colorize 覆辙」——仅点状增强场景启用）
+verification: 产前须完成 MANDATORY PREPARATION：目标受众/用途/品牌个性/已有品牌色上下文收集，无法确证即 AskUserQuestion 澄清（禁猜测出 AI slop 色）；先执行 frontend-design skill 的 DO/DON'T 再动手；产物含配色决策依据
+source: vendor/colorize/SKILL.md#L1-L10
+drop_pending: false
+drop_allowed: false

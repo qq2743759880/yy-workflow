@@ -1,0 +1,13 @@
+# sidecar：skill-sentinel（AV-2 批 1）——三字段方法论内容我方署责任，vendor 文件一字不改。
+# 内容依据：vendor/skill-sentinel/SKILL.md 头部结构化区（用途/P2 诚实标注）+ EA-1 BASELINE.md 消费语义。
+id: skill-sentinel
+when_to_use:
+  - 插件市场/社区资产上线前安全审查：扫描 SKILL.md 恶意模式（prompt injection、凭据泄露、C2 基础设施）
+  - 安装第三方 skill 前的强制扫描（20+ 检测模式威胁情报库）
+when_not_to_use:
+  - 对非 skill 包（普通代码库/服务端）的安全扫描（走 security 资产）
+  - vendor 头部 P2 诚实标注：本机自带工具（analyze-skill.sh/python -m skill_sentinel）未实际部署——probe 不过时仅作声明层引用，不得伪报已扫描
+verification: 执行口径按 vendor 头部：probe `python -m skill_sentinel --help` 可用则扫描目标 skill 目录并出报告；不可用→明确标注「扫描未执行（工具未部署）」，不假报通过；对标升级候选 NVIDIA/SkillSpector（SARIF 输出为迁移目标）；S3 marker（SkillSpector/skill_sentinel）+消费锚点机验
+source: vendor/skill-sentinel/SKILL.md#L1-L5
+drop_pending: false
+drop_allowed: false
