@@ -1,0 +1,32 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Pets API (AS-2-first shadow fixture)",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/pets": {
+      "get": {
+        "description": "List pets. Missing operationId and no 2xx response (deterministic violations).",
+        "tags": [
+          "pets"
+        ],
+        "responses": {
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/pets/{petId}": {
+      "get": {
+        "description": "Get one pet. Path parameter petId is not declared (deterministic violation).",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  }
+}

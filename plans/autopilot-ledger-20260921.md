@@ -90,3 +90,5 @@
 - Gate-2 实测：dispatch 日志 manifest_sha256 == f770140c…（AV-2 产物 hash 亲算一致）；不一致路径软门记账
 - D-AV3-2（转 AS-2 裁定）：资格门 skipped 后 runGroup 置 done 与 EX-1 形态一致——诚实性由 mode/error/warnings 承载；硬门化（改为 blocked）随首个 replace 晋升裁定
 - 第二波 Step1 收口；Step2-5（be-validator→Spectral 迁移范例）派发
+- 第七位审计裁定（superpowers 专项）：F-001 成立——五态显式区分（recommended≠selected≠vendored≠registered≠bound）登记为状态卫生纪律；"文化规范 vs 系统资产"判据采纳（现态=文化规范+候选资产，圈选后才资产化）；Owner 圈选时将生成机器可读 selection manifest（skill/commit hash/Owner 署名/绑定阶段）为正式批准记录；编排者独立边际价值修正：writing-plans 与 TK-1 task v2 七字段高度重叠，四者中边际价值最低（可选缓选），其余三者（verification-before-completion/systematic-debugging/test-driven-development）为真补洞
+- 圈选材料：test-reports/asset-eval-20260923/LICENSES.md §6（15 清单+短名单+不推荐理由）；绑定期望建议=按 journey 阶段消费（cluster 留空/全簇），Owner 圈选时可一并表态
