@@ -148,3 +148,12 @@
 | 执行顺序：AS-0 → Baseline Freeze → Preflight → Change Lock → Manifest Qualification → 单 replace 影子跑 → Runtime Binding 验证 → 复制 | **adopt** | 替换原批 1 顺序 |
 
 **编排者补充的风险（审计未提）**：Gate-0..5 + v3.2 三硬门=首个 replace 背了九道门。合理性在于批 1 的目标本来就是**造边界机器**（第一个 replace 是验收载体），机器成本摊给后续三次 replace 和未来 evolution；但必须显式声明：**全量门只压第一个 replace，复制的三个走同一机器、证据负担机械化为wizard式清单**——否则批 1 会变成"门的自嗨"，四个 replace 全量走完九道门是浪费。
+
+## v3.4 修订（2026-09-23，第五轮审计采纳）
+
+1. asset-migration contract 增补 **provider identity verification** 三件套（official source / install 通道 / runtime_test 如 --version）——semgrep npm 假包教训沉淀为永久检查项（B1-GATE L2 收口时增补）
+2. AV-3 输出形态升级：`{selected_asset, eligible, reason[]}` 可审计资格判定；`required_capability` 计划输入维持批 2 边界（v3.2 裁定不变）
+3. 首个 replace 夹具具体化：fixtures/bad-openapi.yaml + expected-findings.json（证据对比机械化：finding 数/severity/exit code）+ migration-record.json 显式含 rollback_adapter，影子跑前验证回滚路径存在
+4. 批 1 交付物增列 **Asset Migration Playbook v1**（plans/asset-migration-playbook.md）：首个 replace 全门栈蒸馏成模板，其余三个 replace 按 playbook 执行并反向校验其完备性——"playbook 比 4 个替换值钱"
+5. superpowers 圈选维持挂起（审计者背书≠Owner 圈选；其论证附圈选单旁供参考）
+6. 措辞校准：Migration Framework 机器就位 ≠ 已验证；证明点 = be-validator 一仗
