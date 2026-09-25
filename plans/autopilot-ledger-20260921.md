@@ -172,3 +172,7 @@
 - 【AS-1 L2 抓漏】S15-A4 复跑 FAIL：vendor/be-architect 未删（7 删 6 漏 1）——S15 设计目标（抓不完整 drop）首次实战即命中。编排者补删复验：A4 PASS + 回归 20/20 + preflight 全绿
 | AS-1 | PASS | agent_1376fcdd | orchestrator-L2(S15 复跑抓漏 vendor/be-architect 补删后 20/20) | 2026-09-25T18:00:00Z | SKILL.md 指针表-7 行; scripts/lib/matrix.mjs; scripts/validate-structure.mjs（16→9）; scripts/regression-all.mjs（S15 段）; webview/journey/content.js 重建; 7 张 drop change 单; contracts/manifest-sources/ 收缩; vendor/ 7 目录（+补删 1） |
 - 资产注册表 16→9；S15 四断言+两模式断言全绿；manifest hash c30fee6b 三方一致
+| AS-2-review | ADAPT（NO INSTALL） | agent_a3fe6832 | orchestrator-L2(零写面核验+裁定登记) | 2026-09-25T18:20:00Z | test-reports/autopilot-work/AS-2-review/adaptation-adjudication.md; step2-no-install-record.md |
+- 裁定：review 保留 prompt-backend（选项 1=现状保持零风险），bugbot 宿主绑定文档化（选项 2 草案在案），CodeRabbit CLI 生态缺位登记为再评估触发器——**待 Owner 终验确认**；NO INSTALL 门首次实战拦截假接入
+| FINAL-E2E@HEAD | PASS | orchestrator | drop+接线后当前 HEAD 复跑：真实 buildPlan 主链 verdict=PASS（security-result 落盘 4159B） | — |
+- 【批 1 终验·主链】drop 7（注册表 16→9）+ 治理接线后 FINAL-E2E 复跑 PASS——S15-A1 清扫后的 9 资产活面上全链成立
