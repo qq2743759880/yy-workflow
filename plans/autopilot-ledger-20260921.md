@@ -195,3 +195,26 @@
 - D-3-RESIDUAL 关账；残留面清理完毕
 | PB-WRITEBACK | PASS | agent_eee0f094 | orchestrator-L2(交付物核对) | 2026-09-25T20:00:00Z | plans/asset-migration-playbook.md（v1→v1.1：四条实战经验落位+出处）|
 - Playbook v1.1 四经验落位（同名撞车/NO INSTALL 产出物清单/夹具归档/双夹具标准）+交叉核对矩阵；PB-WRITEBACK 关账
+
+## 批 1 终验收口报告（措辞降级版，2026-09-25）
+
+**结论：批 1 基础迁移闭环 CONFIRMED（十三轮审计确认核心五项）；"完全终验收口"= PARTIALLY CONFIRMED（HARDEN-1 三项已补齐后可进入 close，production agent 行为级验证属 Batch 2 范围）**
+
+### 一、已验证闭环（CONFIRMED）
+1. Runtime Replacement Boundary：receipt→transition→adapter→manifest hash→Runtime Boundary E2E（Host Mode: mechanical acceptance host）全链 9/9 断言；drop+接线后 HEAD 复跑 PASS
+2. 迁移三成功 + 一定制：be-validator→Spectral（PRIMARY）、security→semgrep（PRIMARY，真实 caller E2E 6 findings）、skill-sentinel→skill-scanner（PRIMARY，双夹具）、review=ADAPT（NO INSTALL 门实战拦截假接入）
+3. 治理机器：receipt/transition 语义（authorize_transition_request）、S14/S15/S16 十六断言（含两审计模式断言）、Playbook v1.1、audit-index
+4. 治理层：3 技能 stage 绑定注入（截断护栏 5120B）+ 失败指路，manifest 归因零增量
+
+### 二、边界声明（诚实口径）
+- FINAL-E2E 验证 runtime 执行链机制，**非** LLM 规划质量（Host Mode: mech；llm 模式 post-Owner-ruling 可选，E-4 张力在案）
+- security 真实 LLM 消费路径受 kernel 门 vs 诚实模型张力影响（E-4）——机制面已闭环，行为面待裁定
+- 真实 agent 自治闭环属 Batch 2 范围（Prompt Compiler + capability dispatch 完整形态）
+
+### 三、Owner 待决（三项）
+1. D-REG1-1 研究门断网语义追认（FAIL+override 已实现为临时态）
+2. E-4 kernel 门 vs 诚实 LLM 张力长期口径
+3. AS-2-review adapt 选项确认（选项 1 保留 prompt-backend / 2 宿主绑定文档化 / 3 再评估触发器）
+
+### 四、移交后续
+R-2 package.json 名义依赖清理；D-3 类 C 历史豁免永久保留；sentinel 多 agent 分析器 API key 接入（可选增强）
