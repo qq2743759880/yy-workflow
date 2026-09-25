@@ -1,0 +1,13 @@
+# skill-scanner.mjs adapter post-promotion 四探针（真实 adapter，双夹具 tar 解包，PROBE=/tmp/tmp.A5r87IgJQW）
+# s0 恶意夹具正常路径（expect ok=true pass=false threats=4 findings_total=5 version=2.1.0）
+{"ok":true,"error":"","pass":false,"is_safe":false,"threats":4,"findings_total":5,"analyzers_used":["static_analyzer","bytecode","pipeline","correlation"],"policy_fingerprint":"26ada30a1f502eecdbe7b7e35a3fe7a324be2298494208e1019b75e72b0bc516","tool":"skill-scanner","mode":"exec","version":"2.1.0","invalid_output":false,"degraded":false,"exit_code":0}
+# s0b 良性夹具正常路径（expect ok=true pass=true threats=0 findings_total=1 INFO accepted）
+{"ok":true,"error":"","pass":true,"is_safe":true,"threats":0,"findings_total":1,"analyzers_used":["static_analyzer","bytecode","pipeline","correlation"],"policy_fingerprint":"26ada30a1f502eecdbe7b7e35a3fe7a324be2298494208e1019b75e72b0bc516","tool":"skill-scanner","mode":"exec","version":"2.1.0","invalid_output":false,"degraded":false,"exit_code":0}
+# s2a PATH 剥离无旗标（expect ok=false SKILLSCANNER_NOT_AVAILABLE Gate-1 拒绝）
+{"ok":false,"error":"SKILLSCANNER_NOT_AVAILABLE (legacy prompt path blocked: EXPLICIT_COMPAT_MODE flag required — Gate-1 ","invalid_output":false,"degraded":false}
+# s2b1 PATH 剥离+explicitCompatMode 选项（expect prompt 回滚 compat 留痕）
+{"ok":true,"error":"","pass":null,"tool":"prompt","mode":"brief","version":"n/a (LLM-prompt backend)","compat":"EXPLICIT_COMPAT_MODE","compat_via":"skillscanner_not_available_rollback","rollback_adapter":"skill-sentinel(prompt-backend)","invalid_output":false,"degraded":false}
+# s2b2 PATH 剥离+EXPLICIT_COMPAT_MODE=1 env（expect prompt 回滚 compat 留痕）
+{"ok":true,"error":"","pass":null,"tool":"prompt","mode":"brief","version":"n/a (LLM-prompt backend)","compat":"EXPLICIT_COMPAT_MODE","compat_via":"skillscanner_not_available_rollback","rollback_adapter":"skill-sentinel(prompt-backend)","invalid_output":false,"degraded":false}
+# s3 假引擎垃圾输出+exit 0 PATH 首位（expect ok=false SKILLSCANNER_OUTPUT_INVALID invalid_output=true）
+{"ok":false,"error":"SKILLSCANNER_OUTPUT_INVALID","pass":false,"tool":"skill-scanner","mode":"exec","version":"unknown","invalid_output":true,"degraded":false}

@@ -10,7 +10,7 @@
 ## 执行步骤
 
 1. **临时 workspace 准备**：`mkdtemp` 目录，放入含已知漏洞的 .py（从 `test-reports/autopilot-work/AS-2-security/fixtures/fixture-vulnerable_app-evidence.tar.gz` 解包）+ 一个良性的 .js 文件（验证 UNCOVERED_LANGUAGES 语义）。
-2. **真实 planner 主链**：`node scripts/orchestrator.mjs --task "backend login module with security review" --backend prompt --workspace <tmpws>`（T2 簇自然语言 contract 路径——planner.mjs:46 `contract: cluster.contract` 的真实形态）。
+2. **真实 planner 主链**：`node scripts/orchestrator.mjs --task "backend login module with security review" --workspace <tmpws>（默认 auto 后端——原稿误写 --backend prompt，与 A1b auto 路由断言冲突，E-3 已修：prompt 后端无条件 PROMPT_ADAPTER 不经专用 adapter）`（T2 簇自然语言 contract 路径——planner.mjs:46 `contract: cluster.contract` 的真实形态）。
 3. **断言链（逐条机验）**：
    - security 子任务被创建且 auto 路由到 security-semgrep 专用 adapter（非 prompt 回落）；
    - 资格门过（eligible=true）+ `getRequiredCapabilities('security')=[write_files,run_cmd]` 与 executor capabilities 匹配；

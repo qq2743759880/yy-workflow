@@ -1,0 +1,60 @@
+{
+  "pass": false,
+  "diff": "semgrep violations: 3 error(s) | error:security.hardcoded-api-key@18, error:security.hardcoded-password@21, error:security.sql-injection-concat@26, warning:security.weak-hash-md5@32, warning:security.eval-usage@37, warning:security.subprocess-shell-true@43 | UNCOVERED_LANGUAGES: js（Python-only ruleset 无法认证这些目标——能力收缩登记，扩规前不认证）",
+  "checkedAt": "2026-09-25T09:31:12.069Z",
+  "tool": "semgrep",
+  "version": "1.175.0",
+  "mode": "exec",
+  "exit_code": 0,
+  "findings_total": 6,
+  "findings_summary": [
+    {
+      "rule": "security.hardcoded-api-key",
+      "severity": "error",
+      "message": "硬编码 API 密钥（API_KEY 字面量赋值）——凭据不得入库",
+      "line": 18,
+      "path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\final-e2e-8eIf8w\\vulnerable_app.py"
+    },
+    {
+      "rule": "security.hardcoded-password",
+      "severity": "error",
+      "message": "硬编码口令（password 字面量赋值）——凭据不得入库",
+      "line": 21,
+      "path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\final-e2e-8eIf8w\\vulnerable_app.py"
+    },
+    {
+      "rule": "security.sql-injection-concat",
+      "severity": "error",
+      "message": "SQL 语句由字符串拼接构造后执行——注入面",
+      "line": 26,
+      "path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\final-e2e-8eIf8w\\vulnerable_app.py"
+    },
+    {
+      "rule": "security.weak-hash-md5",
+      "severity": "warning",
+      "message": "MD5 弱哈希用于摘要——凭据/完整性场景禁用",
+      "line": 32,
+      "path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\final-e2e-8eIf8w\\vulnerable_app.py"
+    },
+    {
+      "rule": "security.eval-usage",
+      "severity": "warning",
+      "message": "eval 动态执行——不可信输入直接求值",
+      "line": 37,
+      "path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\final-e2e-8eIf8w\\vulnerable_app.py"
+    },
+    {
+      "rule": "security.subprocess-shell-true",
+      "severity": "warning",
+      "message": "subprocess 开启 shell=True——外部输入拼命令为注入面",
+      "line": 43,
+      "path": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\final-e2e-8eIf8w\\vulnerable_app.py"
+    }
+  ],
+  "scanTarget": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\final-e2e-8eIf8w",
+  "ruleset": "D:\\.ai-hub\\skills\\yy\\vendor\\security\\rulesets\\security-local-rules.yaml",
+  "uncovered_languages": [
+    "js"
+  ],
+  "scope": "real semgrep 1.175.0 scan --ruleset vendor/security/rulesets/security-local-rules.yaml against C:\\Users\\Administrator\\AppData\\Local\\Temp\\final-e2e-8eIf8w"
+}

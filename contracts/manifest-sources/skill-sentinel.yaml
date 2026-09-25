@@ -7,7 +7,7 @@ when_to_use:
 when_not_to_use:
   - 对非 skill 包（普通代码库/服务端）的安全扫描（走 security 资产）
   - vendor 头部 P2 诚实标注：本机自带工具（analyze-skill.sh/python -m skill_sentinel）未实际部署——probe 不过时仅作声明层引用，不得伪报已扫描
-verification: 执行口径按 vendor 头部：probe `python -m skill_sentinel --help` 可用则扫描目标 skill 目录并出报告；不可用→明确标注「扫描未执行（工具未部署）」，不假报通过；对标升级候选 NVIDIA/SkillSpector（SARIF 输出为迁移目标）；S3 marker（SkillSpector/skill_sentinel）+消费锚点机验
+verification: 执行口径（AS-2-sentinel 晋升，cr-20260925T150000Z SIGNED）：主路径=专用 adapter（scripts/lib/adapters/skill-scanner.mjs，spawn skill-scanner scan --format json）；provider identity 三件套：official_source=github:cisco-ai-defense/skill-scanner / install=pip install cisco-ai-skill-scanner（PyPI skill-scanner 0.3.3 MIT 为同名撞车假目标禁装）/ runtime_test=skill-scanner --version 期望 2.1.0；旧 prompt-backend 路径保留于 EXPLICIT_COMPAT_MODE 显式旗标后（Gate-1 回滚路径，禁静默并存）；vendor 头部自带工具（python -m skill_sentinel）仍按 P2 诚实标注未部署不假报；S3 marker（SkillSpector/skill_sentinel）+消费锚点机验
 source: vendor/skill-sentinel/SKILL.md#L1-L5
 drop_pending: false
 drop_allowed: false

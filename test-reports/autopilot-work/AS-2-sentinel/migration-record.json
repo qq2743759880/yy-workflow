@@ -3,7 +3,7 @@
  "dispatch": "handoffs/v3/AS-2-sentinel-dispatch.md",
  "contract": "contracts/asset-migration.md (asset-migration@1.0.0)",
  "playbook": "plans/asset-migration-playbook.md §六 wizard（复制单 #2，逐项勾选见 RESULTS.md）",
- "status_note": "★ 晋升 HOLD（2026-09-25 编排者指令，第十审计 F-001 治理矛盾处置）：PRIMARY 晋升与 change.record 单暂缓——asset-migration contract Owner 签收位 PENDING，其 change 单明文『签发前不得作为 replace 放行依据』。本单证据收集照常完成（Step 0-6），状态停 MIGRATING，待 Owner 签收四张 PENDING receipt 后统一放行（届时补 Step 7/8/9：adapter 接线+index 注册+sidecar verification+manifest-build 新 hash+Gate-2 绑定+晋升后回归三件）。",
+ "status_note": "★ 晋升放行执行中（2026-09-25，编排者派单 handoffs/v3/AS-2-sentinel-promotion-dispatch.md）：五张 receipt 已 Owner 签收、change 单 cr-20260925T150000Z-as2sent-promotion 已 SIGNED——post_sign_actions 逐项执行（SHADOW→MIGRATING→adapter 接线+index 注册+sidecar verification+manifest-build 新 hash+PHASE2 dedicatedAdapter+Gate-2 绑定+晋升后回归三件→PRIMARY）。执行证据随步落盘本记录与 test-reports/autopilot-work/FINAL-E2E/。",
  "migration_object": {
   "change_dispatch": "handoffs/v3/AS-2-sentinel-dispatch.md",
   "contract": "contracts/asset-migration.md",
@@ -30,28 +30,29 @@
    }
   },
   "owner": "autopilot L1 (AS-2-sentinel)；Owner 签收位见 promotion_receipt",
-  "status": "SHADOW",
+  "status": "PRIMARY",
   "required_evidence": {
    "baseline_snapshot": "test-reports/asset-eval-20260923/asset-baseline-before.json#skill-sentinel（adapter=prompt / routes T5_OPS / consumption 机制=无,BW零现 / vendor_path vendor/skill-sentinel / snapshot_at 2026-09-24T08:45:39Z）",
    "diff_table_finalized": "test-reports/autopilot-work/AS-2-sentinel/fixtures/expected-findings.json（finalized_before_shadow_run=true, finalized_at 2026-09-25T05:46:00Z，先于官方影子跑 05:55:00Z）",
    "rollback_path_verified": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/old-engine-record.json（verified=true 2026-09-25T05:52:00Z，影子跑前）",
    "shadow_result": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/shadow-result.json（PASS 零 forbidden，双夹具口径）",
    "rollback_drill": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/rollback-drill.json（三场景 PASS + 现场还原）",
-   "post_promotion_probes": "PENDING——晋升 HOLD，待放行后执行（四探针）",
-   "promotion_receipt": "apr-20260925T061000Z-as2sent-shadow（approvedBy=PENDING 待 Owner 回填；gate=影子跑 PASS+回滚演练 PASS+零 forbidden 双 PASS 前置已满足）",
+   "post_promotion_probes": "全 PASS（2026-09-25 晋升执行）——test-reports/autopilot-work/FINAL-E2E/probe-skill-scanner-adapter-scenarios.txt（s0/s0b 双夹具正常路径 + s2a 无旗标拒绝 Gate-1 + s2b1/s2b2 显式旗标双形态回滚 + s3 假引擎 SKILLSCANNER_OUTPUT_INVALID 不静默）+ test-reports/autopilot-work/FINAL-E2E/gate2-dispatch-probe.log（真实 runtime dispatch() 资格门+Gate-2+专用 adapter 路由+真实引擎双夹具消费）",
+   "promotion_receipt": "apr-20260925T061000Z-as2sent-shadow（approvedBy=Owner——签收证据 contracts/discrepancies/cr-20260925T150000Z-as2sent-promotion.json ownerApprovalReceipt SIGNED，approvalEvidence=plans/owner-receipt-signoff-20260925.md#6130f32c234a488f4356370adb86b9037c5aca84311af6ad5481fe61a0607828；gate=影子跑 PASS+回滚演练 PASS+零 forbidden 双 PASS 前置已满足）",
    "runtime_binding": {
-    "consumed_hash": "PENDING（晋升冻结）",
-    "build_hash": "PENDING（manifest-build 未重跑——晋升动作统一冻结）"
+    "consumed_hash": "d9f0d738eba260a95996c6bc8a76ff69a9f5fb54ab19baa323872701db913df7",
+    "build_hash": "d9f0d738eba260a95996c6bc8a76ff69a9f5fb54ab19baa323872701db913df7",
+    "assertion": "consumed_hash == build_hash（Gate-2 机验 PASS——dispatch() 记账 manifest_sha256 == manifest-build.mjs 重跑打印值，三方机验见 test-reports/autopilot-work/FINAL-E2E/gate2-dispatch-probe.log gate2_hash_matches_build=true）"
    },
    "regression_three": {
     "pre_promotion": "preflight 8 PASS/0 FAIL/0 SKIP + regression-all 14 PASS/0 FAIL + validate-structure 0 警告（三件晋升前全捕获，输出留档本单目录 pre-promotion-*.txt）",
-    "post_promotion": "PENDING——晋升 HOLD；工作区零生产写面改动，当前态 == 晋升前基线"
+    "post_promotion": "全绿（2026-09-25 晋升执行）：regression-all 14 PASS/0 FAIL（test-reports/autopilot-work/FINAL-E2E/post-promotion-regression-all.txt，P3 确认 8 adapter 注册含 skill-sentinel、S8 走 --backend prompt 显式面不受影响）+ preflight 8 PASS/0 FAIL/0 SKIP（post-promotion-preflight.txt）+ validate-structure 0 警告（post-promotion-validate-structure.txt）"
    }
   }
  },
  "state_machine": {
-  "current_state": "SHADOW",
-  "hold": "PRIMARY 晋升冻结（编排者 2026-09-25 指令，第十审计 F-001：Owner 签收位 PENDING 的 contract 不得作为 replace 放行依据）；放行后按 Playbook Step 7/8/9 补 PRIMARY 证据",
+  "current_state": "PRIMARY",
+  "hold": "已解除（2026-09-25：五张 receipt Owner 签收 + cr-20260925T150000Z SIGNED——post_sign_actions 已逐项执行完毕，PRIMARY 达成）",
   "transitions": [
    {
     "from": "ACTIVE",
@@ -75,6 +76,30 @@
     ],
     "voided": true,
     "voidReason": "第十一审计 F-012/第十二审计 F-020：PENDING receipt ≠ 签发，该 transition 未满足契约 SHADOW→MIGRATING 前置（promotion receipt 签发）——作废，待 Owner 签收后重新执行"
+   },
+   {
+    "from": "SHADOW",
+    "to": "MIGRATING",
+    "at": "2026-09-25T08:50:00Z",
+    "sourceEvidence": [
+     "contracts/discrepancies/cr-20260925T150000Z-as2sent-promotion.json（change 单 status SIGNED——ownerApprovalReceipt.approvalEvidence=plans/owner-receipt-signoff-20260925.md#6130f32c234a488f4356370adb86b9037c5aca84311af6ad5481fe61a0607828；approval_effect.authorize_transition_request=true——本 transition 为签发后首个合法转移，引用本 change record id）",
+     "promotion receipt apr-20260925T061000Z-as2sent-shadow（gate=影子跑 PASS+回滚演练 PASS+零 forbidden——签发前置满足；签收证据同上 SIGNED change 单）",
+     "shadow-20260925/shadow-result.json + rollback-drill.json（影子跑零 forbidden + 回滚三场景 PASS——原转移证据链继续有效，voided 前条因 receipt 未签发作废，本次重新执行）",
+     "编排者派单 handoffs/v3/AS-2-sentinel-promotion-dispatch.md Part A 第 1 条（SIGNED cr-20260925T150000Z post_sign_actions 即任务清单）"
+    ]
+   },
+   {
+    "from": "MIGRATING",
+    "to": "PRIMARY",
+    "at": "2026-09-25T09:15:00Z",
+    "sourceEvidence": [
+     "三硬门 Gate-1（legacy BLOCKED / EXPLICIT_COMPAT_MODE）：旧 prompt 路径无旗标拒绝探针 PASS——test-reports/autopilot-work/FINAL-E2E/probe-skill-scanner-adapter-scenarios.txt #s2a（PATH 剥离无旗标 → ok=false SKILLSCANNER_NOT_AVAILABLE，Gate-1 拒绝）；s2b1/s2b2 显式旗标 options/env 双形态回滚 prompt-backend 且 compat/compat_via/rollback_adapter 留痕",
+     "三硬门 Gate-2（runtime consumed hash == build hash）：manifest-build.mjs 重跑打印 d9f0d738eba260a95996c6bc8a76ff69a9f5fb54ab19baa323872701db913df7 == runtime dispatch() 记账 manifest_sha256（test-reports/autopilot-work/FINAL-E2E/gate2-dispatch-probe.log gate2_hash_matches_build=true）+ eligible.mjs 同 manifest 判定 eligible=true（gate2-eligible-skill-sentinel.json）——三方机验一致",
+     "三硬门 Gate-3（replace 五元组）：本记录 five_tuple 五字段齐备（runtime_binding 已回填新 hash），promotion receipt 验证走 cr-20260925T150000Z SIGNED ownerApprovalReceipt（change.mjs validateOwnerApprovalReceipt 口径单据）",
+     "CLUSTERS candidates 切换（Traffic Switch）：scripts/regression-all.mjs PHASE2 skill-sentinel 行 dedicatedAdapter:true（专用 adapter 为主执行渠道）+ scripts/lib/adapters/index.mjs ADAPTERS.set('skill-sentinel', skillScanner)（auto 路由命中专用 adapter）",
+     "晋升后回归三件全绿：regression-all 14 PASS/0 FAIL（post-promotion-regression-all.txt，P3 确认 8 adapter 注册含 skill-sentinel）+ preflight 8 PASS/0 FAIL/0 SKIP（post-promotion-preflight.txt）+ validate-structure 0 警告（post-promotion-validate-structure.txt）",
+     "四探针全 PASS：test-reports/autopilot-work/FINAL-E2E/probe-skill-scanner-adapter-scenarios.txt（s0 恶意 pass=false threats=4 version=2.1.0 / s0b 良性 pass=true threats=0 / s2a 拒绝 / s2b 双形态回滚 / s3 SKILLSCANNER_OUTPUT_INVALID 不静默）+ gate2-dispatch-probe.log（真实 dispatch 双夹具消费一致）"
+    ]
    }
   ]
  },
@@ -176,19 +201,19 @@
  "promotion_receipt": {
   "id": "apr-20260925T061000Z-as2sent-shadow",
   "format": "apr-*（asset-migration.md §二 promotion_receipt 口径）",
-  "approvedBy": "PENDING——Owner 签收位待回填；授权依据=handoffs/v3/AS-2-sentinel-dispatch.md（编排者派发，L1 按单执行）+ 编排者晋升 HOLD 指令（第十审计 F-001）",
+  "approvedBy": "Owner（签收证据：contracts/discrepancies/cr-20260925T150000Z-as2sent-promotion.json ownerApprovalReceipt.status=SIGNED，approvalEvidence=plans/owner-receipt-signoff-20260925.md#6130f32c234a488f4356370adb86b9037c5aca84311af6ad5481fe61a0607828，signedAt=2026-09-25）",
   "expiresAt": null,
   "gate": "影子跑 PASS + 回滚演练三场景 PASS + 零 forbidden_difference（双 PASS 前置满足）",
   "evidence": [
    "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/shadow-result.json",
    "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/rollback-drill.json"
   ],
-  "note": "★ 晋升 HOLD：change.record CONTRACT 类单（cr-*）暂缓创建（编排者指令：待 Owner 签收四张 PENDING receipt 后统一放行）；receipt 签发本身为 SHADOW→MIGRATING 契约证据，approvedBy 留 PENDING"
+  "note": "签收语义=authorize_transition_request=true（cr 单 approval_effect）；晋升执行于 2026-09-25 由编排者派单 handoffs/v3/AS-2-sentinel-promotion-dispatch.md 授权 L1 按 post_sign_actions 逐步记账完成——PRIMARY 已达成"
  },
  "runtime_binding": {
-  "consumed_hash": "PENDING（晋升冻结——Gate-2 绑定待放行后：manifest-build 重跑打印新 hash + eligible.mjs + 真实 dispatch 日志三方机验）",
-  "build_hash": "PENDING（manifest-build 未重跑；当前 manifest hash 89584585… 为 AS-2-security 晋升后现值，本单晋升必然改变 hash，期望值届时动态重算禁硬编码——§五.3）",
-  "assertion": "consumed_hash == build_hash（Gate-2 机验）——待 PRIMARY 放行后补"
+  "consumed_hash": "d9f0d738eba260a95996c6bc8a76ff69a9f5fb54ab19baa323872701db913df7",
+  "build_hash": "d9f0d738eba260a95996c6bc8a76ff69a9f5fb54ab19baa323872701db913df7",
+  "assertion": "consumed_hash == build_hash（Gate-2 机验 PASS——真实 dispatch() 记账 manifest_sha256 == manifest-build.mjs 重跑打印值；eligible.mjs 同 manifest 判定 eligible=true；期望值动态重算未硬编码旧值 3c0e7df0…/89584585…）"
  },
  "new_findings_registry": [
   {
@@ -236,8 +261,8 @@
    "evidence": "Design consumption: CONFIRMED；Runtime consumption: shadow-20260925/shadow-result.json（恶意侧威胁 4 条 3/3 rule id severity {critical:1,high:1,medium:2} exit 0 is_safe=false；良性侧威胁 0 条 is_safe=true；零 forbidden_difference；确定性断言成立）",
    "baseline_ref": "test-reports/asset-eval-20260923/asset-baseline-before.json#skill-sentinel"
   },
-  "promotion_receipt": "apr-20260925T061000Z-as2sent-shadow（approvedBy=PENDING 待 Owner 回填）",
-  "runtime_binding": "PENDING（晋升 HOLD——manifest-build 未重跑，Gate-2 绑定待放行后补）"
+  "promotion_receipt": "apr-20260925T061000Z-as2sent-shadow（approvedBy=Owner——签收证据 cr-20260925T150000Z-as2sent-promotion SIGNED：plans/owner-receipt-signoff-20260925.md#6130f32c…；签发即满足 SHADOW→MIGRATING 契约前置）",
+  "runtime_binding": "d9f0d738eba260a95996c6bc8a76ff69a9f5fb54ab19baa323872701db913df7（consumed==build，Gate-2 三方机验 PASS——gate2-dispatch-probe.log）"
  },
  "regression": {
   "pre_promotion": {
@@ -246,15 +271,15 @@
    "regression_all": "14 PASS / 0 FAIL（留档 pre-promotion-regression-all.txt——D-5 教训采纳，晋升前三件全捕获）",
    "validate_structure": "OK 0 警告（留档 pre-promotion-validate-structure.txt）"
   },
-  "post_promotion": "PENDING——晋升 HOLD；本单生产写面零改动（adapter/index/sidecar 均未触碰，manifest 未重跑），工作区 == 晋升前基线，pre_promotion 三件即当前态实测",
-  "s8_ruling": "S8 资产消费证据 PASS（exec=8 false(正)=0 false(负)=>1）——S8 走 --backend prompt（显式 PROMPT_ADAPTER 面）；本单零生产写面改动，S8 不受影响。晋升放行后按资产实际链路复判（预期同 AS-2-security：专用 adapter 注册零影响）。"
+  "post_promotion": "全绿（2026-09-25 晋升执行后实测）：regression-all 14 PASS / 0 FAIL + preflight 8 PASS / 0 FAIL / 0 SKIP + validate-structure 0 警告（三件留档 test-reports/autopilot-work/FINAL-E2E/post-promotion-*.txt）",
+  "s8_ruling": "S8 资产消费证据 PASS（exec=8 false(正)=0 false(负)=>1）——S8 走 --backend prompt（显式 PROMPT_ADAPTER 面）；晋升后回归实测 PASS（post-promotion-regression-all.txt S8 段），skill-sentinel 专用 adapter 注册对 S8 显式面零影响（与 AS-2-security 同型）。"
  },
  "deviations": [
   {
    "id": "D-1",
    "kind": "promotion-hold",
-   "desc": "★ 编排者晋升 HOLD 指令（第十审计 F-001 治理矛盾处置）：PRIMARY 晋升与 change.record 单暂缓——asset-migration contract Owner 签收位 PENDING，其 change 单明文『签发前不得作为 replace 放行依据』。本单状态停 MIGRATING，Step 7/8/9（adapter 接线+index 注册+sidecar verification+manifest-build 新 hash+Gate-2+四探针+晋升后回归）待 Owner 签收四张 PENDING receipt 后统一放行补做。",
-   "status": "HOLD（编排者指令）"
+   "desc": "★ 晋升 HOLD（编排者指令，第十审计 F-001 治理矛盾处置）——已解除：五张 receipt Owner 签收 + cr-20260925T150000Z SIGNED 后，post_sign_actions 由 handoffs/v3/AS-2-sentinel-promotion-dispatch.md 授权 L1 于 2026-09-25 逐步执行完毕（Step 7/8/9 补做记录见 execution_log 与 FINAL-E2E/ 探针文件），PRIMARY 达成。",
+   "status": "已解除（2026-09-25 晋升执行完成）"
   },
   {
    "id": "D-2",
@@ -293,7 +318,7 @@
    "status": "待 Owner / HOLD"
   }
  ],
- "updated_at": "2026-09-25T06:15:00Z",
+ "updated_at": "2026-09-25T09:15:00Z",
  "state_correction": {
   "from": "MIGRATING",
   "to": "SHADOW",

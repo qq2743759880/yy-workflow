@@ -47,7 +47,7 @@ const PHASE2 = [
   { asset: 'sdlc', dedicatedAdapter: true, kernel: ['cline', 'BMAD'], file: 'vendor/sdlc/SKILL.md', note: 'sdlc → BMAD-METHOD + cline 执行层' },
   { asset: 'be-validator', dedicatedAdapter: true, kernel: ['OpenAPI', 'contract'], file: 'vendor/be-validator/be-validator.md', note: 'be-validator → portman/contracteer 契约校验' },
   { asset: 'agent-research', dedicatedAdapter: false, kernel: ['gpt-researcher'], file: 'vendor/agent-research/SKILL.md', note: '调研 hub → gpt-researcher 单点对标' },
-  { asset: 'skill-sentinel', dedicatedAdapter: false, kernel: ['SkillSpector', 'skill_sentinel'], file: 'vendor/skill-sentinel/SKILL.md', note: 'skill 安全扫描 → SkillSpector 对标' },
+  { asset: 'skill-sentinel', dedicatedAdapter: true, kernel: ['SkillSpector', 'skill_sentinel'], file: 'vendor/skill-sentinel/SKILL.md', note: 'skill 安全扫描 → skill-scanner 2.1.0 执行内核（AS-2-sentinel 晋升，cr-20260925T150000Z SIGNED；kernel marker 仍为 vendor 正文 SkillSpector/skill_sentinel——vendor 一字不改）' },
   { asset: 'security', dedicatedAdapter: true, kernel: ['semgrep'], file: 'vendor/security/SKILL.md', note: '安全簇 → semgrep 扫描内核（AS-2-security 晋升；gitleaks 暂缺登记为能力收缩，第十一审计 F-018）' },
   { asset: 'frontend-design', dedicatedAdapter: false, kernel: ['shadcn', 'bolt.new'], file: 'vendor/frontend-design/SKILL.md', note: '前端设计簇 → shadcn-ui/ui + bolt.new 内核' },
   { asset: 'planning', dedicatedAdapter: false, kernel: ['MetaGPT', 'crewAI'], file: 'vendor/planning/SKILL.md', note: '需求规划 → MetaGPT / crewAI 对标' },

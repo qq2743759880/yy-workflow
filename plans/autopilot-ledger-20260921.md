@@ -159,3 +159,10 @@
 - **F-021 措辞修正**：receipt approval_effect=authorize_transition_request=true（授权转移请求≠当前状态已变更；receipt 存在≠transition 完成）——CR-150000Z 已修
 - **F-023 artifact 再生**：run-stamped gate-probe-result 落盘（含 assertions 子对象，all_pass=true 有意义值）
 - 签收冻结维持；五张 receipt 就绪
+| AS-2-sentinel-promotion | PASS | agent_4f3872b1 | orchestrator-L2(adapter 行数/eligible/回归 14/preflight/hash/PRIMARY 四项亲跑) | 2026-09-25T16:40:00Z | scripts/lib/adapters/skill-scanner.mjs（97 行+陈旧报告防护修复）; scripts/lib/adapters/index.mjs; vendor 无新增（ruleset 不适用）; test-reports/autopilot-work/FINAL-E2E/（9/9 断言）|
+- 【FINAL-E2E 9/9 PASS】真实 buildPlan→orchestrator→resolver→capabilities→adapter→receipt 主链首次全链实证（auto 后端）：security-semgrep 真扫 6 findings + UNCOVERED_LANGUAGES fail-closed + Gate-2 d9f0d738 三方机验 + 全链无静默降级
+- E-3【已修】ACCEPTANCE-ENTRY 文档 --backend prompt 与 auto 断言冲突系编排者文档 bug，已改默认 auto
+- E-4【P2 转 Owner】kernel marker 门与诚实 LLM 的张力：真实宿主（gpt-5.6-sol）拒绝逐字复述 kernel token → D-1 拦截——机验宿主先例（S8）可达成本单，但"内核词门 vs 模型诚实拒绝"需 Owner 裁定长期口径
+- E-5【P2 登记】orchestrator plan failed 但 exit 0 系既有行为（禁改面），留知悉
+- 探针中发现并修复真实缺陷：adapter 陈旧报告残留消费（扫描前强制删除旧 report）——probe-驱动开发再次见效
+- sentinel PRIMARY ✓；批 1 第三波续：review→bugbot replace 派发
