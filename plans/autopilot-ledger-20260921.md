@@ -176,3 +176,4 @@
 - 裁定：review 保留 prompt-backend（选项 1=现状保持零风险），bugbot 宿主绑定文档化（选项 2 草案在案），CodeRabbit CLI 生态缺位登记为再评估触发器——**待 Owner 终验确认**；NO INSTALL 门首次实战拦截假接入
 | FINAL-E2E@HEAD | PASS | orchestrator | drop+接线后当前 HEAD 复跑：真实 buildPlan 主链 verdict=PASS（security-result 落盘 4159B） | — |
 - 【批 1 终验·主链】drop 7（注册表 16→9）+ 治理接线后 FINAL-E2E 复跑 PASS——S15-A1 清扫后的 9 资产活面上全链成立
+- AS-1 正式报告核对（与我 L2 一致）：7 vendor 目录删除已全部入版本库 ✓；新披露 D-3 登记残留面 17 文件（README/reference/templates/CATALOG_IDS/ASSET_WHITELIST/孤儿脚本等）——清理移交后续批次（非阻塞，历史证据面 S15-A1 已豁免）；D-6 loader 旗标门属 v3.2 Phase 2；D-8 派单笔误（implementation 保留）。AS-1 关账

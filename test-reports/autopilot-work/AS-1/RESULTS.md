@@ -59,7 +59,7 @@ drop 三条件（candidate / runtime invocation 零调用 / quality）与回滚 
 
 | 件 | drop 前基线 | drop 后终态 |
 |---|---|---|
-| regression-all | **14 PASS / 0 FAIL**（baseline-regression.log） | **20 PASS / 0 FAIL**（14 段 + S15 六断言；regression-post-drop.log） |
+| regression-all | **14 PASS / 0 FAIL**（baseline-regression.log） | **20 PASS / 0 FAIL**（14 段 + S15 六断言；regression-post-drop.log 与收口终态 regression-final.log 双 capture，锁释放后终跑 exit 0） |
 | preflight | 8 PASS / 0 FAIL / 0 SKIP | 8 PASS / 0 FAIL / 0 SKIP（每 drop 后 ×7 + 终态 preflight-final.log；P4 CLUSTERS↔磁盘 9/9） |
 | validate-structure | 0 警告 | 0 警告（validate-final.log；随包资产 9/9 存在） |
 | token-audit --gate（S10 量尺） | PASS | PASS：全部 12 文件 token 回退 <10%（删行只松不紧） |
@@ -84,7 +84,7 @@ manifest：16 行（d9f0d738…，AS-2-sentinel 晋升后现值）→ **9 行（
 ## 六、产物索引
 
 - change.record（合并 tombstone 单）：contracts/discrepancies/cr-20260925T102900Z-as1-drop7.json（CONTRACT 类，Owner PENDING）
-- 回归证据：test-reports/autopilot-work/AS-1/{baseline-regression.log, regression-post-drop.log, preflight-final.log, validate-final.log, token-gate-final.log}
+- 回归证据：test-reports/autopilot-work/AS-1/{baseline-regression.log, regression-post-drop.log, regression-final.log, preflight-final.log, validate-final.log, token-gate-final.log}
 - 注入反例：test-reports/autopilot-work/AS-1/{s15-injection-test.mjs, s15-injection-result.log}
 - Playbook 回写：plans/asset-migration-playbook.md §六-A（drop wizard 清单逐项勾选）
 - 未动：AS-2-sentinel 目录（仅 S15-A6 只读消费 migration-record.json，INJ-5 临时翻转已 sha256 复验还原）；security/be-validator/skill-sentinel 的 adapter 与 rulesets 保留；commands/、governance-skills/、runtime.mjs、eligible.mjs、manifest-build.mjs 零改动；vendor 保留资产一字未改；禁 git 遵守（vendor 删除用文件系统）

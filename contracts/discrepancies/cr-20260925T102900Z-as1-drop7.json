@@ -13,6 +13,7 @@
   "test-reports/autopilot-work/AS-1/RESULTS.md (6 处联动逐处 diff 摘要 + S15 断言清单 + 偏差登记)",
   "test-reports/autopilot-work/AS-1/baseline-regression.log (drop 前基线：regression 14 PASS/0 FAIL + preflight 8 PASS/0 FAIL/0 SKIP + validate 0 警告)",
   "test-reports/autopilot-work/AS-1/regression-post-drop.log (drop 后：regression 20 PASS/0 FAIL，S15 六断言全绿)",
+  "test-reports/autopilot-work/AS-1/regression-final.log (收口终态复跑：锁释放后 regression 20 PASS/0 FAIL exit 0)",
   "test-reports/autopilot-work/AS-1/s15-injection-result.log (S15 注入反例：5 注入全 FAIL 具名+现场还原)",
   "test-reports/asset-eval-20260923/asset-baseline-before.json (Gate-0 基线：7 资产行在册，回滚参照)"
  ],
