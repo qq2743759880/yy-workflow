@@ -56,7 +56,7 @@
     "at": "2026-09-25T05:00:00Z",
     "sourceEvidence": [
      "test-reports/asset-eval-20260923/asset-baseline-before.json#security（Gate-0 基线行核对，adapter/routes/consumption/vendor 四面齐备）",
-     "test-reports/autopilot-work/AS-2-security/fixtures/（夹具 vulnerable_app.py + 自研 ruleset + expected-findings.json 定稿）",
+     "test-reports/autopilot-work/AS-2-security/fixtures/（夹具 fixture-vulnerable_app-evidence.tar.gz!/vulnerable_app.py，sha256=1177efe8b000f69f2decc09ccbc64d4a7b42990a79e8ae1fa729f9df204c49cf——结构化指针见 shadow_result.fixture + 自研 ruleset + expected-findings.json 定稿）",
      "plans/change-lock.json：4 写面 acquire exit 0（security-semgrep.mjs / index.mjs / vendor/security/rulesets / manifest-sources/security.yaml）"
     ]
    },
@@ -116,7 +116,12 @@
  "shadow_result": {
   "verdict": "PASS（零 forbidden_difference）",
   "at": "2026-09-25T05:40:00Z",
-  "fixture": "test-reports/autopilot-work/AS-2-security/fixtures/vulnerable_app.py（canonical，无孪生——旧引擎非文件型契约门，理由见 expected-findings.json） → [REBOUND test-reports/autopilot-work/AS-2-security/fixtures/fixture-vulnerable_app-evidence.tar.gz!/vulnerable_app.py sha256=1177efe8b000f69f2decc09ccbc64d4a7b42990a79e8ae1fa729f9df204c49cf]",
+  "fixture": {
+   "archive": "test-reports/autopilot-work/AS-2-security/fixtures/fixture-vulnerable_app-evidence.tar.gz",
+   "member": "vulnerable_app.py",
+   "sha256": "1177efe8b000f69f2decc09ccbc64d4a7b42990a79e8ae1fa729f9df204c49cf",
+   "note": "原 canonical 路径 test-reports/autopilot-work/AS-2-security/fixtures/vulnerable_app.py（无孪生——旧引擎非文件型契约门，理由见 expected-findings.json）；指针重绑定 tar member（第十审计 F-003），REMEDIATION-1 F-017 起为结构化 schema {archive, member, sha256}"
+  },
   "evidence": {
    "diff": "test-reports/autopilot-work/AS-2-security/shadow-20260925/shadow-result.json",
    "runtime_invocation": "旧侧 PROMPT_ADAPTER.run() 3 次真实 spawn（brief 落盘副本留证）；新侧 semgrep 1.175.0 CLI 两次独立真实执行（--config 自研 ruleset --json）——spawn 记录于 shadow-result.json DEBUG 与 evidence 字段",
@@ -235,7 +240,12 @@
   "old_asset": "vendor/security/ + PROMPT_ADAPTER（scripts/lib/adapters/prompt.mjs，LLM-prompt 后端）；引用面：index.mjs fallback（迁移前无专用键）、regression S8 --backend prompt、baseline test-reports/asset-eval-20260923/asset-baseline-before.json#security（routes T2_BACKEND/T4_FRONTEND/T5_OPS，consumption S8链内）",
   "new_asset": "semgrep 1.175.0（pip 用户级安装不入库；自研 ruleset 固化 vendor/security/rulesets/security-local-rules.yaml 6 规则）；许可证核查：LGPL-2.1-or-later（pip License-Expression + sdist LICENSE 全文实测 2026-09-25，AS-0 未覆盖项补核），CLI spawn 无链接，自研 ruleset 零 registry 依赖",
   "shadow_result": {
-   "fixture": "test-reports/autopilot-work/AS-2-security/fixtures/vulnerable_app.py（canonical）+ expected-findings.json（finalized_before_shadow_run=true） → [REBOUND test-reports/autopilot-work/AS-2-security/fixtures/fixture-vulnerable_app-evidence.tar.gz!/vulnerable_app.py sha256=1177efe8b000f69f2decc09ccbc64d4a7b42990a79e8ae1fa729f9df204c49cf]",
+   "fixture": {
+    "archive": "test-reports/autopilot-work/AS-2-security/fixtures/fixture-vulnerable_app-evidence.tar.gz",
+    "member": "vulnerable_app.py",
+    "sha256": "1177efe8b000f69f2decc09ccbc64d4a7b42990a79e8ae1fa729f9df204c49cf",
+    "note": "原 canonical vulnerable_app.py + expected-findings.json（finalized_before_shadow_run=true）；五元组夹具指针与 shadow_result.fixture 同一结构化 schema（F-017）"
+   },
    "evidence": "Design consumption: CONFIRMED；Runtime consumption: shadow-20260925/shadow-result.json（旧侧 brief 层零确定性检出 vs 新侧 6 findings 3 error+3 warning exit 0；零 forbidden_difference；确定性断言成立）",
    "baseline_ref": "test-reports/asset-eval-20260923/asset-baseline-before.json#security"
   },
@@ -293,9 +303,22 @@
    "kind": "registry-field-observation",
    "desc": "semgrep OSS 未登录态下 extra.fingerprint/extra.lines 返回 'requires login'（官方登录墙字段）；核心检出字段（check_id/severity/message/start/end/path）完整——adapter 解析仅依赖核心字段，不阻断；记录备查。",
    "status": "备查，非阻断"
+  },
+  {
+   "id": "D-8",
+   "kind": "capability-narrowed",
+   "desc": "能力收缩（第十一审计 F-014）：旧引擎（LLM-prompt 路径）声明多语言 + gitleaks；新引擎晋升 ruleset 为 Python-only（security-local-rules.yaml 6 规则 languages:[python]），gitleaks/多语言暂缺。显式收缩登记：manifest-sources/security.yaml when_not_to_use 增列（manifest-build 重跑，新 hash 见 manifest_hash_sync_remediation1）；adapter 文件级守门（F-011：显式非 Python 文件目标 SCOPE_LANGUAGE_UNSUPPORTED 拒绝；目录目标放行，0 findings 属真实扫描如实记录）。规则扩充任务列 backlog。",
+   "status": "登记待 L2/Owner（backlog：ruleset 扩规——多语言/gitleaks）"
   }
  ],
- "updated_at": "2026-09-25T06:35:00Z",
+ "updated_at": "2026-09-25T07:05:00Z",
+ "manifest_hash_sync_remediation1": {
+  "at": "2026-09-25（REMEDIATION-1 批）",
+  "promotion_time_hash": "89584585cbbf64d9edc08cdcd2f3499c325ab6da56a11d5a013ccb098385d68f（晋升时点产物，上方 runtime_binding/五元组记录为历史证据不回写）",
+  "current_hash": "3c0e7df0305f70c5f0ef38898557b4650ce3674466c46657942c052dbf729903",
+  "cause": "F-014 capability narrowed：security.yaml when_not_to_use 增列非 Python 目标（能力收缩登记）→ manifest-build 重跑合法产物（16 行 exit 0）",
+  "evidence": "test-reports/autopilot-work/REMEDIATION-1/f014-manifest-build.log（manifest-build 打印 + python hashlib 现场重算双一致）"
+ },
  "evidence_rebind": "指针重绑定（第十审计 F-003，2026-09-25）：原 vulnerable_app.py 归档为 tar member，字节级 sha256=1177efe8b000f69f2decc09ccbc64d4a7b42990a79e8ae1fa729f9df204c49cf 实测一致",
  "step9_status_correction": {
   "status": "DEVIATED (D-5)",

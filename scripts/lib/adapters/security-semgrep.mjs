@@ -11,6 +11,9 @@
  *    { ok, artifactPath:'artifacts/<id>/security-result.json', contract, degraded, error }。
  *  - 诚实失败语义：semgrep 输出不可解析或 exit 与 findings 矛盾 → SEMGREP_OUTPUT_INVALID
  *    receipt failure（invalid_output:true），不静默吞（forbidden: crash/invalid_exit_code）。
+ *  - 扫描目标（第十一审计 F-011，2026-09-25）：options.scanTarget / subtask.scanTarget / 文件路径
+ *    contract / workspace 默认目标（目录递归）；语言守门放宽为文件级——显式非 Python 文件拒绝
+ *    （SCOPE_LANGUAGE_UNSUPPORTED），目录目标放行（0 findings=真实扫描结果如实记录）。
  *  - provider identity verification 见 contracts/manifest-sources/security.yaml；
  *    迁移证据 test-reports/autopilot-work/AS-2-security/。
  */
@@ -52,21 +55,27 @@ async function runLegacyPrompt(subtask, ctx, workspace, checkedAt, via, assets) 
 export async function run(subtask, ctx, options = {}) {
   const workspace = options.workspace || '.';
   const rulesetPath = options.rulesetPath || RULESET;
-  const scanTarget = options.scanTarget || subtask.scanTarget || (subtask.contract && !subtask.contract.includes(' ') && /\.(py|js|ts|java|go|c|cpp|rb|php|cs)$/.test(subtask.contract) ? resolvePath(subtask.contract, workspace) : null);
+  // 第十一审计 F-011 采纳（2026-09-25）：解析链尾部追加默认目标=workspace 本身——semgrep 支持目录递归
+  // 扫描，workspace 就是"被审的项目"；planner 自然语言 contract 不再必然 NO_SCAN_TARGET。
+  const scanTarget = options.scanTarget || subtask.scanTarget || (subtask.contract && !subtask.contract.includes(' ') && /\.(py|js|ts|java|go|c|cpp|rb|php|cs)$/.test(subtask.contract) ? resolvePath(subtask.contract, workspace) : null) || workspace;
   const checkedAt = new Date().toISOString();
   const degrade = function (contract) { return emitResult(subtask, workspace, contract, true); };
   if (!scanTarget) {
-    // fail-closed（第十审计 F-002 采纳，2026-09-25）：无文件型扫描目标时 semgrep 一次都不会运行——
-    // 旧形态 degrade 返回 ok:true/degraded → runtime 记 status=done，造成"security=done 但扫描 0 次"假绿。
-    // 现改为诚实失败（NO_SCAN_TARGET）：真实 caller（planner 自然语言 contract）不再静默通过；
-    // 确需跳过旧语义走 EXPLICIT_COMPAT_MODE（兼容旗标回滚 prompt 路径，留痕）。
+    // fail-closed（第十审计 F-002 采纳，2026-09-25）：防御性保留——workspace 默认目标落地后本分支常规不可达
+    // （workspace 恒有 '.' 兜底），仅作健壮性兜底不删；确需跳过旧语义走 EXPLICIT_COMPAT_MODE（回滚 prompt 路径，留痕）。
     if (compatAllowed(options)) return runLegacyPrompt(subtask, ctx, workspace, checkedAt, 'no_scan_target_compat', options.assets);
-    return { ok: false, artifactPath: null, contract: { pass: null, degraded: false, diff: 'NO_SCAN_TARGET: security semgrep 需要文件型扫描目标（options.scanTarget / subtask.scanTarget / 文件路径 contract）——无目标不扫描、不记 done', checkedAt, tool: 'semgrep', version: 'unknown', scanTarget: null }, degraded: false, error: 'NO_SCAN_TARGET' };
+    return { ok: false, artifactPath: null, contract: { pass: null, degraded: false, diff: 'NO_SCAN_TARGET: security semgrep 无任何可用扫描目标（options.scanTarget / subtask.scanTarget / 文件路径 contract / workspace 默认目标全部落空）——无目标不扫描、不记 done', checkedAt, tool: 'semgrep', version: 'unknown', scanTarget: null }, degraded: false, error: 'NO_SCAN_TARGET' };
   }
-  // 能力收缩守门（第十审计 F-005 采纳）：晋升 ruleset 现为 Python-only（6 规则）——非 Python 目标
-  // 会 0 findings 假绿。规则扩充（gitleaks/多语言）落地前，非 Python 目标显式拒绝。
-  if (!/\.(py|python)$/i.test(scanTarget) && !scanTarget.endsWith('.py.txt')) {
-    return { ok: false, artifactPath: null, contract: { pass: null, degraded: false, diff: 'SCOPE_LANGUAGE_UNSUPPORTED: 晋升 ruleset 现为 Python-only（security-local-rules.yaml 6 规则 languages:[python]）——非 Python 目标在本引擎下 0 findings 会假绿；多语言/gitleaks 能力恢复见迁移偏差登记', checkedAt, tool: 'semgrep', version: 'unknown', scanTarget }, degraded: false, error: 'SCOPE_LANGUAGE_UNSUPPORTED' };
+  // 能力收缩守门（第十审计 F-005 采纳；第十一审计 F-011 放宽为文件级，2026-09-25）：晋升 ruleset 现为
+  // Python-only（6 规则）。显式非 Python **文件**扩展名 → 拒绝（文件级 0 findings 会假绿）；
+  // **目录目标放行**（semgrep 目录递归扫描，目录内 .py 生效；目录 0 findings 属真实扫描结果如实记录，
+  // 不再误判假绿——因为真的扫了）。规则扩充（gitleaks/多语言）落地前文件级拒绝口径不变。
+  let dirTarget = false;
+  try { dirTarget = fsSync.statSync(scanTarget).isDirectory(); } catch (e) { dirTarget = false; }
+  const fileLike = !dirTarget && /\.[A-Za-z0-9]+$/.test(String(scanTarget).replace(/[\\/]+$/, ''));
+  const pythonFile = /\.(py|python)$/i.test(scanTarget) || scanTarget.endsWith('.py.txt');
+  if (fileLike && !pythonFile) {
+    return { ok: false, artifactPath: null, contract: { pass: null, degraded: false, diff: 'SCOPE_LANGUAGE_UNSUPPORTED: 晋升 ruleset 现为 Python-only（security-local-rules.yaml 6 规则 languages:[python]）——显式非 Python 文件目标在本引擎下 0 findings 会假绿（文件级守门，F-011）；目录目标已放行；多语言/gitleaks 能力恢复见迁移偏差登记', checkedAt, tool: 'semgrep', version: 'unknown', scanTarget }, degraded: false, error: 'SCOPE_LANGUAGE_UNSUPPORTED' };
   }
   // 新引擎（semgrep）：探测可用性；不可达 → Gate-1 回滚决策点（无旗标拒绝，显式旗标回滚旧路径）
   const shim = resolveCommandShim('semgrep');

@@ -58,8 +58,19 @@
 ## 六、产物索引
 
 - 迁移记录：test-reports/autopilot-work/AS-2-security/migration-record.json
-- 夹具+差异表：test-reports/autopilot-work/AS-2-security/fixtures/（vulnerable_app.py / security-local-rules.yaml / expected-findings.json）
+- 夹具+差异表：test-reports/autopilot-work/AS-2-security/fixtures/（fixture-vulnerable_app-evidence.tar.gz!/vulnerable_app.py，sha256=1177efe8b000f69f2decc09ccbc64d4a7b42990a79e8ae1fa729f9df204c49cf——指针重绑定结构化 schema {archive, member, sha256}，见 migration-record.json shadow_result.fixture / security-local-rules.yaml / expected-findings.json）
 - 影子证据：test-reports/autopilot-work/AS-2-security/shadow-20260925/（13 件）
 - change.record：contracts/discrepancies/cr-20260925T063000Z-as2sec-promotion.json（CONTRACT 类，Owner PENDING）
 - 写面：scripts/lib/adapters/security-semgrep.mjs（新建 91 行）、scripts/lib/adapters/index.mjs（security 注册行）、vendor/security/rulesets/security-local-rules.yaml（新建）、contracts/manifest-sources/security.yaml（verification）
 - 未动：vendor/security/SKILL.md 等既有 vendor 文件一字未改（旧方法论文档保留，路由换引擎≠删方法论）；禁改面零触碰；禁 git 遵守
+
+## 七、REMEDIATION-1 增补段（第十一审计五项闭环，2026-09-25）
+
+> 本段为 REMEDIATION-1 批（handoffs/v3/REMEDIATION-1-dispatch.md）对本迁移记录的增量修订；§一~§六为晋升时点历史记录不回写。
+
+- **F-011 scanTarget 生产链 + 真实 caller E2E（P0）**：security-semgrep.mjs 现为 **110 行**——解析链尾部默认目标=workspace 本身（options.scanTarget || subtask.scanTarget || 文件型 contract || options.workspace）；语言守门放宽为**文件级**（F-011：显式非 Python 文件目标 → SCOPE_LANGUAGE_UNSUPPORTED 拒绝；目录目标放行，0 findings 属真实扫描结果如实记录）。E2E 探针（真实 dispatch() auto 路径、planner 形态自然语言 contract 无 scanTarget）**all_pass=true**：正向（canonical 夹具 sha256=1177efe8… 实测一致）semgrep 1.175.0 真实执行 6 findings 全命中/pass=false/mode=exec；反向空 workspace 真实扫描 0 findings pass=true + scanned_path=workspace 证据。产物：test-reports/autopilot-work/REMEDIATION-1/（f011-e2e-probe.mjs / f011-e2e-probe-result.json / e2e-pos-security-result.json / e2e-neg-security-result.json / f011-e2e-probe-stdout.log）。runtime.mjs **零改动**（workspace 经 execOpts→dispatch→adapter.run 已透明，无需透传改动；EX-1 能力门控段与 AV-3 资格门段零触碰）。
+- **F-014 capability narrowed 三件套（P1）**：①security.yaml when_not_to_use 增列非 Python 目标能力收缩登记；②manifest-build 重跑 exit 0（16 行）→ 新 hash **3c0e7df0305f70c5f0ef38898557b4650ce3674466c46657942c052dbf729903**（旧晋升时点 89584585… 留档不回写，见 migration-record.json manifest_hash_sync_remediation1；构建打印+python 现场重算双一致：f014-manifest-build.log）；③migration-record.json deviations 追加 **D-8**（旧引擎声明多语言+gitleaks → 新引擎 Python-only 显式收缩，扩规列 backlog）。
+- **F-015 promotion receipt 重签（P1）**：新单 **cr-20260925T130000Z-as2sec-promotion-r2.json**（SUPERSEDES cr-20260925T063000Z，绑定当前 110 行 adapter + 第十/十一轮全部整改事实 + 当前 hash 3c0e7df0…，deviations D-1..D-8 合并，Owner 签收位 PENDING）；旧单加 `supersededBy` 指向新单（不删，历史留痕）。
+- **F-017 证据指针重绑定补全 + 结构化 schema（P1）**：RESULTS.md §六夹具描述与 migration-record.json ACTIVE→SHADOW sourceEvidence 的 vulnerable_app.py 裸指针补全为 tar member 引用；三份 JSON（migration-record.json / expected-findings.json / shadow-result.json）的 `[REBOUND …]` 字符串后缀全部替换为结构化对象 `{archive, member, sha256}`（保留 note 字段）；fixtures/README.md 同步结构化口径。
+- **回归三件（REMEDIATION-1 后，产物留档 REMEDIATION-1/）**：regression-all **14 PASS / 0 FAIL**（S8 走 --backend prompt 显式面 PASS；S14 PASS）；preflight **8 PASS / 0 FAIL / 0 SKIP**；validate-structure **0 警告**。E2E 探针复跑对新 manifest hash（Gate-2=3c0e7df0…）仍 all_pass=true。
+- 本段不自称 DONE——r2 单 Owner 签收与 L2 复核待关账。

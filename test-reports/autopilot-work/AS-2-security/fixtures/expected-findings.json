@@ -3,7 +3,12 @@
  "finalized_before_shadow_run": true,
  "finalized_at": "2026-09-25T05:30:00Z",
  "fixture": {
-  "canonical": "test-reports/autopilot-work/AS-2-security/fixtures/vulnerable_app.py → [REBOUND test-reports/autopilot-work/AS-2-security/fixtures/fixture-vulnerable_app-evidence.tar.gz!/vulnerable_app.py sha256=1177efe8b000f69f2decc09ccbc64d4a7b42990a79e8ae1fa729f9df204c49cf]",
+  "canonical": {
+   "archive": "test-reports/autopilot-work/AS-2-security/fixtures/fixture-vulnerable_app-evidence.tar.gz",
+   "member": "vulnerable_app.py",
+   "sha256": "1177efe8b000f69f2decc09ccbc64d4a7b42990a79e8ae1fa729f9df204c49cf",
+   "note": "原 canonical 路径 test-reports/autopilot-work/AS-2-security/fixtures/vulnerable_app.py；指针重绑定 tar member（第十审计 F-003），REMEDIATION-1 F-017 起为结构化 schema {archive, member, sha256}"
+  },
   "legacy_twin": null,
   "twin_reason": "旧引擎（PROMPT_ADAPTER）非文件型契约门：brief 组装对 contract 文本无后缀限制，直接以 .py 夹具为输入，无需 AS-2-first 式 .json 孪生。",
   "defect_classes": [

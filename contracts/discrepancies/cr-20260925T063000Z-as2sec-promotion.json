@@ -1,5 +1,6 @@
 {
  "changeRecordId": "cr-20260925T063000Z-as2sec-promotion",
+ "supersededBy": "cr-20260925T130000Z-as2sec-promotion-r2（第十一审计 F-015 重签：本单 adapter 形态/hash 描述已 stale——当前实态 110 行 adapter + workspace 默认目标/文件级守门 + manifest hash 3c0e7df0…；本单不删，历史留痕）",
  "basePlan": "contracts/asset-migration.md",
  "baseVersion": "ae7455da22d2a60973f5b67d696029c1901162953d20c4128ff10f59c8577d9a",
  "reason": "批 1 AS-2-security：security 资产路由引擎迁移（LLM-prompt→semgrep 1.175.0，Playbook §六 首个复制单）。影子跑 PASS（零 forbidden_difference；6/6 自研规则 id 全报出，severity {error:3,warning:3}，exit 0==expected；新引擎两次运行 findings 集合逐条相同——确定性断言成立；旧引擎为 LLM-prompt 非确定性输出，brief 层 3 run sha256 全同波动=0，LLM 发现层无宿主不可机验已如实登记 D-2）、回滚演练三场景 PASS（正常/PATH 剥离→Gate-1 无旗标拒绝+EXPLICIT_COMPAT_MODE env+options 双形态回滚 prompt-backend 留痕/假引擎垃圾输出→SEMGREP_OUTPUT_INVALID receipt failure）、五元组齐、runtime binding 新 hash 89584585…三方机验（manifest-build 打印+现场重算+真实 dispatch 日志）、回归晋升后 14/14+preflight 8/8+validate 0 警告（晋升前快照缺失见 D-5 如实登记）。security-semgrep.mjs 新建 91 行（≤150），旧 prompt-backend 路径保留 EXPLICIT_COMPAT_MODE 显式旗标后；ruleset 固化 vendor/security/rulesets/（自研 6 规则零许可风险；semgrep LGPL-2.1-or-later sdist LICENSE 实测补核 AS-0 未覆盖项，CLI spawn 无链接）；manifest-sources/security.yaml verification 更新（provider identity 三件套：official_source github:semgrep/semgrep / install pip / runtime_test semgrep --version=1.175.0；NO INSTALL 门未触发）。Owner 签收位 PENDING（receipt 机制）。",

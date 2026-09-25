@@ -135,3 +135,10 @@
 - 【系统性模式认定（两条，Owner 须知情）】①"诚实失败"与"功能修好"被混同——NO_SCAN_TARGET 修掉假绿但真实 auto 主链 security 必然失败，production functionality 未通；②PENDING receipt 被当中间凭据跨 Owner gate——sentinel 被我指令推到 MIGRATING 即实例
 - 整改单 REMEDIATION-1 已派：F-011 scanTarget 生产链（默认目标=workspace，目录放行/文件级守门）+ 真实 caller E2E 探针（存文件——上轮 inline 探针无 artifact 被判不可独立验证，教训采纳）、F-014 能力收缩三件套补全（现仅 1/3）、F-015 promotion receipt 重签（r2 SUPERSEDES，旧 91 行版 stale）、F-017 重绑定补全+结构化 archive_member schema
 - 签收冻结维持并扩大：Owner 不签→不放行任何晋升/复制；REMEDIATION-1 闭环后重新提请（AS-2-security 那张须按 r2 重签，原单 stale 不应原样签——审计正确）
+| REMEDIATION-1 | PASS | agent_a428e6ad | orchestrator-L2(E2E 探针重跑 all_pass + hash 三方 + 回归三件亲跑) | 2026-09-25T14:00:00Z | scripts/lib/adapters/security-semgrep.mjs（110 行，workspace 默认目标+文件级守门）; test-reports/autopilot-work/REMEDIATION-1/（E2E 探针+artifact）; contracts/discrepancies/cr-20260925T130000Z-as2sec-promotion-r2.json |
+- 【F-011 闭环】真实 caller E2E 实证：planner 形态（自然语言 contract/无 scanTarget）→ dispatch auto → semgrep 真扫 6 findings 全命中 + Gate-2 记账；空 workspace 真扫 0 findings 如实记录——"harness 能扫/production 不通"缺口闭合
+- 【F-014 闭环】能力收缩三件套齐（adapter 守门+manifest when_not_to_use Python-only 登记+D-8 deviations）；manifest 新 hash 3c0e7df0（亲算一致）
+- 【F-015 闭环】r2 单 SUPERSEDES 旧单（双向指针），绑定当前 110 行 adapter 与全部整改事实
+- 【F-017 闭环】REBOUND 字符串零残留，结构化 {archive,member,sha256} schema 落地
+- D-REM-1（转 Owner 备知）：migration-record 晋升时点 hash 89584585 未回写（历史证据保留），现值 3c0e7df0 走独立字段
+- 批 1 状态：REMEDIATION-1 闭环，五张 receipt 提请 Owner 签收（asset-migration/manifest schema/AS-2-first r2/AS-2-security r2/sentinel 晋升待 receipt 签发后创建）→ 签收后放行 sentinel 晋升 + review→bugbot + 治理接线 + AS-1 + 终验

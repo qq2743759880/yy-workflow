@@ -2,7 +2,12 @@
  "schema": "as2-security-shadow-result@1.0.0",
  "verdict": "PASS（零 forbidden_difference；expected 断言全部满足）",
  "at": "2026-09-25T05:40:00Z",
- "fixture": "test-reports/autopilot-work/AS-2-security/fixtures/vulnerable_app.py（canonical，Python，六类确定性缺陷） → [REBOUND test-reports/autopilot-work/AS-2-security/fixtures/fixture-vulnerable_app-evidence.tar.gz!/vulnerable_app.py sha256=1177efe8b000f69f2decc09ccbc64d4a7b42990a79e8ae1fa729f9df204c49cf]",
+ "fixture": {
+  "archive": "test-reports/autopilot-work/AS-2-security/fixtures/fixture-vulnerable_app-evidence.tar.gz",
+  "member": "vulnerable_app.py",
+  "sha256": "1177efe8b000f69f2decc09ccbc64d4a7b42990a79e8ae1fa729f9df204c49cf",
+  "note": "原 canonical 路径 test-reports/autopilot-work/AS-2-security/fixtures/vulnerable_app.py（Python，六类确定性缺陷）；指针重绑定 tar member（第十审计 F-003），REMEDIATION-1 F-017 起为结构化 schema {archive, member, sha256}"
+ },
  "expected_findings_ref": "test-reports/autopilot-work/AS-2-security/fixtures/expected-findings.json（finalized_at 2026-09-25T05:30:00Z，先于本影子跑）",
  "evidence": {
   "old_engine": "shadow-20260925/old-engine-record.json（PROMPT_ADAPTER 3 次真实 run，brief sha256 全同 45d3ade4…，brief 层零确定性检出承诺）",
@@ -11,7 +16,12 @@
   "runtime_consumption": "Runtime consumption: 实测——旧侧 PROMPT_ADAPTER.run() 3 次 spawn（记录于 old-engine-record.json runs，工作区 tmpdir 已删、brief 副本留证）；新侧 semgrep CLI 两次 spawn（命令行/exit code 见 DEBUG），stdout 落盘 artifacts 字段"
  },
  "DEBUG": {
-  "new_engine_command": "semgrep --config <fixtures>/security-local-rules.yaml --json <fixtures>/vulnerable_app.py（repo 根 cwd，两次运行 exit 0） → [REBOUND test-reports/autopilot-work/AS-2-security/fixtures/fixture-vulnerable_app-evidence.tar.gz!/vulnerable_app.py sha256=1177efe8b000f69f2decc09ccbc64d4a7b42990a79e8ae1fa729f9df204c49cf]",
+  "new_engine_command": {
+   "archive": "test-reports/autopilot-work/AS-2-security/fixtures/fixture-vulnerable_app-evidence.tar.gz",
+   "member": "vulnerable_app.py",
+   "sha256": "1177efe8b000f69f2decc09ccbc64d4a7b42990a79e8ae1fa729f9df204c49cf",
+   "note": "命令：semgrep --config <fixtures>/security-local-rules.yaml --json <fixtures>/vulnerable_app.py（repo 根 cwd，两次运行 exit 0）；扫描目标现为 tar member 指针（F-017 结构化 schema）"
+  },
   "old_engine_command": "node <os.tmpdir>/as2sec-harness/old-engine-harness.mjs（import file:///…/scripts/lib/adapters/index.mjs → PROMPT_ADAPTER.run(subtask{asset:'security'}, ctx, {workspace: tmpdir, assets})），3 次 exit 0",
   "spawn_records": {
    "new": {
