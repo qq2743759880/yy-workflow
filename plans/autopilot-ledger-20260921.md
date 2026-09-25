@@ -193,3 +193,5 @@
 - L2 亲验：类 A 双样本确认删除、S15-A1 残留面 17→3（仅类 C 豁免件+猎手名单自身）、S12 双向 19 资产一致、回归 22/22、preflight exit 0、manifest hash c30fee6b 未变
 - R-2（移交）：孤儿脚本的第三方依赖（culori/tsyringe/cockatiel 等）成名义依赖——package.json 清理移交后续（非阻塞）
 - D-3-RESIDUAL 关账；残留面清理完毕
+| PB-WRITEBACK | PASS | agent_eee0f094 | orchestrator-L2(交付物核对) | 2026-09-25T20:00:00Z | plans/asset-migration-playbook.md（v1→v1.1：四条实战经验落位+出处）|
+- Playbook v1.1 四经验落位（同名撞车/NO INSTALL 产出物清单/夹具归档/双夹具标准）+交叉核对矩阵；PB-WRITEBACK 关账
