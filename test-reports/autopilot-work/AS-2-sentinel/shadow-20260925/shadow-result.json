@@ -1,0 +1,78 @@
+{
+  "schema": "as2-sentinel-shadow-result@1.0.0",
+  "verdict": "PASS（零 forbidden_difference；expected 断言全部满足，双夹具口径）",
+  "at": "2026-09-25T05:55:00Z",
+  "fixtures": {
+    "detection_canonical": "os.tmpdir/as2sent-fixtures/malicious-skill（构造恶意假 skill，tar 归档 fixtures/fixture-malicious-skill-evidence.tar.gz sha256 b445e689…）",
+    "benign_control": "os.tmpdir/as2sent-fixtures/benign-skill（governance-skills/verification-before-completion 打包副本，本体未改动，tar 归档 fixtures/fixture-benign-skill-evidence.tar.gz sha256 a626fd06…）"
+  },
+  "expected_findings_ref": "test-reports/autopilot-work/AS-2-sentinel/fixtures/expected-findings.json（finalized_at 2026-09-25T05:46:00Z，先于本影子跑 05:55:00Z）",
+  "evidence": {
+    "old_engine": "shadow-20260925/old-engine-record.json（PROMPT_ADAPTER 3 次真实 run，brief sha256 全同 b5000024…，brief 层零确定性检出承诺）",
+    "new_engine": "shadow-20260925/mal-shadow-run[1-2].json + benign-shadow-run[1-2].json（skill-scanner 2.1.0 scan --format json，每夹具两次独立真实执行）",
+    "design_consumption": "Design consumption: CONFIRMED（expected-findings.json：expected_rule_ids 3 枚 / min_findings=4 / expected_severity_dist / expected_exit_code / benign_expected 逐条对实测消费）",
+    "runtime_consumption": "Runtime consumption: 实测——旧侧 PROMPT_ADAPTER.run() 3 次 spawn（brief 落盘副本留证）；新侧 skill-scanner CLI 4 次 spawn（2 夹具 × 2 次，命令行/exit code 见 DEBUG），stdout 落盘 artifacts 字段"
+  },
+  "DEBUG": {
+    "new_engine_command": "skill-scanner scan <夹具目录> --format json（夹具目录 cwd，4 次运行全部 exit 0）；检测配置=默认 policy 预设 + analyzers_used=[static_analyzer, bytecode, pipeline, correlation]（零自造规则；--use-llm 多 agent 层未启用——本机无 API key，如实登记）",
+    "old_engine_command": "node <os.tmpdir>/as2sent-harness/old-engine-harness.mjs（import file:///…/scripts/lib/adapters/index.mjs → PROMPT_ADAPTER.run(subtask{asset:'skill-sentinel'}, ctx, {workspace: tmpdir, assets})），3 次 exit 0",
+    "spawn_records": {
+      "new": { "mal_run1_exit": 0, "mal_run2_exit": 0, "benign_run1_exit": 0, "benign_run2_exit": 0, "stdout_sha256_16": { "mal_run1": "29e252fe18a97809", "mal_run2": "0b02d93fe4ec4f6d", "benign_run1": "e4dcb05edbc76e82", "benign_run2": "6609d7d337ab4ca1" } },
+      "old": { "runs": 3, "all_ok": true, "brief_sha256_identical": true }
+    },
+    "stdout_byte_note": "同夹具两次运行 stdout 字节级不同（输出含 timestamp/scan_duration 等 metadata 字段），归一化 findings 集合（rule_id+severity+file_path+line_number）逐条全同——确定性断言按 findings 集合口径成立",
+    "tmp_cleanup": "旧侧 tmp 工作区 as2sent-old-* 已删；临时 harness as2sent-harness 与夹具 as2sent-fixtures 于回滚演练（Step 6）结束后统一删除（tar 归档为唯一入库夹具证据）"
+  },
+  "comparison_summary": {
+    "malicious_fixture": {
+      "finding_count": { "old_machine_verifiable": 0, "new": 5, "new_threat": 4 },
+      "expected_rule_ids_coverage": "3/3 全部报出（PROMPT_INJECTION_UNRESTRICTED_MODE HIGH / DATA_EXFIL_NETWORK_REQUESTS MEDIUM×2 / YARA_command_injection_generic CRITICAL）",
+      "severity_dist_new": { "critical": 1, "high": 1, "medium": 2 },
+      "is_safe": false,
+      "exit_code": { "new": 0, "expected": 0, "old_adapter_ok": true },
+      "info_notes": ["SKILL_LOAD_FALLBACK_USED（INFO）——夹具无 skill manifest 的 loader 回退注记，accepted（扫描机制面，非威胁检出）"]
+    },
+    "benign_fixture": {
+      "threat_findings": 0,
+      "is_safe": true,
+      "max_severity": "INFO",
+      "findings": ["MANIFEST_MISSING_LICENSE（INFO，policy_violation）——accepted（benign_info_policy_note：打包完整性提示，非威胁检出）"],
+      "exit_code": 0
+    },
+    "determinism_assertion": "双夹具各自两次独立运行 findings 集合逐条相同 = true（expected-findings.json assertion 末款）",
+    "forbidden_checks": {
+      "benign_false_positive": "none（良性威胁 findings=0，is_safe=true——severity>=LOW 零条、威胁 category 零条）",
+      "missing_detection": "none（expected_rule_ids 差集为空）",
+      "crash": false,
+      "invalid_exit_code": false,
+      "notes": "crash 判据：4 次运行均 JSON 可解析、findings 结构完整、无未捕获异常；invalid_exit_code 判据：rc=0 == expected_exit_code 0，与 JSON 可解析性一致"
+    }
+  },
+  "comparison": {
+    "diffClassification": [
+      { "type": "rule_name_changed", "verdict": "accepted", "detail": "旧侧 LLM 自由文本无规则名；新侧 skill-scanner 内置 rule id（PROMPT_INJECTION_* / DATA_EXFIL_* / YARA_*）全记录" },
+      { "type": "severity_mapping_changed", "verdict": "accepted", "detail": "旧侧自由文本定级；新侧 INFO/MEDIUM/HIGH/CRITICAL，映射：is_safe==false 或存在 severity>=MEDIUM → pass=false（恶意侧 pass=false）" },
+      { "type": "message_changed", "verdict": "accepted", "detail": "报告文案 LLM 自由文本 → skill-scanner 规则 title" },
+      { "type": "benign_info_policy_note", "verdict": "accepted", "detail": "良性 MANIFEST_MISSING_LICENSE INFO 打包提示——非威胁检出，pass 映射不翻转（benign pass=true）" },
+      { "type": "nondeterminism_asymmetry", "verdict": "accepted", "detail": "旧侧并集的确定性可机验子集 = brief 层（3 run sha256 全同，波动=0；LLM 发现层无宿主不可触发，已如实登记）；新侧确定性断言成立（双夹具两次运行 findings 集合全同）" },
+      { "type": "new_findings", "verdict": "accepted（登记交 L2/Owner 复核，非阻断——『旧引擎零确定性检出』的预期结构性差异）", "detail": "威胁 4 条 + INFO 注记 1 条全部登记 migration-record.json new_findings_registry" }
+    ],
+    "forbidden_verdict": "PASS——benign_false_positive / missing_detection / crash / invalid_exit_code 均未命中（benign_false_positive 为本单派单新增第四类 forbidden）"
+  },
+  "observations": [
+    "skill-scanner 默认分析器集为本地静态分析（static/bytecode/pipeline/correlation），全程零网络外呼；LLM 多 agent 分析器（--use-llm）需 API key，本单未启用——检测能力为默认预设口径，如实登记（deviations D-4）",
+    "scan_metadata 含 policy_fingerprint_sha256（默认 policy 预设指纹）——替代自研 ruleset 的检测配置锚点，写入 migration-record（派单第 5 条：ruleset 步骤替换为检测配置/阈值记录）",
+    "analyzers_failed=[skill_loader MISSING_REQUIRED_MANIFEST_FIELD]（恶意夹具无 manifest）→ SKILL_LOAD_FALLBACK_USED INFO 回退扫描——inert fallback 机制如实报出，非静默"
+  ],
+  "artifacts": {
+    "mal-shadow-run1.json": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/mal-shadow-run1.json",
+    "mal-shadow-run2.json": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/mal-shadow-run2.json",
+    "mal-shadow-run[1-2].err": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/",
+    "benign-shadow-run1.json": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/benign-shadow-run1.json",
+    "benign-shadow-run2.json": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/benign-shadow-run2.json",
+    "benign-shadow-run[1-2].err": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/",
+    "old-engine-record.json": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/old-engine-record.json",
+    "old_engine_briefs": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/old-engine-run[1-3]-brief.md",
+    "smoke_pre_finalization": "test-reports/autopilot-work/AS-2-sentinel/fixtures/smoke-benign.json + smoke-malicious.json"
+  }
+}

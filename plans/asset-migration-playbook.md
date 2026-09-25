@@ -232,6 +232,8 @@ node scripts/validate-structure.mjs      # PASS = 0 警告
 
 ## 六、复制阶段 wizard 式清单（其余三个 replace 用；逐项勾选+产物引用，不再逐项重新论证）
 
+> ⚠️ 2026-09-25 增补（第十审计 F-004/F-003/F-005）：①Step 9 增列"**晋升前**回归/validate 快照"勾选项——晋升后全绿不补偿归因，缺失即记 DEVIATED 不得 [x]（AS-2-security D-5 实证改记）；②改存/归档夹具后必须**重绑定全部持久证据指针**（migration-record/shadow-result/expected-findings 的 fixture 路径 → 新 URI+完整 sha256，AS-2-security 漏改 5 处实证）；③**能力收缩必须显式登记**——旧引擎能力 ⊄ 新引擎时：adapter 拒绝超范围目标（命名错误码）+ manifest when_not_to_use 增列 + deviations 记 capability narrowed（AS-2-security：Python-only ruleset 替代多语言+gitleaks 未登记即假绿风险，adapter 已加 SCOPE_LANGUAGE_UNSUPPORTED 守门）
+
 前置确认：① AS-2-first 的 D-3 receipt 已由 Owner 关账；② L2 已复核 AS-2-first migration-record；③ 本 Playbook 已按复制实例反向校验（v3.4 第 4 条）。
 
 - [ ] Step 0 锁：change-lock acquire × 改动文件，list 确认（产物：锁记录）

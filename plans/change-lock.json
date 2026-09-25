@@ -1,3 +1,36 @@
 {
-  "locks": []
+  "locks": [
+    {
+      "file": "scripts/lib/adapters/skill-scanner.mjs",
+      "owner": "AS-2-sentinel",
+      "task": "AS-2-sentinel",
+      "locked": "2026-09-25T05:34:01.098Z",
+      "reason": "skill-sentinel engine replace: prompt-backend -> skill-scanner",
+      "expires": "2026-09-25T09:34:01.098Z"
+    },
+    {
+      "file": "scripts/lib/adapters/index.mjs",
+      "owner": "AS-2-sentinel",
+      "task": "AS-2-sentinel",
+      "locked": "2026-09-25T05:34:01.374Z",
+      "reason": "skill-sentinel adapter registration line",
+      "expires": "2026-09-25T09:34:01.374Z"
+    },
+    {
+      "file": "contracts/manifest-sources/skill-sentinel.yaml",
+      "owner": "AS-2-sentinel",
+      "task": "AS-2-sentinel",
+      "locked": "2026-09-25T05:34:01.619Z",
+      "reason": "sidecar verification update",
+      "expires": "2026-09-25T09:34:01.619Z"
+    },
+    {
+      "file": "test-reports/autopilot-work/AS-2-sentinel/migration-record.json",
+      "owner": "AS-2-sentinel",
+      "task": "AS-2-sentinel",
+      "locked": "2026-09-25T05:34:01.876Z",
+      "reason": "migration record evidence file",
+      "expires": "2026-09-25T09:34:01.876Z"
+    }
+  ]
 }

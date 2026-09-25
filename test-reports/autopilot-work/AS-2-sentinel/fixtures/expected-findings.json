@@ -1,0 +1,115 @@
+{
+  "schema": "as2-sentinel-expected-findings@1.0.0",
+  "finalized_before_shadow_run": true,
+  "finalized_at": "2026-09-25T05:46:00Z",
+  "fixture": {
+    "detection_canonical": "os.tmpdir/as2sent-fixtures/malicious-skill（构造恶意假 skill：SKILL.md prompt 注入 + 凭据窃取/C2 外泄指令；scripts/collect_diagnostics.py 外泄代码 + 反弹 shell）——tar 证据归档 test-reports/autopilot-work/AS-2-sentinel/fixtures/fixture-malicious-skill-evidence.tar.gz（sha256 b445e689…）",
+    "benign_control": "os.tmpdir/as2sent-fixtures/benign-skill（governance-skills/verification-before-completion 打包副本，本体未改动）——tar 证据归档 fixtures/fixture-benign-skill-evidence.tar.gz（sha256 a626fd06…）",
+    "legacy_twin": null,
+    "twin_reason": "旧引擎（PROMPT_ADAPTER）非文件型契约门：brief 组装对输入无后缀/结构限制，双夹具均直接以目录路径引用进 contract，无需 AS-2-first 式孪生。",
+    "why_dual_fixture": "安全扫描器误报会阻塞正常工作流（派单第 3 条）：恶意样本验证检出能力，良性对照验证不误伤。单侧验证不构成影子跑 PASS。"
+  },
+  "old_engine": {
+    "asset": "skill-sentinel(prompt-backend)——LLM-prompt 路径，skill-sentinel 无专用 adapter（index.mjs 无 skill-sentinel 键）",
+    "evidence": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/old-engine-record.json（3 次真实 PROMPT_ADAPTER run() + brief 落盘，canonical 恶意夹具）",
+    "behavior": {
+      "output_form": "brief.md（skill-sentinel 方法论正文+任务+contract 含扫描目标引用的子任务指令包）——可机验产出层；发现清单为 LLM 宿主执行层输出",
+      "pass_semantics": "无 pass/diff 布尔面、无 findings 结构——brief 层对良性/恶意输入均零确定性检出承诺",
+      "determinism": "3 次 run brief sha256 全同（b5000024…）——组装层确定性；LLM 发现清单层本机无宿主 CLI 不可真实触发，非确定性波动不可机验（如实登记，与 AS-2-security D-2 同型）",
+      "degraded": false
+    }
+  },
+  "new_engine_expected": {
+    "asset": "skill-sentinel(skill-scanner-engine)",
+    "engine": "cisco-ai-skill-scanner 2.1.0（pip 包名 cisco-ai-skill-scanner；github:cisco-ai-defense/skill-scanner 官方源；装后 --version 实测 2.1.0）",
+    "detection_config": "检测配置/阈值记录（替代自研 ruleset 步骤——skill-scanner 自带多检测器，不自造规则）：默认 policy 预设 + 默认分析器集 analyzers_used=[static_analyzer, bytecode, pipeline, correlation]；LLM 分析器（--use-llm）未启用（本机无 API key，多 agent 层不参与本影子跑，如实登记）；behavioral/virustotal/aidefense 未启用（默认关闭，零外部依赖面）。is_safe 布尔 + max_severity 为 adapter pass 映射依据。扫描全程零网络外呼（分析器集均为本地）",
+    "expected_rule_ids": [
+      "PROMPT_INJECTION_UNRESTRICTED_MODE",
+      "DATA_EXFIL_NETWORK_REQUESTS",
+      "YARA_command_injection_generic"
+    ],
+    "min_findings": 4,
+    "min_findings_scope": "威胁类 findings（排除 INFO 级扫描机制注记 SKILL_LOAD_FALLBACK_USED——其源于夹具无 skill manifest 的 loader 回退，非威胁检出，单独登记 accepted）",
+    "expected_severity_dist": { "critical": 1, "high": 1, "medium": 2 },
+    "expected_exit_code": 0,
+    "exit_code_semantics": "skill-scanner scan 默认模式（未用 --fail-on-findings/--fail-on-severity）：有 findings 仍 exit 0（实测 smoke：恶意 5 findings exit 0、良性 1 finding exit 0）；rc!=0 仅对应引擎错误/crash。invalid_exit_code 判据：rc!=0 且无可解析报告 JSON = 引擎故障；rc=0 但 JSON 不可解析 = crash 类 invalid_output。adapter 映射：is_safe==false 或存在 severity>=MEDIUM 的 finding → pass=false；仅 INFO 级 → pass=true（diff 留痕）。",
+    "benign_expected": {
+      "is_safe": true,
+      "threat_findings": 0,
+      "accepted_info_notes": "MANIFEST_MISSING_LICENSE（INFO，policy_violation）= 打包完整性提示（副本仅含 SKILL.md 无 LICENSE/manifest），非威胁检出、非良性内容误报；显式登记 accepted，不计入 threat_findings",
+      "assertion": "良性夹具实测 is_safe==true 且 threat findings（category ∈ 威胁类 或 severity >= LOW）== 0"
+    },
+    "assertion": "恶意夹具：实测 exit_code == 0 且 expected_rule_ids 全部报出（3 枚 rule id 均在场）且威胁 findings >= 4 且 severity 分布 == {critical:1, high:1, medium:2} 且 is_safe==false；良性夹具：benign_expected.assertion 成立；另加确定性断言：同夹具两次独立运行 findings 集合（rule_id+severity+file_path+line_number 归一化）逐条相同"
+  },
+  "accepted_difference": [
+    {
+      "type": "rule_name_changed",
+      "rule": "旧引擎 LLM 输出为自由文本发现清单（无规则名体系）；新引擎以 skill-scanner 内置 rule id 报告（PROMPT_INJECTION_* / DATA_EXFIL_* / YARA_* 命名空间）。不做一一对应强求，按 rule id 记录。",
+      "basis": "v3.6 允许差异 + 派单『LLM 非确定性输出 vs skill-scanner 确定性输出』不对称适配"
+    },
+    {
+      "type": "severity_mapping_changed",
+      "rule": "旧引擎 LLM 严重级为自由文本；新引擎 INFO/MEDIUM/HIGH/CRITICAL 分级。映射：is_safe==false 或存在 severity>=MEDIUM → pass=false；仅 INFO → pass=true。",
+      "basis": "v3.6 允许差异 + 映射规则影子跑前显式声明"
+    },
+    {
+      "type": "message_changed",
+      "rule": "报告文案从 LLM 自由文本变为 skill-scanner 规则 title/detail。",
+      "basis": "v3.6 允许差异"
+    },
+    {
+      "type": "benign_info_policy_note",
+      "rule": "良性夹具的 MANIFEST_MISSING_LICENSE（INFO，policy_violation）为打包完整性提示（副本无 LICENSE/manifest 字段），非良性内容误报、非威胁检出——不计入 threat_findings，adapter pass 映射不因 INFO 级翻转。",
+      "basis": "smoke 实测（fixtures/smoke-benign.json）+ 派单『良性包应零检出』按威胁检出口径适配（forbidden 判据同步收窄为威胁类误报，见 forbidden_difference benign_false_positive）"
+    },
+    {
+      "type": "nondeterminism_asymmetry（派单要求适配）",
+      "rule": "旧引擎 = LLM 非确定性输出，新引擎 = 确定性静态检测。处理：旧侧多次运行取并集并记录波动（本单实测：brief 层 3 run sha256 全同，波动=0；LLM 发现层无宿主不可触发，如实登记不可机验面）；新侧加确定性断言（两次独立运行 findings 集合逐条相同）。比较基准取『旧侧并集的确定性可机验子集 = brief 层零确定性检出』，新侧全部检出均归 new_findings 逐条登记。",
+      "basis": "派单第 4 条（不对称对照照 AS-2-security 先例：多次运行取并集记波动）+ v3.5 影子跑 Evidence Contract"
+    },
+    {
+      "type": "new_findings",
+      "rule": "新引擎确定性检出（威胁 4 条 + INFO 注记）多于旧引擎可机验层（零确定性检出）≠失败；全部逐条登记 migration-record.json new_findings_registry，随五元组交 L2/Owner 复核（v3.5）。",
+      "basis": "v3.5 影子跑 Evidence Contract"
+    }
+  ],
+  "forbidden_difference": [
+    {
+      "type": "benign_false_positive（本单特有，派单第 3 条：安全扫描器误报会阻塞正常工作流，比漏检更关键）",
+      "definition": "良性夹具出现任一威胁检出：finding 的 severity >= LOW 或 category ∈ {prompt_injection, data_exfiltration, command_injection, credential_access, malware, backdoor, C2}（INFO 级打包提示如 MANIFEST_MISSING_LICENSE 不在此列——其为 manifest 完整性 advisory，非内容威胁判定），或 is_safe==false。一律判失败。",
+      "detection": "良性夹具实测 findings 过滤（severity/category 双条件）+ is_safe 复核"
+    },
+    {
+      "type": "missing_detection",
+      "definition": "expected_rule_ids 中任一规则对应缺陷类，新引擎对恶意夹具未报出（漏检）。无论新旧引擎一律判失败（第七轮审计裁定）。LLM 层不参与此判据（其无确定性检出承诺，非『漏检』可判定面）。",
+      "detection": "影子跑比对实测 rule_ids 与 expected_rule_ids 差集"
+    },
+    {
+      "type": "crash",
+      "definition": "新引擎进程 crash / adapter 未捕获异常 / --format json 输出不可解析且非合法语义。一律判失败。",
+      "detection": "harness 捕获异常 or JSON.parse 失败或 findings 结构缺失"
+    },
+    {
+      "type": "invalid_exit_code",
+      "definition": "exit code 与引擎语义不符（本引擎默认模式语义：成功（含 findings）= exit 0，实测双夹具均 exit 0）。rc!=0 且无可解析错误解释 = invalid_exit_code；rc=0 但 JSON 不可解析 = crash 类 invalid_output。输出格式异常场景期望诚实报错 receipt failure，非静默。一律判失败。",
+      "detection": "实测 exit_code != expected_exit_code（正常路径场景）或 rc 与 JSON 可解析性矛盾"
+    }
+  ],
+  "amendments": [
+    {
+      "at": "2026-09-25T05:45:00Z",
+      "before_official_shadow_run": true,
+      "change": "expected_rule_ids / min_findings / expected_severity_dist 按 smoke 实测定稿（PROMPT_INJECTION_UNRESTRICTED_MODE / DATA_EXFIL_NETWORK_REQUESTS / YARA_command_injection_generic；威胁 findings>=4；{critical:1,high:1,medium:2}）；expected_exit_code 定为 0（默认模式有 findings 仍 exit 0）",
+      "reason": "Step 4 smoke 实测：skill-scanner 默认分析器集（static/bytecode/pipeline/correlation）对恶意夹具报 4 威胁 findings + 1 INFO 注记、exit 0；rule id 命名空间与暂定预设不同，按实测 rule id 定稿。修订留痕非静默改门。",
+      "evidence": "test-reports/autopilot-work/AS-2-sentinel/fixtures/smoke-malicious.json"
+    },
+    {
+      "at": "2026-09-25T05:45:00Z",
+      "before_official_shadow_run": true,
+      "change": "良性『应零检出』适配为『零威胁检出 + INFO 打包提示 accepted』：新增 accepted_difference.benign_info_policy_note，forbidden_difference.benign_false_positive 判据收窄为威胁类误报（severity>=LOW 或威胁 category 或 is_safe==false）",
+      "reason": "smoke 实测良性副本报 1 条 MANIFEST_MISSING_LICENSE（INFO）——打包完整性提示（副本无 LICENSE/manifest），非良性内容误报；若按字面『零 findings』则任何无 manifest 副本都必 FAIL，判据失去区分力。按威胁检出口径收窄并显式留痕，交 L2 复核。",
+      "evidence": "test-reports/autopilot-work/AS-2-sentinel/fixtures/smoke-benign.json"
+    }
+  ],
+  "shadow_fail_rule": "任一 forbidden_difference 命中 → 影子跑 FAIL，不粉饰不硬推晋升；FAIL 本身即有效迁移证据（回滚保留旧 prompt 路径）。"
+}

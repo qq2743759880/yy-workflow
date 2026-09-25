@@ -1,107 +1,111 @@
 {
-  "schema": "as2-security-expected-findings@1.0.0",
-  "finalized_before_shadow_run": true,
-  "finalized_at": "2026-09-25T05:30:00Z",
-  "fixture": {
-    "canonical": "test-reports/autopilot-work/AS-2-security/fixtures/vulnerable_app.py",
-    "legacy_twin": null,
-    "twin_reason": "旧引擎（PROMPT_ADAPTER）非文件型契约门：brief 组装对 contract 文本无后缀限制，直接以 .py 夹具为输入，无需 AS-2-first 式 .json 孪生。",
-    "defect_classes": [
-      "hardcoded-api-key（硬编码 API 密钥，ERROR 级）",
-      "hardcoded-password（硬编码口令，ERROR 级）",
-      "sql-injection-concat（SQL 字符串拼接后 execute，ERROR 级）",
-      "weak-hash-md5（MD5 弱哈希，WARNING 级）",
-      "eval-usage（eval 动态求值，WARNING 级）",
-      "subprocess-shell-true（shell=True 命令注入面，WARNING 级）"
-    ]
-  },
-  "old_engine": {
-    "asset": "security(prompt-backend)——LLM-prompt 路径，security 无专用 adapter",
-    "evidence": "test-reports/autopilot-work/AS-2-security/shadow-20260925/old-engine-record.json（3 次真实 PROMPT_ADAPTER run() + brief 落盘）",
-    "behavior": {
-      "output_form": "brief.md（方法论正文+任务+contract+Kernel 声明的子任务指令包）——可机验产出层；发现清单为 LLM 宿主执行层输出",
-      "pass_semantics": "无 pass/diff 布尔面、无 findings 结构——brief 层对缺陷零确定性检出承诺",
-      "determinism": "3 次 run brief sha256 全同（45d3ade4…）——组装层确定性；LLM 发现清单层本机无宿主 CLI 不可真实触发，非确定性波动不可机验（如实登记）",
-      "degraded": false
-    }
-  },
-  "new_engine_expected": {
-    "asset": "security(semgrep-engine)",
-    "engine": "semgrep 1.175.0（pip，github:semgrep/semgrep 官方源，装后 --version 实测 1.175.0）",
-    "ruleset": "自研 ruleset（test-reports/autopilot-work/AS-2-security/fixtures/security-local-rules.yaml——影子跑形态；晋升固化 vendor/security/rulesets/security-local-rules.yaml），六条规则全部本单自写，零 registry 依赖、零许可风险（semgrep 引擎 LGPL-2.1-or-later 以 CLI spawn 形态使用，无链接）",
-    "expected_rule_ids": [
-      "security.hardcoded-api-key",
-      "security.hardcoded-password",
-      "security.sql-injection-concat",
-      "security.weak-hash-md5",
-      "security.eval-usage",
-      "security.subprocess-shell-true"
-    ],
-    "min_findings": 6,
-    "expected_severity_dist": { "error": 3, "warning": 3 },
-    "expected_exit_code": 0,
-    "exit_code_semantics": "semgrep 默认模式（非 --error）：有 findings 仍 exit 0（实测 smoke：6 findings exit 0；干净样本 0 findings exit 0）；rc!=0 仅对应引擎错误/crash。invalid_exit_code 判据适配为：rc∉{0} 且无可解析 findings JSON = 引擎故障；rc=0 但 JSON 不可解析 = invalid_output（crash 类）。adapter 映射：存在 ERROR 级 finding → pass=false，否则 pass=true（WARNING 不判失败，diff 留痕）。",
-    "assertion": "实测 exit_code == 0 且 expected_rule_ids 全部报出（check_id 归一化后）且 finding_count ≥ 6 且 severity 分布 == {error:3, warning:3}；另加确定性断言：新引擎同 fixture 两次独立运行 findings 集合逐条相同（确定性引擎 vs LLM 非确定性的结构性对照）"
-  },
-  "accepted_difference": [
-    {
-      "type": "rule_name_changed",
-      "rule": "旧引擎 LLM 输出为自由文本发现清单（无规则名体系）；新引擎以自研 semgrep rule id 报告。不做一一对应强求，按 rule id 记录。",
-      "basis": "v3.6 允许差异 + 派单『LLM 非确定性输出 vs semgrep 确定性输出』不对称适配"
-    },
-    {
-      "type": "severity_mapping_changed",
-      "rule": "旧引擎 LLM 严重级为中文定级（自由文本）；新引擎 ERROR/WARNING 分级。映射：存在 ERROR 级 → pass=false，否则 pass=true；ERROR/WARNING 数值断言按 expected_severity_dist。",
-      "basis": "v3.6 允许差异 + 映射规则影子跑前显式声明"
-    },
-    {
-      "type": "message_changed",
-      "rule": "报告文案从 LLM 自由文本变为 semgrep 规则 message（自研中文规则消息）。",
-      "basis": "v3.6 允许差异"
-    },
-    {
-      "type": "nondeterminism_asymmetry（本单特有，派单要求适配）",
-      "rule": "旧引擎 = LLM 非确定性输出，新引擎 = 确定性静态分析。处理：旧侧多次运行取并集并记录波动（本单实测：brief 层 3 run sha256 全同，波动=0；LLM 发现层无宿主不可触发，如实登记不可机验面）；新侧加确定性断言（两次独立运行 findings 集合逐条相同）。比较基准取『旧侧并集的确定性可机验子集 = brief 层零确定性检出』，新侧全部检出均归 new_findings 逐条登记。",
-      "basis": "派单 Shadow Run 条款（多次运行取并集/记录波动）+ v3.5 影子跑 Evidence Contract"
-    },
-    {
-      "type": "new_findings",
-      "rule": "新引擎确定性检出（6 类全报）多于旧引擎可机验层（零确定性检出）≠失败；全部逐条登记 migration-record.json new_findings_registry，随五元组交 L2/Owner 复核（v3.5）。",
-      "basis": "v3.5 影子跑 Evidence Contract"
-    }
+ "schema": "as2-security-expected-findings@1.0.0",
+ "finalized_before_shadow_run": true,
+ "finalized_at": "2026-09-25T05:30:00Z",
+ "fixture": {
+  "canonical": "test-reports/autopilot-work/AS-2-security/fixtures/vulnerable_app.py → [REBOUND test-reports/autopilot-work/AS-2-security/fixtures/fixture-vulnerable_app-evidence.tar.gz!/vulnerable_app.py sha256=1177efe8b000f69f2decc09ccbc64d4a7b42990a79e8ae1fa729f9df204c49cf]",
+  "legacy_twin": null,
+  "twin_reason": "旧引擎（PROMPT_ADAPTER）非文件型契约门：brief 组装对 contract 文本无后缀限制，直接以 .py 夹具为输入，无需 AS-2-first 式 .json 孪生。",
+  "defect_classes": [
+   "hardcoded-api-key（硬编码 API 密钥，ERROR 级）",
+   "hardcoded-password（硬编码口令，ERROR 级）",
+   "sql-injection-concat（SQL 字符串拼接后 execute，ERROR 级）",
+   "weak-hash-md5（MD5 弱哈希，WARNING 级）",
+   "eval-usage（eval 动态求值，WARNING 级）",
+   "subprocess-shell-true（shell=True 命令注入面，WARNING 级）"
+  ]
+ },
+ "old_engine": {
+  "asset": "security(prompt-backend)——LLM-prompt 路径，security 无专用 adapter",
+  "evidence": "test-reports/autopilot-work/AS-2-security/shadow-20260925/old-engine-record.json（3 次真实 PROMPT_ADAPTER run() + brief 落盘）",
+  "behavior": {
+   "output_form": "brief.md（方法论正文+任务+contract+Kernel 声明的子任务指令包）——可机验产出层；发现清单为 LLM 宿主执行层输出",
+   "pass_semantics": "无 pass/diff 布尔面、无 findings 结构——brief 层对缺陷零确定性检出承诺",
+   "determinism": "3 次 run brief sha256 全同（45d3ade4…）——组装层确定性；LLM 发现清单层本机无宿主 CLI 不可真实触发，非确定性波动不可机验（如实登记）",
+   "degraded": false
+  }
+ },
+ "new_engine_expected": {
+  "asset": "security(semgrep-engine)",
+  "engine": "semgrep 1.175.0（pip，github:semgrep/semgrep 官方源，装后 --version 实测 1.175.0）",
+  "ruleset": "自研 ruleset（test-reports/autopilot-work/AS-2-security/fixtures/security-local-rules.yaml——影子跑形态；晋升固化 vendor/security/rulesets/security-local-rules.yaml），六条规则全部本单自写，零 registry 依赖、零许可风险（semgrep 引擎 LGPL-2.1-or-later 以 CLI spawn 形态使用，无链接）",
+  "expected_rule_ids": [
+   "security.hardcoded-api-key",
+   "security.hardcoded-password",
+   "security.sql-injection-concat",
+   "security.weak-hash-md5",
+   "security.eval-usage",
+   "security.subprocess-shell-true"
   ],
-  "forbidden_difference": [
-    {
-      "type": "missing_detection",
-      "definition": "expected_rule_ids 中任一规则对应缺陷类，新引擎对等价输入未报出（漏检）。无论新旧引擎一律判失败（第七轮审计裁定）。LLM 层不参与此判据（其无确定性检出承诺，非『漏检』可判定面）。",
-      "detection": "影子跑比对实测 rule_ids（check_id 归一化）与 expected_rule_ids 差集"
-    },
-    {
-      "type": "crash",
-      "definition": "新引擎进程 crash / adapter 未捕获异常 / --json 输出不可解析且非合法语义。一律判失败。",
-      "detection": "harness 捕获异常 or JSON.parse 失败或 results/errors 双缺"
-    },
-    {
-      "type": "invalid_exit_code",
-      "definition": "exit code 与引擎语义不符（本引擎默认模式语义：成功（含 findings）= exit 0）。rc∉{0} 且无可解析错误解释 = invalid_exit_code；rc=0 但 JSON 不可解析 = crash 类 invalid_output。输出格式异常场景期望诚实报错 receipt failure，非静默。一律判失败。",
-      "detection": "实测 exit_code != expected_exit_code（正常路径场景）或 rc 与 JSON 可解析性矛盾"
-    }
-  ],
-  "amendments": [
-    {
-      "at": "2026-09-25T05:28:00Z",
-      "before_official_shadow_run": true,
-      "change": "security.sql-injection-concat 的 $CURSOR metavariable-regex 从 ^(?i).*cursor$ 修订为 (?i).*cursor",
-      "reason": "Step 4 smoke 实测：semgrep metavariable-regex 为 re.match 语义（起始锚定，PCRE2），夹具中 $CURSOR 绑定 db_cursor() 表达式，锚定尾 $ 致漏配。修订为起始锚定前缀通配后六规则全触发。修订留痕非静默改门，交 L2 复核。",
-      "evidence": "test-reports/autopilot-work/AS-2-security/shadow-20260925/semgrep-smoke.json（修订后 smoke：6 findings 全报）"
-    },
-    {
-      "at": "2026-09-25T05:30:00Z",
-      "before_official_shadow_run": true,
-      "change": "expected_exit_code 从暂定 1（照搬 AS-2-first spectral 语义）修订为 0，并增补确定性断言（新引擎两次运行 findings 集合全同）",
-      "reason": "Step 4 smoke 实测 semgrep 默认模式：有 findings 仍 exit 0（6 findings exit 0、干净样本 exit 0）——引擎语义与 spectral（error 级 exit 1）不同，exit_code_semantics 与 invalid_exit_code 判据按本引擎实测语义重写，不硬搬范例。",
-      "evidence": "test-reports/autopilot-work/AS-2-security/shadow-20260925/semgrep-smoke.json + semgrep-smoke-clean.json"
-    }
-  ],
-  "shadow_fail_rule": "任一 forbidden_difference 命中 → 影子跑 FAIL，不粉饰不硬推晋升；FAIL 本身即有效迁移证据（回滚保留旧 prompt 路径）。"
+  "min_findings": 6,
+  "expected_severity_dist": {
+   "error": 3,
+   "warning": 3
+  },
+  "expected_exit_code": 0,
+  "exit_code_semantics": "semgrep 默认模式（非 --error）：有 findings 仍 exit 0（实测 smoke：6 findings exit 0；干净样本 0 findings exit 0）；rc!=0 仅对应引擎错误/crash。invalid_exit_code 判据适配为：rc∉{0} 且无可解析 findings JSON = 引擎故障；rc=0 但 JSON 不可解析 = invalid_output（crash 类）。adapter 映射：存在 ERROR 级 finding → pass=false，否则 pass=true（WARNING 不判失败，diff 留痕）。",
+  "assertion": "实测 exit_code == 0 且 expected_rule_ids 全部报出（check_id 归一化后）且 finding_count ≥ 6 且 severity 分布 == {error:3, warning:3}；另加确定性断言：新引擎同 fixture 两次独立运行 findings 集合逐条相同（确定性引擎 vs LLM 非确定性的结构性对照）"
+ },
+ "accepted_difference": [
+  {
+   "type": "rule_name_changed",
+   "rule": "旧引擎 LLM 输出为自由文本发现清单（无规则名体系）；新引擎以自研 semgrep rule id 报告。不做一一对应强求，按 rule id 记录。",
+   "basis": "v3.6 允许差异 + 派单『LLM 非确定性输出 vs semgrep 确定性输出』不对称适配"
+  },
+  {
+   "type": "severity_mapping_changed",
+   "rule": "旧引擎 LLM 严重级为中文定级（自由文本）；新引擎 ERROR/WARNING 分级。映射：存在 ERROR 级 → pass=false，否则 pass=true；ERROR/WARNING 数值断言按 expected_severity_dist。",
+   "basis": "v3.6 允许差异 + 映射规则影子跑前显式声明"
+  },
+  {
+   "type": "message_changed",
+   "rule": "报告文案从 LLM 自由文本变为 semgrep 规则 message（自研中文规则消息）。",
+   "basis": "v3.6 允许差异"
+  },
+  {
+   "type": "nondeterminism_asymmetry（本单特有，派单要求适配）",
+   "rule": "旧引擎 = LLM 非确定性输出，新引擎 = 确定性静态分析。处理：旧侧多次运行取并集并记录波动（本单实测：brief 层 3 run sha256 全同，波动=0；LLM 发现层无宿主不可触发，如实登记不可机验面）；新侧加确定性断言（两次独立运行 findings 集合逐条相同）。比较基准取『旧侧并集的确定性可机验子集 = brief 层零确定性检出』，新侧全部检出均归 new_findings 逐条登记。",
+   "basis": "派单 Shadow Run 条款（多次运行取并集/记录波动）+ v3.5 影子跑 Evidence Contract"
+  },
+  {
+   "type": "new_findings",
+   "rule": "新引擎确定性检出（6 类全报）多于旧引擎可机验层（零确定性检出）≠失败；全部逐条登记 migration-record.json new_findings_registry，随五元组交 L2/Owner 复核（v3.5）。",
+   "basis": "v3.5 影子跑 Evidence Contract"
+  }
+ ],
+ "forbidden_difference": [
+  {
+   "type": "missing_detection",
+   "definition": "expected_rule_ids 中任一规则对应缺陷类，新引擎对等价输入未报出（漏检）。无论新旧引擎一律判失败（第七轮审计裁定）。LLM 层不参与此判据（其无确定性检出承诺，非『漏检』可判定面）。",
+   "detection": "影子跑比对实测 rule_ids（check_id 归一化）与 expected_rule_ids 差集"
+  },
+  {
+   "type": "crash",
+   "definition": "新引擎进程 crash / adapter 未捕获异常 / --json 输出不可解析且非合法语义。一律判失败。",
+   "detection": "harness 捕获异常 or JSON.parse 失败或 results/errors 双缺"
+  },
+  {
+   "type": "invalid_exit_code",
+   "definition": "exit code 与引擎语义不符（本引擎默认模式语义：成功（含 findings）= exit 0）。rc∉{0} 且无可解析错误解释 = invalid_exit_code；rc=0 但 JSON 不可解析 = crash 类 invalid_output。输出格式异常场景期望诚实报错 receipt failure，非静默。一律判失败。",
+   "detection": "实测 exit_code != expected_exit_code（正常路径场景）或 rc 与 JSON 可解析性矛盾"
+  }
+ ],
+ "amendments": [
+  {
+   "at": "2026-09-25T05:28:00Z",
+   "before_official_shadow_run": true,
+   "change": "security.sql-injection-concat 的 $CURSOR metavariable-regex 从 ^(?i).*cursor$ 修订为 (?i).*cursor",
+   "reason": "Step 4 smoke 实测：semgrep metavariable-regex 为 re.match 语义（起始锚定，PCRE2），夹具中 $CURSOR 绑定 db_cursor() 表达式，锚定尾 $ 致漏配。修订为起始锚定前缀通配后六规则全触发。修订留痕非静默改门，交 L2 复核。",
+   "evidence": "test-reports/autopilot-work/AS-2-security/shadow-20260925/semgrep-smoke.json（修订后 smoke：6 findings 全报）"
+  },
+  {
+   "at": "2026-09-25T05:30:00Z",
+   "before_official_shadow_run": true,
+   "change": "expected_exit_code 从暂定 1（照搬 AS-2-first spectral 语义）修订为 0，并增补确定性断言（新引擎两次运行 findings 集合全同）",
+   "reason": "Step 4 smoke 实测 semgrep 默认模式：有 findings 仍 exit 0（6 findings exit 0、干净样本 exit 0）——引擎语义与 spectral（error 级 exit 1）不同，exit_code_semantics 与 invalid_exit_code 判据按本引擎实测语义重写，不硬搬范例。",
+   "evidence": "test-reports/autopilot-work/AS-2-security/shadow-20260925/semgrep-smoke.json + semgrep-smoke-clean.json"
+  }
+ ],
+ "shadow_fail_rule": "任一 forbidden_difference 命中 → 影子跑 FAIL，不粉饰不硬推晋升；FAIL 本身即有效迁移证据（回滚保留旧 prompt 路径）。",
+ "evidence_rebind": "指针重绑定（第十审计 F-003，2026-09-25）：原 vulnerable_app.py 归档为 tar member，字节级 sha256=1177efe8b000f69f2decc09ccbc64d4a7b42990a79e8ae1fa729f9df204c49cf 实测一致"
 }

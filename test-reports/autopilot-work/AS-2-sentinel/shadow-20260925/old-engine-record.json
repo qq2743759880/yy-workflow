@@ -1,0 +1,51 @@
+{
+  "recordedAt": "2026-09-25T05:52:00Z",
+  "adapter": "PROMPT_ADAPTER（scripts/lib/adapters/prompt.mjs）——skill-sentinel 资产现无专用 adapter（index.mjs 无 skill-sentinel 键，resolveAdapter fallback PROMPT_ADAPTER），旧引擎 = LLM-prompt 路径（EA-1 基线：routes T5_OPS、consumption 机制=无、BW 零现）",
+  "engine": "LLM-prompt 后端（brief 组装 + 可选宿主 CLI 执行；本机无 LLM 宿主 CLI 配置，brief-only 形态）",
+  "fixture": "os.tmpdir/as2sent-fixtures/malicious-skill（canonical 恶意夹具：prompt 注入 + 数据外泄假 skill 包；临时夹具，tar 证据归档于本单 fixtures/）",
+  "harness": "临时 harness 位于 os.tmpdir（as2sent-harness/old-engine-harness.mjs），真实 import PROMPT_ADAPTER（scripts/lib/adapters/index.mjs）并携 vendor/skill-sentinel/SKILL.md 正文构造 assets Map 调 run()；跑完即删（契约 §五.2 迁移期临时代码不得为永久制品）",
+  "runs": [
+    {
+      "run": 1,
+      "ok": true,
+      "degraded": false,
+      "error": null,
+      "artifactPath": "artifacts\\shadow-old-engine\\brief.md",
+      "workspace": "…\\Temp\\as2sent-old-q8hQAi",
+      "brief_sha256": "b5000024c97b1e63b81bb50c8944d7dad9953570b0b9b0c6053975149378cae7",
+      "brief_copy": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/old-engine-run1-brief.md"
+    },
+    {
+      "run": 2,
+      "ok": true,
+      "degraded": false,
+      "error": null,
+      "artifactPath": "artifacts\\shadow-old-engine\\brief.md",
+      "workspace": "…\\Temp\\as2sent-old-i57Mt6",
+      "brief_sha256": "b5000024c97b1e63b81bb50c8944d7dad9953570b0b9b0c6053975149378cae7",
+      "brief_copy": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/old-engine-run2-brief.md"
+    },
+    {
+      "run": 3,
+      "ok": true,
+      "degraded": false,
+      "error": null,
+      "artifactPath": "artifacts\\shadow-old-engine\\brief.md",
+      "workspace": "…\\Temp\\as2sent-old-gNFKhJ",
+      "brief_sha256": "b5000024c97b1e63b81bb50c8944d7dad9953570b0b9b0c6053975149378cae7",
+      "brief_copy": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/old-engine-run3-brief.md"
+    }
+  ],
+  "old_engine_behavior": {
+    "output_form": "brief.md（子任务执行指令包：skill-sentinel 方法论正文 + 任务 + contract 含扫描目标引用）——旧引擎的可机验产出层；LLM 发现清单为其上的宿主执行层输出",
+    "brief_layer_determinism": "3 次真实执行 brief sha256 全同（b5000024…）——brief 组装层确定性，波动=0；对恶意夹具零确定性检出承诺（brief 层无 findings 结构，无论良性/恶意输入产出均为同形指令包）",
+    "llm_layer_note": "本机无 LLM 宿主 CLI（orchestrator --exec / executor.json 均未配置），LLM 发现清单输出层不可真实触发——非确定性波动如实登记为不可机验面（与 AS-2-security D-2 同型；差异表按『旧引擎无确定性检出承诺』口径适配，见 expected-findings.json old_engine 条目）",
+    "kernel_declaration_observed": "brief 内含 vendor/skill-sentinel/SKILL.md Execution kernel 段声明（自带工具 analyze-skill.sh / python -m skill_sentinel 未实际部署的 P2 诚实标注）——本迁移把声明内核升级为真实执行引擎（skill-scanner 2.1.0）",
+    "fixture_reference_confirmed": "brief 任务/contract 字段均真实引用恶意夹具目录路径（真实消费 skill-sentinel 资产对夹具，非空转）"
+  },
+  "rollback_path_verified_before_shadow": {
+    "verified": true,
+    "at": "2026-09-25T05:52:00Z",
+    "evidence": "本记录（PROMPT_ADAPTER 3 次真实 run() ok=true exit 0，brief 产物落盘）——旧路径（prompt 后端 + skill-sentinel 资产正文组装）工具在场、可回滚；EXPLICIT_COMPAT_MODE 回滚语义在候选 adapter compatAllowed() 实现（Gate-1）"
+  }
+}

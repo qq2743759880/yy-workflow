@@ -56,7 +56,17 @@ export async function run(subtask, ctx, options = {}) {
   const checkedAt = new Date().toISOString();
   const degrade = function (contract) { return emitResult(subtask, workspace, contract, true); };
   if (!scanTarget) {
-    return degrade({ pass: null, degraded: true, diff: 'scan target 缺失：security semgrep 扫描需要文件型扫描目标（options.scanTarget / subtask.scanTarget / 文件路径 contract）——记录但不扫描', checkedAt, tool: 'semgrep', version: 'unknown', scanTarget: null });
+    // fail-closed（第十审计 F-002 采纳，2026-09-25）：无文件型扫描目标时 semgrep 一次都不会运行——
+    // 旧形态 degrade 返回 ok:true/degraded → runtime 记 status=done，造成"security=done 但扫描 0 次"假绿。
+    // 现改为诚实失败（NO_SCAN_TARGET）：真实 caller（planner 自然语言 contract）不再静默通过；
+    // 确需跳过旧语义走 EXPLICIT_COMPAT_MODE（兼容旗标回滚 prompt 路径，留痕）。
+    if (compatAllowed(options)) return runLegacyPrompt(subtask, ctx, workspace, checkedAt, 'no_scan_target_compat', options.assets);
+    return { ok: false, artifactPath: null, contract: { pass: null, degraded: false, diff: 'NO_SCAN_TARGET: security semgrep 需要文件型扫描目标（options.scanTarget / subtask.scanTarget / 文件路径 contract）——无目标不扫描、不记 done', checkedAt, tool: 'semgrep', version: 'unknown', scanTarget: null }, degraded: false, error: 'NO_SCAN_TARGET' };
+  }
+  // 能力收缩守门（第十审计 F-005 采纳）：晋升 ruleset 现为 Python-only（6 规则）——非 Python 目标
+  // 会 0 findings 假绿。规则扩充（gitleaks/多语言）落地前，非 Python 目标显式拒绝。
+  if (!/\.(py|python)$/i.test(scanTarget) && !scanTarget.endsWith('.py.txt')) {
+    return { ok: false, artifactPath: null, contract: { pass: null, degraded: false, diff: 'SCOPE_LANGUAGE_UNSUPPORTED: 晋升 ruleset 现为 Python-only（security-local-rules.yaml 6 规则 languages:[python]）——非 Python 目标在本引擎下 0 findings 会假绿；多语言/gitleaks 能力恢复见迁移偏差登记', checkedAt, tool: 'semgrep', version: 'unknown', scanTarget }, degraded: false, error: 'SCOPE_LANGUAGE_UNSUPPORTED' };
   }
   // 新引擎（semgrep）：探测可用性；不可达 → Gate-1 回滚决策点（无旗标拒绝，显式旗标回滚旧路径）
   const shim = resolveCommandShim('semgrep');

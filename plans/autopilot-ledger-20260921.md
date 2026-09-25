@@ -113,3 +113,12 @@
 - R1 诚实性核验通过：change-lock acquire 在 AS-2-first 中确实无留痕（locks=[] 实查）——Playbook 保留步骤但校准措辞不谎称实例执行过，D-PB-1 登记。回溯自测双向修订 R1-R4 全部回写正文
 - 第二波 Step1-6 全收口；批 1 第三波启动（按 playbook 复制，首个复制对象=security→semgrep 走 pip）
 - D-7（AS-2-security 追加）：漏洞夹具 vulnerable_app.py 被 Mimosa 仓库扫描当真实漏洞强制拦截 commit（5 high/1 low——恰证明新引擎检测能力，但属测试数据误报）。处置：tar 归档入库（字节级证据保留，sha256 1177efe8…）+ README 说明重放方式（--lang python）；散装 .py 移除。教训：安全迁移的漏洞夹具与仓库扫描器存在结构性冲突，playbook 可增补"夹具归档入库"标准动作
+
+## 第十轮审计处置（2026-09-25，跨文件执行链追踪——五项 findings 全部成立，本批最重）
+- **F-001【治理矛盾·成立】**asset-migration contract 自身 change 单明文"签发前不得作为放行依据"，但 AS-2-first/security/sentinel 连续以之为权威推进；编排者"不阻塞"说法与仓内 fail-closed 语义冲突——**"不阻塞"系编排者自设政策，未经 Owner 裁定，与 D-REG1-1 归因错误同型**。整改：AS-2-sentinel 已下晋升 HOLD 指令（状态停 MIGRATING 待 receipt）；四张 PENDING receipt 正式提请 Owner 签收；签收前不再派发新迁移晋升
+- **F-002【P0 已修·运行时反例成立】**真实 auto 主链反例实证：planner 自然语言 contract → 无 scanTarget → 旧 degrade 返回 ok:true → runtime 记 done = "security=done 但扫描 0 次"。修复：NO_SCAN_TARGET fail-closed（审计者反例原样复现后被拒）；EXPLICIT_COMPAT_MODE 保留回滚路径。**审计者方法论价值：L2 逐单验证的是"harness 喂 fixture 能扫"，真实 caller shape 从未被测——Design/Runtime consumption 缺口第二次被抓**
+- **F-005【P0 已修·能力收缩未登记】**晋升 ruleset 6 规则全 Python-only，而 SKILL.md 声明多语言+gitleaks——非 Python 目标 0 findings 假绿。修复：adapter 加 SCOPE_LANGUAGE_UNSUPPORTED 守门（探针 app.ts 实测拒绝）；能力收缩显式登记 deviations；gitleaks/多语言恢复列 backlog
+- **F-003【已修·证据图断裂】**夹具归档后 5 处持久指针仍指向已不存在的 .py——重绑定至 tar member URI + 完整 sha256（1177efe8…cf 实测），migration-record 加 rebind note；"tar 完全解决"说法过满的批评采纳
+- **F-004【已修·Step 9 状态纠正】**晋升前快照缺失 = DEVIATED ≠ PASS，wizard [x] 作废改记；playbook §六 增补三条复制门（晋升前快照勾选项/指针重绑定/能力收缩登记）
+- **方法论定级**：本轮为十轮审计中价值最高——跨文件执行链追踪法（planner→matrix→registry→runtime→adapter→status）抓到全部逐单 L2 的盲区；该法列入批 1 终验必用
+- **批次状态**：AS-2-sentinel 证据收集中（晋升 HOLD）；review→bugbot 暂停派发待 receipt；两 P0 修复后 AS-2-security 修复验证探针过
