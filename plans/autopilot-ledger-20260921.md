@@ -122,3 +122,9 @@
 - **F-004【已修·Step 9 状态纠正】**晋升前快照缺失 = DEVIATED ≠ PASS，wizard [x] 作废改记；playbook §六 增补三条复制门（晋升前快照勾选项/指针重绑定/能力收缩登记）
 - **方法论定级**：本轮为十轮审计中价值最高——跨文件执行链追踪法（planner→matrix→registry→runtime→adapter→status）抓到全部逐单 L2 的盲区；该法列入批 1 终验必用
 - **批次状态**：AS-2-sentinel 证据收集中（晋升 HOLD）；review→bugbot 暂停派发待 receipt；两 P0 修复后 AS-2-security 修复验证探针过
+| AS-2-sentinel | MIGRATING-HOLD | agent_abb7746b | orchestrator-HOLD 指令执行确认（L2 待 receipt 后晋升时全量） | 2026-09-25T07:30:00Z | test-reports/autopilot-work/AS-2-sentinel/（Step0-6 证据 20 件；Step7-9 冻结；生产写面零改动） |
+- HOLD 执行确认：锁已 release、tmpdir 清理、migration-record 停 MIGRATING、receipt approvedBy=PENDING
+- NO INSTALL 门 PASS：pip cisco-ai-skill-scanner 2.1.0（Apache-2.0 双源核）——**D-2 新教训：PyPI `skill-scanner`(0.3.3 MIT) 是同名撞车的另一项目，官方包名=cisco-ai-skill-scanner**（npm 假包教训的 pip 版实例，沉淀管线级 lesson）
+- 双夹具影子跑 PASS 零 forbidden：恶意包 4 findings（3/3 rule id+severity 全对）/良性包 0 命中（benign_false_positive 第四类 forbidden 首次实战）+确定性断言
+- 晋升前三件快照按 v3.6 新规捕获（比范例单更标准）；runtime_binding=PENDING 拒绝硬编码（hash 动态化教训已内化）
+- 批 1 状态：晋升与复制全部 HOLD，等 Owner 签收 4 张 receipt（asset-migration/manifest schema/AS-2-first/AS-2-security）→ 统一放行 sentinel 晋升 + review→bugbot + 治理接线 + AS-1
