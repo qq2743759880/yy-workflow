@@ -1,0 +1,131 @@
+{
+  "id": "plan-muh1yemw",
+  "task": "backend login module with security review",
+  "cluster": "T2_BACKEND",
+  "contract": "backend interface and error contract",
+  "requireExec": true,
+  "preconditions": [
+    "接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
+    "实现类子任务须经 --exec 宿主真实执行，禁纯 prompt 兜底（requireExec）",
+    "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1）；上游 done 且 assetConsumed=true 后下游才派单"
+  ],
+  "phases": 3,
+  "subtasks": [
+    {
+      "id": "plan-muh1yemw-0",
+      "planId": "plan-muh1yemw",
+      "asset": "implementation",
+      "contract": "contracts\\plan-muh1yemw.json",
+      "status": "failed",
+      "artifactPath": null,
+      "attempts": 1,
+      "phase": 0,
+      "dependsOn": [],
+      "preconditions": [
+        "接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
+        "实现类子任务须经 --exec 宿主真实执行，禁纯 prompt 兜底（requireExec）",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1）；上游 done 且 assetConsumed=true 后下游才派单"
+      ],
+      "task": "backend login module with security review",
+      "contractMode": "frozen",
+      "eligibility": {
+        "eligible": true,
+        "reason": [
+          "无正向依据：未提供 requirements/constraints 提示——如实标注，不否决（无负向命中）"
+        ]
+      },
+      "adapter": "opencode"
+    },
+    {
+      "id": "plan-muh1yemw-1",
+      "planId": "plan-muh1yemw",
+      "asset": "sdlc",
+      "contract": "contracts\\plan-muh1yemw.json",
+      "status": "idle",
+      "artifactPath": null,
+      "attempts": 0,
+      "phase": 1,
+      "dependsOn": [
+        "plan-muh1yemw-0",
+        "plan-muh1yemw-2"
+      ],
+      "preconditions": [
+        "接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
+        "实现类子任务须经 --exec 宿主真实执行，禁纯 prompt 兜底（requireExec）",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1）；上游 done 且 assetConsumed=true 后下游才派单"
+      ],
+      "task": "backend login module with security review",
+      "contractMode": "frozen"
+    },
+    {
+      "id": "plan-muh1yemw-2",
+      "planId": "plan-muh1yemw",
+      "asset": "security",
+      "contract": "contracts\\plan-muh1yemw.json",
+      "status": "done",
+      "artifactPath": "artifacts\\plan-muh1yemw-2\\security-result.json",
+      "attempts": 1,
+      "phase": 0,
+      "dependsOn": [],
+      "preconditions": [
+        "接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
+        "实现类子任务须经 --exec 宿主真实执行，禁纯 prompt 兜底（requireExec）",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1）；上游 done 且 assetConsumed=true 后下游才派单"
+      ],
+      "task": "backend login module with security review",
+      "contractMode": "frozen",
+      "eligibility": {
+        "eligible": true,
+        "reason": [
+          "无正向依据：未提供 requirements/constraints 提示——如实标注，不否决（无负向命中）"
+        ]
+      },
+      "mode": "exec",
+      "adapter": "security"
+    },
+    {
+      "id": "plan-muh1yemw-3",
+      "planId": "plan-muh1yemw",
+      "asset": "review",
+      "contract": "contracts\\plan-muh1yemw.json",
+      "status": "idle",
+      "artifactPath": null,
+      "attempts": 0,
+      "phase": 1,
+      "dependsOn": [
+        "plan-muh1yemw-0",
+        "plan-muh1yemw-2"
+      ],
+      "preconditions": [
+        "接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
+        "实现类子任务须经 --exec 宿主真实执行，禁纯 prompt 兜底（requireExec）",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1）；上游 done 且 assetConsumed=true 后下游才派单"
+      ],
+      "task": "backend login module with security review",
+      "contractMode": "frozen"
+    },
+    {
+      "id": "plan-muh1yemw-4",
+      "planId": "plan-muh1yemw",
+      "asset": "be-validator",
+      "contract": "contracts\\plan-muh1yemw.json",
+      "status": "idle",
+      "artifactPath": null,
+      "attempts": 0,
+      "phase": 2,
+      "dependsOn": [
+        "plan-muh1yemw-1",
+        "plan-muh1yemw-3"
+      ],
+      "preconditions": [
+        "接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
+        "实现类子任务须经 --exec 宿主真实执行，禁纯 prompt 兜底（requireExec）",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1）；上游 done 且 assetConsumed=true 后下游才派单"
+      ],
+      "task": "backend login module with security review",
+      "contractMode": "frozen"
+    }
+  ],
+  "status": "failed",
+  "createdAt": "2026-09-25T14:24:50.072Z"
+}

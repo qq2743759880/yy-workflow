@@ -26,6 +26,13 @@
  *                                    A3 manifest 驱动路由断言（Gate-2 三方 hash + eligible 9 true/7 false）/
  *                                    A4 legacy loader 不可达 / A5 真实执行≠能力覆盖（模式 1）/
  *                                    A6 correction≠作废（模式 2）。任一 FAIL → regression FAIL。
+ *   S16 failed state cannot promote —— HARDEN-1（2026-09-25，第十三审计 H1 采纳）：两断言——
+ *                                    S16-1 行为探针（FINAL-E2E 同款 mech 主链 --backend auto + MECH_HOST 于临时
+ *                                    workspace，opencode 未登录自然 failed → promotionReceipt==null + 全仓
+ *                                    migration-record 零引用 + SIGNED receipt 零引用）/
+ *                                    S16-2 静态断言（migration-record + state 副本全扫，failed 记录不得有 SIGNED
+ *                                    promotion receipt 指向；注入反例 failed+SIGNED 组合须被同一扫描器 FAIL 具名）。
+ *                                    证据落 test-reports/autopilot-work/HARDEN-1/。任一 FAIL → regression FAIL。
  *
  * 注：S4-S6 在临时 workspace 中运行（os.tmpdir），结束后清理，不污染仓库。
  *
@@ -471,6 +478,163 @@ async function main() {
       a6detail = 'probe exception: ' + e.message;
     }
     section('S15-A6 correction≠作废（模式 2）', a6ok, a6detail + '（证据 AS-2-sentinel/migration-record.json）');
+  }
+
+  // ── S16 failed state cannot promote（HARDEN-1，2026-09-25；第十三审计 H1 采纳）——两断言 ──
+  // 失败形态构造先例：FINAL-E2E E-5——--backend auto 下 implementation 子任务因 opencode CLI 未登录自然
+  // failed（[error] 具名）→ plan 级 failed 级联。本段不变量：failed 状态不得产生/关联任何晋升凭据
+  // （promotion receipt 只能指向非 failed 的成功记录——"失败即封存，不晋升"）。
+  {
+    const HARDEN_DIR = path.join(ROOT, 'test-reports', 'autopilot-work', 'HARDEN-1');
+    fs.mkdirSync(HARDEN_DIR, { recursive: true });
+    const SIGNED_RE = /"status"\s*:\s*"SIGNED"/;
+    const relRoot = (f) => path.relative(ROOT, f).split(path.sep).join('/');
+    // 扫描器（S16-1③ 与 S16-2 同一实现；注入反例证明其非 vacuous）：
+    //   state 类文件 → status=failed 的 plan/subtask 身份（id + planId）；
+    //   migration-record 类文件 → migration_object.status=failed 的迁移身份；
+    //   receipt 类文件 → 含 "status":"SIGNED" 的已签收 receipt；
+    //   违例 = failed 身份的任一 id 被 SIGNED receipt 文本引用（晋升凭据指向失败记录，具名输出）。
+    function scanFailedPromotion(stateFiles, migrationFiles, receiptFiles, fileRel) {
+      const failed = [];
+      for (const f of stateFiles) {
+        let j = null;
+        try { j = JSON.parse(fs.readFileSync(f, 'utf8')); } catch (e) { continue; }
+        const rel = fileRel(f);
+        for (const t of (Array.isArray(j.subtasks) ? j.subtasks : [])) {
+          if (t && t.status === 'failed') failed.push({ source: rel, kind: 'subtask', id: t.id || null, ids: [t.id, t.planId].filter(Boolean), promotionReceipt: t.promotionReceipt === undefined ? null : t.promotionReceipt });
+        }
+        if (j.status === 'failed' && j.id) failed.push({ source: rel, kind: 'plan', id: j.id, ids: [j.id], promotionReceipt: null });
+      }
+      for (const f of migrationFiles) {
+        let j = null;
+        try { j = JSON.parse(fs.readFileSync(f, 'utf8')); } catch (e) { continue; }
+        if (j.migration_object && j.migration_object.status === 'failed') {
+          failed.push({ source: fileRel(f), kind: 'migration', id: (j.dispatch && j.dispatch.plan_id) || j.migration_object.id || path.basename(f, '.json'), ids: [(j.dispatch && j.dispatch.plan_id), j.migration_object.id].filter(Boolean), promotionReceipt: j.promotion_receipt && j.promotion_receipt.id ? j.promotion_receipt.id : null });
+        }
+      }
+      const signed = [];
+      for (const f of receiptFiles) {
+        let body = '';
+        try { body = fs.readFileSync(f, 'utf8'); } catch (e) { continue; }
+        if (SIGNED_RE.test(body)) signed.push({ file: fileRel(f), body });
+      }
+      const violations = [];
+      for (const rec of failed) {
+        for (const s of signed) {
+          const hit = rec.ids.filter((id) => s.body.includes(id));
+          if (hit.length) violations.push({ record: rec.source, kind: rec.kind, failedId: rec.id, signedReceipt: s.file, matchedIds: hit });
+        }
+      }
+      return { failed, signedReceipts: signed.map((s) => s.file), violations };
+    }
+
+    // 静态宇宙（固定部分）：test-reports/autopilot-work/*/migration-record.json + contracts/discrepancies/cr-*.json
+    const autopilotDir = path.join(ROOT, 'test-reports', 'autopilot-work');
+    const migrationFiles = [];
+    if (fs.existsSync(autopilotDir)) {
+      for (const ent of fs.readdirSync(autopilotDir, { withFileTypes: true })) {
+        if (!ent.isDirectory()) continue;
+        const cand = path.join(autopilotDir, ent.name, 'migration-record.json');
+        if (fs.existsSync(cand)) migrationFiles.push(cand);
+      }
+    }
+    const discrepanciesDir = path.join(ROOT, 'contracts', 'discrepancies');
+    const receipts = fs.existsSync(discrepanciesDir) ? fs.readdirSync(discrepanciesDir).filter((n) => /^cr-.*\.json$/.test(n)).map((n) => path.join(discrepanciesDir, n)) : [];
+
+    // ── S16-1 行为探针：FINAL-E2E 同款 mech 主链（--backend auto + MECH_HOST——final-e2e-assert.mjs:74
+    //    逐字同源机验宿主，S8 先例「机制测试须隔离外部 CLI/模型依赖」口径）于临时 workspace ──
+    const MECH_HOST = "const fs=require('fs'),p=require('path');const b=fs.readFileSync(process.argv[1],'utf8');const a=(b.match(/## \\u65b9\\u6cd5\\u8bba\\u6b63\\u6587[\\s\\S]*?\\n(#+\\s+[^\\n]+)/)||[])[1]||'x';const k=(b.match(/Kernel:\\s*([A-Za-z0-9][^\\n\\uFF08(]+)/)||[])[1]||'';fs.writeFileSync(p.join(p.dirname(process.argv[1]),'plan.md'),'# '+a+(k?'\\n\\n'+k:''))";
+    const ws16 = fs.mkdtempSync(path.join(os.tmpdir(), 'tt-s16-'));
+    let s16_1ok = false;
+    let s16_1detail = 'FAIL';
+    try {
+      const probeArgs = ['scripts/orchestrator.mjs', '--task', 'backend login module with security review', '--workspace', ws16, '--backend', 'auto', '--exec', process.execPath, '-e', MECH_HOST];
+      const probe = await run(process.execPath, probeArgs, ROOT);
+      fs.writeFileSync(path.join(HARDEN_DIR, 's16-orchestrator.log'), '$ node ' + probeArgs.join(' ').replace(MECH_HOST, '<S8 同款 MECH_HOST（final-e2e-assert.mjs:74 逐字同源）>') + '\n--- stdout ---\n' + probe.out + '\n--- stderr ---\n' + probe.err);
+      const statePath = path.join(ws16, '.tt-state', 'state.json');
+      if (!fs.existsSync(statePath)) {
+        s16_1detail = 'FAIL 无 .tt-state/state.json 产出（主链未达 state 落盘点）exit=' + probe.code;
+      } else {
+        const st16 = JSON.parse(fs.readFileSync(statePath, 'utf8'));
+        fs.writeFileSync(path.join(HARDEN_DIR, 's16-state-failed.json'), JSON.stringify(st16, null, 2));
+        const failedSubs = (st16.subtasks || []).filter((t) => t.status === 'failed');
+        if (!failedSubs.length) {
+          s16_1detail = 'FAIL 前置形态不满足：无 failed 子任务（opencode 登录态与 FINAL-E2E E-5 前提不符——探针 fail-closed 拒绝空转 PASS）';
+        } else {
+          // ① failed 子任务 promotionReceipt==null（字段缺省/null 同视——晋升凭据不因失败产生）
+          const receiptNull = failedSubs.every((t) => t.promotionReceipt == null);
+          // ② 全仓 migration-record 无引用其子任务 id（PRIMARY transition 在册即会在记录文本命中）
+          const migHits = [];
+          for (const mf of migrationFiles) {
+            let body = '';
+            try { body = fs.readFileSync(mf, 'utf8'); } catch (e) { continue; }
+            for (const t of failedSubs) if (t.id && body.includes(t.id)) migHits.push(path.basename(path.dirname(mf)) + ' -> ' + t.id);
+          }
+          // ③ SIGNED receipt 零引用 failed 子任务/plan id（与 S16-2 同一扫描器）
+          const scan1 = scanFailedPromotion([statePath], [], receipts, relRoot);
+          const noSignedRef = scan1.violations.length === 0;
+          s16_1ok = receiptNull && migHits.length === 0 && noSignedRef;
+          const ev = {
+            schema: 's16-behavior-probe@1.0.0', at: new Date().toISOString(), backend: 'auto', host_mode: 'mech',
+            workspace: ws16, orchestrator_exit_code: probe.code, plan_status: st16.status || null,
+            subtasks: (st16.subtasks || []).map((t) => ({ id: t.id, asset: t.asset, status: t.status, promotionReceipt: t.promotionReceipt === undefined ? null : t.promotionReceipt, error: t.error || null })),
+            failed_subtask_ids: failedSubs.map((t) => t.id),
+            checks: { failed_present: failedSubs.length > 0, promotion_receipt_null: receiptNull, migration_record_no_reference: migHits.length === 0, no_signed_receipt_references_failed: noSignedRef, migration_records_scanned: migrationFiles.length, receipts_scanned: receipts.length, signed_receipts_scanned: scan1.signedReceipts.length },
+            migration_record_hits: migHits, signed_receipt_violations: scan1.violations,
+            verdict: s16_1ok ? 'PASS' : 'FAIL',
+          };
+          fs.writeFileSync(path.join(HARDEN_DIR, 's16-behavior-probe.json'), JSON.stringify(ev, null, 2));
+          s16_1detail = 'failed=' + failedSubs.map((t) => t.asset + ':' + t.id).join(',') + ' | promotionReceipt==null ' + (receiptNull ? '✓' : 'FAIL') + ' | migration-record×' + migrationFiles.length + ' 零引用 ' + (migHits.length === 0 ? '✓' : 'FAIL ' + migHits.join(',')) + ' | SIGNED receipt×' + scan1.signedReceipts.length + ' 零引用 ' + (noSignedRef ? '✓' : 'FAIL ' + JSON.stringify(scan1.violations)) + '（证据 HARDEN-1/s16-behavior-probe.json + s16-state-failed.json + s16-orchestrator.log）';
+        }
+      }
+    } catch (e) {
+      s16_1detail = 'probe exception: ' + e.message;
+    } finally {
+      fs.rmSync(ws16, { recursive: true, force: true });
+    }
+    section('S16-1 行为探针：failed 子任务 promotionReceipt==null 且全仓零 SIGNED/PRIMARY 引用', s16_1ok, s16_1detail);
+
+    // ── S16-2 静态断言（跑在行为探针后：扫描宇宙含其留证 s16-state-failed.json——探针自己的 failed
+    //    记录同样受本不变量约束）。宇宙：autopilot-work/*/migration-record.json + autopilot-work 内
+    //    state 副本（文件名含 state 且有 subtasks 数组的 JSON，含 FINAL-E2E/e2e-state-*.json）+ cr-*.json。
+    const stateCopies = [];
+    if (fs.existsSync(autopilotDir)) {
+      (function walkStateCopies(dir, depth) {
+        for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+          const full = path.join(dir, ent.name);
+          if (ent.isDirectory() && depth < 2) walkStateCopies(full, depth + 1);
+          else if (ent.isFile() && /state/i.test(ent.name) && ent.name.endsWith('.json')) {
+            try { if (Array.isArray(JSON.parse(fs.readFileSync(full, 'utf8')).subtasks)) stateCopies.push(full); } catch (e) { /* 非 orchestrator state，跳过 */ }
+          }
+        }
+      })(autopilotDir, 0);
+    }
+    const staticScan = scanFailedPromotion(stateCopies, migrationFiles, receipts, relRoot);
+    // 注入反例（os.tmpdir 夹具）：failed+SIGNED 组合必须 FAIL 具名；同 id 未签收（PENDING）对照不误报
+    const inj = { injectedCaught: false, injectedNamed: false, pendingNotFlagged: false, detail: '未执行' };
+    const injDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tt-s16-inj-'));
+    try {
+      const injId = 'plan-s16inject-1';
+      fs.writeFileSync(path.join(injDir, 'state.json'), JSON.stringify({ id: 'plan-s16inject', status: 'failed', subtasks: [{ id: injId, planId: 'plan-s16inject', asset: 's16-injected-asset', status: 'failed' }] }, null, 2));
+      fs.writeFileSync(path.join(injDir, 'receipt-signed.json'), JSON.stringify({ changeRecordId: 'cr-INJECT-PROBE', status: 'SIGNED', promotionReceipt: { references: [injId] } }, null, 2));
+      fs.writeFileSync(path.join(injDir, 'receipt-pending.json'), JSON.stringify({ changeRecordId: 'cr-INJECT-PROBE-PENDING', status: 'PENDING', promotionReceipt: { references: [injId] } }, null, 2));
+      const caught = scanFailedPromotion([path.join(injDir, 'state.json')], [], [path.join(injDir, 'receipt-signed.json'), path.join(injDir, 'receipt-pending.json')], (f) => path.basename(f));
+      // 夹具同时含 failed subtask 与 failed plan（plan id 亦被 receipt 引用）——两类记录都必须被捕获且具名
+      inj.injectedCaught = caught.violations.length >= 1 && caught.violations.some((v) => v.failedId === injId && v.signedReceipt === 'receipt-signed.json');
+      inj.injectedNamed = inj.injectedCaught && caught.violations.every((v) => v.signedReceipt === 'receipt-signed.json' && v.record === 'state.json');
+      inj.pendingNotFlagged = caught.violations.every((v) => v.signedReceipt !== 'receipt-pending.json');
+      inj.detail = inj.injectedCaught ? 'FAIL 具名(state.json × receipt-signed.json; 捕获 ' + caught.violations.length + ' 条: ' + caught.violations.map((v) => v.kind + ':' + v.failedId).join(', ') + ') ✓ PENDING 对照未误报=' + inj.pendingNotFlagged : '注入未捕获: ' + JSON.stringify(caught.violations);
+    } catch (e) {
+      inj.detail = 'probe exception: ' + e.message;
+    } finally {
+      fs.rmSync(injDir, { recursive: true, force: true });
+    }
+    const injOk = inj.injectedCaught && inj.injectedNamed && inj.pendingNotFlagged;
+    fs.writeFileSync(path.join(HARDEN_DIR, 's16-static-scan.json'), JSON.stringify({ schema: 's16-static-scan@1.0.0', at: new Date().toISOString(), universe: { state_copies: stateCopies.map(relRoot), migration_records: migrationFiles.map(relRoot), receipts_total: receipts.length }, failed_records: staticScan.failed, signed_receipts: staticScan.signedReceipts, violations: staticScan.violations, injection: inj, verdict: (staticScan.violations.length === 0 && injOk) ? 'PASS' : 'FAIL' }, null, 2));
+    section('S16-2 静态断言：failed 记录不得有 SIGNED promotion receipt 指向', staticScan.violations.length === 0 && injOk,
+      (staticScan.violations.length === 0
+        ? '仓态零违例：failed 记录 ' + staticScan.failed.length + ' 条 × SIGNED receipt ' + staticScan.signedReceipts.length + ' 张（migration-record ' + migrationFiles.length + ' + state 副本 ' + stateCopies.length + '）✓'
+        : 'PROMOTION_AFTER_FAILED ' + JSON.stringify(staticScan.violations)) + ' | 注入反例（failed+SIGNED 组合→FAIL 具名）: ' + inj.detail + '（证据 HARDEN-1/s16-static-scan.json）');
   }
 
   console.log('\n结果: ' + pass + ' PASS / ' + fail + ' FAIL' + (skip ? ' / ' + skip + ' SKIP' : ''));

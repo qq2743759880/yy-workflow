@@ -1,4 +1,7 @@
-# FINAL-E2E 验收入口（批 1 终验·真实 production 主链）
+# FINAL-E2E 验收入口（Runtime Boundary E2E——Host Mode: mechanical acceptance host：验证 runtime 执行链，非 LLM 规划质量）
+
+> 更名登记（HARDEN-1 H2，2026-09-25）：原标题"批 1 终验·真实 production 主链"更名如上，与 RESULTS.md 标题及 ledger 更正段三处一致；目录名不动防证据路径断裂。
+> Host Mode 声明：本验收主形态为 `--host-mode=mech`（S8 先例机械验收宿主，机制隔离口径）；`--host-mode=llm` 路径存在但依赖真实 LLM 宿主（E-4 张力在案——模型诚实拒绝复述 kernel token → D-1 门拦截），标注 **post-Owner-ruling 可选项**，Owner 裁定前不作为验收口径。
 
 > 状态：**待 Owner receipt 签收后执行**（第十三审计 F-025 采纳：签收前不可声明"全部验证完成"——本文档即签收后的第一项动作）。
 > 与 REMEDIATION-1 f011-e2e-probe 的区别：probe 是 planner-shaped dispatch（手工构造子任务）；本验收走 **真实 buildPlan() → orchestrator → resolver → capabilities → adapter → receipt 全链**。

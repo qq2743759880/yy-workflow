@@ -177,3 +177,15 @@
 | FINAL-E2E@HEAD | PASS | orchestrator | drop+接线后当前 HEAD 复跑：真实 buildPlan 主链 verdict=PASS（security-result 落盘 4159B） | — |
 - 【批 1 终验·主链】drop 7（注册表 16→9）+ 治理接线后 FINAL-E2E 复跑 PASS——S15-A1 清扫后的 9 资产活面上全链成立
 - AS-1 正式报告核对（与我 L2 一致）：7 vendor 目录删除已全部入版本库 ✓；新披露 D-3 登记残留面 17 文件（README/reference/templates/CATALOG_IDS/ASSET_WHITELIST/孤儿脚本等）——清理移交后续批次（非阻塞，历史证据面 S15-A1 已豁免）；D-6 loader 旗标门属 v3.2 Phase 2；D-8 派单笔误（implementation 保留）。AS-1 关账
+
+## HARDEN-1 更正（2026-09-25，第十三审计 H2/H3 采纳——只追加，不改既有行）
+- 【H2 更名】FINAL-E2E"批 1 终验·真实 production 主链"→"**Runtime Boundary E2E**（Host Mode: mechanical acceptance host——验证 runtime 执行链，非 LLM 规划质量）"：该验收宿主为机械验收宿主（S8 先例机制隔离口径），验收对象是 runtime 执行链机制（planner→resolver→capabilities→专用 adapter→receipt），不能表述为 LLM 规划质量验证。落点三处一致：FINAL-E2E/RESULTS.md 标题、FINAL-E2E/ACCEPTANCE-ENTRY.md 标题、本更正段；目录名不动防证据路径断裂。
+- 【H2 llm 模式声明】`--host-mode=llm` 路径存在但依赖真实 LLM 宿主（E-4 张力在案——模型诚实拒绝复述 kernel token → D-1 门拦截），标注 **post-Owner-ruling 可选项**，Owner 裁定前不作为验收口径。
+- 【H1 机验】regression-all.mjs 新增 S16 段（继 S15，两断言）：S16-1 行为探针（FINAL-E2E 同款 mech 主链于临时 workspace，opencode 未登录自然 failed → promotionReceipt==null + 全仓 migration-record 零引用 + SIGNED receipt 零引用）；S16-2 静态断言（migration-record + state 副本全扫，failed 记录不得有 SIGNED promotion receipt 指向；注入反例 failed+SIGNED 组合须被同一扫描器 FAIL 具名）。证据：test-reports/autopilot-work/HARDEN-1/。
+- 【H3 审计索引】plans/audit-index-20260925.md 新建：第十三轮审计"UNVERIFIED/未读取"项证据指针表（finding → 证据路径 → 复验命令一行），受限 MCP 审计者按索引直读。
+| HARDEN-1 | PASS | agent_8134d298 | orchestrator-L2(S16 复跑+diff 审读+索引抽查) | 2026-09-25T18:50:00Z | scripts/regression-all.mjs（S16 段，22 项）; plans/audit-index-20260925.md（28 行证据指针表）; test-reports/autopilot-work/HARDEN-1/; FINAL-E2E RESULTS/ACCEPTANCE-ENTRY 更名 |
+- 【H1 闭环】S16-1 行为探针（mech 主链自然 failed → promotionReceipt==null + 全仓零引用）+ S16-2 静态扫描（4 failed×6 SIGNED 零违例；注入反例 failed+SIGNED 组合被同一扫描器 FAIL 具名 2 条；PENDING 对照未误报）——F-027"失败可见但未证明不可晋升"闭合
+- 【H2 闭环】Runtime Boundary E2E 三处一致更名 + Host Mode: mechanical acceptance host 显式声明 + llm 模式标注 post-Owner-ruling 可选（E-4 关联）
+- 【H3 闭环】audit-index 28 行证据指针表（复验命令一行式）——受限审计者 NOT FOUND 循环的终结方案
+- agent 曾两度 provider Captcha 超时，第三次成功且交付完整——验证中断恢复纪律
+- 批 1 状态：HARDEN-1 关账，终验收口报告待拟（措辞降级版）；PB-WRITEBACK/D-3-RESIDUAL 两单派单就绪待派

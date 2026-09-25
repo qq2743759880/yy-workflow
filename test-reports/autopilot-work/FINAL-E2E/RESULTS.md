@@ -1,4 +1,6 @@
-# FINAL-E2E RESULTS — 批 1 终验·真实 production 主链（ACCEPTANCE-ENTRY.md 执行记录）
+# FINAL-E2E RESULTS — Runtime Boundary E2E（Host Mode: mechanical acceptance host——验证 runtime 执行链，非 LLM 规划质量）（ACCEPTANCE-ENTRY.md 执行记录）
+
+> 更名登记（HARDEN-1 H2，2026-09-25）：原标题"批 1 终验·真实 production 主链"更名如上——本验收的宿主为机械验收宿主（S8 先例机制隔离口径），测的是 **runtime 执行链机制**（planner→resolver→capabilities→专用 adapter→receipt），非 LLM 规划质量；目录名不动防证据路径断裂，只改文档与账面（ledger 追加更正段）。
 
 > 执行：autopilot L1（AS-2-sentinel-promotion 派单 Part B）｜日期：2026-09-25
 > 前置：五张 receipt SIGNED + cr-20260925T150000Z-as2sent-promotion SIGNED（Part A 晋升先于本验收执行完毕，manifest hash 已更新为 d9f0d738…）
@@ -40,6 +42,7 @@ T2 requireExec 前置门要求上游 done 且 assetConsumed=true，security（ph
 2. **真实 LLM 宿主**（a6api 网关 127.0.0.1:15724，model gpt-5.6-sol，2 轮）：真实执行、真实 plan.md 产出（方法论锚点命中），但 D-1 内核词门（锚点 AND ≥1 内核词字面 token）2 轮均未过——模型诚实拒绝声称 `csalvato/system-design-template` 采用（回复明言「未声称调用外部」）。assetConsumed=false → security 不派单。证据：e2e-orchestrator-auto.log 两轮前版（本目录 git 外无留档，原始 plan.md 摘录见 deviation 登记）。
 3. **S8 同款机验宿主**（本验收主形态）：regression-all.mjs S8 段先例「机制测试须隔离外部 CLI/模型依赖」——brief 提取锚点+内核词写 plan.md（mechanical，非 LLM）。FINAL-E2E 断言链的对象是 security 子链机制（planner→resolver→capabilities→专用 adapter→receipt），上游 brief 消费按 S8 口径隔离。**此形态下断言链 9/9 PASS**。
 4. 诚实性边界声明：机验宿主产出的上游 plan.md 无实质方法论内容（S8 先例同款形态）；assetConsumed=true 属 legacy telemetry-only 弱证据（receipt.mjs §7.8 口径），不构成 behavior_verified——L2 如裁定 FINAL-E2E 须 LLM 真实上游消费，则 D-1 内核词门与真实 LLM 输出的张力（模型不逐字复述 kernel token）须先裁决，本单不擅自改门。
+5. **llm 模式声明（HARDEN-1 H2 随附）**：驱动 `--host-mode=llm` 路径存在但依赖真实 LLM 宿主（E-4 张力在案，见上第 2/4 条）——标注 **post-Owner-ruling 可选项**，非本验收形态；Owner 裁定前不作为验收口径。
 
 ## 四、临时 workspace 纪律
 

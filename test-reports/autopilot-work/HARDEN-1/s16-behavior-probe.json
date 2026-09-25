@@ -1,0 +1,61 @@
+{
+  "schema": "s16-behavior-probe@1.0.0",
+  "at": "2026-09-25T14:25:18.733Z",
+  "backend": "auto",
+  "host_mode": "mech",
+  "workspace": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\tt-s16-aKONG0",
+  "orchestrator_exit_code": 5,
+  "plan_status": "failed",
+  "subtasks": [
+    {
+      "id": "plan-muh1yemw-0",
+      "asset": "implementation",
+      "status": "failed",
+      "promotionReceipt": null,
+      "error": null
+    },
+    {
+      "id": "plan-muh1yemw-1",
+      "asset": "sdlc",
+      "status": "idle",
+      "promotionReceipt": null,
+      "error": null
+    },
+    {
+      "id": "plan-muh1yemw-2",
+      "asset": "security",
+      "status": "done",
+      "promotionReceipt": null,
+      "error": null
+    },
+    {
+      "id": "plan-muh1yemw-3",
+      "asset": "review",
+      "status": "idle",
+      "promotionReceipt": null,
+      "error": null
+    },
+    {
+      "id": "plan-muh1yemw-4",
+      "asset": "be-validator",
+      "status": "idle",
+      "promotionReceipt": null,
+      "error": null
+    }
+  ],
+  "failed_subtask_ids": [
+    "plan-muh1yemw-0"
+  ],
+  "checks": {
+    "failed_present": true,
+    "promotion_receipt_null": true,
+    "migration_record_no_reference": true,
+    "no_signed_receipt_references_failed": true,
+    "migration_records_scanned": 4,
+    "receipts_scanned": 8,
+    "signed_receipts_scanned": 6
+  },
+  "migration_record_hits": [],
+  "signed_receipt_violations": [],
+  "verdict": "PASS"
+}
