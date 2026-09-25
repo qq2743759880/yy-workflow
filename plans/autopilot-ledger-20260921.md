@@ -128,3 +128,10 @@
 - 双夹具影子跑 PASS 零 forbidden：恶意包 4 findings（3/3 rule id+severity 全对）/良性包 0 命中（benign_false_positive 第四类 forbidden 首次实战）+确定性断言
 - 晋升前三件快照按 v3.6 新规捕获（比范例单更标准）；runtime_binding=PENDING 拒绝硬编码（hash 动态化教训已内化）
 - 批 1 状态：晋升与复制全部 HOLD，等 Owner 签收 4 张 receipt（asset-migration/manifest schema/AS-2-first/AS-2-security）→ 统一放行 sentinel 晋升 + review→bugbot + 治理接线 + AS-1
+
+## 第十一轮审计处置（2026-09-25，事实主张全部核实成立——"5/5 整改完成"降级为 5 项 PARTIAL）
+- 编排者自纠：上一轮"全部整改"声明违反自己登记的措辞纪律。本审计（首次具备真实读仓能力且做了跨文件追踪）七项 findings 核实：F-011/012/013/014/015/016/017/018 全部 CONFIRMED
+- 已由编排者直修（小修）：F-012 sentinel 状态 MIGRATING→SHADOW-HOLD（契约 SHADOW→MIGRATING 需已签发 receipt，PENDING≠签发——我的 HOLD 指令本身把状态机推错了）；F-016 AS-2-security RESULTS Step9 [x]→DEVIATED；F-018 getRequiredCapabilities 补 security/skill-sentinel→run_cmd（EX-1 D-EX1-4 预告项漏做实锤）+ PHASE2 security dedicatedAdapter:true
+- 【系统性模式认定（两条，Owner 须知情）】①"诚实失败"与"功能修好"被混同——NO_SCAN_TARGET 修掉假绿但真实 auto 主链 security 必然失败，production functionality 未通；②PENDING receipt 被当中间凭据跨 Owner gate——sentinel 被我指令推到 MIGRATING 即实例
+- 整改单 REMEDIATION-1 已派：F-011 scanTarget 生产链（默认目标=workspace，目录放行/文件级守门）+ 真实 caller E2E 探针（存文件——上轮 inline 探针无 artifact 被判不可独立验证，教训采纳）、F-014 能力收缩三件套补全（现仅 1/3）、F-015 promotion receipt 重签（r2 SUPERSEDES，旧 91 行版 stale）、F-017 重绑定补全+结构化 archive_member schema
+- 签收冻结维持并扩大：Owner 不签→不放行任何晋升/复制；REMEDIATION-1 闭环后重新提请（AS-2-security 那张须按 r2 重签，原单 stale 不应原样签——审计正确）

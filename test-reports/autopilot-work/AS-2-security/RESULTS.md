@@ -15,7 +15,7 @@
 - [x] **Step 6 回滚三场景 + 现场还原**：`shadow-20260925/rollback-drill.json` 三场景 PASS；PATH 注入形态零文件改动，注入后 semgrep --version=1.175.0 复验（现场还原=true）
 - [x] **Step 7 adapter ≤150 行 + ruleset 固化 + sidecar verification + manifest-build 新 hash**：security-semgrep.mjs **91 行**；index.mjs 仅 security 注册行（ADAPTERS.set('security', securitySemgrep)）；vendor/security/rulesets/security-local-rules.yaml（semgrep --validate 0 错误 6 规则，body 与影子跑定稿版逐行一致）；security.yaml verification 更新（三件套）；manifest-build exit 0 → 新 hash **89584585cbbf64d9edc08cdcd2f3499c325ab6da56a11d5a013ccb098385d68f**
 - [x] **Step 8 eligible=true + Gate-2 日志 hash 相等 + 四探针**：eligible.mjs --asset security → eligible=true；真实 dispatch 日志 `[tt] Gate-2 manifest_sha256=89584585…` == build hash == python 现场重算 sha256（三方机验，期望值动态重算）；`shadow-20260925/post-promotion-probes.json` p1 正常路径 ✓ / p2 无旗标拒绝（Gate-1）✓ / p3 EXPLICIT_COMPAT_MODE env 形态回滚可用+留痕 ✓ / p4 现场还原 ✓
-- [x] **Step 9 回归三件 + 五元组 + deviations**：见 §四（**晋升前快照缺失 D-5 如实登记**）；migration-record.json 五元组齐备 + 6 条 deviations；change.record 已按派单第 9 条创建（Owner PENDING）
+- [**DEVIATED (D-5)**] **Step 9 回归三件 + 五元组 + deviations**：见 §四（**晋升前快照缺失 D-5——第十一审计 F-016 纠正：原 [x] 勾选作废，DEVIATED≠PASS**）；migration-record.json 五元组齐备 + 6 条 deviations；change.record 已按派单第 9 条创建（Owner PENDING）
 - [x] **交 L2 复核**：本 RESULTS.md + migration-record.json + cr-20260925T063000Z-as2sec-promotion.json（Owner 签收位待回填）
 
 前置确认（Playbook §六 头三条）：① AS-2-first D-3 receipt 由 Owner 关账——本单未见关账留痕，按派单放行执行（L1 依派单授权）；② L2 复核 AS-2-first——同上依派单；③ Playbook 反向校验——按 v1.0.0 文面执行。此项留 L2 一并核。

@@ -80,6 +80,8 @@ export function getRequiredCapabilities(asset) {
     case 'sdlc':
     case 'be-validator':
     case 'portman':
+    case 'security':
+    case 'skill-sentinel':
       return ['write_files', 'run_cmd'];
     default:
       return ['write_files'];

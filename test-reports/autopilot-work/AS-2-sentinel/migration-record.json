@@ -1,224 +1,301 @@
 {
-  "schema": "as2-sentinel-migration-record@1.0.0",
-  "dispatch": "handoffs/v3/AS-2-sentinel-dispatch.md",
-  "contract": "contracts/asset-migration.md (asset-migration@1.0.0)",
-  "playbook": "plans/asset-migration-playbook.md §六 wizard（复制单 #2，逐项勾选见 RESULTS.md）",
-  "status_note": "★ 晋升 HOLD（2026-09-25 编排者指令，第十审计 F-001 治理矛盾处置）：PRIMARY 晋升与 change.record 单暂缓——asset-migration contract Owner 签收位 PENDING，其 change 单明文『签发前不得作为 replace 放行依据』。本单证据收集照常完成（Step 0-6），状态停 MIGRATING，待 Owner 签收四张 PENDING receipt 后统一放行（届时补 Step 7/8/9：adapter 接线+index 注册+sidecar verification+manifest-build 新 hash+Gate-2 绑定+晋升后回归三件）。",
-  "migration_object": {
-    "change_dispatch": "handoffs/v3/AS-2-sentinel-dispatch.md",
-    "contract": "contracts/asset-migration.md",
-    "old_asset": {
-      "vendor_path": "vendor/skill-sentinel/",
-      "adapter": "PROMPT_ADAPTER（scripts/lib/adapters/prompt.mjs）——skill-sentinel 迁移前无专用 adapter（index.mjs 无 skill-sentinel 键，resolveAdapter fallback），EA-1 基线=routes T5_OPS、consumption 机制=无、BW 零现",
-      "adapter_refs": [
-        "scripts/lib/adapters/index.mjs: resolveAdapter fallback → PROMPT_ADAPTER（迁移前 skill-sentinel 无 ADAPTERS.set 键——本单未改动，晋升时增注册行）",
-        "scripts/regression-all.mjs S8 段（资产消费证据走 --backend prompt 显式面）",
-        "contracts/manifest-sources/skill-sentinel.yaml: id=skill-sentinel sidecar 三字段（本单未改动，晋升时更新 verification）"
-      ],
-      "engine": "LLM-prompt 后端（PROMPT_ADAPTER，非确定性输出形态）——vendor/skill-sentinel 为 Enkrypt AI skill-sentinel vendor（其自带工具 python -m skill_sentinel 未部署，P2 诚实标注声明层）"
-    },
-    "new_asset": {
-      "vendor_path": null,
-      "vendor_path_note": "新引擎为 pip 包（不入库）；晋升时无 vendor 文件落盘（skill-scanner 自带检测器，无自研 ruleset——派单第 5 条 ruleset 步骤替换为检测配置/阈值记录，见 expected-findings.json detection_config 与 shadow-result.json scan_metadata.policy_fingerprint）",
-      "engine": "cisco-ai-skill-scanner 2.1.0（pip 安装实测 --version=2.1.0）",
-      "introduction": "pip 用户级安装（不入库；晋升时 manifest verification 声明通道）",
-      "license_check": "Apache-2.0（GitHub LICENSE 全文 Cisco Systems, Inc. 实测 + pip show License: Apache-2.0 双源核，2026-09-25；AS-0 已核口径一致）；CLI spawn 形态使用无链接；默认 policy 预设（balanced）零自造规则零 registry 依赖",
-      "provider_identity": {
-        "official_source": "github:cisco-ai-defense/skill-scanner（2550 stars，PyPI 包名 cisco-ai-skill-scanner，Author: Cisco）",
-        "install_channel": "pip install cisco-ai-skill-scanner（用户级，不入库）——★ PyPI 包名 skill-scanner (0.3.3, MIT, thedevappsecguy, entry skill_scanner.cli:app) 为同名撞车的另一项目，已识别并避开（npm 假包同款教训；官方 entry point = skill_scanner.cli.cli:main 与派单声明一致）",
-        "runtime_test": "skill-scanner --version → 实测 2.1.0（装后必跑，PASS——NO INSTALL 门未触发）；requires-python >=3.11,<3.15，本机 3.14.6 满足（AS-0 Windows 可用性推断→本单实测证实）"
-      }
-    },
-    "owner": "autopilot L1 (AS-2-sentinel)；Owner 签收位见 promotion_receipt",
-    "status": "MIGRATING",
-    "required_evidence": {
-      "baseline_snapshot": "test-reports/asset-eval-20260923/asset-baseline-before.json#skill-sentinel（adapter=prompt / routes T5_OPS / consumption 机制=无,BW零现 / vendor_path vendor/skill-sentinel / snapshot_at 2026-09-24T08:45:39Z）",
-      "diff_table_finalized": "test-reports/autopilot-work/AS-2-sentinel/fixtures/expected-findings.json（finalized_before_shadow_run=true, finalized_at 2026-09-25T05:46:00Z，先于官方影子跑 05:55:00Z）",
-      "rollback_path_verified": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/old-engine-record.json（verified=true 2026-09-25T05:52:00Z，影子跑前）",
-      "shadow_result": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/shadow-result.json（PASS 零 forbidden，双夹具口径）",
-      "rollback_drill": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/rollback-drill.json（三场景 PASS + 现场还原）",
-      "post_promotion_probes": "PENDING——晋升 HOLD，待放行后执行（四探针）",
-      "promotion_receipt": "apr-20260925T061000Z-as2sent-shadow（approvedBy=PENDING 待 Owner 回填；gate=影子跑 PASS+回滚演练 PASS+零 forbidden 双 PASS 前置已满足）",
-      "runtime_binding": { "consumed_hash": "PENDING（晋升冻结）", "build_hash": "PENDING（manifest-build 未重跑——晋升动作统一冻结）" },
-      "regression_three": { "pre_promotion": "preflight 8 PASS/0 FAIL/0 SKIP + regression-all 14 PASS/0 FAIL + validate-structure 0 警告（三件晋升前全捕获，输出留档本单目录 pre-promotion-*.txt）", "post_promotion": "PENDING——晋升 HOLD；工作区零生产写面改动，当前态 == 晋升前基线" }
-    }
-  },
-  "state_machine": {
-    "current_state": "MIGRATING",
-    "hold": "PRIMARY 晋升冻结（编排者 2026-09-25 指令，第十审计 F-001：Owner 签收位 PENDING 的 contract 不得作为 replace 放行依据）；放行后按 Playbook Step 7/8/9 补 PRIMARY 证据",
-    "transitions": [
-      {
-        "from": "ACTIVE",
-        "to": "SHADOW",
-        "at": "2026-09-25T05:34:00Z",
-        "sourceEvidence": [
-          "test-reports/asset-eval-20260923/asset-baseline-before.json#skill-sentinel（Gate-0 基线行核对，adapter/routes/consumption/vendor 四面齐备）",
-          "test-reports/autopilot-work/AS-2-sentinel/fixtures/（双夹具 tar 归档 + expected-findings.json 定稿 finalized_before_shadow_run=true）",
-          "plans/change-lock.json：4 写面 acquire exit 0（skill-scanner.mjs / index.mjs / manifest-sources/skill-sentinel.yaml / migration-record.json）"
-        ]
-      },
-      {
-        "from": "SHADOW",
-        "to": "MIGRATING",
-        "at": "2026-09-25T06:10:00Z",
-        "sourceEvidence": [
-          "shadow-20260925/shadow-result.json（diff 消费证据：恶意夹具 3/3 expected_rule_ids 全报、威胁 4 条 severity {critical:1,high:1,medium:2}==expected、exit 0==expected、is_safe=false；良性夹具威胁 0 条 is_safe=true；双夹具确定性断言成立；零 forbidden_difference 含派单新增 benign_false_positive 类）",
-          "shadow-20260925/rollback-drill.json（三场景 PASS + EXPLICIT_COMPAT_MODE options/env 双形态 + 现场还原；回滚路径影子跑前已验证 old-engine-record.json）",
-          "promotion receipt apr-20260925T061000Z-as2sent-shadow（gate=影子跑 PASS+回滚演练 PASS+零 forbidden；approvedBy=PENDING 待 Owner）",
-          "Design consumption CONFIRMED + Runtime consumption 实测（新旧引擎真实 spawn 记录于 shadow-result.json DEBUG）"
-        ]
-      }
-    ]
-  },
+ "schema": "as2-sentinel-migration-record@1.0.0",
+ "dispatch": "handoffs/v3/AS-2-sentinel-dispatch.md",
+ "contract": "contracts/asset-migration.md (asset-migration@1.0.0)",
+ "playbook": "plans/asset-migration-playbook.md §六 wizard（复制单 #2，逐项勾选见 RESULTS.md）",
+ "status_note": "★ 晋升 HOLD（2026-09-25 编排者指令，第十审计 F-001 治理矛盾处置）：PRIMARY 晋升与 change.record 单暂缓——asset-migration contract Owner 签收位 PENDING，其 change 单明文『签发前不得作为 replace 放行依据』。本单证据收集照常完成（Step 0-6），状态停 MIGRATING，待 Owner 签收四张 PENDING receipt 后统一放行（届时补 Step 7/8/9：adapter 接线+index 注册+sidecar verification+manifest-build 新 hash+Gate-2 绑定+晋升后回归三件）。",
+ "migration_object": {
+  "change_dispatch": "handoffs/v3/AS-2-sentinel-dispatch.md",
+  "contract": "contracts/asset-migration.md",
   "old_asset": {
-    "vendor_path": "vendor/skill-sentinel/",
-    "adapter": "PROMPT_ADAPTER（scripts/lib/adapters/prompt.mjs）",
-    "adapter_refs_gate0": [
-      "scripts/lib/adapters/index.mjs: skill-sentinel 无专用键（fallback PROMPT_ADAPTER）",
-      "scripts/regression-all.mjs S8: 资产消费走 --backend prompt",
-      "baseline test-reports/asset-eval-20260923/asset-baseline-before.json#skill-sentinel（routes T5_OPS，consumption 机制=无）"
-    ],
-    "engine": "LLM-prompt 后端（brief 组装 + LLM 宿主执行层）",
-    "baseline_ref": "test-reports/asset-eval-20260923/asset-baseline-before.json#skill-sentinel",
-    "baseline_snapshot_at": "2026-09-24T08:45:39Z"
+   "vendor_path": "vendor/skill-sentinel/",
+   "adapter": "PROMPT_ADAPTER（scripts/lib/adapters/prompt.mjs）——skill-sentinel 迁移前无专用 adapter（index.mjs 无 skill-sentinel 键，resolveAdapter fallback），EA-1 基线=routes T5_OPS、consumption 机制=无、BW 零现",
+   "adapter_refs": [
+    "scripts/lib/adapters/index.mjs: resolveAdapter fallback → PROMPT_ADAPTER（迁移前 skill-sentinel 无 ADAPTERS.set 键——本单未改动，晋升时增注册行）",
+    "scripts/regression-all.mjs S8 段（资产消费证据走 --backend prompt 显式面）",
+    "contracts/manifest-sources/skill-sentinel.yaml: id=skill-sentinel sidecar 三字段（本单未改动，晋升时更新 verification）"
+   ],
+   "engine": "LLM-prompt 后端（PROMPT_ADAPTER，非确定性输出形态）——vendor/skill-sentinel 为 Enkrypt AI skill-sentinel vendor（其自带工具 python -m skill_sentinel 未部署，P2 诚实标注声明层）"
   },
   "new_asset": {
-    "vendor_path": "无 vendor 落盘（pip 包不入库；检测配置=默认 policy 预设 balanced，指纹 26ada30a…，零自造规则）",
-    "engine": "cisco-ai-skill-scanner 2.1.0",
-    "introduction": "pip 用户级安装（不入库）",
-    "license_check": "Apache-2.0（GitHub LICENSE Cisco Systems 全文 + pip show 双源实测 2026-09-25）；CLI spawn 无链接",
-    "provider_identity": {
-      "official_source": "github:cisco-ai-defense/skill-scanner（PyPI 包名 cisco-ai-skill-scanner——PyPI skill-scanner 为同名另一项目已避开）",
-      "install_channel": "pip install cisco-ai-skill-scanner（用户级）",
-      "runtime_test": "skill-scanner --version → 2.1.0（实测 PASS）"
-    }
+   "vendor_path": null,
+   "vendor_path_note": "新引擎为 pip 包（不入库）；晋升时无 vendor 文件落盘（skill-scanner 自带检测器，无自研 ruleset——派单第 5 条 ruleset 步骤替换为检测配置/阈值记录，见 expected-findings.json detection_config 与 shadow-result.json scan_metadata.policy_fingerprint）",
+   "engine": "cisco-ai-skill-scanner 2.1.0（pip 安装实测 --version=2.1.0）",
+   "introduction": "pip 用户级安装（不入库；晋升时 manifest verification 声明通道）",
+   "license_check": "Apache-2.0（GitHub LICENSE 全文 Cisco Systems, Inc. 实测 + pip show License: Apache-2.0 双源核，2026-09-25；AS-0 已核口径一致）；CLI spawn 形态使用无链接；默认 policy 预设（balanced）零自造规则零 registry 依赖",
+   "provider_identity": {
+    "official_source": "github:cisco-ai-defense/skill-scanner（2550 stars，PyPI 包名 cisco-ai-skill-scanner，Author: Cisco）",
+    "install_channel": "pip install cisco-ai-skill-scanner（用户级，不入库）——★ PyPI 包名 skill-scanner (0.3.3, MIT, thedevappsecguy, entry skill_scanner.cli:app) 为同名撞车的另一项目，已识别并避开（npm 假包同款教训；官方 entry point = skill_scanner.cli.cli:main 与派单声明一致）",
+    "runtime_test": "skill-scanner --version → 实测 2.1.0（装后必跑，PASS——NO INSTALL 门未触发）；requires-python >=3.11,<3.15，本机 3.14.6 满足（AS-0 Windows 可用性推断→本单实测证实）"
+   }
   },
-  "rollback_adapter": "skill-sentinel(prompt-backend)（PROMPT_ADAPTER 保留于 EXPLICIT_COMPAT_MODE 显式旗标后——晋升接线时在 skill-scanner.mjs compatAllowed() 实现，候选版已实测三场景）",
-  "rollback_path_verified_before_shadow": {
-    "verified": true,
-    "at": "2026-09-25T05:52:00Z",
-    "evidence": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/old-engine-record.json（PROMPT_ADAPTER 3 次真实 run ok=true exit 0，brief sha256 全同 b5000024…——旧路径在场可回滚）"
+  "owner": "autopilot L1 (AS-2-sentinel)；Owner 签收位见 promotion_receipt",
+  "status": "MIGRATING",
+  "required_evidence": {
+   "baseline_snapshot": "test-reports/asset-eval-20260923/asset-baseline-before.json#skill-sentinel（adapter=prompt / routes T5_OPS / consumption 机制=无,BW零现 / vendor_path vendor/skill-sentinel / snapshot_at 2026-09-24T08:45:39Z）",
+   "diff_table_finalized": "test-reports/autopilot-work/AS-2-sentinel/fixtures/expected-findings.json（finalized_before_shadow_run=true, finalized_at 2026-09-25T05:46:00Z，先于官方影子跑 05:55:00Z）",
+   "rollback_path_verified": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/old-engine-record.json（verified=true 2026-09-25T05:52:00Z，影子跑前）",
+   "shadow_result": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/shadow-result.json（PASS 零 forbidden，双夹具口径）",
+   "rollback_drill": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/rollback-drill.json（三场景 PASS + 现场还原）",
+   "post_promotion_probes": "PENDING——晋升 HOLD，待放行后执行（四探针）",
+   "promotion_receipt": "apr-20260925T061000Z-as2sent-shadow（approvedBy=PENDING 待 Owner 回填；gate=影子跑 PASS+回滚演练 PASS+零 forbidden 双 PASS 前置已满足）",
+   "runtime_binding": {
+    "consumed_hash": "PENDING（晋升冻结）",
+    "build_hash": "PENDING（manifest-build 未重跑——晋升动作统一冻结）"
+   },
+   "regression_three": {
+    "pre_promotion": "preflight 8 PASS/0 FAIL/0 SKIP + regression-all 14 PASS/0 FAIL + validate-structure 0 警告（三件晋升前全捕获，输出留档本单目录 pre-promotion-*.txt）",
+    "post_promotion": "PENDING——晋升 HOLD；工作区零生产写面改动，当前态 == 晋升前基线"
+   }
+  }
+ },
+ "state_machine": {
+  "current_state": "SHADOW",
+  "hold": "PRIMARY 晋升冻结（编排者 2026-09-25 指令，第十审计 F-001：Owner 签收位 PENDING 的 contract 不得作为 replace 放行依据）；放行后按 Playbook Step 7/8/9 补 PRIMARY 证据",
+  "transitions": [
+   {
+    "from": "ACTIVE",
+    "to": "SHADOW",
+    "at": "2026-09-25T05:34:00Z",
+    "sourceEvidence": [
+     "test-reports/asset-eval-20260923/asset-baseline-before.json#skill-sentinel（Gate-0 基线行核对，adapter/routes/consumption/vendor 四面齐备）",
+     "test-reports/autopilot-work/AS-2-sentinel/fixtures/（双夹具 tar 归档 + expected-findings.json 定稿 finalized_before_shadow_run=true）",
+     "plans/change-lock.json：4 写面 acquire exit 0（skill-scanner.mjs / index.mjs / manifest-sources/skill-sentinel.yaml / migration-record.json）"
+    ]
+   },
+   {
+    "from": "SHADOW",
+    "to": "MIGRATING",
+    "at": "2026-09-25T06:10:00Z",
+    "sourceEvidence": [
+     "shadow-20260925/shadow-result.json（diff 消费证据：恶意夹具 3/3 expected_rule_ids 全报、威胁 4 条 severity {critical:1,high:1,medium:2}==expected、exit 0==expected、is_safe=false；良性夹具威胁 0 条 is_safe=true；双夹具确定性断言成立；零 forbidden_difference 含派单新增 benign_false_positive 类）",
+     "shadow-20260925/rollback-drill.json（三场景 PASS + EXPLICIT_COMPAT_MODE options/env 双形态 + 现场还原；回滚路径影子跑前已验证 old-engine-record.json）",
+     "promotion receipt apr-20260925T061000Z-as2sent-shadow（gate=影子跑 PASS+回滚演练 PASS+零 forbidden；approvedBy=PENDING 待 Owner）",
+     "Design consumption CONFIRMED + Runtime consumption 实测（新旧引擎真实 spawn 记录于 shadow-result.json DEBUG）"
+    ]
+   }
+  ]
+ },
+ "old_asset": {
+  "vendor_path": "vendor/skill-sentinel/",
+  "adapter": "PROMPT_ADAPTER（scripts/lib/adapters/prompt.mjs）",
+  "adapter_refs_gate0": [
+   "scripts/lib/adapters/index.mjs: skill-sentinel 无专用键（fallback PROMPT_ADAPTER）",
+   "scripts/regression-all.mjs S8: 资产消费走 --backend prompt",
+   "baseline test-reports/asset-eval-20260923/asset-baseline-before.json#skill-sentinel（routes T5_OPS，consumption 机制=无）"
+  ],
+  "engine": "LLM-prompt 后端（brief 组装 + LLM 宿主执行层）",
+  "baseline_ref": "test-reports/asset-eval-20260923/asset-baseline-before.json#skill-sentinel",
+  "baseline_snapshot_at": "2026-09-24T08:45:39Z"
+ },
+ "new_asset": {
+  "vendor_path": "无 vendor 落盘（pip 包不入库；检测配置=默认 policy 预设 balanced，指纹 26ada30a…，零自造规则）",
+  "engine": "cisco-ai-skill-scanner 2.1.0",
+  "introduction": "pip 用户级安装（不入库）",
+  "license_check": "Apache-2.0（GitHub LICENSE Cisco Systems 全文 + pip show 双源实测 2026-09-25）；CLI spawn 无链接",
+  "provider_identity": {
+   "official_source": "github:cisco-ai-defense/skill-scanner（PyPI 包名 cisco-ai-skill-scanner——PyPI skill-scanner 为同名另一项目已避开）",
+   "install_channel": "pip install cisco-ai-skill-scanner（用户级）",
+   "runtime_test": "skill-scanner --version → 2.1.0（实测 PASS）"
+  }
+ },
+ "rollback_adapter": "skill-sentinel(prompt-backend)（PROMPT_ADAPTER 保留于 EXPLICIT_COMPAT_MODE 显式旗标后——晋升接线时在 skill-scanner.mjs compatAllowed() 实现，候选版已实测三场景）",
+ "rollback_path_verified_before_shadow": {
+  "verified": true,
+  "at": "2026-09-25T05:52:00Z",
+  "evidence": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/old-engine-record.json（PROMPT_ADAPTER 3 次真实 run ok=true exit 0，brief sha256 全同 b5000024…——旧路径在场可回滚）"
+ },
+ "shadow_result": {
+  "verdict": "PASS（零 forbidden_difference——含派单新增 benign_false_positive 类）",
+  "at": "2026-09-25T05:55:00Z",
+  "fixture": "双夹具：os.tmpdir/as2sent-fixtures/malicious-skill（canonical 恶意构造）+ benign-skill（governance-skills/verification-before-completion 打包副本，本体未改动）；tar 证据归档本单 fixtures/（D-7 先例）",
+  "evidence": {
+   "diff": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/shadow-result.json",
+   "runtime_invocation": "旧侧 PROMPT_ADAPTER.run() 3 次真实 spawn（brief 落盘副本留证）；新侧 skill-scanner 2.1.0 CLI 4 次真实执行（2 夹具 × 2 次独立运行，--format json）——spawn 记录于 shadow-result.json DEBUG 与 evidence 字段",
+   "baseline_comparison": "Gate-0 baseline#skill-sentinel：current_adapter=prompt / routes T5_OPS / consumption 机制=无——本次迁移不改路由与簇归属，仅将 LLM-prompt 消费换成 skill-scanner --format json 确定性消费（专用 adapter 注册，晋升接线时生效）；S8 断言走 --backend prompt 显式面不受影响（晋升前回归实测 PASS）",
+   "design_consumption": "Design consumption: CONFIRMED（expected-findings.json expected_rule_ids/min_findings/severity_dist/exit_code/benign_expected 逐条被影子跑消费）",
+   "runtime_consumption": "Runtime consumption: 实测（新旧引擎真实执行产物落 shadow-20260925/）"
   },
+  "comparison_summary": {
+   "malicious": {
+    "finding_count": {
+     "old_machine_verifiable": 0,
+     "new": 5,
+     "new_threat": 4
+    },
+    "expected_rule_ids_coverage": "3/3",
+    "severity_dist_new": {
+     "critical": 1,
+     "high": 1,
+     "medium": 2
+    },
+    "is_safe": false,
+    "exit_code": 0
+   },
+   "benign": {
+    "threat_findings": 0,
+    "is_safe": true,
+    "info_notes": [
+     "MANIFEST_MISSING_LICENSE（INFO 打包提示，accepted）"
+    ]
+   },
+   "determinism": "双夹具各自两次独立运行 findings 集合逐条相同（结构性对照：LLM 非确定性 vs skill-scanner 确定性）",
+   "forbidden_checks": {
+    "benign_false_positive": "none",
+    "missing_detection": "none",
+    "crash": false,
+    "invalid_exit_code": false
+   }
+  }
+ },
+ "rollback_drill": {
+  "verdict": "PASS（三场景全过）",
+  "at": "2026-09-25T06:05:00Z",
+  "candidate_wiring": "candidate adapter（skill-scanner-candidate.mjs，58 行）位于 os.tmpdir（as2sent-drill/，file:// 直连仓库 util.mjs/prompt.mjs），跑完即删——契约 §五.2",
+  "scenarios": {
+   "s1_normal_path": {
+    "pass": true,
+    "detail": "candidate 双夹具真实扫描：恶意 threat=4 pass=false ok=true（3/3 rule id）；良性 threat=0 pass=true"
+   },
+   "s2_binary_missing": {
+    "pass": true,
+    "detail": "PATH 剥离（skill-scanner shim 不可达）→ SKILLSCANNER_NOT_AVAILABLE；s2a 无旗标拒绝（Gate-1）；s2b 显式 EXPLICIT_COMPAT_MODE 回滚 prompt-backend 可用（options/env 双形态均实测，compat/compat_via/rollback_adapter 留痕）",
+    "evidence": "rollback-drill.json#s2a_no_flag+s2b_explicit_compat+s2b2_explicit_compat_options"
+   },
+   "s3_output_anomaly": {
+    "pass": true,
+    "detail": "假 skill-scanner（fakebin/skill-scanner.cmd 垃圾输出+exit 0）注入 PATH 首位 → adapter 诚实报错 SKILLSCANNER_OUTPUT_INVALID（invalid_output:true），不静默吞"
+   }
+  },
+  "rollback_adapter": "skill-sentinel(prompt-backend)",
+  "rollback_path": "EXPLICIT_COMPAT_MODE 显式旗标后（options.explicitCompatMode===true 或 env EXPLICIT_COMPAT_MODE=1），每次调用 contract 内留痕 compat/compat_via/rollback_adapter 字段",
+  "injection_cleanup": "PATH 注入形态零文件系统改动；skill-scanner --version 复验=2.1.0（spectral_restored 同义项：现场还原=true）"
+ },
+ "promotion_receipt": {
+  "id": "apr-20260925T061000Z-as2sent-shadow",
+  "format": "apr-*（asset-migration.md §二 promotion_receipt 口径）",
+  "approvedBy": "PENDING——Owner 签收位待回填；授权依据=handoffs/v3/AS-2-sentinel-dispatch.md（编排者派发，L1 按单执行）+ 编排者晋升 HOLD 指令（第十审计 F-001）",
+  "expiresAt": null,
+  "gate": "影子跑 PASS + 回滚演练三场景 PASS + 零 forbidden_difference（双 PASS 前置满足）",
+  "evidence": [
+   "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/shadow-result.json",
+   "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/rollback-drill.json"
+  ],
+  "note": "★ 晋升 HOLD：change.record CONTRACT 类单（cr-*）暂缓创建（编排者指令：待 Owner 签收四张 PENDING receipt 后统一放行）；receipt 签发本身为 SHADOW→MIGRATING 契约证据，approvedBy 留 PENDING"
+ },
+ "runtime_binding": {
+  "consumed_hash": "PENDING（晋升冻结——Gate-2 绑定待放行后：manifest-build 重跑打印新 hash + eligible.mjs + 真实 dispatch 日志三方机验）",
+  "build_hash": "PENDING（manifest-build 未重跑；当前 manifest hash 89584585… 为 AS-2-security 晋升后现值，本单晋升必然改变 hash，期望值届时动态重算禁硬编码——§五.3）",
+  "assertion": "consumed_hash == build_hash（Gate-2 机验）——待 PRIMARY 放行后补"
+ },
+ "new_findings_registry": [
+  {
+   "rule": "PROMPT_INJECTION_UNRESTRICTED_MODE",
+   "severity": "high",
+   "category": "prompt_injection",
+   "location": "SKILL.md:9",
+   "note": "尝试开启无限制/危险模式（夹具构造：IGNORE ALL PREVIOUS INSTRUCTIONS + 越权声明）"
+  },
+  {
+   "rule": "DATA_EXFIL_NETWORK_REQUESTS",
+   "severity": "medium",
+   "category": "data_exfiltration",
+   "location": "scripts/collect_diagnostics.py:17",
+   "note": "外发网络请求原语（C2 endpoint POST）"
+  },
+  {
+   "rule": "DATA_EXFIL_NETWORK_REQUESTS",
+   "severity": "medium",
+   "category": "data_exfiltration",
+   "location": "scripts/collect_diagnostics.py:18",
+   "note": "外发网络请求原语（urlopen 外传 base64 凭据载荷）"
+  },
+  {
+   "rule": "YARA_command_injection_generic",
+   "severity": "critical",
+   "category": "command_injection",
+   "location": "scripts/collect_diagnostics.py:23",
+   "note": "YARA 注入攻击命中（反弹 shell 'bash -i >& /dev/tcp/…'）"
+  },
+  {
+   "rule": "SKILL_LOAD_FALLBACK_USED",
+   "severity": "info",
+   "category": "policy_violation",
+   "location": "skill.md",
+   "note": "夹具无 manifest 的 loader 回退注记（inert fallback，非威胁检出）"
+  }
+ ],
+ "new_findings_note": "威胁 4 条 = 『旧引擎可机验层零确定性检出』的预期结构性差异（v3.5：能力提升不是失败，但不得静默——全部登记交 L2/Owner 复核）；INFO 1 条为扫描机制注记",
+ "five_tuple": {
+  "old_asset": "vendor/skill-sentinel/ + PROMPT_ADAPTER（scripts/lib/adapters/prompt.mjs，LLM-prompt 后端）；引用面：index.mjs fallback（迁移前无专用键）、regression S8 --backend prompt、baseline test-reports/asset-eval-20260923/asset-baseline-before.json#skill-sentinel（routes T5_OPS，consumption 机制=无）",
+  "new_asset": "cisco-ai-skill-scanner 2.1.0（pip 用户级安装不入库；检测配置=默认 policy 预设 balanced 指纹 26ada30a…，零自造规则）；许可证核查：Apache-2.0（GitHub LICENSE Cisco Systems 全文 + pip show 双源实测 2026-09-25），CLI spawn 无链接",
   "shadow_result": {
-    "verdict": "PASS（零 forbidden_difference——含派单新增 benign_false_positive 类）",
-    "at": "2026-09-25T05:55:00Z",
-    "fixture": "双夹具：os.tmpdir/as2sent-fixtures/malicious-skill（canonical 恶意构造）+ benign-skill（governance-skills/verification-before-completion 打包副本，本体未改动）；tar 证据归档本单 fixtures/（D-7 先例）",
-    "evidence": {
-      "diff": "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/shadow-result.json",
-      "runtime_invocation": "旧侧 PROMPT_ADAPTER.run() 3 次真实 spawn（brief 落盘副本留证）；新侧 skill-scanner 2.1.0 CLI 4 次真实执行（2 夹具 × 2 次独立运行，--format json）——spawn 记录于 shadow-result.json DEBUG 与 evidence 字段",
-      "baseline_comparison": "Gate-0 baseline#skill-sentinel：current_adapter=prompt / routes T5_OPS / consumption 机制=无——本次迁移不改路由与簇归属，仅将 LLM-prompt 消费换成 skill-scanner --format json 确定性消费（专用 adapter 注册，晋升接线时生效）；S8 断言走 --backend prompt 显式面不受影响（晋升前回归实测 PASS）",
-      "design_consumption": "Design consumption: CONFIRMED（expected-findings.json expected_rule_ids/min_findings/severity_dist/exit_code/benign_expected 逐条被影子跑消费）",
-      "runtime_consumption": "Runtime consumption: 实测（新旧引擎真实执行产物落 shadow-20260925/）"
-    },
-    "comparison_summary": {
-      "malicious": { "finding_count": { "old_machine_verifiable": 0, "new": 5, "new_threat": 4 }, "expected_rule_ids_coverage": "3/3", "severity_dist_new": { "critical": 1, "high": 1, "medium": 2 }, "is_safe": false, "exit_code": 0 },
-      "benign": { "threat_findings": 0, "is_safe": true, "info_notes": ["MANIFEST_MISSING_LICENSE（INFO 打包提示，accepted）"] },
-      "determinism": "双夹具各自两次独立运行 findings 集合逐条相同（结构性对照：LLM 非确定性 vs skill-scanner 确定性）",
-      "forbidden_checks": { "benign_false_positive": "none", "missing_detection": "none", "crash": false, "invalid_exit_code": false }
-    }
+   "fixture": "双夹具 tar 归档 test-reports/autopilot-work/AS-2-sentinel/fixtures/（fixture-malicious-skill-evidence.tar.gz sha256 b445e689… + fixture-benign-skill-evidence.tar.gz sha256 a626fd06…）+ expected-findings.json（finalized_before_shadow_run=true）",
+   "evidence": "Design consumption: CONFIRMED；Runtime consumption: shadow-20260925/shadow-result.json（恶意侧威胁 4 条 3/3 rule id severity {critical:1,high:1,medium:2} exit 0 is_safe=false；良性侧威胁 0 条 is_safe=true；零 forbidden_difference；确定性断言成立）",
+   "baseline_ref": "test-reports/asset-eval-20260923/asset-baseline-before.json#skill-sentinel"
   },
-  "rollback_drill": {
-    "verdict": "PASS（三场景全过）",
-    "at": "2026-09-25T06:05:00Z",
-    "candidate_wiring": "candidate adapter（skill-scanner-candidate.mjs，58 行）位于 os.tmpdir（as2sent-drill/，file:// 直连仓库 util.mjs/prompt.mjs），跑完即删——契约 §五.2",
-    "scenarios": {
-      "s1_normal_path": { "pass": true, "detail": "candidate 双夹具真实扫描：恶意 threat=4 pass=false ok=true（3/3 rule id）；良性 threat=0 pass=true" },
-      "s2_binary_missing": { "pass": true, "detail": "PATH 剥离（skill-scanner shim 不可达）→ SKILLSCANNER_NOT_AVAILABLE；s2a 无旗标拒绝（Gate-1）；s2b 显式 EXPLICIT_COMPAT_MODE 回滚 prompt-backend 可用（options/env 双形态均实测，compat/compat_via/rollback_adapter 留痕）", "evidence": "rollback-drill.json#s2a_no_flag+s2b_explicit_compat+s2b2_explicit_compat_options" },
-      "s3_output_anomaly": { "pass": true, "detail": "假 skill-scanner（fakebin/skill-scanner.cmd 垃圾输出+exit 0）注入 PATH 首位 → adapter 诚实报错 SKILLSCANNER_OUTPUT_INVALID（invalid_output:true），不静默吞" }
-    },
-    "rollback_adapter": "skill-sentinel(prompt-backend)",
-    "rollback_path": "EXPLICIT_COMPAT_MODE 显式旗标后（options.explicitCompatMode===true 或 env EXPLICIT_COMPAT_MODE=1），每次调用 contract 内留痕 compat/compat_via/rollback_adapter 字段",
-    "injection_cleanup": "PATH 注入形态零文件系统改动；skill-scanner --version 复验=2.1.0（spectral_restored 同义项：现场还原=true）"
+  "promotion_receipt": "apr-20260925T061000Z-as2sent-shadow（approvedBy=PENDING 待 Owner 回填）",
+  "runtime_binding": "PENDING（晋升 HOLD——manifest-build 未重跑，Gate-2 绑定待放行后补）"
+ },
+ "regression": {
+  "pre_promotion": {
+   "at": "2026-09-25T05:38:00Z",
+   "preflight": "8 PASS / 0 FAIL / 0 SKIP（留档 pre-promotion-preflight.txt）",
+   "regression_all": "14 PASS / 0 FAIL（留档 pre-promotion-regression-all.txt——D-5 教训采纳，晋升前三件全捕获）",
+   "validate_structure": "OK 0 警告（留档 pre-promotion-validate-structure.txt）"
   },
-  "promotion_receipt": {
-    "id": "apr-20260925T061000Z-as2sent-shadow",
-    "format": "apr-*（asset-migration.md §二 promotion_receipt 口径）",
-    "approvedBy": "PENDING——Owner 签收位待回填；授权依据=handoffs/v3/AS-2-sentinel-dispatch.md（编排者派发，L1 按单执行）+ 编排者晋升 HOLD 指令（第十审计 F-001）",
-    "expiresAt": null,
-    "gate": "影子跑 PASS + 回滚演练三场景 PASS + 零 forbidden_difference（双 PASS 前置满足）",
-    "evidence": [
-      "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/shadow-result.json",
-      "test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/rollback-drill.json"
-    ],
-    "note": "★ 晋升 HOLD：change.record CONTRACT 类单（cr-*）暂缓创建（编排者指令：待 Owner 签收四张 PENDING receipt 后统一放行）；receipt 签发本身为 SHADOW→MIGRATING 契约证据，approvedBy 留 PENDING"
+  "post_promotion": "PENDING——晋升 HOLD；本单生产写面零改动（adapter/index/sidecar 均未触碰，manifest 未重跑），工作区 == 晋升前基线，pre_promotion 三件即当前态实测",
+  "s8_ruling": "S8 资产消费证据 PASS（exec=8 false(正)=0 false(负)=>1）——S8 走 --backend prompt（显式 PROMPT_ADAPTER 面）；本单零生产写面改动，S8 不受影响。晋升放行后按资产实际链路复判（预期同 AS-2-security：专用 adapter 注册零影响）。"
+ },
+ "deviations": [
+  {
+   "id": "D-1",
+   "kind": "promotion-hold",
+   "desc": "★ 编排者晋升 HOLD 指令（第十审计 F-001 治理矛盾处置）：PRIMARY 晋升与 change.record 单暂缓——asset-migration contract Owner 签收位 PENDING，其 change 单明文『签发前不得作为 replace 放行依据』。本单状态停 MIGRATING，Step 7/8/9（adapter 接线+index 注册+sidecar verification+manifest-build 新 hash+Gate-2+四探针+晋升后回归）待 Owner 签收四张 PENDING receipt 后统一放行补做。",
+   "status": "HOLD（编排者指令）"
   },
-  "runtime_binding": {
-    "consumed_hash": "PENDING（晋升冻结——Gate-2 绑定待放行后：manifest-build 重跑打印新 hash + eligible.mjs + 真实 dispatch 日志三方机验）",
-    "build_hash": "PENDING（manifest-build 未重跑；当前 manifest hash 89584585… 为 AS-2-security 晋升后现值，本单晋升必然改变 hash，期望值届时动态重算禁硬编码——§五.3）",
-    "assertion": "consumed_hash == build_hash（Gate-2 机验）——待 PRIMARY 放行后补"
+  {
+   "id": "D-2",
+   "kind": "pypi-name-collision",
+   "desc": "PyPI 包 skill-scanner (0.3.3, MIT, thedevappsecguy, entry skill_scanner.cli:app) 与派单目标 cisco-ai-defense/skill-scanner 为同名撞车的不同项目；官方 PyPI 包名 = cisco-ai-skill-scanner (2.1.0, Apache-2.0, entry skill_scanner.cli.cli:main 与派单一致)。本单按官方包安装并双源核实（GitHub API + pip show）；该撞车陷阱登记为管线级教训（npm 假包同款：package name ≠ capability）。",
+   "status": "已处置，登记待 L2 复核"
   },
-  "new_findings_registry": [
-    { "rule": "PROMPT_INJECTION_UNRESTRICTED_MODE", "severity": "high", "category": "prompt_injection", "location": "SKILL.md:9", "note": "尝试开启无限制/危险模式（夹具构造：IGNORE ALL PREVIOUS INSTRUCTIONS + 越权声明）" },
-    { "rule": "DATA_EXFIL_NETWORK_REQUESTS", "severity": "medium", "category": "data_exfiltration", "location": "scripts/collect_diagnostics.py:17", "note": "外发网络请求原语（C2 endpoint POST）" },
-    { "rule": "DATA_EXFIL_NETWORK_REQUESTS", "severity": "medium", "category": "data_exfiltration", "location": "scripts/collect_diagnostics.py:18", "note": "外发网络请求原语（urlopen 外传 base64 凭据载荷）" },
-    { "rule": "YARA_command_injection_generic", "severity": "critical", "category": "command_injection", "location": "scripts/collect_diagnostics.py:23", "note": "YARA 注入攻击命中（反弹 shell 'bash -i >& /dev/tcp/…'）" },
-    { "rule": "SKILL_LOAD_FALLBACK_USED", "severity": "info", "category": "policy_violation", "location": "skill.md", "note": "夹具无 manifest 的 loader 回退注记（inert fallback，非威胁检出）" }
-  ],
-  "new_findings_note": "威胁 4 条 = 『旧引擎可机验层零确定性检出』的预期结构性差异（v3.5：能力提升不是失败，但不得静默——全部登记交 L2/Owner 复核）；INFO 1 条为扫描机制注记",
-  "five_tuple": {
-    "old_asset": "vendor/skill-sentinel/ + PROMPT_ADAPTER（scripts/lib/adapters/prompt.mjs，LLM-prompt 后端）；引用面：index.mjs fallback（迁移前无专用键）、regression S8 --backend prompt、baseline test-reports/asset-eval-20260923/asset-baseline-before.json#skill-sentinel（routes T5_OPS，consumption 机制=无）",
-    "new_asset": "cisco-ai-skill-scanner 2.1.0（pip 用户级安装不入库；检测配置=默认 policy 预设 balanced 指纹 26ada30a…，零自造规则）；许可证核查：Apache-2.0（GitHub LICENSE Cisco Systems 全文 + pip show 双源实测 2026-09-25），CLI spawn 无链接",
-    "shadow_result": {
-      "fixture": "双夹具 tar 归档 test-reports/autopilot-work/AS-2-sentinel/fixtures/（fixture-malicious-skill-evidence.tar.gz sha256 b445e689… + fixture-benign-skill-evidence.tar.gz sha256 a626fd06…）+ expected-findings.json（finalized_before_shadow_run=true）",
-      "evidence": "Design consumption: CONFIRMED；Runtime consumption: shadow-20260925/shadow-result.json（恶意侧威胁 4 条 3/3 rule id severity {critical:1,high:1,medium:2} exit 0 is_safe=false；良性侧威胁 0 条 is_safe=true；零 forbidden_difference；确定性断言成立）",
-      "baseline_ref": "test-reports/asset-eval-20260923/asset-baseline-before.json#skill-sentinel"
-    },
-    "promotion_receipt": "apr-20260925T061000Z-as2sent-shadow（approvedBy=PENDING 待 Owner 回填）",
-    "runtime_binding": "PENDING（晋升 HOLD——manifest-build 未重跑，Gate-2 绑定待放行后补）"
+  {
+   "id": "D-3",
+   "kind": "contract-vs-dispatch",
+   "desc": "契约 §五.1 要求夹具 os.tmpdir 跑完即删；派单明确夹具落 test-reports/autopilot-work/AS-2-sentinel/fixtures/ 并入白名单——按派单执行，夹具以 tar 归档留存（D-7 先例，恶意样本明文避免触发扫描器拦截）；临时 harness/candidate/ws 均在 os.tmpdir，跑完即删。",
+   "status": "登记待 L2 复核"
   },
-  "regression": {
-    "pre_promotion": {
-      "at": "2026-09-25T05:38:00Z",
-      "preflight": "8 PASS / 0 FAIL / 0 SKIP（留档 pre-promotion-preflight.txt）",
-      "regression_all": "14 PASS / 0 FAIL（留档 pre-promotion-regression-all.txt——D-5 教训采纳，晋升前三件全捕获）",
-      "validate_structure": "OK 0 警告（留档 pre-promotion-validate-structure.txt）"
-    },
-    "post_promotion": "PENDING——晋升 HOLD；本单生产写面零改动（adapter/index/sidecar 均未触碰，manifest 未重跑），工作区 == 晋升前基线，pre_promotion 三件即当前态实测",
-    "s8_ruling": "S8 资产消费证据 PASS（exec=8 false(正)=0 false(负)=>1）——S8 走 --backend prompt（显式 PROMPT_ADAPTER 面）；本单零生产写面改动，S8 不受影响。晋升放行后按资产实际链路复判（预期同 AS-2-security：专用 adapter 注册零影响）。"
+  {
+   "id": "D-4",
+   "kind": "llm-analyzer-not-exercised",
+   "desc": "skill-scanner 多 agent LLM 分析器（--use-llm）未参与影子跑：需 LLM provider API key（anthropic/openai），本机未配置；检测能力=默认分析器集（static/bytecode/pipeline/correlation，本地零网络）。检出断言按默认预设口径声明于差异表 detection_config（派单『自带多 agent 检测』的 LLM 层为能力上限，非本单实测面）。",
+   "status": "登记待 L2 复核"
   },
-  "deviations": [
-    {
-      "id": "D-1",
-      "kind": "promotion-hold",
-      "desc": "★ 编排者晋升 HOLD 指令（第十审计 F-001 治理矛盾处置）：PRIMARY 晋升与 change.record 单暂缓——asset-migration contract Owner 签收位 PENDING，其 change 单明文『签发前不得作为 replace 放行依据』。本单状态停 MIGRATING，Step 7/8/9（adapter 接线+index 注册+sidecar verification+manifest-build 新 hash+Gate-2+四探针+晋升后回归）待 Owner 签收四张 PENDING receipt 后统一放行补做。",
-      "status": "HOLD（编排者指令）"
-    },
-    {
-      "id": "D-2",
-      "kind": "pypi-name-collision",
-      "desc": "PyPI 包 skill-scanner (0.3.3, MIT, thedevappsecguy, entry skill_scanner.cli:app) 与派单目标 cisco-ai-defense/skill-scanner 为同名撞车的不同项目；官方 PyPI 包名 = cisco-ai-skill-scanner (2.1.0, Apache-2.0, entry skill_scanner.cli.cli:main 与派单一致)。本单按官方包安装并双源核实（GitHub API + pip show）；该撞车陷阱登记为管线级教训（npm 假包同款：package name ≠ capability）。",
-      "status": "已处置，登记待 L2 复核"
-    },
-    {
-      "id": "D-3",
-      "kind": "contract-vs-dispatch",
-      "desc": "契约 §五.1 要求夹具 os.tmpdir 跑完即删；派单明确夹具落 test-reports/autopilot-work/AS-2-sentinel/fixtures/ 并入白名单——按派单执行，夹具以 tar 归档留存（D-7 先例，恶意样本明文避免触发扫描器拦截）；临时 harness/candidate/ws 均在 os.tmpdir，跑完即删。",
-      "status": "登记待 L2 复核"
-    },
-    {
-      "id": "D-4",
-      "kind": "llm-analyzer-not-exercised",
-      "desc": "skill-scanner 多 agent LLM 分析器（--use-llm）未参与影子跑：需 LLM provider API key（anthropic/openai），本机未配置；检测能力=默认分析器集（static/bytecode/pipeline/correlation，本地零网络）。检出断言按默认预设口径声明于差异表 detection_config（派单『自带多 agent 检测』的 LLM 层为能力上限，非本单实测面）。",
-      "status": "登记待 L2 复核"
-    },
-    {
-      "id": "D-5",
-      "kind": "asymmetry-llm-layer",
-      "desc": "旧引擎 LLM 发现清单层本机无宿主 CLI 不可真实触发——『多次运行取并集/记录波动』在该层不可机验，如实登记：brief 组装层 3 run sha256 全同（波动=0）；差异表以『旧引擎无确定性检出承诺』口径适配（与 AS-2-security D-2 同型）。",
-      "status": "登记待 L2 复核"
-    },
-    {
-      "id": "D-6",
-      "kind": "amendment",
-      "desc": "expected-findings 两条影子跑前 smoke 修订（留痕 amendments 字段非静默）：①expected_rule_ids/min_findings/severity_dist/exit_code 按 smoke 实测定稿（rule id 命名空间与暂定预设不同；默认模式有 findings 仍 exit 0）；②良性『应零检出』适配为『零威胁检出 + INFO 打包提示 accepted』（MANIFEST_MISSING_LICENSE 为 manifest 完整性提示非良性内容误报，forbidden.benign_false_positive 判据同步收窄为威胁类误报）。",
-      "status": "登记待 L2 复核"
-    },
-    {
-      "id": "D-7",
-      "kind": "receipt-approval",
-      "desc": "promotion receipt approvedBy=PENDING：Owner 签收不归 L1 代签（决策权纪律）。change.record CONTRACT 类单按编排者 HOLD 指令暂缓创建，待统一放行时按 cr-* 格式补立（Owner 签收位 PENDING）。",
-      "status": "待 Owner / HOLD"
-    }
-  ],
-  "updated_at": "2026-09-25T06:15:00Z"
+  {
+   "id": "D-5",
+   "kind": "asymmetry-llm-layer",
+   "desc": "旧引擎 LLM 发现清单层本机无宿主 CLI 不可真实触发——『多次运行取并集/记录波动』在该层不可机验，如实登记：brief 组装层 3 run sha256 全同（波动=0）；差异表以『旧引擎无确定性检出承诺』口径适配（与 AS-2-security D-2 同型）。",
+   "status": "登记待 L2 复核"
+  },
+  {
+   "id": "D-6",
+   "kind": "amendment",
+   "desc": "expected-findings 两条影子跑前 smoke 修订（留痕 amendments 字段非静默）：①expected_rule_ids/min_findings/severity_dist/exit_code 按 smoke 实测定稿（rule id 命名空间与暂定预设不同；默认模式有 findings 仍 exit 0）；②良性『应零检出』适配为『零威胁检出 + INFO 打包提示 accepted』（MANIFEST_MISSING_LICENSE 为 manifest 完整性提示非良性内容误报，forbidden.benign_false_positive 判据同步收窄为威胁类误报）。",
+   "status": "登记待 L2 复核"
+  },
+  {
+   "id": "D-7",
+   "kind": "receipt-approval",
+   "desc": "promotion receipt approvedBy=PENDING：Owner 签收不归 L1 代签（决策权纪律）。change.record CONTRACT 类单按编排者 HOLD 指令暂缓创建，待统一放行时按 cr-* 格式补立（Owner 签收位 PENDING）。",
+   "status": "待 Owner / HOLD"
+  }
+ ],
+ "updated_at": "2026-09-25T06:15:00Z",
+ "state_correction": {
+  "from": "MIGRATING",
+  "to": "SHADOW",
+  "at": "2026-09-25",
+  "reason": "第十一审计 F-012：契约 SHADOW→MIGRATING 需 promotion receipt 签发（approvedBy=Owner），PENDING≠签发；PENDING 状态下 HOLD 应为 SHADOW-HOLD 而非 MIGRATING-HOLD（状态机硬冲突纠正）"
+ }
 }

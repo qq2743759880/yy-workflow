@@ -48,7 +48,7 @@ const PHASE2 = [
   { asset: 'be-validator', dedicatedAdapter: true, kernel: ['OpenAPI', 'contract'], file: 'vendor/be-validator/be-validator.md', note: 'be-validator → portman/contracteer 契约校验' },
   { asset: 'agent-research', dedicatedAdapter: false, kernel: ['gpt-researcher'], file: 'vendor/agent-research/SKILL.md', note: '调研 hub → gpt-researcher 单点对标' },
   { asset: 'skill-sentinel', dedicatedAdapter: false, kernel: ['SkillSpector', 'skill_sentinel'], file: 'vendor/skill-sentinel/SKILL.md', note: 'skill 安全扫描 → SkillSpector 对标' },
-  { asset: 'security', dedicatedAdapter: false, kernel: ['semgrep', 'gitleaks'], file: 'vendor/security/SKILL.md', note: '安全簇 → semgrep + gitleaks 扫描内核' },
+  { asset: 'security', dedicatedAdapter: true, kernel: ['semgrep'], file: 'vendor/security/SKILL.md', note: '安全簇 → semgrep 扫描内核（AS-2-security 晋升；gitleaks 暂缺登记为能力收缩，第十一审计 F-018）' },
   { asset: 'frontend-design', dedicatedAdapter: false, kernel: ['shadcn', 'bolt.new'], file: 'vendor/frontend-design/SKILL.md', note: '前端设计簇 → shadcn-ui/ui + bolt.new 内核' },
   { asset: 'planning', dedicatedAdapter: false, kernel: ['MetaGPT', 'crewAI'], file: 'vendor/planning/SKILL.md', note: '需求规划 → MetaGPT / crewAI 对标' },
   { asset: 'review', dedicatedAdapter: false, kernel: ['pr-agent', 'continuedev'], file: 'vendor/review/SKILL.md', note: '评审簇 → qodo-ai/pr-agent + continue 内核' },
