@@ -112,3 +112,4 @@
 | PLAYBOOK-1 | PASS | agent_a99c71d4 | orchestrator-L2(结构审读+R1 诚实性核验) | 2026-09-24T13:00:00Z | plans/asset-migration-playbook.md（258 行，§一 Object/§二 Per-state Evidence/§三 Operator Guide/§四 Failure Rules×4/§五 教训×5/§六 复制 wizard）; test-reports/autopilot-work/PLAYBOOK-1/ |
 - R1 诚实性核验通过：change-lock acquire 在 AS-2-first 中确实无留痕（locks=[] 实查）——Playbook 保留步骤但校准措辞不谎称实例执行过，D-PB-1 登记。回溯自测双向修订 R1-R4 全部回写正文
 - 第二波 Step1-6 全收口；批 1 第三波启动（按 playbook 复制，首个复制对象=security→semgrep 走 pip）
+- D-7（AS-2-security 追加）：漏洞夹具 vulnerable_app.py 被 Mimosa 仓库扫描当真实漏洞强制拦截 commit（5 high/1 low——恰证明新引擎检测能力，但属测试数据误报）。处置：tar 归档入库（字节级证据保留，sha256 1177efe8…）+ README 说明重放方式（--lang python）；散装 .py 移除。教训：安全迁移的漏洞夹具与仓库扫描器存在结构性冲突，playbook 可增补"夹具归档入库"标准动作

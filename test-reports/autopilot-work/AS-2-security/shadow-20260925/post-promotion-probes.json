@@ -1,0 +1,39 @@
+{
+  "schema": "as2-security-post-promotion-probes@1.0.0",
+  "verdict": "PASS（四探针全过）",
+  "at": "2026-09-25T06:20:00Z",
+  "probes": {
+    "p1_normal_path": {
+      "pass": true,
+      "detail": "真 adapter（ADAPTERS.get('security') = security-semgrep.mjs）+ 真规则集（vendor/security/rulesets/security-local-rules.yaml）+ 真夹具：ok=true，findings=6，pass=false，tool=semgrep，version=1.175.0",
+      "evidence": "probe 实测输出 + <tmp>/as2sec-probe-ws/artifacts/post-probe-p1/security-result.json（ws 跑完即删，结果落本文件）"
+    },
+    "p2_legacy_no_flag_refused": {
+      "pass": true,
+      "detail": "PATH 剥离（semgrep 不可达模拟）+ 无 EXPLICIT_COMPAT_MODE 旗标 → 拒绝：ok=false，error='SEMGREP_NOT_AVAILABLE (legacy prompt path blocked: EXPLICIT_COMPAT_MODE flag required — Gate-1 asset-migration.md §三)'（Gate-1 无旗标拒绝 PASS）",
+      "evidence": "probe 实测输出"
+    },
+    "p3_explicit_compat_env": {
+      "pass": true,
+      "detail": "env 形态 EXPLICIT_COMPAT_MODE=1 + semgrep 不可达 → 回滚旧 prompt-backend 路径可用：ok=true，contract 内 compat='EXPLICIT_COMPAT_MODE'、compat_via='semgrep_not_available_rollback'、rollback_adapter='security(prompt-backend)'、briefArtifact 落盘",
+      "evidence": "probe 实测输出（env 形态门实测，Gate-1 留痕语义）"
+    },
+    "p4_environment_restored": {
+      "pass": true,
+      "detail": "PATH 还原后复测正常路径：ok=true，findings=6，tool=semgrep——引擎现场还原（PATH 注入形态，无文件系统改动）",
+      "evidence": "probe 实测输出"
+    }
+  },
+  "gate2_binding": {
+    "consumed_hash": "89584585cbbf64d9edc08cdcd2f3499c325ab6da56a11d5a013ccb098385d68f",
+    "build_hash": "89584585cbbf64d9edc08cdcd2f3499c325ab6da56a11d5a013ccb098385d68f",
+    "assertion": "consumed_hash == build_hash（Gate-2 机验）",
+    "evidence": {
+      "build": "node scripts/manifest-build.mjs → sha256(asset-manifest-v2.json) = 89584585cbbf64d9edc08cdcd2f3499c325ab6da56a11d5a013ccb098385d68f",
+      "recompute": "python hashlib 现场重算 sha256(contracts/asset-manifest-v2.json) = 89584585cbbf…（期望值动态重算，禁硬编码旧 hash——§五.3）",
+      "dispatch_log": "[tt] Gate-2 manifest_sha256=89584585cbbf64d9edc08cdcd2f3499c325ab6da56a11d5a013ccb098385d68f (D:\\.ai-hub\\skills\\yy\\contracts\\asset-manifest-v2.json)（orchestrator --backend prompt --task \"backend login module\" 真实 dispatch 日志，exit 0）",
+      "eligible": "node scripts/eligible.mjs --asset security → eligible=true（AV-3 资格门零改动）"
+    }
+  },
+  "notes": "EX-1 能力门控与 AV-3 资格门在 runtime（manifest 现值驱动），本迁移零改动；Gate-2 绑定验证 = dispatch 日志 hash 与 manifest-build 打印 hash 及现场重算 sha256 三方相等"
+}

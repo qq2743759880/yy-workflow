@@ -1,0 +1,51 @@
+{
+  "recordedAt": "2026-09-25T05:20:00Z",
+  "adapter": "PROMPT_ADAPTER（scripts/lib/adapters/prompt.mjs）——security 资产现无专用 adapter，旧引擎 = LLM-prompt 路径（EA-1 基线：S8 链内消费、BW 零现）",
+  "engine": "LLM-prompt 后端（brief 组装 + 可选宿主 CLI 执行；本机无 LLM 宿主 CLI 配置，brief-only 形态）",
+  "fixture": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\AS-2-security\\fixtures\\vulnerable_app.py",
+  "harness": "临时 harness 位于 os.tmpdir（as2sec-harness/old-engine-harness.mjs），真实 import PROMPT_ADAPTER（scripts/lib/adapters/index.mjs）并携 vendor/security/SKILL.md 正文构造 assets Map 调 run()；跑完即删（契约 §五.2 迁移期临时代码不得为永久制品）",
+  "runs": [
+    {
+      "run": 1,
+      "ok": true,
+      "degraded": false,
+      "error": null,
+      "artifactPath": "artifacts\\shadow-old-engine\\brief.md",
+      "workspace": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\as2sec-old-CO3MKi",
+      "brief_sha256": "45d3ade48642004f2f7c6b069b98b0195f556c0f37c8ff295bd7ba16ef9ca11c",
+      "brief_copy": "test-reports/autopilot-work/AS-2-security/shadow-20260925/old-engine-run1-brief.md"
+    },
+    {
+      "run": 2,
+      "ok": true,
+      "degraded": false,
+      "error": null,
+      "artifactPath": "artifacts\\shadow-old-engine\\brief.md",
+      "workspace": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\as2sec-old-CZqbHo",
+      "brief_sha256": "45d3ade48642004f2f7c6b069b98b0195f556c0f37c8ff295bd7ba16ef9ca11c",
+      "brief_copy": "test-reports/autopilot-work/AS-2-security/shadow-20260925/old-engine-run2-brief.md"
+    },
+    {
+      "run": 3,
+      "ok": true,
+      "degraded": false,
+      "error": null,
+      "artifactPath": "artifacts\\shadow-old-engine\\brief.md",
+      "workspace": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\as2sec-old-Op4VRM",
+      "brief_sha256": "45d3ade48642004f2f7c6b069b98b0195f556c0f37c8ff295bd7ba16ef9ca11c",
+      "brief_copy": "test-reports/autopilot-work/AS-2-security/shadow-20260925/old-engine-run3-brief.md"
+    }
+  ],
+  "old_engine_behavior": {
+    "output_form": "brief.md（子任务执行指令包：资产方法论正文 + 任务 + contract + Kernel 声明）——旧引擎的可机验产出层；LLM 发现清单为其上的宿主执行层输出",
+    "brief_layer_determinism": "3 次真实执行 brief sha256 全同（45d3ade4…）——brief 组装层确定性，波动=0；命中缺除断言为零检出承诺（brief 层无 findings 结构）",
+    "llm_layer_note": "本机无 LLM 宿主 CLI（orchestrator --exec / executor.json 均未配置），LLM 发现清单输出层不可真实触发——非确定性波动如实登记为不可机验面（差异表按『旧引擎无确定性检出承诺』口径适配，见 expected-findings.json old_engine 条目与 deviations D-2）",
+    "kernel_declaration_observed": "brief 内含『Kernel: semgrep（多语言 SAST）+ gitleaks（密钥扫描）为扫描执行内核』锚点——旧方法论本就以 semgrep 为声明内核，本迁移把声明内核升级为真实执行引擎（路由面从 prompt brief 消费换成 semgrep --json 确定性消费）",
+    "fixture_reference_confirmed": "brief 任务/contract 字段均真实引用 fixtures/vulnerable_app.py（真实消费 security 资产对夹具，非空转）"
+  },
+  "rollback_path_verified_before_shadow": {
+    "verified": true,
+    "at": "2026-09-25T05:20:00Z",
+    "evidence": "本记录（PROMPT_ADAPTER 3 次真实 run() ok=true exit 0，brief 产物落盘）——旧路径（prompt 后端 + security 资产正文组装）工具在场、可回滚；EXPLICIT_COMPAT_MODE 回滚语义见 security-semgrep.mjs compatAllowed()"
+  }
+}

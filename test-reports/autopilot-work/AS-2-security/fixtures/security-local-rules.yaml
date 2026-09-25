@@ -1,0 +1,79 @@
+rules:
+  # AS-2-security 自研 ruleset（零许可风险：规则为本单自写，不引用 semgrep registry）。
+  # 六类夹具漏洞逐类一条；severity 与映射规则见 expected-findings.json（影子跑前定稿）。
+  - id: security.hardcoded-api-key
+    languages: [python]
+    message: 硬编码 API 密钥（API_KEY 字面量赋值）——凭据不得入库
+    severity: ERROR
+    metadata:
+      category: security
+      technology: [secrets]
+    patterns:
+      - pattern: $KEY = $VALUE
+      - metavariable-regex:
+          metavariable: $KEY
+          regex: (?i)^(api_?key|secret_?key|access_?token)$
+      - metavariable-regex:
+          metavariable: $VALUE
+          regex: ^["'].{8,}["']$
+
+  - id: security.hardcoded-password
+    languages: [python]
+    message: 硬编码口令（password 字面量赋值）——凭据不得入库
+    severity: ERROR
+    metadata:
+      category: security
+      technology: [secrets]
+    patterns:
+      - pattern: $KEY = $VALUE
+      - metavariable-regex:
+          metavariable: $KEY
+          regex: (?i)^(password|passwd|pwd)$
+      - metavariable-regex:
+          metavariable: $VALUE
+          regex: ^["'].{4,}["']$
+
+  - id: security.sql-injection-concat
+    languages: [python]
+    message: SQL 语句由字符串拼接构造后执行——注入面
+    severity: ERROR
+    metadata:
+      category: security
+      technology: [sql]
+    patterns:
+      - pattern-either:
+          - pattern: $CURSOR.execute($Q + $X)
+          - pattern: |
+              $Q = $A + $B
+              ...
+              $CURSOR.execute($Q)
+      - metavariable-regex:
+          metavariable: $CURSOR
+          regex: (?i).*cursor
+
+  - id: security.weak-hash-md5
+    languages: [python]
+    message: MD5 弱哈希用于摘要——凭据/完整性场景禁用
+    severity: WARNING
+    metadata:
+      category: security
+      technology: [crypto]
+    pattern: hashlib.md5(...)
+
+  - id: security.eval-usage
+    languages: [python]
+    message: eval 动态执行——不可信输入直接求值
+    severity: WARNING
+    metadata:
+      category: security
+      technology: [eval]
+    pattern: eval(...)
+
+  - id: security.subprocess-shell-true
+    languages: [python]
+    message: subprocess 开启 shell=True——外部输入拼命令为注入面
+    severity: WARNING
+    metadata:
+      category: security
+      technology: [subprocess]
+    pattern: subprocess.$FUNC(..., shell=True)

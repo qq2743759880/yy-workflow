@@ -1,0 +1,40 @@
+{
+ "changeRecordId": "cr-20260925T063000Z-as2sec-promotion",
+ "basePlan": "contracts/asset-migration.md",
+ "baseVersion": "ae7455da22d2a60973f5b67d696029c1901162953d20c4128ff10f59c8577d9a",
+ "reason": "批 1 AS-2-security：security 资产路由引擎迁移（LLM-prompt→semgrep 1.175.0，Playbook §六 首个复制单）。影子跑 PASS（零 forbidden_difference；6/6 自研规则 id 全报出，severity {error:3,warning:3}，exit 0==expected；新引擎两次运行 findings 集合逐条相同——确定性断言成立；旧引擎为 LLM-prompt 非确定性输出，brief 层 3 run sha256 全同波动=0，LLM 发现层无宿主不可机验已如实登记 D-2）、回滚演练三场景 PASS（正常/PATH 剥离→Gate-1 无旗标拒绝+EXPLICIT_COMPAT_MODE env+options 双形态回滚 prompt-backend 留痕/假引擎垃圾输出→SEMGREP_OUTPUT_INVALID receipt failure）、五元组齐、runtime binding 新 hash 89584585…三方机验（manifest-build 打印+现场重算+真实 dispatch 日志）、回归晋升后 14/14+preflight 8/8+validate 0 警告（晋升前快照缺失见 D-5 如实登记）。security-semgrep.mjs 新建 91 行（≤150），旧 prompt-backend 路径保留 EXPLICIT_COMPAT_MODE 显式旗标后；ruleset 固化 vendor/security/rulesets/（自研 6 规则零许可风险；semgrep LGPL-2.1-or-later sdist LICENSE 实测补核 AS-0 未覆盖项，CLI spawn 无链接）；manifest-sources/security.yaml verification 更新（provider identity 三件套：official_source github:semgrep/semgrep / install pip / runtime_test semgrep --version=1.175.0；NO INSTALL 门未触发）。Owner 签收位 PENDING（receipt 机制）。",
+ "impactClass": "CONTRACT",
+ "owner": "Owner",
+ "sourceEvidence": [
+  "test-reports/autopilot-work/AS-2-security/migration-record.json (状态机逐转移+五元组+回滚路径前置验证)",
+  "test-reports/autopilot-work/AS-2-security/shadow-20260925/ (影子跑/回滚演练/probes/old-engine-record 全件)",
+  "test-reports/autopilot-work/AS-2-security/fixtures/expected-findings.json (差异表影子跑前定稿 finalized_before_shadow_run=true + amendments 留痕)",
+  "scripts/lib/adapters/security-semgrep.mjs (semgrep 驱动 91 行, EXPLICIT_COMPAT_MODE)",
+  "scripts/lib/adapters/index.mjs (ADAPTERS.set('security', securitySemgrep) 注册行)",
+  "vendor/security/rulesets/security-local-rules.yaml (晋升固化自研 ruleset 6 规则)",
+  "contracts/manifest-sources/security.yaml (verification 更新: provider identity 三件套)",
+  "test-reports/asset-eval-20260923/asset-baseline-before.json#security (Gate-0 基线行)"
+ ],
+ "invalidatedNodes": [
+  "AS-2-security prompt-backend 主路径（auto 模式消费面换 semgrep 专用 adapter；旧路径保留 EXPLICIT_COMPAT_MODE 旗标后，DEPRECATED 待 AS-1 收口移除）"
+ ],
+ "promotionReceipt": {
+  "receiptId": "apr-20260925T054500Z-as2sec-promotion",
+  "fiveTuple": {
+   "old_asset": "security(prompt-backend, LLM-prompt 路径)",
+   "new_asset": "security(semgrep-engine 1.175.0, pip, 自研 ruleset)",
+   "shadow_result": "pass (zero forbidden_difference; 6/6 rule ids; determinism assertion true; new_findings registered)",
+   "promotion_receipt": "cr-20260925T063000Z-as2sec-promotion (本单, Owner PENDING)",
+   "runtime_binding": "manifest_sha256=89584585cbbf64d9edc08cdcd2f3499c325ab6da56a11d5a013ccb098385d68f"
+  },
+  "ownerApprovalReceipt": "PENDING_OWNER_RECEIPT"
+ },
+ "deviations": [
+  "D-1: 夹具按派单落 AS-2-security 目录（契约 §五 tmpdir 口径冲突，取派单）",
+  "D-2: 旧引擎 LLM 发现层本机无宿主不可机验——brief 层波动=0 如实登记，差异表按无确定性检出承诺口径适配",
+  "D-3: Owner 签收位 PENDING（receipt 机制，签收归 Owner）",
+  "D-4: expected-findings 两条影子跑前 smoke 修订（amendments 留痕非静默）",
+  "D-5: 回归三件晋升前仅 preflight 捕获，regression/validate 晋升前快照缺失（执行顺序失误如实登记，晋升后三件全绿补偿）",
+  "D-6: semgrep OSS 未登录态 fingerprint/lines 登录墙字段——核心检出字段完整，备查非阻断"
+ ]
+}

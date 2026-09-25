@@ -1,0 +1,34 @@
+{
+  "schema": "as2-security-rollback-drill@1.0.0",
+  "verdict": "PASS（三场景全过 + 现场还原）",
+  "at": "2026-09-25T06:00:00Z",
+  "candidate_wiring": "candidate adapter（security-semgrep-candidate.mjs，semgrep 驱动）位于 os.tmpdir（as2sec-drill/），import 经 file:// URL 直指仓库 util.mjs/prompt.mjs（镜像布局改用 file:// 直连，junction 初试后拆除）——跑完即删，符合契约 §五.2 迁移期临时代码不得为永久制品。晋升正式接线 = scripts/lib/adapters/security-semgrep.mjs + index.mjs 注册（Step 7 冻结流程）",
+  "harness": "as2sec-drill/drill.mjs（os.tmpdir，跑完即删）；drill 工作区 as2sec-drill-ws-* 已删",
+  "scenarios": {
+    "s1_normal_path": {
+      "pass": true,
+      "detail": "candidate 对 vulnerable_app.py 真实 semgrep 扫描：findings=6（3 error + 3 warning），pass=false，ok=true——expected-findings 内问题全部报出（6/6 规则 id）",
+      "evidence": "shadow-20260925/rollback-drill.json#scenarios.s1（本文件 drill 输出摘要）；原始 findings 形态同 shadow-result.json semgrep-shadow-run1.json"
+    },
+    "s2_binary_missing": {
+      "pass": true,
+      "detail": "Failure Injection：PATH 剥离 Z:\\node 与 C:\\Python314\\Scripts（semgrep.exe 所在）→ candidate 检测 SEMGREP_NOT_AVAILABLE。s2a 无旗标：拒绝（error='SEMGREP_NOT_AVAILABLE (legacy prompt path blocked: EXPLICIT_COMPAT_MODE flag required — Gate-1 asset-migration.md §三)'，ok=false）；s2b 显式 EXPLICIT_COMPAT_MODE=true：回滚旧 prompt-backend 路径可用（ok=true，brief 组装完成，contract 内 compat='EXPLICIT_COMPAT_MODE' + compat_via='semgrep_not_available_rollback' + rollback_adapter='security(prompt-backend)' 留痕）",
+      "evidence": "本文件 s2a_no_flag + s2b_explicit_compat 输出摘要（drill ws 已删，结果 JSON 落本文件）",
+      "injection_method": "PATH 注入（子进程 env），无系统文件改名，零还原动作"
+    },
+    "s3_output_anomaly": {
+      "pass": true,
+      "detail": "假 semgrep（fakebin/semgrep.cmd 输出垃圾 + exit 0）注入 PATH 首位 → --version 探测垃圾通过但扫描输出不可解析 → adapter 诚实报错 SEMGREP_OUTPUT_INVALID（invalid_output:true，ok=false，receipt failure 路径），不静默吞",
+      "evidence": "本文件 s3_output_anomaly 输出摘要"
+    }
+  },
+  "s2a_no_flag": { "ok": false, "degraded": false, "error": "SEMGREP_NOT_AVAILABLE (legacy prompt path blocked: EXPLICIT_COMPAT_MODE flag required — Gate-1 asset-migration.md §三)", "verdict": "拒绝（Gate-1 PASS）" },
+  "s2b_explicit_compat": { "ok": true, "degraded": false, "contract": { "pass": null, "tool": "prompt", "mode": "brief", "compat": "EXPLICIT_COMPAT_MODE", "rollback_adapter": "security(prompt-backend)", "compat_via": "semgrep_not_available_rollback" }, "verdict": "回滚旧路径可用 + 留痕（PASS）" },
+  "s3_output_anomaly": { "ok": false, "invalid_output": true, "error": "SEMGREP_OUTPUT_INVALID", "verdict": "诚实报错不静默（PASS）" },
+  "injection_cleanup": {
+    "spectral_restored": true,
+    "note": "本单注入形态为 PATH 注入（AS-2-first 为改名 .cmd）：无文件系统现场改动；注入后 semgrep --version 复验 = 1.175.0（真引擎在场，现场还原=true）"
+  },
+  "rollback_adapter": "security(prompt-backend)（PROMPT_ADAPTER，scripts/lib/adapters/prompt.mjs）",
+  "rollback_path": "EXPLICIT_COMPAT_MODE 显式旗标后（options.explicitCompatMode===true 或 env EXPLICIT_COMPAT_MODE=1），每次调用 contract 内留痕 compat/compat_via/rollback_adapter 字段"
+}

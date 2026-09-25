@@ -1,0 +1,58 @@
+{
+  "schema": "as2-security-shadow-result@1.0.0",
+  "verdict": "PASS（零 forbidden_difference；expected 断言全部满足）",
+  "at": "2026-09-25T05:40:00Z",
+  "fixture": "test-reports/autopilot-work/AS-2-security/fixtures/vulnerable_app.py（canonical，Python，六类确定性缺陷）",
+  "expected_findings_ref": "test-reports/autopilot-work/AS-2-security/fixtures/expected-findings.json（finalized_at 2026-09-25T05:30:00Z，先于本影子跑）",
+  "evidence": {
+    "old_engine": "shadow-20260925/old-engine-record.json（PROMPT_ADAPTER 3 次真实 run，brief sha256 全同 45d3ade4…，brief 层零确定性检出承诺）",
+    "new_engine": "shadow-20260925/semgrep-shadow-run1.json + semgrep-shadow-run2.json（semgrep 1.175.0 --config security-local-rules.yaml --json，两次独立真实执行）",
+    "design_consumption": "Design consumption: CONFIRMED（expected-findings.json 六条 expected_rule_ids / min_findings=6 / expected_severity_dist / expected_exit_code 逐条对实测消费）",
+    "runtime_consumption": "Runtime consumption: 实测——旧侧 PROMPT_ADAPTER.run() 3 次 spawn（记录于 old-engine-record.json runs，工作区 tmpdir 已删、brief 副本留证）；新侧 semgrep CLI 两次 spawn（命令行/exit code 见 DEBUG），stdout 落盘 artifacts 字段"
+  },
+  "DEBUG": {
+    "new_engine_command": "semgrep --config <fixtures>/security-local-rules.yaml --json <fixtures>/vulnerable_app.py（repo 根 cwd，两次运行 exit 0）",
+    "old_engine_command": "node <os.tmpdir>/as2sec-harness/old-engine-harness.mjs（import file:///…/scripts/lib/adapters/index.mjs → PROMPT_ADAPTER.run(subtask{asset:'security'}, ctx, {workspace: tmpdir, assets})），3 次 exit 0",
+    "spawn_records": {
+      "new": { "run1_exit": 0, "run2_exit": 0, "stdout_sha256_run1": "7574625e4a864bc4…", "stdout_sha256_run2": "835d6013e778e87c…" },
+      "old": { "runs": 3, "all_ok": true, "brief_sha256_identical": true }
+    },
+    "stdout_byte_note": "两次运行 stdout 字节级不同（semgrep 输出含引擎 metadata/时间面字段），归一化 findings 集合（check_id 尾段+severity+start line+end col）逐条全同——确定性断言按 findings 集合口径成立",
+    "tmp_cleanup": "旧侧 tmp 工作区 as2sec-old-* 已删；临时 harness as2sec-harness 于回滚演练（Step 6）结束后统一删除"
+  },
+  "comparison_summary": {
+    "finding_count": { "old_machine_verifiable": 0, "new": 6 },
+    "severity_dist_new": { "error": 3, "warning": 3 },
+    "exit_code": { "new": 0, "expected": 0, "old_adapter_ok": true },
+    "expected_rule_ids_coverage": "6/6 全部报出（hardcoded-api-key / hardcoded-password / sql-injection-concat / weak-hash-md5 / eval-usage / subprocess-shell-true）",
+    "determinism_assertion": "新引擎两次独立运行 findings 集合逐条相同 = true（expected-findings.json assertion 第二款）",
+    "forbidden_checks": {
+      "missing_detection": "none（expected_rule_ids 差集为空）",
+      "crash": false,
+      "invalid_exit_code": false,
+      "notes": "crash 判据：两次运行均 JSON 可解析、results/errors 结构完整、无未捕获异常；invalid_exit_code 判据：rc=0 == expected_exit_code 0，与 JSON 可解析性一致"
+    }
+  },
+  "comparison": {
+    "diffClassification": [
+      { "type": "rule_name_changed", "verdict": "accepted", "detail": "旧侧 LLM 自由文本无规则名；新侧自研 rule id 六枚全记录" },
+      { "type": "severity_mapping_changed", "verdict": "accepted", "detail": "旧侧中文定级自由文本；新侧 ERROR/WARNING，映射：存在 ERROR 级 → pass=false（3 error → pass=false）" },
+      { "type": "message_changed", "verdict": "accepted", "detail": "报告文案 LLM 自由文本 → 自研中文规则 message" },
+      { "type": "nondeterminism_asymmetry", "verdict": "accepted", "detail": "旧侧并集的确定性可机验子集 = brief 层（3 run sha256 全同，波动=0；LLM 发现层无宿主不可触发，已如实登记）；新侧确定性断言成立（两次运行 findings 集合全同）" },
+      { "type": "new_findings", "verdict": "accepted（登记交 L2/Owner 复核，非阻断——『旧引擎零确定性检出』的预期结构性差异）", "detail": "6 条全部登记 migration-record.json new_findings_registry" }
+    ],
+    "forbidden_verdict": "PASS——missing_detection / crash / invalid_exit_code 均未命中"
+  },
+  "observations": [
+    "semgrep OSS 对 extra.fingerprint / extra.lines 字段返回 'requires login'（未登录态）；核心检出字段（check_id/severity/message/start/end/path）完整不受影响——adapter 解析仅依赖核心字段，已记录不阻断",
+    "check_id 带配置路径前缀（<config-path>.security.<rule>）——adapter 按『取末两段 security.<rule>』归一化，确定性（自研规则 id 统一 security. 命名空间）"
+  ],
+  "artifacts": {
+    "semgrep-shadow-run1.json": "test-reports/autopilot-work/AS-2-security/shadow-20260925/semgrep-shadow-run1.json",
+    "semgrep-shadow-run2.json": "test-reports/autopilot-work/AS-2-security/shadow-20260925/semgrep-shadow-run2.json",
+    "semgrep-shadow-run1.err": "test-reports/autopilot-work/AS-2-security/shadow-20260925/semgrep-shadow-run1.err",
+    "semgrep-shadow-run2.err": "test-reports/autopilot-work/AS-2-security/shadow-20260925/semgrep-shadow-run2.err",
+    "old-engine-record.json": "test-reports/autopilot-work/AS-2-security/shadow-20260925/old-engine-record.json",
+    "old_engine_briefs": "test-reports/autopilot-work/AS-2-security/shadow-20260925/old-engine-run[1-3]-brief.md"
+  }
+}

@@ -1,7 +1,8 @@
-import bmad from './bmad-cline.mjs'; 
-import opencode from './opencode.mjs'; 
-import portman from './portman.mjs'; 
-import prompt from './prompt.mjs'; 
+import bmad from './bmad-cline.mjs';
+import opencode from './opencode.mjs';
+import portman from './portman.mjs';
+import prompt from './prompt.mjs';
+import securitySemgrep from './security-semgrep.mjs';
 export const ADAPTERS = new Map(); 
 // 专用 adapter 注册表：每个 adapter 是「能力探测验证支持 write_files/run_cmd 的执行内核胶水」。
 // opencode adapter 是回归渠道之一（非主路径唯一执行内核）：主路径 = prompt 后端 + --exec 宿主注入；
@@ -10,8 +11,11 @@ ADAPTERS.set('implementation', opencode);
 ADAPTERS.set('dev-backend', opencode); 
 ADAPTERS.set('be-implementer', opencode); 
 ADAPTERS.set('sdlc', bmad); 
-ADAPTERS.set('be-validator', portman); 
-ADAPTERS.set('portman', portman); 
+ADAPTERS.set('be-validator', portman);
+ADAPTERS.set('portman', portman);
+// AS-2-security 迁移（contracts/asset-migration.md）：security 专用 adapter = semgrep 驱动
+// （旧 prompt-backend 路径保留在 EXPLICIT_COMPAT_MODE 显式旗标后，Gate-1 禁静默并存）。
+ADAPTERS.set('security', securitySemgrep);
 /** 内置 Prompt 执行后端：不依赖外部 CLI，资产正文进上下文。 */ 
 export const PROMPT_ADAPTER = prompt; 
 /** 
