@@ -1,14 +1,14 @@
 # AS-2-sentinel RESULTS — skill-sentinel(prompt-backend)→skill-sentinel(skill-scanner 2.1.0) 迁移（Playbook §六 复制单 #2）
 
 > 执行：autopilot L1（AS-2-sentinel-dispatch，严格照 plans/asset-migration-playbook.md §六 wizard）｜日期：2026-09-25
-> 契约权威：contracts/asset-migration.md（asset-migration@1.0.0）｜状态：**MIGRATING——晋升 HOLD 待 receipt**（第十审计 F-001：contract Owner 签收位 PENDING 不得作为 replace 放行依据；编排者指令 Step 7-9 冻结，待 Owner 签收四张 PENDING receipt 后统一放行）
+> 契约权威：contracts/asset-migration.md（asset-migration@1.0.0）｜状态：**SHADOW-HOLD（第十二审计 F-020 状态归一：原 MIGRATING 记录系未授权 transition，已作废）**（第十审计 F-001：contract Owner 签收位 PENDING 不得作为 replace 放行依据；编排者指令 Step 7-9 冻结，待 Owner 签收四张 PENDING receipt 后统一放行）
 > 本文档不自称 DONE——L2/Owner 复核 + receipt 签收后方可推进 PRIMARY。
 
 ## 〇、晋升 HOLD（编排者 2026-09-25 指令）
 
 - **Step 0-6 证据照常落盘完成**（证据收集不受 HOLD 影响）；**Step 7/8/9 冻结**：adapter 未写入 scripts/lib/adapters/、index.mjs 未动、skill-sentinel.yaml 未动、manifest-build 未重跑、无 Gate-2/四探针/晋升后回归、change.record cr-* 未创建。
 - **生产写面零改动**：工作区 == 晋升前基线（4 锁中 3 个目标文件未触碰，仅本单证据目录新建）。
-- Owner 签收 receipt 后从 MIGRATING→PRIMARY 的晋升动作由编排者统一执行；本单证据无需重做。
+- Owner 签收 receipt 后按契约执行 SHADOW→MIGRATING→PRIMARY（原"MIGRATING→PRIMARY"表述系未授权 transition 残留，已按 F-020 纠正——MIGRATING 未曾合法达成）；本单证据无需重做。
 
 ## 一、Playbook §六 wizard 逐项勾选
 
@@ -59,7 +59,7 @@
 
 | id | 内容 | 状态 |
 |---|---|---|
-| D-1 | ★ 晋升 HOLD（编排者指令，第十审计 F-001）：状态停 MIGRATING，Step 7/8/9 与 change.record 待 Owner 签收四张 PENDING receipt 后统一放行补做 | HOLD |
+| D-1 | ★ 晋升 HOLD（编排者指令，第十审计 F-001）：状态停 SHADOW-HOLD（原误记 MIGRATING，F-020 归一），Step 7/8/9 与 change.record 待 Owner 签收五张 receipt 后统一放行补做 | HOLD |
 | D-2 | PyPI skill-scanner (MIT) ≠ cisco-ai-skill-scanner (Apache-2.0)——同名撞车陷阱，官方包名核实后安装；npm 假包教训 pip 版实例，建议沉淀管线级 lesson | 已处置，登记待 L2 |
 | D-3 | 夹具按派单落本单目录 + tar 归档（契约 §五 tmpdir 口径冲突，取派单；D-7 先例）；临时 harness/candidate/ws 均已删 | 登记待 L2 |
 | D-4 | skill-scanner LLM 多 agent 分析器未参与影子跑（需 API key）——检出断言按默认分析器集口径声明于差异表 detection_config | 登记待 L2 |
@@ -69,7 +69,7 @@
 
 ## 七、产物索引
 
-- 迁移记录：test-reports/autopilot-work/AS-2-sentinel/migration-record.json（**current_state=MIGRATING + hold 标注**）
+- 迁移记录：test-reports/autopilot-work/AS-2-sentinel/migration-record.json（**current_state=SHADOW-HOLD + transition voided 标注**，F-020 归一）
 - 夹具+差异表：test-reports/autopilot-work/AS-2-sentinel/fixtures/（双夹具 tar 归档 + expected-findings.json + smoke-benign/malicious.json + README）
 - 影子证据：test-reports/autopilot-work/AS-2-sentinel/shadow-20260925/（13 件：shadow-result / rollback-drill / old-engine-record + briefs×3 / mal+benign shadow run×2 各带 err）
 - 晋升前三件留档：test-reports/autopilot-work/AS-2-sentinel/pre-promotion-{preflight,regression-all,validate-structure}.txt

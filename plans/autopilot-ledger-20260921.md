@@ -142,3 +142,13 @@
 - 【F-017 闭环】REBOUND 字符串零残留，结构化 {archive,member,sha256} schema 落地
 - D-REM-1（转 Owner 备知）：migration-record 晋升时点 hash 89584585 未回写（历史证据保留），现值 3c0e7df0 走独立字段
 - 批 1 状态：REMEDIATION-1 闭环，五张 receipt 提请 Owner 签收（asset-migration/manifest schema/AS-2-first r2/AS-2-security r2/sentinel 晋升待 receipt 签发后创建）→ 签收后放行 sentinel 晋升 + review→bugbot + 治理接线 + AS-1 + 终验
+
+## 第十二轮审计处置（2026-09-25，六项 findings：五项成立一项驳回）
+- **F-019【P0 已修】目录扫描绕过语言守门**——"真的扫了"≠"能力覆盖了目标"（我 v3.5 的话被审计正确驳倒）。修复：目录目标做**能力发现**（枚举源码扩展名，上限 5000 文件/跳 node_modules）：纯非 Python 目录→SCOPE_LANGUAGE_UNSUPPORTED 拒绝；混合目录→真实扫描+**pass=false+UNCOVERED_LANGUAGES 显式列不可认证语言**（不能认证≠通过）。双场景探针：纯 JS 目录拒绝（uncovered=["ts"]）/混合目录真扫 2 findings+pass=false+uncovered=["js"]
+- **F-020【P1 已修】sentinel 状态四套并存归一**：migration_object.status=SHADOW、非法 SHADOW→MIGRATING transition 标记 voided+voidReason（留痕优于删除）、RESULTS.md 三处 MIGRATING 引用归一——"追加 correction 字段≠作废旧状态事实"教训采纳
+- **F-021【P1 已修】第五张 receipt 落地为真实对象**：cr-20260925T150000Z-as2sent-promotion.json 创建（CONTRACT 类，SHADOW-HOLD 现状+晋升授权请求+post_sign_actions 清单）——循环逻辑（签 receipt 前不创建其 change record）批评采纳
+- **F-022【驳回·第三次 NOT FOUND 实证】**f014-manifest-build.log 实测在场且内容 hash 双一致（3c0e7df0 重算吻合）——审计者 MCP 未找到≠文件不存在
+- **F-023【P1 已修】gate probe vacuous all_pass**：根因=探针未填 assertions 子对象（聚合读空对象恒真），非聚合代码错误——修法=探针补填 assertions（语义值 ok/pass 留顶层不参与聚合，拒绝场景 ok=False 是预期）
+- **F-024【P1 已修】探针 rerun 覆盖已提交证据**：输出 run-stamp 化（新证据走新文件），被弄脏的三个已跟踪文件 git restore——HEAD 与当前证据恢复同一 revision
+- **两条深层模式再登记**：①"真实执行≠能力覆盖"（第二次）②"追加 correction≠作废旧事实"（第二次）——S15 迁移不变量设计必须把这两条写成机验断言
+- **批次状态**：晋升/复制 HOLD 维持；五张 receipt（含 sentinel cr-20260925T150000Z）提请 Owner 签收

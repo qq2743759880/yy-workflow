@@ -21,6 +21,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const TAR = path.join(ROOT, 'test-reports', 'autopilot-work', 'AS-2-security', 'fixtures', 'fixture-vulnerable_app-evidence.tar.gz');
+const STAMP = 'run-' + new Date().toISOString().replace(/[:.]/g, '-');
 const OUT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const CANONICAL_SHA256 = '1177efe8b000f69f2decc09ccbc64d4a7b42990a79e8ae1fa729f9df204c49cf';
 
@@ -46,7 +47,7 @@ const results = { schema: 'f011-e2e-probe@1.0.0', at: new Date().toISOString(), 
   const contract = result.contract || {};
   let posArtifact = null;
   try { posArtifact = await fs.readFile(path.join(ws, 'artifacts', 'f011-e2e-pos', 'security-result.json'), 'utf8'); } catch (e) {}
-  if (posArtifact) await fs.writeFile(path.join(OUT_DIR, 'e2e-pos-security-result.json'), posArtifact);
+  if (posArtifact) await fs.writeFile(path.join(OUT_DIR, STAMP + '-e2e-pos-security-result.json'), posArtifact);
   results.probes.positive = {
     workspace: ws,
     fixture_member_sha256: sha,
@@ -91,7 +92,7 @@ const results = { schema: 'f011-e2e-probe@1.0.0', at: new Date().toISOString(), 
   const contract = result.contract || {};
   let negArtifact = null;
   try { negArtifact = await fs.readFile(path.join(ws, 'artifacts', 'f011-e2e-neg', 'security-result.json'), 'utf8'); } catch (e) {}
-  if (negArtifact) await fs.writeFile(path.join(OUT_DIR, 'e2e-neg-security-result.json'), negArtifact);
+  if (negArtifact) await fs.writeFile(path.join(OUT_DIR, STAMP + '-e2e-neg-security-result.json'), negArtifact);
   results.probes.negative = {
     workspace: ws,
     dispatch_ok: result.ok === true,
@@ -118,5 +119,5 @@ const results = { schema: 'f011-e2e-probe@1.0.0', at: new Date().toISOString(), 
 results.all_pass = ['positive', 'negative'].every(function (k) {
   return Object.values(results.probes[k].assertions).every(Boolean);
 });
-await fs.writeFile(path.join(OUT_DIR, 'f011-e2e-probe-result.json'), JSON.stringify(results, null, 2));
+await fs.writeFile(path.join(OUT_DIR, STAMP + '-e2e-probe-result.json'), JSON.stringify(results, null, 2));
 console.log('[f011-e2e-probe] all_pass=' + results.all_pass);

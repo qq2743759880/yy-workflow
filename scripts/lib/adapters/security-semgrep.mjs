@@ -66,16 +66,39 @@ export async function run(subtask, ctx, options = {}) {
     if (compatAllowed(options)) return runLegacyPrompt(subtask, ctx, workspace, checkedAt, 'no_scan_target_compat', options.assets);
     return { ok: false, artifactPath: null, contract: { pass: null, degraded: false, diff: 'NO_SCAN_TARGET: security semgrep 无任何可用扫描目标（options.scanTarget / subtask.scanTarget / 文件路径 contract / workspace 默认目标全部落空）——无目标不扫描、不记 done', checkedAt, tool: 'semgrep', version: 'unknown', scanTarget: null }, degraded: false, error: 'NO_SCAN_TARGET' };
   }
-  // 能力收缩守门（第十审计 F-005 采纳；第十一审计 F-011 放宽为文件级，2026-09-25）：晋升 ruleset 现为
-  // Python-only（6 规则）。显式非 Python **文件**扩展名 → 拒绝（文件级 0 findings 会假绿）；
-  // **目录目标放行**（semgrep 目录递归扫描，目录内 .py 生效；目录 0 findings 属真实扫描结果如实记录，
-  // 不再误判假绿——因为真的扫了）。规则扩充（gitleaks/多语言）落地前文件级拒绝口径不变。
+  // 能力收缩守门（第十审计 F-005 采纳；第十一审计 F-011 文件级；第十二审计 F-019 目录能力发现，2026-09-25）：
+  // 晋升 ruleset 现为 Python-only（6 规则）。显式非 Python **文件**扩展名 → 拒绝；**目录目标做能力发现**：
+  // 纯非 Python 源码目录 → 拒绝（无可检对象）；混合目录 → 照扫但 pass=false + UNCOVERED_LANGUAGES 显式列
+  // 无法认证的语言（"真的扫了"≠"能力覆盖了目标"，不能认证 ≠ 通过）。规则扩充落地前口径不变。
   let dirTarget = false;
   try { dirTarget = fsSync.statSync(scanTarget).isDirectory(); } catch (e) { dirTarget = false; }
   const fileLike = !dirTarget && /\.[A-Za-z0-9]+$/.test(String(scanTarget).replace(/[\\/]+$/, ''));
   const pythonFile = /\.(py|python)$/i.test(scanTarget) || scanTarget.endsWith('.py.txt');
   if (fileLike && !pythonFile) {
-    return { ok: false, artifactPath: null, contract: { pass: null, degraded: false, diff: 'SCOPE_LANGUAGE_UNSUPPORTED: 晋升 ruleset 现为 Python-only（security-local-rules.yaml 6 规则 languages:[python]）——显式非 Python 文件目标在本引擎下 0 findings 会假绿（文件级守门，F-011）；目录目标已放行；多语言/gitleaks 能力恢复见迁移偏差登记', checkedAt, tool: 'semgrep', version: 'unknown', scanTarget }, degraded: false, error: 'SCOPE_LANGUAGE_UNSUPPORTED' };
+    return { ok: false, artifactPath: null, contract: { pass: null, degraded: false, diff: 'SCOPE_LANGUAGE_UNSUPPORTED: 晋升 ruleset 现为 Python-only（security-local-rules.yaml 6 规则 languages:[python]）——显式非 Python 文件目标在本引擎下 0 findings 会假绿（文件级守门，F-011）；多语言/gitleaks 能力恢复见迁移偏差登记', checkedAt, tool: 'semgrep', version: 'unknown', scanTarget }, degraded: false, error: 'SCOPE_LANGUAGE_UNSUPPORTED' };
+  }
+  let uncoveredLanguages = [];
+  if (dirTarget) {
+    const KNOWN_SRC = new Set(['js', 'ts', 'jsx', 'tsx', 'java', 'go', 'c', 'cpp', 'rb', 'php', 'cs', 'py']);
+    const exts = new Set();
+    const stack = [String(scanTarget)];
+    let visited = 0;
+    while (stack.length && visited < 5000) {
+      const dir = stack.pop();
+      let entries = [];
+      try { entries = fsSync.readdirSync(dir, { withFileTypes: true }); } catch (e) { continue; }
+      for (const ent of entries) {
+        if (visited >= 5000) break;
+        visited += 1;
+        if (ent.isDirectory()) { if (!['node_modules', '.git', '.tt-state', 'artifacts'].includes(ent.name)) stack.push(path.join(dir, ent.name)); continue; }
+        const m = /\.([A-Za-z0-9]+)$/.exec(ent.name);
+        if (m && KNOWN_SRC.has(m[1].toLowerCase())) exts.add(m[1].toLowerCase());
+      }
+    }
+    uncoveredLanguages = [...exts].filter((x) => x !== 'py');
+    if (uncoveredLanguages.length && !exts.has('py')) {
+      return { ok: false, artifactPath: null, contract: { pass: null, degraded: false, diff: 'SCOPE_LANGUAGE_UNSUPPORTED: 目录内源码全部为未覆盖语言（' + uncoveredLanguages.join(',') + '），Python-only ruleset 无可检对象——0 findings 会假绿（能力发现守门，F-019）', checkedAt, tool: 'semgrep', version: 'unknown', scanTarget, uncovered_languages: uncoveredLanguages }, degraded: false, error: 'SCOPE_LANGUAGE_UNSUPPORTED' };
+    }
   }
   // 新引擎（semgrep）：探测可用性；不可达 → Gate-1 回滚决策点（无旗标拒绝，显式旗标回滚旧路径）
   const shim = resolveCommandShim('semgrep');
@@ -102,9 +125,11 @@ export async function run(subtask, ctx, options = {}) {
   }
   const findingsAll = parsed.results.map(function (r) { return { rule: normalizeRuleId(r.check_id), severity: String(r.extra && r.extra.severity || 'INFO').toLowerCase(), message: String((r.extra && r.extra.message) || '').slice(0, 160), line: r.start && r.start.line, path: r.path }; });
   const errors = findingsAll.filter(function (f) { return f.severity === 'error'; });
-  const pass = errors.length === 0;
-  const diff = pass ? null : 'semgrep violations: ' + errors.length + ' error(s) | ' + findingsAll.map(function (f) { return f.severity + ':' + f.rule + '@' + f.line; }).join(', ');
-  const contract = { pass, diff, checkedAt, tool: 'semgrep', version, mode: 'exec', exit_code: result.ok ? 0 : 'nonzero', findings_total: findingsAll.length, findings_summary: findingsAll, scanTarget, ruleset: rulesetPath, scope: 'real semgrep ' + version + ' scan --ruleset vendor/security/rulesets/security-local-rules.yaml against ' + scanTarget };
+  // F-019 混合目录语义（2026-09-25）：未覆盖语言在场 = 本次扫描无法认证那些目标——即使 0 findings 也不得 pass。
+  const uncoveredNote = uncoveredLanguages.length ? ' | UNCOVERED_LANGUAGES: ' + uncoveredLanguages.join(',') + '（Python-only ruleset 无法认证这些目标——能力收缩登记，扩规前不认证）' : '';
+  const pass = errors.length === 0 && uncoveredLanguages.length === 0;
+  const diff = pass ? null : 'semgrep violations: ' + errors.length + ' error(s) | ' + findingsAll.map(function (f) { return f.severity + ':' + f.rule + '@' + f.line; }).join(', ') + uncoveredNote;
+  const contract = { pass, diff, checkedAt, tool: 'semgrep', version, mode: 'exec', exit_code: result.ok ? 0 : 'nonzero', findings_total: findingsAll.length, findings_summary: findingsAll, scanTarget, ruleset: rulesetPath, uncovered_languages: uncoveredLanguages.slice(), scope: 'real semgrep ' + version + ' scan --ruleset vendor/security/rulesets/security-local-rules.yaml against ' + scanTarget };
   return emitResult(subtask, workspace, contract, false);
 }
 export default { name, run };

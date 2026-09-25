@@ -30,7 +30,7 @@
    }
   },
   "owner": "autopilot L1 (AS-2-sentinel)；Owner 签收位见 promotion_receipt",
-  "status": "MIGRATING",
+  "status": "SHADOW",
   "required_evidence": {
    "baseline_snapshot": "test-reports/asset-eval-20260923/asset-baseline-before.json#skill-sentinel（adapter=prompt / routes T5_OPS / consumption 机制=无,BW零现 / vendor_path vendor/skill-sentinel / snapshot_at 2026-09-24T08:45:39Z）",
    "diff_table_finalized": "test-reports/autopilot-work/AS-2-sentinel/fixtures/expected-findings.json（finalized_before_shadow_run=true, finalized_at 2026-09-25T05:46:00Z，先于官方影子跑 05:55:00Z）",
@@ -72,7 +72,9 @@
      "shadow-20260925/rollback-drill.json（三场景 PASS + EXPLICIT_COMPAT_MODE options/env 双形态 + 现场还原；回滚路径影子跑前已验证 old-engine-record.json）",
      "promotion receipt apr-20260925T061000Z-as2sent-shadow（gate=影子跑 PASS+回滚演练 PASS+零 forbidden；approvedBy=PENDING 待 Owner）",
      "Design consumption CONFIRMED + Runtime consumption 实测（新旧引擎真实 spawn 记录于 shadow-result.json DEBUG）"
-    ]
+    ],
+    "voided": true,
+    "voidReason": "第十一审计 F-012/第十二审计 F-020：PENDING receipt ≠ 签发，该 transition 未满足契约 SHADOW→MIGRATING 前置（promotion receipt 签发）——作废，待 Owner 签收后重新执行"
    }
   ]
  },

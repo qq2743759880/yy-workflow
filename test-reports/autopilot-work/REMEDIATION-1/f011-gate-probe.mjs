@@ -10,6 +10,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+const STAMP = 'run-' + new Date().toISOString().replace(/[:.]/g, '-');
 const OUT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const out = { schema: 'f011-gate-probe@1.0.0', at: new Date().toISOString(), probes: {} };
 
@@ -20,6 +21,7 @@ const out = { schema: 'f011-gate-probe@1.0.0', at: new Date().toISOString(), pro
   const subtask = { id: 'f011-gate-js', asset: 'security', task: '安全审计', contract: '审计 app.js 中的危险调用' };
   const r = await securityAdapter.run(subtask, null, { workspace: ws, scanTarget: path.join(ws, 'app.js') });
   out.probes.js_file_rejected = { scanTarget: path.join(ws, 'app.js'), error: r.error, ok: r.ok, diff_head: r.contract && r.contract.diff ? String(r.contract.diff).slice(0, 80) : null };
+  out.probes.js_file_rejected.assertions = { assert_scope_language_unsupported: r.error === 'SCOPE_LANGUAGE_UNSUPPORTED' };
   out.probes.js_file_rejected.assert_scope_language_unsupported = r.error === 'SCOPE_LANGUAGE_UNSUPPORTED' && r.ok === false;
   await fs.rm(ws, { recursive: true, force: true });
 }
@@ -30,9 +32,12 @@ const out = { schema: 'f011-gate-probe@1.0.0', at: new Date().toISOString(), pro
   const subtask = { id: 'f011-gate-dir', asset: 'security', task: '安全审计', contract: '对本工作区执行安全审计' };
   const r = await securityAdapter.run(subtask, null, { workspace: ws });
   out.probes.directory_allowed = { scanTarget_recorded: r.contract && r.contract.scanTarget, error: r.error, ok: r.ok, findings_total: r.contract && r.contract.findings_total, pass: r.contract && r.contract.pass, mode: r.contract && r.contract.mode };
+  out.probes.directory_allowed.assertions = { assert_real_scan: r.ok === true && r.contract && r.contract.findings_total >= 1 && r.contract.mode === 'exec' };
   out.probes.directory_allowed.assert_real_scan = r.ok === true && r.contract && r.contract.findings_total >= 1 && r.contract.mode === 'exec';
   await fs.rm(ws, { recursive: true, force: true });
 }
+// F-023 修复（2026-09-25）：vacuous 根因 = 探针未填 assertions 子对象（聚合读空对象恒真）。
+// 正确修法 = 探针补填 assertions（语义值如 ok/pass 留顶层，不参与聚合——拒绝场景 ok=False 是预期）。
 out.all_pass = Object.values(out.probes).every(function (p) { return Object.values(p.assertions || {}).every(Boolean); });
-await fs.writeFile(path.join(OUT_DIR, 'f011-gate-probe-result.json'), JSON.stringify(out, null, 2));
+await fs.writeFile(path.join(OUT_DIR, STAMP + '-gate-probe-result.json'), JSON.stringify(out, null, 2));
 console.log('[f011-gate-probe] all_pass=' + out.all_pass);
