@@ -109,3 +109,6 @@
 - **后半（上下文损坏）：全部 NOT CONFIRMED 判定无效**——其 MCP 返回 governance-skills/AS-2-first/VENDORED.md 全部 FILE_NOT_FOUND，与前半审计者**同消息内实际读到这些文件内容**直接矛盾，且与地面真值矛盾（文件在库、已提交推送、hash 在案）。模式与第八轮（font-pipeline 错配）相同：**上下文受限审计者的 NOT FOUND ≠ 文件不存在**。其"扩张范围申请"（读 scripts/**、migration-record）恰是前半审计者已经做过的事
 - **治理沉淀**：多位审计者输出互相矛盾时，以地面真值（文件+hash+提交历史）裁决；编排者须指出矛盾而非各采一半
 - 附带修复：AV-3 探针 C1/C2 硬编码 hash 随 AS-2-first 合法晋升腐坏致假 FAIL——EXPECTED_SHA 动态化（重跑构建器取现值），21/21 复绿
+| PLAYBOOK-1 | PASS | agent_a99c71d4 | orchestrator-L2(结构审读+R1 诚实性核验) | 2026-09-24T13:00:00Z | plans/asset-migration-playbook.md（258 行，§一 Object/§二 Per-state Evidence/§三 Operator Guide/§四 Failure Rules×4/§五 教训×5/§六 复制 wizard）; test-reports/autopilot-work/PLAYBOOK-1/ |
+- R1 诚实性核验通过：change-lock acquire 在 AS-2-first 中确实无留痕（locks=[] 实查）——Playbook 保留步骤但校准措辞不谎称实例执行过，D-PB-1 登记。回溯自测双向修订 R1-R4 全部回写正文
+- 第二波 Step1-6 全收口；批 1 第三波启动（按 playbook 复制，首个复制对象=security→semgrep 走 pip）
