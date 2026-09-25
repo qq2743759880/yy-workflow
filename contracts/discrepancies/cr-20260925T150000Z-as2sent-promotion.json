@@ -22,7 +22,11 @@
    "new_asset": "skill-sentinel(skill-scanner-engine 2.1.0)",
    "shadow_result": "pass (zero forbidden_difference incl benign_false_positive; dual-fixture determinism asserted)",
    "promotion_receipt": "cr-20260925T150000Z-as2sent-promotion (本单, Owner PENDING)",
-   "runtime_binding": "PENDING——晋升执行时 manifest-build 重跑后动态重算记账（拒绝硬编码，AV-3 探针假 FAIL 教训）"
+   "runtime_binding": {
+    "approvalEvidence": "plans/owner-receipt-signoff-20260925.md#6130f32c234a488f4356370adb86b9037c5aca84311af6ad5481fe61a0607828",
+    "status": "SIGNED",
+    "signedAt": "2026-09-25"
+   }
   },
   "post_sign_actions": [
    "SHADOW→MIGRATING（本单签发即满足契约前置）",
@@ -31,7 +35,11 @@
    "Gate-2 新 hash 绑定验证 + 回归三件",
    "五元组 runtime_binding 回填 → PRIMARY"
   ],
-  "ownerApprovalReceipt": "PENDING_OWNER_RECEIPT",
+  "ownerApprovalReceipt": {
+   "approvalEvidence": "plans/owner-receipt-signoff-20260925.md#6130f32c234a488f4356370adb86b9037c5aca84311af6ad5481fe61a0607828",
+   "status": "SIGNED",
+   "signedAt": "2026-09-25"
+  },
   "approval_effect": {
    "semantic": "authorize_transition_request=true",
    "note": "Owner 签收=授权状态转移请求（SHADOW→MIGRATING→PRIMARY 的执行许可），≠ 当前状态已变更；转移执行走 receipt 机制逐步记账（receipt 存在≠transition 完成），每步留痕供审计——第十二审计 F-021 措辞修正采纳"

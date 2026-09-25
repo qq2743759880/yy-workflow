@@ -26,7 +26,11 @@
    "promotion_receipt": "cr-20260924T120000Z-as2f1rst-promotion (本单, Owner PENDING)",
    "runtime_binding": "manifest_sha256=84e2c7ab4db924e0b9b517b3ad084a7fce2709ca04526584e0d6a181bb08e525"
   },
-  "ownerApprovalReceipt": "PENDING_OWNER_RECEIPT"
+  "ownerApprovalReceipt": {
+   "approvalEvidence": "plans/owner-receipt-signoff-20260925.md#6130f32c234a488f4356370adb86b9037c5aca84311af6ad5481fe61a0607828",
+   "status": "SIGNED",
+   "signedAt": "2026-09-25"
+  }
  },
  "deviations": [
   "D-1: 夹具按派单落 AS-2-first 目录（契约 §五 tmpdir 口径冲突，取派单）",

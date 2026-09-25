@@ -1,61 +1,63 @@
 {
-  "changeRecordId": "cr-20260924T090000Z-b1g4te5c",
-  "basePlan": "contracts/asset-migration.md",
-  "baseVersion": "ae7455da22d2a60973f5b67d696029c1901162953d20c4128ff10f59c8577d9a",
-  "reason": "Asset Migration Contract v1 冻结面新建（批 1 B1-GATE 任务 D）：定义 replace 资产六态 Migration State 机（ACTIVE→SHADOW→MIGRATING→PRIMARY→DEPRECATED→REMOVED，合法流转 5 条 + 非法流转 9 条穷举具名）、replace 五元组 schema（old_asset/new_asset/shadow_result/promotion_receipt/runtime_binding，缺一 fail-closed）、三硬门（Gate-1 EXPLICIT_COMPAT_MODE / Gate-2 consumed hash==build hash / Gate-3 五元组）、drop_allowed 旗标语义（drop_pending 与 drop_allowed 双字段，fail-closed 方向，preflight P6 机检）、影子跑夹具规范（临时、跑完即删、Migration Adapter 禁为永久制品）。并显式声明：全量门栈只压首个 replace（be-validator 换 Spectral），复制走机械化 wizard 式清单（v3.3 编排者补充裁定）。机制缘由见 plans/execution-plan-v3-20260923.md §v3.1（Migration Contract adopt 核心、砍永久层）/§v3.2（三硬门与 DROP_ALLOWED 硬门）/§v3.3（单 replace 先行验证）。",
-  "impactClass": "CONTRACT",
-  "owner": "Owner",
-  "sourceEvidence": [
-    "contracts/asset-migration.md#ae7455da22d2a60973f5b67d696029c1901162953d20c4128ff10f59c8577d9a",
-    "handoffs/v3/B1-GATE-dispatch.md#cf4ffb6190a87abb7948c2971ac3bb407c3139278ec74d99386775edb6c6b055",
-    "plans/execution-plan-v3-20260923.md#f86dd8a6dde1c4c624e266e3b37fc01a537f8f5fba3faf8a3359b6d3a80cdfea (§v3.1/v3.2/v3.3 修订节：机制设计缘由)",
-    "handoffs/v3/write-faces-batch1.md#ef04fc7ab69fd07b9f8997775d8bb25394b4e95dfcfc89a662b0c6be68b984ba (写面声明表：本单文件归属 B1-GATE)",
-    "test-reports/autopilot-work/B1-GATE/RESULTS.md (本变更实施证据与自测记录)"
+ "changeRecordId": "cr-20260924T090000Z-b1g4te5c",
+ "basePlan": "contracts/asset-migration.md",
+ "baseVersion": "ae7455da22d2a60973f5b67d696029c1901162953d20c4128ff10f59c8577d9a",
+ "reason": "Asset Migration Contract v1 冻结面新建（批 1 B1-GATE 任务 D）：定义 replace 资产六态 Migration State 机（ACTIVE→SHADOW→MIGRATING→PRIMARY→DEPRECATED→REMOVED，合法流转 5 条 + 非法流转 9 条穷举具名）、replace 五元组 schema（old_asset/new_asset/shadow_result/promotion_receipt/runtime_binding，缺一 fail-closed）、三硬门（Gate-1 EXPLICIT_COMPAT_MODE / Gate-2 consumed hash==build hash / Gate-3 五元组）、drop_allowed 旗标语义（drop_pending 与 drop_allowed 双字段，fail-closed 方向，preflight P6 机检）、影子跑夹具规范（临时、跑完即删、Migration Adapter 禁为永久制品）。并显式声明：全量门栈只压首个 replace（be-validator 换 Spectral），复制走机械化 wizard 式清单（v3.3 编排者补充裁定）。机制缘由见 plans/execution-plan-v3-20260923.md §v3.1（Migration Contract adopt 核心、砍永久层）/§v3.2（三硬门与 DROP_ALLOWED 硬门）/§v3.3（单 replace 先行验证）。",
+ "impactClass": "CONTRACT",
+ "owner": "Owner",
+ "sourceEvidence": [
+  "contracts/asset-migration.md#ae7455da22d2a60973f5b67d696029c1901162953d20c4128ff10f59c8577d9a",
+  "handoffs/v3/B1-GATE-dispatch.md#cf4ffb6190a87abb7948c2971ac3bb407c3139278ec74d99386775edb6c6b055",
+  "plans/execution-plan-v3-20260923.md#f86dd8a6dde1c4c624e266e3b37fc01a537f8f5fba3faf8a3359b6d3a80cdfea (§v3.1/v3.2/v3.3 修订节：机制设计缘由)",
+  "handoffs/v3/write-faces-batch1.md#ef04fc7ab69fd07b9f8997775d8bb25394b4e95dfcfc89a662b0c6be68b984ba (写面声明表：本单文件归属 B1-GATE)",
+  "test-reports/autopilot-work/B1-GATE/RESULTS.md (本变更实施证据与自测记录)"
+ ],
+ "invalidatedNodes": [
+  "AS-2-first (首个 replace：三硬门+五元组+影子跑按本契约执行；be-validator 换 Spectral 为验收载体)",
+  "AS-1 (drop 7：DEPRECATED→REMOVED 转移须过 drop 三条件 + drop_allowed=true；S15 migration invariants 按本契约填充)",
+  "AV-2 (manifest 生成：资产行 drop_pending/drop_allowed 旗标字段须与 §四语义一致，preflight P6 断言消费)"
+ ],
+ "newVersionRef": null,
+ "supersededBy": null,
+ "status": "active",
+ "recordedAt": "2026-09-24T09:00:00.000Z",
+ "recordedBy": "B1-GATE-L1-exec",
+ "idempotencyKey": "6ed8529601f68246aaa940b78c8ce832b6489d0b71904ba5e0ac10eedf12b54f",
+ "approvalId": "apr-20260924T085000Z-b1g4te5c",
+ "touchedFiles": [
+  "contracts/asset-migration.md"
+ ],
+ "schemaVersion": "asset-migration@1.0.0",
+ "migration": {
+  "from": "v0（无迁移契约：replace/drop 仅有 plans/execution-plan-v3-20260923.md 的计划性文字，无状态机、无五元组、无硬门机检定义——影子跑/drop_allowed/EXPLICIT_COMPAT_MODE 均无落点）",
+  "to": "v1（本契约冻结六态状态机 + 非法流转穷举 + 五元组 schema + 三硬门 + drop_allowed 旗标语义 + 影子跑夹具规范；机检面挂 preflight.mjs P5/P6 与 regression S14/S15）",
+  "steps": [
+   "1. 本单冻结契约定义（状态机/五元组/三硬门/旗标语义/夹具规范）",
+   "2. AS-2-first 首个 replace（be-validator 换 Spectral）作为迁移系统验收载体，全量门栈压首个",
+   "3. 其余三个 replace 复制同一机器，证据负担机械化为 wizard 式清单（禁四路并行）",
+   "4. AS-1 drop 执行时 S15 段按本契约 §三 Gate-1 与 §四旗标语义填充真实断言"
   ],
-  "invalidatedNodes": [
-    "AS-2-first (首个 replace：三硬门+五元组+影子跑按本契约执行；be-validator 换 Spectral 为验收载体)",
-    "AS-1 (drop 7：DEPRECATED→REMOVED 转移须过 drop 三条件 + drop_allowed=true；S15 migration invariants 按本契约填充)",
-    "AV-2 (manifest 生成：资产行 drop_pending/drop_allowed 旗标字段须与 §四语义一致，preflight P6 断言消费)"
-  ],
-  "newVersionRef": null,
-  "supersededBy": null,
-  "status": "active",
-  "recordedAt": "2026-09-24T09:00:00.000Z",
-  "recordedBy": "B1-GATE-L1-exec",
-  "idempotencyKey": "6ed8529601f68246aaa940b78c8ce832b6489d0b71904ba5e0ac10eedf12b54f",
+  "rollback": "supersede-not-delete：本单被后续回滚 change record 取代（supersedes 指针），契约文档回退以 git 历史为准（tombstone）"
+ },
+ "ownerApprovalReceipt": {
   "approvalId": "apr-20260924T085000Z-b1g4te5c",
-  "touchedFiles": [
-    "contracts/asset-migration.md"
-  ],
-  "schemaVersion": "asset-migration@1.0.0",
-  "migration": {
-    "from": "v0（无迁移契约：replace/drop 仅有 plans/execution-plan-v3-20260923.md 的计划性文字，无状态机、无五元组、无硬门机检定义——影子跑/drop_allowed/EXPLICIT_COMPAT_MODE 均无落点）",
-    "to": "v1（本契约冻结六态状态机 + 非法流转穷举 + 五元组 schema + 三硬门 + drop_allowed 旗标语义 + 影子跑夹具规范；机检面挂 preflight.mjs P5/P6 与 regression S14/S15）",
-    "steps": [
-      "1. 本单冻结契约定义（状态机/五元组/三硬门/旗标语义/夹具规范）",
-      "2. AS-2-first 首个 replace（be-validator 换 Spectral）作为迁移系统验收载体，全量门栈压首个",
-      "3. 其余三个 replace 复制同一机器，证据负担机械化为 wizard 式清单（禁四路并行）",
-      "4. AS-1 drop 执行时 S15 段按本契约 §三 Gate-1 与 §四旗标语义填充真实断言"
-    ],
-    "rollback": "supersede-not-delete：本单被后续回滚 change record 取代（supersedes 指针），契约文档回退以 git 历史为准（tombstone）"
+  "target": {
+   "scope": "change",
+   "scopeId": "contracts/asset-migration.md@ae7455da22d2a60973f5b67d696029c1901162953d20c4128ff10f59c8577d9a:CONTRACT"
   },
-  "ownerApprovalReceipt": {
-    "approvalId": "apr-20260924T085000Z-b1g4te5c",
-    "target": {
-      "scope": "change",
-      "scopeId": "contracts/asset-migration.md@ae7455da22d2a60973f5b67d696029c1901162953d20c4128ff10f59c8577d9a:CONTRACT"
-    },
-    "reason": "Asset Migration Contract v1（六态状态机+五元组+三硬门+drop_allowed 旗标）——Owner 采纳裁定依据见 plans/execution-plan-v3-20260923.md §v3.1/v3.2/v3.3 三轮审计批判性吸收裁定（change-lock 降级、Migration Contract 砍永久层、DROP_ALLOWED 硬门均为已登记 adopt 项）",
-    "approvedBy": "owner",
-    "approvedAt": "2026-09-24T08:50:00.000Z",
-    "expiresAt": null,
-    "approvalEvidence": "PENDING_OWNER_RECEIPT",
-    "relatedReceipts": []
-  },
-  "ownerSignOff": {
-    "status": "PENDING",
-    "note": "Owner 签收位：本单按 CONTRACT 类提交，ownerApprovalReceipt.approvalEvidence 须由 Owner 签发后回填 <指令文件路径>#<SHA256> 并将 status 改为 SIGNED（approvalId 不变）；签发前本契约文档为待确认草稿态，不得作为 AS-2-first replace 的放行依据（机器可先行消费其定义，施工放行待签收）",
-    "signedAt": null,
-    "signedBy": null
-  }
+  "reason": "Asset Migration Contract v1（六态状态机+五元组+三硬门+drop_allowed 旗标）——Owner 采纳裁定依据见 plans/execution-plan-v3-20260923.md §v3.1/v3.2/v3.3 三轮审计批判性吸收裁定（change-lock 降级、Migration Contract 砍永久层、DROP_ALLOWED 硬门均为已登记 adopt 项）",
+  "approvedBy": "owner",
+  "approvedAt": "2026-09-24T08:50:00.000Z",
+  "expiresAt": null,
+  "approvalEvidence": "plans/owner-receipt-signoff-20260925.md#6130f32c234a488f4356370adb86b9037c5aca84311af6ad5481fe61a0607828",
+  "relatedReceipts": [],
+  "status": "SIGNED",
+  "signedAt": "2026-09-25"
+ },
+ "ownerSignOff": {
+  "status": "PENDING",
+  "note": "Owner 签收位：本单按 CONTRACT 类提交，ownerApprovalReceipt.approvalEvidence 须由 Owner 签发后回填 <指令文件路径>#<SHA256> 并将 status 改为 SIGNED（approvalId 不变）；签发前本契约文档为待确认草稿态，不得作为 AS-2-first replace 的放行依据（机器可先行消费其定义，施工放行待签收）",
+  "signedAt": null,
+  "signedBy": null
+ }
 }
