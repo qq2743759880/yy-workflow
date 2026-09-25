@@ -4,7 +4,7 @@
 
 - `task-agent-matrix.md`：任务×agent 链×skill×workflow×MCP 全表（按平台角色分配），含 **T1 数据库 / T2 后端 / T3 AI-RAG-MCP / T4 前端 / T5 运维** 五类任务链。
 - `orchestration-frontend-backend.md`：执行排序总表 + **契约冻结机制**（①~⑭ 闸门）。
-- **后端任务链**：T2 由 `be-architect`（契约）→ implementation（sdlc/develop 实现）→ security/be-resilience 加固 → be-validator/review 独立验收；sdlc 为工程主干。详见 `templates/task-agent-matrix.md`。
+- **后端任务链**：T2 由 implementation（sdlc/develop 契约先行冻结 + develop 实现）→ security 加固 → be-validator/review 独立验收；sdlc 为工程主干。详见 `templates/task-agent-matrix.md`。
 - **契约冻结（代码级，替代手工单点权威文件）**：orchestrator 将 plan 契约冻结为 `contracts/<planId>.json`；用户可用 `--contract <OpenAPI>.json` 提供可真校验契约本体（be-validator 走 portman 真验）。契约 = 下游开工前置：缺契约 → `CONTRACT_NOT_FROZEN` skip + 计划 failed（§5.1/§5.4，见 `reference/dispatch-and-acceptance.md`）；执行期被篡改 → exit 4。人工交接仅剩 `handoffs/taskNN-discrepancy.md` 越界上浮仲裁；**仅当使用外部 TTHP 协议包才沿用其 handoff 契约单文件格式**。
 - `templates/kickoff-prompt.md`：给每个平台的整段开工 prompt（必读文档清单 + 当前任务 + 前置条件 + 硬性守则 + 完工报告要求）。
 - **skill/子 agent 强制调用检查（硬约束）**：①开工 prompt 必须列**具名 skill 路径 + 具名子 agent**，禁止"按需调用"空话 ②完工报告必须列**实际调用证据** ③验收抽查 skill 产物，"加载了 skill 但没跑工具"= 违规 ④代码级强制：产物须含资产消费证据（`assetConsumed` 指纹），缺失 → warning；`regression-all` S8 断言 exec 子任务全 true。

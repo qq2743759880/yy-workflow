@@ -52,9 +52,9 @@ import { runJunctionSmoke } from '../test-reports/fix-20260921/junction-smoke.mj
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 /** Phase 2 替换目标清单。kernel = 资产正文必须包含的内核 marker（漂移门）。
- *  AS-1 drop 7（2026-09-25）：agent-research/be-architect/be-provider/be-resilience/colorize/
- *  agent-vision-toolkit 六行随资产删除收缩（frontend-visual-validation 本就不在本表）；
- *  保留 8 行（dev-planner 无 kernel 内核表行，S3 为子集门非全量门）。 */
+ *  AS-1 drop 7（2026-09-25）：六行随资产删除收缩（vfv 资产本就不在本表）；
+ *  保留 8 行（dev-planner 无 kernel 内核表行，S3 为子集门非全量门）。drop 逐资产清单
+ *  权威 = change.record cr-20260925T102900Z-as1-drop7（此处置文件不再重抄名单，防猎手名单自命中）。 */
 const PHASE2 = [
   { asset: 'implementation', dedicatedAdapter: true, kernel: ['opencode'], file: 'vendor/implementation/implementation.md', note: '实现簇(dev-backend+be-implementer) → opencode 执行内核' },
   { asset: 'sdlc', dedicatedAdapter: true, kernel: ['cline', 'BMAD'], file: 'vendor/sdlc/SKILL.md', note: 'sdlc → BMAD-METHOD + cline 执行层' },
@@ -267,18 +267,13 @@ async function main() {
     // ① 历史证据面：test-reports / docs / CHANGELOG / plans / handoffs / artifacts / recovery / prototypes /
     //    .learnings / .memory / .mimosa / .tmp-demo / contracts/discrepancies（change.record 本身必须具名 drop 资产）
     // ② 一字不改面：vendor/（保留资产含其正文提及，禁改纪律优先）
-    // ③ 登记残留面（白名单外活文件，本单不越权改动，逐文件登记 RESULTS 偏差交 L2/Owner 处置）+
-    //    S15 自身（断言持有 drop 清单常量——猎手名单≠资产引用）
+    // ③ 豁免残留面（D-3 清理后仅剩类 C 历史/schema 豁免件——S15-A1 豁免口径=历史证据面，
+    //    改动反而篡改历史决断；逐文件计数留痕输出）+ S15 自身（断言持有 drop 清单常量——猎手名单≠资产引用）
     // ② 一字不改面：vendor/（保留资产含其正文/参考件提及 drop 资产名，禁改纪律优先）
     const A1_SKIP_DIRS = new Set(['node_modules', '.git', 'vendor', 'test-reports', 'docs', 'artifacts', 'recovery-20260919', 'prototypes', '.learnings', '.memory', '.mimosa', '.tmp-demo', 'plans', 'handoffs', 'contracts' + path.sep + 'discrepancies', 'contracts/discrepancies', 'contracts' + path.sep + 'drafts', 'contracts/drafts']);
     const A1_SKIP_FILES = new Set(['CHANGELOG.md', '.zcodeignore', '.gitignore', 'package-lock.json']);
     const A1_REGISTERED_RESIDUALS = new Set([
-      'README.md', 'reference' + path.sep + 'asset-integration.md', 'reference' + path.sep + 'planning.md', 'reference' + path.sep + 'frontend-gate.md',
-      'templates' + path.sep + 'orchestration-frontend-backend.md', 'templates' + path.sep + 'task-agent-matrix.md', 'contracts' + path.sep + 'asset-manifest-v2.md',
-      'contracts' + path.sep + 'C-R3-review-checklist.md',
-      'scripts' + path.sep + 'color-palette.mjs', 'scripts' + path.sep + 'color-mix.mjs', 'scripts' + path.sep + 'design-enhancer.mjs', 'scripts' + path.sep + 'resilience-check.mjs', 'scripts' + path.sep + 'di-container.mjs',
-      'scripts' + path.sep + 'lib' + path.sep + 'adapters' + path.sep + 'prompt.mjs', 'scripts' + path.sep + 'lib' + path.sep + 'activation.mjs', 'scripts' + path.sep + 'lib' + path.sep + 'evolution.mjs',
-      'scripts' + path.sep + 'regression-all.mjs',
+      'contracts' + path.sep + 'asset-manifest-v2.md', 'contracts' + path.sep + 'C-R3-review-checklist.md',
     ]);
     const A1_TEXT_EXT = /\.(md|mjs|js|cjs|json|yaml|yml|txt|html|css|py)$/i;
     const a1Violations = [];
@@ -306,10 +301,13 @@ async function main() {
         }
       }
     })(ROOT, '');
-    const a1ok = a1Violations.length === 0;
-    section('S15-A1 drop 资产引用 0 命中（治理活面）', a1ok,
-      a1ok ? `扫描 ${a1Scanned} 文件 0 命中；登记残留面 ${a1Residuals.length} 文件（D-3 登记 RESULTS，不阻断）${a1Residuals.length ? ': ' + a1Residuals.join('; ') : ''}`
-           : `DROP_REF_HIT ${a1Violations.length} 文件: ${a1Violations.join('; ')}`);
+    // S15 断言自身持有 DROPPED_ASSETS 常量（猎手名单）——自命中按豁免计，不进违规（猎手名单≠资产引用）。
+    const a1ViolationsFinal = a1Violations.filter((v) => !v.startsWith('scripts/regression-all.mjs -> '));
+    const a1SelfExempt = a1ViolationsFinal.length !== a1Violations.length;
+    const a1okFinal = a1ViolationsFinal.length === 0;
+    section('S15-A1 drop 资产引用 0 命中（治理活面）', a1okFinal,
+      a1okFinal ? `扫描 ${a1Scanned} 文件 0 命中；类 C 豁免残留面 ${a1Residuals.length + (a1SelfExempt ? 1 : 0)} 文件（D-3 处置后仅剩历史/schema 豁免件 + S15 猎手名单自身，不阻断）${a1Residuals.length ? ': ' + a1Residuals.join('; ') : ''}${a1SelfExempt ? '; scripts/regression-all.mjs (S15 断言持有 drop 清单常量——猎手名单≠资产引用)' : ''}`
+           : `DROP_REF_HIT ${a1ViolationsFinal.length} 文件: ${a1ViolationsFinal.join('; ')}`);
   }
 
   // ── S15-A2 replace 资产真实消费探针（三引擎各一次真实扫描，os.tmpdir 跑完即删）──

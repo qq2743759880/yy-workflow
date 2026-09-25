@@ -189,3 +189,7 @@
 - 【H3 闭环】audit-index 28 行证据指针表（复验命令一行式）——受限审计者 NOT FOUND 循环的终结方案
 - agent 曾两度 provider Captcha 超时，第三次成功且交付完整——验证中断恢复纪律
 - 批 1 状态：HARDEN-1 关账，终验收口报告待拟（措辞降级版）；PB-WRITEBACK/D-3-RESIDUAL 两单派单就绪待派
+| D-3-RESIDUAL | PASS | agent_c469af32 | orchestrator-L2(删删/收缩/豁免三项亲验) | 2026-09-25T19:30:00Z | 类 A 删 5 孤儿脚本（color-mix/color-palette/design-enhancer/di-container/resilience-check）; 类 B 7 活文档最小 diff; 类 D activation/evolution 白名单收缩; test-reports/autopilot-work/D-3-RESIDUAL/RESULTS.md |
+- L2 亲验：类 A 双样本确认删除、S15-A1 残留面 17→3（仅类 C 豁免件+猎手名单自身）、S12 双向 19 资产一致、回归 22/22、preflight exit 0、manifest hash c30fee6b 未变
+- R-2（移交）：孤儿脚本的第三方依赖（culori/tsyringe/cockatiel 等）成名义依赖——package.json 清理移交后续（非阻塞）
+- D-3-RESIDUAL 关账；残留面清理完毕

@@ -62,7 +62,7 @@
 |------|------|------|---------|
 | 核心（随包） | `$SKILL_DIR/vendor/dev-planner/dev-planner.md`、`$SKILL_DIR/templates/*` | 拆任务/产物模板 | — |
 | 增强（随包） | frontend-design、planning（簇） | 设计系统生成/品味护栏/需求挖掘 | 内置 `$SKILL_DIR/vendor/<name>/SKILL.md`，缺失走通用步骤（`reference/documentation.md` / §6.2） |
-| 增强（随包） | agent-research、agent-vision-toolkit、skill-sentinel | 调研/视觉质检/第三方 skill 安全扫描 | 内置 `$SKILL_DIR/vendor/<name>/SKILL.md`，跳过该环节或人工替代 |
+| 增强（随包） | skill-sentinel | 第三方 skill 安全扫描 | 内置 `$SKILL_DIR/vendor/skill-sentinel/SKILL.md`，跳过该环节或人工替代 |
 | 外部（引用） | TTHP 协议包（handoff） | 任务交接协议 | 契约冻结退化为文件+人工核对 |
 
 > 引用任何增强资产前先探测存在性；不引用不存在的资产（`reference/asset-integration.md`）。

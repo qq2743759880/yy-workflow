@@ -1,5 +1,5 @@
 {
-  "id": "plan-muh1yemw",
+  "id": "plan-muh57ipd",
   "task": "backend login module with security review",
   "cluster": "T2_BACKEND",
   "contract": "backend interface and error contract",
@@ -12,10 +12,10 @@
   "phases": 3,
   "subtasks": [
     {
-      "id": "plan-muh1yemw-0",
-      "planId": "plan-muh1yemw",
+      "id": "plan-muh57ipd-0",
+      "planId": "plan-muh57ipd",
       "asset": "implementation",
-      "contract": "contracts\\plan-muh1yemw.json",
+      "contract": "contracts\\plan-muh57ipd.json",
       "status": "failed",
       "artifactPath": null,
       "attempts": 1,
@@ -37,17 +37,17 @@
       "adapter": "opencode"
     },
     {
-      "id": "plan-muh1yemw-1",
-      "planId": "plan-muh1yemw",
+      "id": "plan-muh57ipd-1",
+      "planId": "plan-muh57ipd",
       "asset": "sdlc",
-      "contract": "contracts\\plan-muh1yemw.json",
+      "contract": "contracts\\plan-muh57ipd.json",
       "status": "idle",
       "artifactPath": null,
       "attempts": 0,
       "phase": 1,
       "dependsOn": [
-        "plan-muh1yemw-0",
-        "plan-muh1yemw-2"
+        "plan-muh57ipd-0",
+        "plan-muh57ipd-2"
       ],
       "preconditions": [
         "接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
@@ -58,12 +58,12 @@
       "contractMode": "frozen"
     },
     {
-      "id": "plan-muh1yemw-2",
-      "planId": "plan-muh1yemw",
+      "id": "plan-muh57ipd-2",
+      "planId": "plan-muh57ipd",
       "asset": "security",
-      "contract": "contracts\\plan-muh1yemw.json",
+      "contract": "contracts\\plan-muh57ipd.json",
       "status": "done",
-      "artifactPath": "artifacts\\plan-muh1yemw-2\\security-result.json",
+      "artifactPath": "artifacts\\plan-muh57ipd-2\\security-result.json",
       "attempts": 1,
       "phase": 0,
       "dependsOn": [],
@@ -84,17 +84,17 @@
       "adapter": "security"
     },
     {
-      "id": "plan-muh1yemw-3",
-      "planId": "plan-muh1yemw",
+      "id": "plan-muh57ipd-3",
+      "planId": "plan-muh57ipd",
       "asset": "review",
-      "contract": "contracts\\plan-muh1yemw.json",
+      "contract": "contracts\\plan-muh57ipd.json",
       "status": "idle",
       "artifactPath": null,
       "attempts": 0,
       "phase": 1,
       "dependsOn": [
-        "plan-muh1yemw-0",
-        "plan-muh1yemw-2"
+        "plan-muh57ipd-0",
+        "plan-muh57ipd-2"
       ],
       "preconditions": [
         "接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
@@ -105,17 +105,17 @@
       "contractMode": "frozen"
     },
     {
-      "id": "plan-muh1yemw-4",
-      "planId": "plan-muh1yemw",
+      "id": "plan-muh57ipd-4",
+      "planId": "plan-muh57ipd",
       "asset": "be-validator",
-      "contract": "contracts\\plan-muh1yemw.json",
+      "contract": "contracts\\plan-muh57ipd.json",
       "status": "idle",
       "artifactPath": null,
       "attempts": 0,
       "phase": 2,
       "dependsOn": [
-        "plan-muh1yemw-1",
-        "plan-muh1yemw-3"
+        "plan-muh57ipd-1",
+        "plan-muh57ipd-3"
       ],
       "preconditions": [
         "接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
@@ -127,5 +127,5 @@
     }
   ],
   "status": "failed",
-  "createdAt": "2026-09-25T14:24:50.072Z"
+  "createdAt": "2026-09-25T15:55:54.099Z"
 }

@@ -113,7 +113,7 @@ export async function run(subtask, ctx, options = {}) {
       const anchorLower = String(anchor).toLowerCase();
       // kernel 词（D-1 强化，P1 修复）：资产有 Execution kernel 段时，产物须含锚点 且 ≥1 内核词。
       // 提取规则：Kernel: 行内 ASCII 工具 token（反引号或含 ./_- 的 ≥3 字符 token），过滤虚词；
-      // 兼容中文开头 Kernel 行（agent-research/skill-sentinel 等），不再静默回落锚点即可。
+      // 兼容中文开头 Kernel 行（be-validator/skill-sentinel 等在役资产），不再静默回落锚点即可。
       const hasKernelSection = Boolean(asset && asset.body && /^#{1,6}\s+Execution kernel/im.test(asset.body));
       const VIRTUAL = /^(via|the|and|for|of|to|in|is|or|not|with|as|at|by|hub|uses|layer)$/i;
       const kernelLine = asset && asset.body ? ((asset.body.match(/## Execution kernel[\s\S]*?Kernel:\s*([^\n]+)/) || [])[1] || '') : '';

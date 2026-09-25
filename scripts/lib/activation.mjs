@@ -39,12 +39,10 @@ import { CLUSTERS } from './matrix.mjs';
 // 常量（契约 §2/§4/§5/§6/§8）
 // ---------------------------------------------------------------------------
 
-/** 16 个 YY 内置资产 id（契约 §1.1：恰好 16 个 vendor/ depth-1 目录；R1 实测 10 skill + 6 agent） */
+/** 9 个 YY 内置资产 id（drop 7 后幸存 vendor/ depth-1 目录；名单权威=manifest，此处仅为 catalog 视图静态断言） */
 export const CATALOG_IDS = Object.freeze([
-  'agent-research', 'agent-vision-toolkit', 'be-architect', 'be-provider',
-  'be-resilience', 'be-validator', 'colorize', 'dev-planner',
-  'frontend-design', 'frontend-visual-validation', 'implementation', 'planning',
-  'review', 'sdlc', 'security', 'skill-sentinel',
+  'dev-planner', 'frontend-design', 'implementation', 'planning',
+  'review', 'sdlc', 'security', 'skill-sentinel', 'be-validator',
 ]);
 
 /** 三级激活级别（§4）；级别选择策略 = hybrid（OQ-R3-4=A）：body 为默认投递级别 */
@@ -390,7 +388,7 @@ export function normalizeSection(s) {
 
 /** 从 brief.md 文本提取「方法论正文」段内 payload 字节（receipt.mjs T4/P4 复验用；renderBrief 的逆操作）。
  *  段界 = 段标题之后、帧尾分隔（\n---\n执行要求：，prompt.mjs:56-57 同构）之前——不用裸 '---' 定界，
- *  资产正文自身可含水平线（实测 colorize 正文含 --- 行）。 */
+ *  资产正文自身可含水平线（历史实测正文含 --- 行）。 */
 export function extractPayloadFromBrief(briefText) {
   const text = String(briefText).replace(/\r\n/g, '\n');
   const hIdx = text.indexOf(BRIEF_BODY_HEADING);
@@ -486,15 +484,15 @@ export async function activationPrepare(input) {
     }
   }
 
-  // (3) catalog 视图（ASSET_NOT_FOUND：id 必须存在于 C-R2 catalog 视图 = 16 内置资产；文件缺失归类见 (4)）
+  // (3) catalog 视图（ASSET_NOT_FOUND：id 必须存在于 catalog 视图 = 9 内置资产；文件缺失归类见 (4)）
   if (!CATALOG_IDS.includes(input.asset)) {
     return respond(false, 'ASSET_NOT_FOUND', {
-      reason: `asset 不在 16 内置资产 catalog 视图内: ${input.asset}（§1.1 / C-R2 §3.1）`,
+      reason: `asset 不在 9 内置资产 catalog 视图内: ${input.asset}（C-R2 §3.1；drop 7 后名单随 manifest）`,
     });
   }
   // (4) manifest 可读（ASSET_BODY_MISSING，fail-closed：bodyPath=manifestPath 同文件；
   //     现状 asset.mjs:62-70 静默 body='' 的 silent-degrade 在 bounded 模式下即 defect——§2.1。
-  //     归类口径：id ∈ 16 catalog 而 manifest 文件缺失 ⇒ ASSET_BODY_MISSING（catalog 层与
+  //     归类口径：id ∈ catalog 而 manifest 文件缺失 ⇒ ASSET_BODY_MISSING（catalog 层与
   //     activation 层归类一致，清单 R3-5 defect 面），而非 ASSET_NOT_FOUND）
   const { manifestPath, assetType } = resolveManifestPath(vendorDir, input.asset);
   if (!manifestPath) {

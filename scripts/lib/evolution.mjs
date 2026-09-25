@@ -35,12 +35,10 @@ import crypto from 'node:crypto';
 // 常量（契约 §8 / OQ-R10-1..6=A）
 // ---------------------------------------------------------------------------
 
-/** 16 资产白名单（幸存 vendor/ 16 根，逐字；§8） */
+/** 9 资产白名单（drop 7 后幸存 vendor/ 9 根，逐字；名单权威=manifest，此处为报告/校验静态基线） */
 export const ASSET_WHITELIST = Object.freeze([
-  'agent-research', 'agent-vision-toolkit', 'be-architect', 'be-provider',
-  'be-resilience', 'be-validator', 'colorize', 'dev-planner',
-  'frontend-design', 'frontend-visual-validation', 'implementation', 'planning',
-  'review', 'sdlc', 'security', 'skill-sentinel',
+  'dev-planner', 'frontend-design', 'implementation', 'planning',
+  'review', 'sdlc', 'security', 'skill-sentinel', 'be-validator',
 ]);
 
 /** 候选状态集六值（REPORT.md L154 "CANDIDATE_STATUSES 六"；字面为重建推断，见 GAP 清单） */

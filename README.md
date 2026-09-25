@@ -2,14 +2,14 @@
 
 > 多 Agent 平台编排闭环方法论（开源通用版）。一个编排者调度多个 AI 平台并行完成大项目，并在每次执行后把经验回写本 skill 自进化。
 
-**自包含版（自 v2.2.0 起）**：16 个增强资产（前端/设计/调研 + 后端 agent/工程）已随包内置在 `vendor/`，**无需任何外部 AI-Hub 即可离线使用**。任何用户把本目录整体拷走都能直接跑，不依赖网络、不依赖机器专属路径。当前版本 **v2.2.9**（2026-09-01，已装库真调脚本接线；完整演进见 CHANGELOG.md）。
+**自包含版（自 v2.2.0 起）**：9 个增强资产（前端/设计 + 后端 agent/工程；v2.3.0 drop 7 收缩）已随包内置在 `vendor/`，**无需任何外部 AI-Hub 即可离线使用**。任何用户把本目录整体拷走都能直接跑，不依赖网络、不依赖机器专属路径。当前版本 **v2.2.9**（2026-09-01，已装库真调脚本接线；完整演进见 CHANGELOG.md）。
 
 ---
 
 ## 目录
 
 - [这是什么](#这是什么)
-- [随包内置资产（16 个）](#随包内置资产16-个)
+- [随包内置资产（9 个）](#随包内置资产9-个)
 - [系统要求](#系统要求)
 - [安装方式](#安装方式)
   - [A. WorkBuddy](#a-workbuddy)
@@ -33,13 +33,13 @@ TT（Together Agent，前身 Tgent）把一整套经过实战沉淀的编排能�
 2. **单/多平台并行派单** → 契约冻结 → 独立实证验收
 3. **强制技术批判（竞品对标）** → 批判反哺自动优化（自进化闭环）
 
-**给谁用**：想调度多个 AI 平台 / Agent 并行完成大项目、摆脱"单 Agent 单次对话"局限的人——独立开发者当团队用、团队并行开发、研究者跑调研流水线、AI 工具爱好者编排自有 agent。**核心价值**：一套可复制、可机验的编排纪律（验收不采信报告、批判必有竞品对标、契约冻结防返工），外加 16 个离线可用的自包含资产，任何拿到本目录的用户都能直接跑。
+**给谁用**：想调度多个 AI 平台 / Agent 并行完成大项目、摆脱"单 Agent 单次对话"局限的人——独立开发者当团队用、团队并行开发、研究者跑调研流水线、AI 工具爱好者编排自有 agent。**核心价值**：一套可复制、可机验的编排纪律（验收不采信报告、批判必有竞品对标、契约冻结防返工），外加 9 个离线可用的自包含资产，任何拿到本目录的用户都能直接跑。
 
 平台数 `N` 自适应：N≥2 走完整闭环；N=1 退化为「串行编排 + 换子 agent/换视角复验」，八步框架不变。
 
 ---
 
-## 随包内置资产（16 个）
+## 随包内置资产（9 个）
 
 全部位于 `$SKILL_DIR/vendor/`（即本目录下的 `vendor/`），开箱即用，不依赖外部 AI-Hub：
 
@@ -48,20 +48,16 @@ TT（Together Agent，前身 Tgent）把一整套经过实战沉淀的编排能�
 | 核心规划 | dev-planner（只读规划 agent） | 保留核心（前提挑战/GWT/多视角评审，TT 差异化） | `vendor/dev-planner/dev-planner.md` |
 | 需求挖掘簇 | planning（formal-prd + vibe-prd 双模式） | **MetaGPT** / **crewAI**（PRD 生成内核对标） | `vendor/planning/SKILL.md` |
 | 前端设计簇 | frontend-design（五合一） | **shadcn-ui/ui** + **bolt.new**（组件底座/原型生成） | `vendor/frontend-design/SKILL.md` |
-| 前端辅助 | colorize | **culori** + **chroma-js** + **poline**（色彩计算内核） | `vendor/colorize/SKILL.md` |
-| 前端辅助 | frontend-visual-validation | **playwright toHaveScreenshot**（L0 像素）+ VLM（L1 语义抽样） | `vendor/frontend-visual-validation/SKILL.md` |
 | 评审簇 | review（critique + be-tester + polish 三合一） | **qodo-ai/pr-agent** + **continue**（行级批注/规则即代码） | `vendor/review/SKILL.md` |
 | 安全簇 | security（audit + harden + be-security 三合一） | **semgrep** + **gitleaks**（SAST/密钥扫描） | `vendor/security/SKILL.md` |
-| 调研 | agent-research | **gpt-researcher**（自主 deep-research 对标） | `vendor/agent-research/SKILL.md` |
-| 视觉质检 | agent-vision-toolkit | **OmniParser v2** + **UI-TARS**（VLM grounding） | `vendor/agent-vision-toolkit/SKILL.md` |
 | 安全扫描 | skill-sentinel | **NVIDIA/SkillSpector**（对标）+ 自带 Python 工具 | `vendor/skill-sentinel/SKILL.md` |
 | 后端工程 | sdlc（BMAD-METHOD 四阶段） | **BMAD-METHOD** + **cline** | `vendor/sdlc/SKILL.md` |
-| 后端 agent（4） | be-architect / be-provider / be-resilience / be-validator | **system-design-template** / **tsyringe**+**InversifyJS** / **cockatiel**+**Polly** / **portman** | `vendor/be-*/<name>.md` |
+| 后端 agent | be-validator | **portman**（契约校验内核） | `vendor/be-validator/be-validator.md` |
 | 实现簇 | implementation（dev-backend + be-implementer 合并） | **opencode** | `vendor/implementation/implementation.md` |
 
-> 说明：资产**名字保留原名**（方法论身份 + 可被 `AIHUB_ROOT` 同名替换）；竞品作为**执行内核**整合在资产正文 `## Execution kernel` 段（内核声明 + probe + 降级），由 `regression-all` S3 漂移门（14 项）机器校验。
+> 说明：资产**名字保留原名**（方法论身份 + 可被 `AIHUB_ROOT` 同名替换）；竞品作为**执行内核**整合在资产正文 `## Execution kernel` 段（内核声明 + probe + 降级），由 `regression-all` S3 漂移门机器校验。
 
-> **竞品直用策略（Competitor-first）**：当某任务所需竞品已部署且可用时（真实部署清单见 `docs/history/COMPETITOR-DEPLOYMENT.md`），允许编排者/执行 agent **直接调用竞品**（CLI/库/venv），TT 16 资产保留为方法论兜底；仅当 TT 资产有明确差异化优势时优先用 TT 资产（详见 SKILL.md §1 竞品直用策略）。
+> **竞品直用策略（Competitor-first）**：当某任务所需竞品已部署且可用时（真实部署清单见 `docs/history/COMPETITOR-DEPLOYMENT.md`），允许编排者/执行 agent **直接调用竞品**（CLI/库/venv），TT 9 资产保留为方法论兜底；仅当 TT 资产有明确差异化优势时优先用 TT 资产（详见 SKILL.md §1 竞品直用策略）。
 
 > 触发词与详细用法见 `SKILL.md`（description 段落）。
 
@@ -124,7 +120,7 @@ node scripts/validate-structure.mjs
 `validate-structure.mjs` 会检查：
 
 - `SKILL.md` frontmatter 合法（name/description/version）
-- `vendor/` 16 个资产齐全（10 skill + 6 agent）
+- `vendor/` 9 个资产齐全（6 skill + 3 agent）
 - **可移植性**：扫描 `SKILL.md`、脚本、README/ONBOARDING/模板是否残留本机绝对路径（盘符路径、用户目录、用户名等，正常应为 **0 泄露**）
 
 全部通过即可放心使用。
@@ -167,21 +163,14 @@ tt/
 │   ├── detect-platforms.mjs # 平台探测
 │   ├── validate-structure.mjs # 结构/可移植性校验
 ├── templates/               # 完工报告/契约/批判等模板
-└── vendor/                  # 16 个随包内置增强资产（自包含核心：10 skill + 6 agent）
+└── vendor/                  # 9 个随包内置增强资产（自包含核心：6 skill + 3 agent）
     ├── dev-planner/         # agent：只读规划
     ├── planning/            # skill：formal-prd + vibe-prd（原 prd-writer + vibe-coding-prd）
     ├── frontend-design/     # skill：五合一前端设计簇（原 frontend-design + ui-ux-pro-max + taste-skill + pick-ui-library + prototype）
-    ├── colorize/            # skill：前端配色
-    ├── frontend-visual-validation/ # skill：浏览器视觉验证
     ├── review/              # skill：critique + be-tester + polish（原 critique + polish）
     ├── security/            # skill：audit + harden + be-security（原 audit + harden）
-    ├── agent-research/      # skill：科研/深度调研
-    ├── agent-vision-toolkit/# skill：视觉质检
     ├── skill-sentinel/      # skill：skill 包安全扫描
     ├── sdlc/                # skill：BMAD-METHOD 四阶段 + cline
-    ├── be-architect/        # agent
-    ├── be-provider/         # agent
-    ├── be-resilience/       # agent
     ├── be-validator/        # agent：契约校验（portman/contracteer）
     └── implementation/      # agent：dev-backend + be-implementer 合并，执行内核接 opencode
 ```
@@ -235,7 +224,7 @@ TT 以 MIT 协议开源，欢迎任何用户、团队与研究者参与。详见
 
 编排内核 `scripts/orchestrator.mjs` 实现「路由 → 派单 → 契约 gate → 验收 → 报告」闭环，平台无关（纯 Node 零依赖）。执行后端三模式（`--backend`）：
 
-- **auto（默认）**：有专用 CLI 适配器（opencode / cline / portman）且工具可用时走 CLI；**无专用适配器的资产自动回落内置 prompt 后端**——把资产顶层 `SKILL.md` 正文（frontmatter 剥离）+ 资产根目录 + 任务 + contract + 上游产物引用组装为子任务执行指令包 `artifacts/<subtaskId>/brief.md`（正文内的 `reference/*.md` 相对引用可凭「资产根目录」解析）。16 个资产全部可达，不再有「不可执行」资产。
+- **auto（默认）**：有专用 CLI 适配器（opencode / cline / portman）且工具可用时走 CLI；**无专用适配器的资产自动回落内置 prompt 后端**——把资产顶层 `SKILL.md` 正文（frontmatter 剥离）+ 资产根目录 + 任务 + contract + 上游产物引用组装为子任务执行指令包 `artifacts/<subtaskId>/brief.md`（正文内的 `reference/*.md` 相对引用可凭「资产根目录」解析）。9 个资产全部可达，不再有「不可执行」资产。
 - **prompt**：一律走内置 prompt 后端（纯本地、零外部依赖），产物为各子任务指令包。
 - **cli**：只走专用 CLI 适配器；外部工具缺失时子任务诚实降级为 skipped 并标记 degraded。
 
@@ -348,9 +337,9 @@ node scripts/orchestrator.mjs --task "实现后端登录模块" --exec node "$PW
 
 编排内核执行路由、契约 gate 与状态记录，报告写在 `artifacts/report-<planId>.md`（产物与状态默认落在 `config.json` 的 `projectRoot` 下，未配置则为当前目录；可用 `--workspace` 指定）；`--dry-run` 不写任何文件；外部执行工具（opencode/cline/portman）缺失时子任务降级为 skipped / planned-only 并明确标注 degraded，绝不假报成功。**契约冻结机器校验**：每次执行把 plan 契约冻结为 `contracts/<planId>.json`，`gate` 在每个子任务执行前后做 hash 比对，执行期契约被篡改 → **exit 4**（`--dry-run` 不写）。**执行模式诚实标注**：报告与 `state.json` 中每个子任务带 `mode` 字段——`exec`（宿主真实执行）/ `cli`（专用 CLI 执行）/ `prompt`（内置指令包兜底，产物为 brief.md，需宿主消费）/ `planned-only`（cli 缺失仅记录 BMAD 阶段计划）/ `skipped`；markdown 报告含执行摘要，提示 `prompt`/`planned-only` 未真实执行，防止误读为已完成。**超时与重试已解耦**：真实执行调用（opencode/cline）超时抛 `TimeoutError` 由 withRetry 指数退避重试（`--max-retries` 控制），工具探测（--version）超时保持降级语义。退出码：0 成功 / 2 参数错误 / 3 模块未实现 / 4 契约违约 / 5 执行失败。
 
-当前资产为 16 个：10 个 skill（含 frontend-design、planning、review、security、sdlc）+ 6 个 agent（含 implementation、be-validator、dev-planner 等），详见上文资产表。
+当前资产为 9 个：6 个 skill（frontend-design、planning、review、security、sdlc、skill-sentinel）+ 3 个 agent（implementation、be-validator、dev-planner），详见上文资产表。
 
-回归测试（一键卡点）：`node scripts/regression-all.mjs`（六段全绿：结构校验 / 超时重试 / 契约工作流 / 宿主执行 / 资产缓存 / Phase2 替换清单，任一失败 exit 1）；单段命令：`node scripts/validate-structure.mjs`（16 资产结构）/ `node scripts/test-retry.mjs`（P3 超时与重试解耦，6 用例，exit 0 全过）。
+回归测试（一键卡点）：`node scripts/regression-all.mjs`（六段全绿：结构校验 / 超时重试 / 契约工作流 / 宿主执行 / 资产缓存 / Phase2 替换清单，任一失败 exit 1）；单段命令：`node scripts/validate-structure.mjs`（9 资产结构）/ `node scripts/test-retry.mjs`（P3 超时与重试解耦，6 用例，exit 0 全过）。
 
 **批判反哺自动化（review-gate `--auto-register`）**：批判闸门校验通过后自动完成「登记 tracker + 生成优化任务文档」，把批判结论从人工回写变为自动沉淀（TT §5.6 / §7 硬闸门机验化）。
 

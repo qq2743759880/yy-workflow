@@ -1,0 +1,58 @@
+# TT regression-all（一键回归卡点）
+
+PASS S1 validate-structure
+PASS S2 test-retry
+S3 Phase 2 替换清单（占位卡点，替换启动前须保持全绿）：
+  ✓ implementation — 实现簇(dev-backend+be-implementer) → opencode 执行内核 [vendor OK] [能力探测验证: 专用 adapter 支持 write_files/run_cmd] [kernel 段] [probe] [marker OK]
+  ✓ sdlc — sdlc → BMAD-METHOD + cline 执行层 [vendor OK] [能力探测验证: 专用 adapter 支持 write_files/run_cmd] [kernel 段] [probe] [marker OK]
+  ✓ be-validator — be-validator → spectral 契约校验（AS-2-first 晋升；vendor 正文 marker 保留） [vendor OK] [能力探测验证: 专用 adapter 支持 write_files/run_cmd] [kernel 段] [probe] [marker OK]
+  ✓ skill-sentinel — skill 安全扫描 → skill-scanner 2.1.0 执行内核（AS-2-sentinel 晋升，cr-20260925T150000Z SIGNED；kernel marker 仍为 vendor 正文 SkillSpector/skill_sentinel——vendor 一字不改） [vendor OK] [能力探测验证: 专用 adapter 支持 write_files/run_cmd] [kernel 段] [probe] [marker OK]
+  ✓ security — 安全簇 → semgrep 扫描内核（AS-2-security 晋升；gitleaks 暂缺登记为能力收缩，第十一审计 F-018） [vendor OK] [能力探测验证: 专用 adapter 支持 write_files/run_cmd] [kernel 段] [probe] [marker OK]
+  ✓ frontend-design — 前端设计簇 → shadcn-ui/ui + bolt.new 内核 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+  ✓ planning — 需求规划 → MetaGPT / crewAI 对标 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+  ✓ review — 评审簇 → qodo-ai/pr-agent + continue 内核 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+PASS S3 Phase 2 替换清单  （3 个高杠杆目标现状契约完整）
+PASS S4 契约工作流 smoke  contracts/<planId>.json 冻结 ✓ resume 复用 ✓ 篡改→exit4 ✓
+PASS S5 宿主执行 smoke  stdout → exec ✓；写文件(无 stdout) → exec ✓；空输出 → prompt 降级 ✓
+PASS S6 资产缓存 smoke  assets-cache.json 生成 ✓ 二次运行复用 ✓
+PASS S7 review-gate  self-test ✓ 填好plan→PASS ✓ 模板未填→拦截 ✓
+PASS S8 资产消费证据  exec=5 false(正)=0 false(负)=>2（kernel 资产仅锚点 → false，强化生效）
+PASS S9 域声明机验  missing→DOMAIN_DECL_MISSING ✓ true→ok ✓ 旧数据→N/A ✓
+PASS S10 token 量尺 gate（B0-②）  快照对比 PASS ✓
+PASS S11 引用链机验（C-25/C-33）  悬空引用 0 / tab 损坏 0 ✓
+PASS S12 kickoff 漂移门（C-26）  五簇资产双向一致 ✓
+[PASS] tt-journey 经 junction 渲染 145B
+[PASS] executor-setup 经 junction presence 有输出 896B
+[PASS] review-gate 经 junction 打印诊断 41B
+[PASS] tt-tui 经 junction 打印诊断 159B
+PASS S13 junction 部署形态 smoke  4/4 内部探针 PASS
+# preflight（v3 批 1 静态不变量预检：零 LLM / 零网络 / 确定性）
+FAIL  P1 语法门 (node --check)  — SYNTAX_FAIL 1 个: scripts/resilience-check.mjs: node:internal/modules/cjs/loader:1520
+node:fs:441
+    return binding.readFileUtf8(path, stringToFlags(options.flag));
+                   ^
+
+Error: ENOENT: no such file or directory, open 'D:\.ai-hub\skills\yy\scripts\color-mix.mjs'
+    at Object.readFileSync (node:fs:441:20)
+    at collectExports (file:///D:/.ai-hub/skills/yy/scripts/preflight.mjs:109:19)
+    at checkDupExports (file:///D:/.ai-hub/skills/yy/scripts/preflight.mjs:129:21)
+    at main (file:///D:/.ai-hub/skills/yy/scripts/preflight.mjs:369:3) {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'D:\\.ai-hub\\skills\\yy\\scripts\\color-mix.mjs'
+}
+
+Node.js v24.18.0
+FAIL S14 preflight invariants  exit=1（具名 FAILED 见上方 preflight 输出）
+PASS S15-A1 drop 资产引用 0 命中（治理活面）  扫描 164 文件 0 命中；登记残留面 12 文件（D-3 登记 RESULTS，不阻断）: contracts/asset-manifest-v2.md (be-architect,be-resilience,be-provider,colorize,frontend-visual-validation,agent-vision-toolkit,agent-research); contracts/C-R3-review-checklist.md (colorize); README.md (be-architect,be-resilience,be-provider,colorize,frontend-visual-validation,agent-vision-toolkit,agent-research); reference/asset-integration.md (be-architect,be-resilience,be-provider,colorize,frontend-visual-validation,agent-vision-toolkit,agent-research); reference/frontend-gate.md (agent-vision-toolkit,agent-research); reference/planning.md (be-architect,be-resilience); scripts/lib/activation.mjs (be-architect,be-resilience,be-provider,colorize,frontend-visual-validation,agent-vision-toolkit,agent-research); scripts/lib/adapters/prompt.mjs (agent-research); scripts/lib/evolution.mjs (be-architect,be-resilience,be-provider,colorize,frontend-visual-validation,agent-vision-toolkit,agent-research); scripts/regression-all.mjs (be-architect,be-resilience,be-provider,colorize,frontend-visual-validation,agent-vision-toolkit,agent-research); templates/orchestration-frontend-backend.md (be-architect,be-resilience,agent-research); templates/task-agent-matrix.md (be-architect,be-resilience,be-provider,colorize,frontend-visual-validation,agent-vision-toolkit,agent-research)
+PASS S15-A2 replace 资产真实消费探针  be-validator/spectral: 真扫 6 findings pass=false | security/semgrep: 真扫 1 findings pass=false | skill-sentinel/skill-scanner: 真扫 is_safe=true threats=0（os.tmpdir 夹具已清理）
+PASS S15-A3 manifest 驱动路由断言  manifest-build 9 行 hash 三方一致: c30fee6b4d1a… ✓ | Gate-2 dispatch 日志 hash==build: ✓ | eligible 9 true / 7 false: ✓
+PASS S15-A4 legacy loader 不可达  生产 loadAssets 恒 manifest 驱动: ✓ | adapter 旧引擎路径 EXPLICIT_COMPAT_MODE 旗标门在场: ✓ | loader 双路径 drop 资产 0 输出 + 9 资产可达: ✓
+PASS S15-A5 真实执行≠能力覆盖（模式 1）  semgrep 真扫 0 findings 仍 pass=false，UNCOVERED_LANGUAGES=["js"]（真实执行≠能力覆盖成立）（夹具已清理）
+PASS S15-A6 correction≠作废（模式 2）  voided 留痕 1 条(voidReason 在场) ✓ | 回放跳过 voided 终态 PRIMARY == 记录终态 ✓ | voided 身份零复用（不可再入）✓（证据 AS-2-sentinel/migration-record.json）
+PASS S16-1 行为探针：failed 子任务 promotionReceipt==null 且全仓零 SIGNED/PRIMARY 引用  failed=implementation:plan-muh3m9nk-0 | promotionReceipt==null ✓ | migration-record×4 零引用 ✓ | SIGNED receipt×6 零引用 ✓（证据 HARDEN-1/s16-behavior-probe.json + s16-state-failed.json + s16-orchestrator.log）
+PASS S16-2 静态断言：failed 记录不得有 SIGNED promotion receipt 指向  仓态零违例：failed 记录 4 条 × SIGNED receipt 6 张（migration-record 4 + state 副本 4）✓ | 注入反例（failed+SIGNED 组合→FAIL 具名）: FAIL 具名(state.json × receipt-signed.json; 捕获 2 条: subtask:plan-s16inject-1, plan:plan-s16inject) ✓ PENDING 对照未误报=true（证据 HARDEN-1/s16-static-scan.json）
+
+结果: 21 PASS / 1 FAIL
+  FAILED: S14 preflight invariants
