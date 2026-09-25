@@ -16,27 +16,32 @@
   "skill-sentinel prompt-backend 主路径（晋升后保留于 EXPLICIT_COMPAT_MODE 旗标后，DEPRECATED 待 AS-1 收口移除）"
  ],
  "promotionReceipt": {
-   "receiptId": "apr-20260925T061000Z-as2sent-shadow",
-   "fiveTuple": {
-     "old_asset": "skill-sentinel(prompt-backend)",
-     "new_asset": "skill-sentinel(skill-scanner-engine 2.1.0)",
-     "shadow_result": "pass (zero forbidden_difference incl benign_false_positive; dual-fixture determinism asserted)",
-     "promotion_receipt": "cr-20260925T150000Z-as2sent-promotion (本单, Owner PENDING)",
-     "runtime_binding": "PENDING——晋升执行时 manifest-build 重跑后动态重算记账（拒绝硬编码，AV-3 探针假 FAIL 教训）"
-   },
-   "post_sign_actions": [
-     "SHADOW→MIGRATING（本单签发即满足契约前置）",
-     "scripts/lib/adapters/skill-scanner.mjs 写入 + index.mjs 注册 + manifest-sources/skill-sentinel.yaml verification 更新 + manifest-build 重跑",
-     "getRequiredCapabilities 补 skill-sentinel→run_cmd（编排者已预置）+ PHASE2 skill-sentinel dedicatedAdapter:true",
-     "Gate-2 新 hash 绑定验证 + 回归三件",
-     "五元组 runtime_binding 回填 → PRIMARY"
-   ],
-   "ownerApprovalReceipt": "PENDING_OWNER_RECEIPT"
+  "receiptId": "apr-20260925T061000Z-as2sent-shadow",
+  "fiveTuple": {
+   "old_asset": "skill-sentinel(prompt-backend)",
+   "new_asset": "skill-sentinel(skill-scanner-engine 2.1.0)",
+   "shadow_result": "pass (zero forbidden_difference incl benign_false_positive; dual-fixture determinism asserted)",
+   "promotion_receipt": "cr-20260925T150000Z-as2sent-promotion (本单, Owner PENDING)",
+   "runtime_binding": "PENDING——晋升执行时 manifest-build 重跑后动态重算记账（拒绝硬编码，AV-3 探针假 FAIL 教训）"
+  },
+  "post_sign_actions": [
+   "SHADOW→MIGRATING（本单签发即满足契约前置）",
+   "scripts/lib/adapters/skill-scanner.mjs 写入 + index.mjs 注册 + manifest-sources/skill-sentinel.yaml verification 更新 + manifest-build 重跑",
+   "getRequiredCapabilities 补 skill-sentinel→run_cmd（编排者已预置）+ PHASE2 skill-sentinel dedicatedAdapter:true",
+   "Gate-2 新 hash 绑定验证 + 回归三件",
+   "五元组 runtime_binding 回填 → PRIMARY"
+  ],
+  "ownerApprovalReceipt": "PENDING_OWNER_RECEIPT",
+  "approval_effect": {
+   "semantic": "authorize_transition_request=true",
+   "note": "Owner 签收=授权状态转移请求（SHADOW→MIGRATING→PRIMARY 的执行许可），≠ 当前状态已变更；转移执行走 receipt 机制逐步记账（receipt 存在≠transition 完成），每步留痕供审计——第十二审计 F-021 措辞修正采纳"
+  },
+  "note": "Owner 签收位：签发后回填 <路径>#<SHA256> 并 status=SIGNED。签收语义=authorize_transition_request=true（见 approval_effect）；原\"签收即授权执行\"措辞按第十二审计 F-021 修正"
  },
  "deviations": [
-   "D-2: PyPI skill-scanner(0.3.3 MIT) 同名撞车另一项目——官方包名 cisco-ai-skill-scanner（npm 假包教训的 pip 版实例，沉淀管线级 lesson）",
-   "D-4: LLM 多 agent 分析器未参与（无 API key，检出=默认分析器集口径）",
-   "D-5: 旧引擎 LLM 层不可机验（3 run brief sha256 全同波动=0 如实登记）",
-   "D-7: change.record 暂缓创建系晋升 HOLD 遵令——本单即补立（第十一审计 F-013 循环逻辑批评采纳）"
+  "D-2: PyPI skill-scanner(0.3.3 MIT) 同名撞车另一项目——官方包名 cisco-ai-skill-scanner（npm 假包教训的 pip 版实例，沉淀管线级 lesson）",
+  "D-4: LLM 多 agent 分析器未参与（无 API key，检出=默认分析器集口径）",
+  "D-5: 旧引擎 LLM 层不可机验（3 run brief sha256 全同波动=0 如实登记）",
+  "D-7: change.record 暂缓创建系晋升 HOLD 遵令——本单即补立（第十一审计 F-013 循环逻辑批评采纳）"
  ]
 }

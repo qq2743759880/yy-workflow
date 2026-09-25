@@ -152,3 +152,10 @@
 - **F-024【P1 已修】探针 rerun 覆盖已提交证据**：输出 run-stamp 化（新证据走新文件），被弄脏的三个已跟踪文件 git restore——HEAD 与当前证据恢复同一 revision
 - **两条深层模式再登记**：①"真实执行≠能力覆盖"（第二次）②"追加 correction≠作废旧事实"（第二次）——S15 迁移不变量设计必须把这两条写成机验断言
 - **批次状态**：晋升/复制 HOLD 维持；五张 receipt（含 sentinel cr-20260925T150000Z）提请 Owner 签收
+
+## 第十三轮审计补证处置（2026-09-25，签收前两项补证 + 措辞修正）
+- **补证① F-022**：REMEDIATION-1/file-tree-proof.txt 落盘（f014-manifest-build.log 1605B + sha256 5a1f3203… + git 提交在场）——F-022 从"驳回"改记"NOT YET VERIFIED→已补文件树证据"，审计者下一轮可直接读取
+- **补证② F-025**：FINAL-E2E/ACCEPTANCE-ENTRY.md 落盘——真实 buildPlan()→orchestrator→resolver→capabilities→adapter→receipt 主链验收入口（区别于 planner-shaped probe），**签收后第一项动作**；断言链逐条机验定义
+- **F-021 措辞修正**：receipt approval_effect=authorize_transition_request=true（授权转移请求≠当前状态已变更；receipt 存在≠transition 完成）——CR-150000Z 已修
+- **F-023 artifact 再生**：run-stamped gate-probe-result 落盘（含 assertions 子对象，all_pass=true 有意义值）
+- 签收冻结维持；五张 receipt 就绪

@@ -1,0 +1,21 @@
+total 81
+drwxr-xr-x 1 Administrator 197121    0 Sep 25 16:19 .
+drwxr-xr-x 1 Administrator 197121    0 Sep 25 14:24 ..
+-rw-r--r-- 1 Administrator 197121  579 Sep 25 15:51 e2e-neg-security-result.json
+-rw-r--r-- 1 Administrator 197121 2614 Sep 25 15:51 e2e-pos-security-result.json
+-rw-r--r-- 1 Administrator 197121 2550 Sep 25 15:51 f011-e2e-probe-result.json
+-rw-r--r-- 1 Administrator 197121  329 Sep 25 14:30 f011-e2e-probe-stdout.log
+-rw-r--r-- 1 Administrator 197121 7096 Sep 25 15:52 f011-e2e-probe.mjs
+-rw-r--r-- 1 Administrator 197121  767 Sep 25 15:53 f011-gate-probe-result.json
+-rw-r--r-- 1 Administrator 197121   32 Sep 25 14:33 f011-gate-probe-stdout.log
+-rw-r--r-- 1 Administrator 197121 3382 Sep 25 15:52 f011-gate-probe.mjs
+-rw-r--r-- 1 Administrator 197121 1605 Sep 25 14:26 f014-manifest-build.log
+-rw-r--r-- 1 Administrator 197121    0 Sep 25 16:19 file-tree-proof.txt
+-rw-r--r-- 1 Administrator 197121 1553 Sep 25 14:31 post-preflight.log
+-rw-r--r-- 1 Administrator 197121 5267 Sep 25 14:31 post-regression-all.log
+-rw-r--r-- 1 Administrator 197121 2634 Sep 25 14:31 post-validate-structure.log
+-rw-r--r-- 1 Administrator 197121  890 Sep 25 15:52 run-2026-09-25T07-52-47-107Z-gate-probe-result.json
+-rw-r--r-- 1 Administrator 197121  595 Sep 25 15:53 run-2026-09-25T07-52-57-037Z-e2e-neg-security-result.json
+-rw-r--r-- 1 Administrator 197121 2587 Sep 25 15:53 run-2026-09-25T07-52-57-037Z-e2e-pos-security-result.json
+-rw-r--r-- 1 Administrator 197121 2484 Sep 25 15:53 run-2026-09-25T07-52-57-037Z-e2e-probe-result.json
+5a1f32030031de47b381b3d85a00fa81d7f49843473c029f2979a44c4c7f81d4 *test-reports/autopilot-work/REMEDIATION-1/f014-manifest-build.log
