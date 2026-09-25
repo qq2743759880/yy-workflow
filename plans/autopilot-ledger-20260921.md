@@ -166,3 +166,9 @@
 - E-5【P2 登记】orchestrator plan failed 但 exit 0 系既有行为（禁改面），留知悉
 - 探针中发现并修复真实缺陷：adapter 陈旧报告残留消费（扫描前强制删除旧 report）——probe-驱动开发再次见效
 - sentinel PRIMARY ✓；批 1 第三波续：review→bugbot replace 派发
+| GW-1 | PASS | agent_bdd804c8 | orchestrator-L2(接线探针/截断护栏/向后兼容/hash 零变化亲验) | 2026-09-25T17:30:00Z | scripts/lib/governance.mjs（173 行）; scripts/orchestrator.mjs（governPlanAssets 包装 +8 行）; scripts/lib/runtime.mjs（失败指路 +13 行）; test-reports/autopilot-work/GW-1/ |
+- 三技能接线实证：stage7 brief 注 TDD（9578B 截断护栏 5120B+标注）/stage8 注 verification/失败路径 GOVERNANCE 指路行 6 场景；governance-skills 本体 sha256 零变化；manifest hash 归因零增量
+- D-1 采纳：brief 组装真实位置在 prompt.mjs（禁改）——改用 orchestrator execOpts assets 包装实现同语义（治理节随附方法论正文段）
+- 【AS-1 L2 抓漏】S15-A4 复跑 FAIL：vendor/be-architect 未删（7 删 6 漏 1）——S15 设计目标（抓不完整 drop）首次实战即命中。编排者补删复验：A4 PASS + 回归 20/20 + preflight 全绿
+| AS-1 | PASS | agent_1376fcdd | orchestrator-L2(S15 复跑抓漏 vendor/be-architect 补删后 20/20) | 2026-09-25T18:00:00Z | SKILL.md 指针表-7 行; scripts/lib/matrix.mjs; scripts/validate-structure.mjs（16→9）; scripts/regression-all.mjs（S15 段）; webview/journey/content.js 重建; 7 张 drop change 单; contracts/manifest-sources/ 收缩; vendor/ 7 目录（+补删 1） |
+- 资产注册表 16→9；S15 四断言+两模式断言全绿；manifest hash c30fee6b 三方一致

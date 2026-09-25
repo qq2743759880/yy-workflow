@@ -70,8 +70,11 @@ if (undeclared.length) errors.push(`未声明的变量: ${undeclared.join(", ")}
 const VENDOR = path.join(__dirname, "..", "vendor");
 const refs = [...body.matchAll(/`\$SKILL_DIR\/vendor\/([a-z0-9-]+)\//g)].map((m) => m[1]);
 // skill 型条目：含 SKILL.md（或索引 SKILL.md），需 name/description/version 接口一致
-const SKILL_ENTRIES=["agent-research","agent-vision-toolkit","colorize","frontend-design","frontend-visual-validation","planning","review","sdlc","security","skill-sentinel"];// agent 型条目：含 <name>.md 提示词，无 frontmatter（对应 skillops agent 类型资产）
-const AGENT_ENTRIES=["be-architect","be-provider","be-resilience","be-validator","dev-planner","implementation"];
+// （AS-1 drop 7 后 16→9；逐资产清单 = contracts/discrepancies/ 的 AS-1 drop change.record）
+const SKILL_ENTRIES=["frontend-design","planning","review","sdlc","security","skill-sentinel"];
+// agent 型条目：含 <name>.md 提示词，无 frontmatter（对应 skillops agent 类型资产）
+// （AS-1 drop 7 后 6→3，同上清单）
+const AGENT_ENTRIES=["be-validator","dev-planner","implementation"];
 const EXPECTED_VENDOR = [...SKILL_ENTRIES, ...AGENT_ENTRIES];
 let vendorMissing = 0;
 for (const name of EXPECTED_VENDOR) {

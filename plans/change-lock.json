@@ -1,3 +1,84 @@
 {
-  "locks": []
+  "locks": [
+    {
+      "file": "SKILL.md",
+      "owner": "AS-1",
+      "task": "AS-1",
+      "locked": "2026-09-25T10:06:00.367Z",
+      "reason": "drop 7 + S15 invariants (batch1 wave3)",
+      "expires": "2026-09-25T18:06:00.367Z"
+    },
+    {
+      "file": "scripts/lib/matrix.mjs",
+      "owner": "AS-1",
+      "task": "AS-1",
+      "locked": "2026-09-25T10:06:00.637Z",
+      "reason": "drop 7 + S15 invariants (batch1 wave3)",
+      "expires": "2026-09-25T18:06:00.637Z"
+    },
+    {
+      "file": "scripts/validate-structure.mjs",
+      "owner": "AS-1",
+      "task": "AS-1",
+      "locked": "2026-09-25T10:06:00.927Z",
+      "reason": "drop 7 + S15 invariants (batch1 wave3)",
+      "expires": "2026-09-25T18:06:00.927Z"
+    },
+    {
+      "file": "scripts/regression-all.mjs",
+      "owner": "AS-1",
+      "task": "AS-1",
+      "locked": "2026-09-25T10:06:01.175Z",
+      "reason": "drop 7 + S15 invariants (batch1 wave3)",
+      "expires": "2026-09-25T18:06:01.175Z"
+    },
+    {
+      "file": "webview/journey/content.js",
+      "owner": "AS-1",
+      "task": "AS-1",
+      "locked": "2026-09-25T10:06:01.436Z",
+      "reason": "drop 7 + S15 invariants (batch1 wave3)",
+      "expires": "2026-09-25T18:06:01.436Z"
+    },
+    {
+      "file": "config.example.json",
+      "owner": "AS-1",
+      "task": "AS-1",
+      "locked": "2026-09-25T10:06:01.683Z",
+      "reason": "drop 7 + S15 invariants (batch1 wave3)",
+      "expires": "2026-09-25T18:06:01.683Z"
+    },
+    {
+      "file": "templates/kickoff-prompt.md",
+      "owner": "AS-1",
+      "task": "AS-1",
+      "locked": "2026-09-25T10:06:01.955Z",
+      "reason": "drop 7 + S15 invariants (batch1 wave3)",
+      "expires": "2026-09-25T18:06:01.955Z"
+    },
+    {
+      "file": "scripts/build-guide-content.mjs",
+      "owner": "AS-1",
+      "task": "AS-1",
+      "locked": "2026-09-25T10:06:02.209Z",
+      "reason": "drop 7 + S15 invariants (batch1 wave3)",
+      "expires": "2026-09-25T18:06:02.209Z"
+    },
+    {
+      "file": "contracts/asset-manifest-v2.json",
+      "owner": "AS-1",
+      "task": "AS-1",
+      "locked": "2026-09-25T10:06:02.496Z",
+      "reason": "drop 7 + S15 invariants (batch1 wave3)",
+      "expires": "2026-09-25T18:06:02.496Z"
+    },
+    {
+      "file": "plans/asset-migration-playbook.md",
+      "owner": "AS-1",
+      "task": "AS-1",
+      "locked": "2026-09-25T10:06:02.754Z",
+      "reason": "drop 7 + S15 invariants (batch1 wave3)",
+      "expires": "2026-09-25T18:06:02.754Z"
+    }
+  ]
 }

@@ -1,0 +1,51 @@
+== ÂÄôÈÄâ B Êé¢ÊµãÔºöCodeRabbit CLI ÂÆâË£ÖÈÄöÈÅì‰∏éËøêË°åÊó∂ ==
+[1] where coderabbit:
+–≈œ¢: ”√Ã·π©µƒƒ£ ΩŒﬁ∑®’“µΩŒƒº˛°£
+exit=1
+
+[2] npm view @coderabbitai/cli version (registry channel):
+npm error code E404
+npm error 404 Not Found - GET https://registry.npmjs.org/@coderabbitai%2fcli - Not found
+npm error 404
+npm error 404  The requested resource '@coderabbitai/cli@*' could not be found or you do not have permission to access it.
+npm error 404
+npm error 404 Note that you can also install from a
+npm error 404 tarball, folder, http url, or git url.
+npm error A complete log of this run can be found in: E:\npm-cache\_logs\2026-09-25T09_44_51_140Z-debug-0.log
+exit=1
+
+[3] npm search coderabbit (due diligence, official pkg name):
+[
+
+{"name":"coderabbitai-mcp","keywords":["mcp","coderabbit","github","ai","code-review","model-context-protocol","llm","claude","typescript","automation","pull-request","review-comments","npx"],"version":"1.1.1","description":"MCP server for interacting with CodeRabbit AI reviews on GitHub pull requests. Enables LLMs to analyze, implement, and resolve CodeRabbit suggestions programmatically.","sanitized_name":"coderabbitai-mcp","publisher":{"actor":{"name":"bradthebeeble","type":"user","email":"asaf.atzmon@gmail.com"},"email":"asaf.atzmon@gmail.com","username":"bradthebeeble"},"maintainers":[{"email":"asaf.atzmon@gmail.com","username":"bradthebeeble"}],"license":"MIT","date":"2025-06-29T16:17:54.640Z","links":{"homepage":"https://github.com/bradthebeeble/coderabbitai-mcp#readme","repository":"git+https://github.com/bradthebeeble/coderabbitai-mcp.git","bugs":"https://github.com/bradthebeeble/coderabbitai-mcp/issues","npm":"https://www.npmjs.com/package/coderabbitai-mcp"}}
+
+,
+
+{"name":"@coderabbitai/carrot-ui","keywords":["coderabbit","design-system","react","tailwindcss","ui"],"version":"0.31.0","description":"CodeRabbit design system. React components built on Base UI, styled with Tailwind CSS v4.","sanitized_name":"@coderabbitai/carrot-ui","publisher":{"email":"gur@coderabbit.ai","username":"guritfaq"},"maintainers":[{"email":"hasit@coderabbit.ai","username":"hasit-coderabbit"},{"email":"gur@coderabbit.ai","username":"guritfaq"},{"email":"kartik@coderabbit.ai","username":"kartik-coderabbit"},{"email":"rohit@coderabbit.ai","username":"rohit121"}],"license":"UNLICENSED","date":"2026-08-10T18:14:08.703Z","links":{"homepage":"https://github.com/coderabbitai/carrot-ui","repository":"git+https://github.com/coderabbitai/carrot-ui.git","bugs":"https://github.com/coderabbitai/carrot-ui/issues","npm":"https://www.npmjs.com/package/@coderabbitai/carrot-ui"}}
+
+,
+
+{"name":"changesets-gitlab","keywords":["@changesets/cli","auto-release","changelog","changeset","changesets","ci","gitlab","release","release-automation","release-plz"],"version":"0.16.1","description":"[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/un-ts/changesets-gitlab/ci.yml?branch=main)](https://github.com/un-ts/changesets-gitlab/actions/workflows/ci.yml?query=branch%3Amain) [![CodeRabbit Pull Request Revie","sanitized_name":"changesets-gitlab","publisher":{"email":"npm-oidc-no-reply@github.com","trustedPublisher":{"oidcConfigId":"oidc:***","id":"github"},"username":"GitHub Actions"},"maintainers":[{"email":"admin@1stg.me","username":"jounqin"}],"license":"MIT","date":"2026-09-20T18:55:17.668Z","links":{"homepage":"https://github.com/un-ts/changesets-gitlab#readme","repository":"https://github.com/un-ts/changesets-gitlab.git","bugs":"https://github.com/un-ts/changesets-gitlab/issues","npm":"https://www.npmjs.com/package/changesets-gitlab"}}
+
+,
+
+{"name":"@coderabbitai/config","keywords":["code-review","coderabbit","configuration"],"version":"1.0.0","description":"Programmatic (TypeScript) authoring SDK for CodeRabbit configuration.","sanitized_name":"@coderabbitai/config","publisher":{"email":"hasit@coderabbit.ai","username":"hasit-coderabbit"},"maintainers":[{"email":"hasit@coderabbit.ai","username":"hasit-coderabbit"},{"email":"gur@coderabbit.ai","username":"guritfaq"},{"email":"kartik@coderabbit.ai","username":"kartik-coderabbit"},{"email":"rohit@coderabbit.ai","username":"rohit121"}],"license":"Apache-2.0","date":"2026-09-15T20:07:21.314Z","links":{"homepage":"https://docs.coderabbit.ai/guides/configure-coderabbit","repository":"github:coderabbitai/mono","npm":"https://www.npmjs.com/package/@coderabbitai/config"}}
+
+,
+
+{"name":"coderabbit-cli-mcp","keywords":["mcp","coderabbit","cli","review","ai"],"version":"0.1.3","description":"Model Context Protocol server that exposes the CodeRabbit CLI with full bootstrap, auth, and diagnostics tooling.","sanitized_name":"coderabbit-cli-mcp","publisher":{"email":"mail@tam.nz","username":"2001y"},"maintainers":[{"email":"mail@tam.nz","username":"2001y"}],"license":"MIT","date":"2025-10-27T06:46:31.620Z","links":{"npm":"https://www.npmjs.com/package/coderabbit-cli-mcp"}}
+
+,
+
+{"name":"@blackbelt-technology/pi-dashboard-code-review-toolkit","keywords":["pi-package","pi-skill","code-review","coderabbit","pull-request","review"],"version":"0.8.0","description":"Code-review workflow skills for pi sessions ‚Äî code-review (AI-powered review with severity labels via the CodeRabbit CLI) and autofix (safely review and apply CodeRabbit PR review-thread feedback with per-change approval). Pure-skill package, no extension","sanitized_name":"@blackbelt-technology/pi-dashboard-code-review-toolkit","publisher":{"email":"npm-oidc-no-reply@github.com","trustedPublisher":{"oidcConfigId":"oidc:***","id":"github"},"username":"GitHub Actions"},"maintainers":[{"email":"botond.molnar@blackbelt.hu","username":"mbotond"},{"email":"dbence10@gmail.com","username":"mrbence"},{"email":"robert.csakany@blackbelt.hu","username":"robertcsakany"},{"email":"norbert.herczeg@blackbelt.hu","username":"norbert.herczeg"}],"license":"MIT","date":"2026-08-26T12:07:49.410Z","links":{"homepage":"https://github.com/BlackBeltTechnology/pi-agent-dashboard#readme","repository":"git+https://github.com/BlackBeltTechnology/pi-agent-dashboard.git","bugs":"https://github.com/BlackBeltTechnology/pi-agent-dashboard/issues","npm":"https://www.npmjs.com/package/@blackbelt-technology/pi-dashboard-code-review-toolkit"}}
+
+,
+
+{"name":"roundfix","keywords":[],"version":"0.16.0","description":"Roundfix CLI ‚Äî resolve CodeRabbit PR review feedback and execute Spec Task Graphs with local coding agents.","sanitized_name":"roundfix","publisher":{"email":"npm-oidc-no-reply@github.com","trustedPublisher":{"oidcConfigId":"oidc:***","id":"github"},"username":"GitHub Actions"},"maintainers":[{"email":"marcio.altoe@gmail.com","username":"marcio.altoe"}],"license":"MIT","date":"2026-09-23T09:48:07.616Z","links":{"homepage":"https://github.com/marcioaltoe/roundfix#readme","repository":"git+https://github.com/marcioaltoe/roundfix.git","bugs":"https://github.com/marcioaltoe/roundfix/issues","npm":"https://www.npmjs.com/package/roundfix"}}
+
+,
+
+exit=0
+
+[date]
+2026-09-25T09:44:55Z

@@ -5,7 +5,7 @@ when_to_use:
   - 需求与冻结契约齐备、要把任务落地为可运行后端代码并提交仓库（vendor 首段：turn requirements and frozen contracts into runnable backend code）
   - 子任务要求 mode=exec 真实执行（经 opencode 专用 adapter 或 prompt backend --exec 宿主通道产出非空交付物）
 when_not_to_use:
-  - 契约尚未冻结（先由 be-architect/be-provider 产出并冻结契约，再进实现）
+  - 契约尚未冻结（上游契约产物先行冻结，再进实现）
   - 纯规划/评审/调研类任务（无代码落地交付物）
 verification: 产物为源代码+测试，落 artifacts/<subtaskId>/ 相对路径；执行内核=opencode adapter：probe `opencode --version` 可用则真实 spawn 执行，CLI 缺失诚实降级 OPENCODE_NOT_AVAILABLE（mode=skipped 附安装提示），禁伪报 exec 成功；regression S3 保留 opencode marker
 source: vendor/implementation/implementation.md#L1-L5

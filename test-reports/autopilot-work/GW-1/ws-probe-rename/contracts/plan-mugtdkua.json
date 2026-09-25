@@ -1,0 +1,7 @@
+{
+  "planId": "plan-mugtdkua",
+  "cluster": "T1_DATABASE",
+  "contract": "database contract",
+  "task": "database sql schema migration",
+  "frozenAt": "2026-09-25T10:24:41.411Z"
+}

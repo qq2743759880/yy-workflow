@@ -1,0 +1,5 @@
+orchestrator exit=0 (governance-skills renamed away during run)
+implementation done gov_marker_present= False truncated= False
+be-validator done gov_marker_present= False truncated= False
+sdlc done gov_marker_present= False truncated= False
+RESTORED: governance-skills present

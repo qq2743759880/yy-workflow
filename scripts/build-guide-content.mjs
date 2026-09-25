@@ -5,14 +5,14 @@
  *
  * 从三个唯一事实源提取「随行导航手册」B/C 段静态内容：
  *   1. commands/yy-*.md     —— 6 阶段数据（阶段号/名/目标、注入内容摘要、配套资产、催办话术、重走 Prompt）
- *   2. vendor 下 16 资产 SKILL.md 等 —— 16 资产卡片（name / description / cluster / 阶段关联）
+ *   2. vendor 下 9 资产 SKILL.md 等 —— 9 资产卡片（name / description / cluster / 阶段关联；AS-1 drop 7 后口径）
  *   3. scripts/lib/matrix.mjs CLUSTERS —— 资产域簇反查（不手抄第二份）
  *
  * 产出：webview/journey/content.js —— `export const GUIDE_CONTENT = {...}` ESM，
  * JSON.stringify 可序列化、UTF-8、中文保留原样。
  *
  * fail-closed：任一源文件缺失 / frontmatter 解析失败 / 字段缺失即报错退出（exit 1），
- * 绝不静默缺页；写出前做完整性自检（6 阶段全在 + 16 资产全在 + 每卡片三字段非空）。
+ * 绝不静默缺页；写出前做完整性自检（6 阶段全在 + 9 资产全在 + 每卡片三字段非空）。
  *
  * 零 npm：仅 node: 内置模块。风格无关（纯数据层）。
  */
@@ -175,7 +175,7 @@ function pathToFileUrl(rel) {
   return 'file:///' + path.join(ROOT, rel).replace(/\\/g, '/').replace(/^\/+/, '');
 }
 
-/** 16 资产名 = CLUSTERS candidates 并集（唯一事实源，去重保序）。 */
+/** 9 资产名 = CLUSTERS candidates 并集（唯一事实源，去重保序；AS-1 drop 7 后口径）。 */
 function assetNamesFromClusters(clusters) {
   const seen = new Set();
   const names = [];
@@ -213,7 +213,7 @@ function assetRegex(name) {
 const { out } = parseArgs(process.argv.slice(2));
 const clusters = await loadClusters();
 const assetNames = assetNamesFromClusters(clusters);
-if (assetNames.length !== 16) fail('CLUSTERS candidates 并集应为 16 资产，实际 ' + assetNames.length + '：' + assetNames.join('、'));
+if (assetNames.length !== 9) fail('CLUSTERS candidates 并集应为 9 资产（AS-1 drop 7 后），实际 ' + assetNames.length + '：' + assetNames.join('、'));
 
 // ---- B 段：6 阶段数据 ----
 const phases = COMMAND_FILES.map((rel, idx) => {
@@ -225,7 +225,7 @@ const phases = COMMAND_FILES.map((rel, idx) => {
   const prereqs = extractPrereqs(meta, rel);
   if (!meta.description) fail('frontmatter description 缺失：' + rel);
 
-  // 配套资产：命令文件内点名的资产（全部 16 资产逐一独立词匹配）
+  // 配套资产：命令文件内点名的资产（全部 9 资产逐一独立词匹配）
   const assets = assetNames.filter((n) => assetRegex(n).test(body));
 
   // 催办话术模板：按阶段纪律钥匙词生成模板句（FE-2 渲染可复制按钮）
@@ -248,7 +248,7 @@ const phases = COMMAND_FILES.map((rel, idx) => {
   };
 });
 
-// ---- C 段：16 资产卡片 ----
+// ---- C 段：9 资产卡片 ----
 const stageRegByAsset = new Map(assetNames.map((n) => [n, assetRegex(n)]));
 const cards = assetNames.map((name) => {
   const rel = assetFile(name);
@@ -283,7 +283,7 @@ for (const p of phases) {
     fail('完整性自检失败：阶段 ' + p.step + ' 字段缺失/为空');
   }
 }
-if (cards.length !== 16) fail('完整性自检失败：应为 16 资产，实际 ' + cards.length);
+if (cards.length !== 9) fail('完整性自检失败：应为 9 资产（AS-1 drop 7 后），实际 ' + cards.length);
 for (const c of cards) {
   if (!c.name || !c.description || !c.cluster) fail('完整性自检失败：资产卡片 ' + c.name + ' 三字段非空校验未过');
 }
@@ -293,4 +293,4 @@ const GUIDE_CONTENT = { generatedBy: 'scripts/build-guide-content.mjs', phases: 
 const outAbs = path.join(ROOT, out);
 fs.mkdirSync(path.dirname(outAbs), { recursive: true });
 fs.writeFileSync(outAbs, 'export const GUIDE_CONTENT = ' + JSON.stringify(GUIDE_CONTENT, null, 2) + ';\n', 'utf8');
-process.stdout.write('[build-guide-content] OK: ' + out + '（6 阶段 + 16 资产卡片，完整性自检通过）\n');
+process.stdout.write('[build-guide-content] OK: ' + out + '（6 阶段 + 9 资产卡片，完整性自检通过）\n');

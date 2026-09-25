@@ -26,8 +26,6 @@
     "review": false,
     "security": false,
     "sdlc": false,
-    "agent-research": false,
-    "agent-vision-toolkit": false,
     "skill-sentinel": false
   }
 }

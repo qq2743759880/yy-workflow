@@ -248,6 +248,22 @@ node scripts/validate-structure.mjs      # PASS = 0 警告
 - [ ] Step 9 回归三件晋升前后双绿（产物：输出留档）+ migration-record.json five_tuple + deviations 登记
 - [ ] 交 L2 复核，receipt Owner 签收位回填
 
+### §六-A drop 阶段 wizard 清单（DEPRECATED→REMOVED，AS-1 批 1 第三波实测回写 2026-09-25）
+
+> 首个 drop 实例（7 资产合并单）按 §二 #15-18 证据要求走通的 wizard 形态；后续 drop 复制本清单。
+> 单据：`contracts/discrepancies/cr-20260925T102900Z-as1-drop7.json`（CONTRACT 类，Owner PENDING）；
+> 逐处 diff 摘要与偏差登记：`test-reports/autopilot-work/AS-1/RESULTS.md`。
+
+- [x] **drop 三条件核对**（#15）：candidate（CLUSTERS/manifest 16 行在册）+ runtime invocation（连续两轮盲行零调用）+ quality（评审结论=零调用+外部等价物覆盖）——逐资产记录于 change.record dropTriple
+- [x] **drop_allowed 放行依据显式落账**（#16）：编排者派单（handoffs/v3/AS-1-dispatch.md）显式列名 7 资产=放行；preflight P6 全程 8 PASS 零违例；旗标位未做中间态置位（行随删除不存续，意图+放行记录于 change.record——口径登记偏差 D-6/单内 dropReceipt.dropAllowed）
+- [x] **6 处联动改 + 收口核查**（#17）：①SKILL.md 指针表（实测 0 行可删，偏差 D-4）②CLUSTERS candidates/phases/preconditions（19→9，禁止留空引用）③validate-structure 16→9 ④content.js 重建（9 卡片）⑤config.example.json ⑥adapters/index.mjs 核对（零注册）+ PHASE2 14→8 行 + kickoff 清单同步 + manifest 行数 16→9
+- [x] **回滚演练记录在案**（#18）：change.record 即 tombstone（git revert 可回滚；vendor 用文件系统删除、git 收口归编排者）+ Gate-0 基线 7 资产行在册——回滚路径可还原
+- [x] **逐资产 drop + 每 drop preflight**：7 轮（vendor 目录+sidecar 同删），每轮 preflight 8 PASS/0 FAIL/0 SKIP
+- [x] **S15 迁移不变量段实装 + 六断言全绿**：A1 引用 0 命中（治理活面 169 文件）／A2 三 replace 引擎真实消费探针／A3 manifest 路由断言（Gate-2 三方 hash + eligible 9 true/7 false）／A4 legacy loader 不可达／A5 真实执行≠能力覆盖／A6 correction≠作废
+- [x] **S15 注入反例 ×5 全 FAIL 具名 + 现场还原**（孤儿引用/引擎缺席/孤儿 sidecar/drop 资产复活/记录篡改，s15-injection-result.log）
+- [x] **回归三件全绿**：regression 20 PASS/0 FAIL（14 段+S15 六断言）+ preflight 8 PASS/0 FAIL/0 SKIP + validate-structure 0 警告（drop 前基线同样全绿留档）
+- [ ] **Owner 签收 drop 单**（cr-20260925T102900Z-as1-drop7.json 签收位 PENDING）+ L2 复核偏差 D-1~D-8
+
 ## 七、使用后回写
 
 每次用本 Playbook 执行 replace 后：偏差登记入该单 migration-record.json deviations；Playbook 本身的修订（写了没做/做了没写）双向回写本文并在此追加修订记录行。修订记录历史见下节与本单自测目录 `test-reports/autopilot-work/PLAYBOOK-1/`。

@@ -1,0 +1,95 @@
+{
+  "schema": "asset-migration-record@1 (format per AS-2-sentinel/AS-2-security 先例; 状态机唯一权威 contracts/asset-migration.md)",
+  "dispatch": "handoffs/v3/AS-2-review-dispatch.md",
+  "contract": "contracts/asset-migration.md",
+  "playbook": "plans/asset-migration-playbook.md (§六 wizard 复制单 #3)",
+  "status_note": "本单预声明 NO INSTALL 风险（派单 §⚠）：两候选均探测失败 → 迁移停 SHADOW 前，status 保持 ACTIVE，产出 adapt 而非 replace 裁定材料交编排者/Owner。不自研 wrapper 假装接入（派单明令）。",
+  "migration_object": {
+    "change_dispatch": "handoffs/v3/AS-2-review-dispatch.md",
+    "contract": "contracts/asset-migration.md",
+    "old_asset": {
+      "vendor_path": "vendor/review/",
+      "adapter": "prompt（PROMPT_ADAPTER 回落，scripts/lib/adapters/index.mjs 无 review 注册行——与 Gate-0 baseline 一致）",
+      "adapter_refs": ["scripts/lib/adapters/index.mjs dispatch() auto 回落路径", "CLUSTERS T2_BACKEND,T4_FRONTEND,T5_OPS", "S8 链内消费", "contracts/manifest-sources/review.yaml"],
+      "engine": "prompt-backend（EA-1 基线『提及』级，无专用 adapter）"
+    },
+    "new_asset": {
+      "candidates": [
+        {
+          "id": "review-bugbot",
+          "introduction": "host-skill",
+          "location": "C:/Users/Administrator/.agents/skills/review-bugbot",
+          "form": "宿主侧 SKILL.md 技能（启动 subagent_type=bugbot 的宿主子代理）",
+          "probe_result": "PENDING_PROBE"
+        },
+        {
+          "id": "coderabbit-cli",
+          "introduction": "npm",
+          "install_channel": "npx @coderabbitai/cli（派单指定探测通道；SaaS 需 auth，AS-0 未确认）",
+          "probe_result": "PENDING_PROBE"
+        }
+      ]
+    },
+    "owner": "编排者（AS-2-review-dispatch；Owner 签收位见 deviations）",
+    "status": "ACTIVE",
+    "required_evidence": {
+      "baseline_snapshot": "test-reports/asset-eval-20260923/asset-baseline-before.json#review（adapter=prompt / routes T2_BACKEND,T4_FRONTEND,T5_OPS / consumption S8链内,BW提及 / vendor vendor/review / snapshot 2026-09-24T08:45:39Z）",
+      "diff_table_finalized": "BLOCKED_NO_INSTALL（无新引擎可影子跑，夹具/差异表不适用）",
+      "rollback_path_verified": "NOT_APPLICABLE（无 replace 发生，旧路径即唯一路径，无回滚面变化）",
+      "shadow_result": "BLOCKED_NO_INSTALL",
+      "rollback_drill": "BLOCKED_NO_INSTALL",
+      "post_promotion_probes": "BLOCKED_NO_INSTALL",
+      "promotion_receipt": "NOT_ISSUED（无晋升）",
+      "runtime_binding": "NOT_APPLICABLE（manifest 零改动，现值 hash 不变）"
+    }
+  },
+  "state_machine": {
+    "current_state": "ACTIVE",
+    "transitions": [],
+    "blocked_transition_note": "ACTIVE→SHADOW 未达成也不得达成：SHADOW 前置=影子跑夹具就位（契约 §一），而影子跑需要新引擎真实执行；新引擎 NO INSTALL → 无影子跑对象。按派单预声明分支，迁移停在 SHADOW 前。"
+  },
+  "no_install_verdict": {
+    "failure_rule": "playbook §四 Failure Rule 3：provider identity 三件套（official_source / install_channel / runtime_test）缺一 = NO INSTALL",
+    "candidate_a_review_bugbot": {
+      "probed_at": "2026-09-25T09:43Z",
+      "evidence": ["step2-probe-a-bugbot.txt", "step2-probe-a2-bugbot-cli.txt"],
+      "findings": "技能目录仅 SKILL.md（4902B），零脚本/零 bin/零 package.json；where bugbot 无命令；SKILL.md 语义=指示交互宿主启动 subagent_type=bugbot 宿主子代理（非进程）。管线 adapter 契约要求 child_process spawn+exit code+机器可读输出，宿主子代理机制结构性不可 spawn。",
+      "trio": "official_source 缺 / install_channel 缺 / runtime_test 不可行",
+      "result": "NO_INSTALL"
+    },
+    "candidate_b_coderabbit_cli": {
+      "probed_at": "2026-09-25T09:45Z",
+      "evidence": ["step2-probe-b-coderabbit.txt"],
+      "findings": "npx @coderabbitai/cli → registry E404（官方 scope @coderabbitai 真实存在——carrot-ui/config 均官方——但 cli 包未发布）；where coderabbit 未安装；npm search 全量无官方 CLI 包，仅第三方个人 wrapper（npm 假包教训禁用作替代）。SaaS auth 门（派单预声明，AS-0 未确认）为独立第二阻断，未达运行时门。",
+      "trio": "official_source 在 / install_channel 缺（E404）/ runtime_test 不可行",
+      "result": "NO_INSTALL"
+    },
+    "verdict": "NO_INSTALL（两候选均命中 Failure Rule 3）——按派单 §⚠ 预声明分支：迁移停 SHADOW 前（state 保持 ACTIVE），Step 3-9 BLOCKED_NO_INSTALL，产出 adapt 裁定材料（adaptation-adjudication.md）交编排者/Owner；零生产写面，禁自研 wrapper 假装接入"
+  },
+  "manifest_hash_observed": {
+    "sha256": "d9f0d738eba260a95996c6bc8a76ff69a9f5fb54ab19baa323872701db913df7",
+    "at": "2026-09-25",
+    "note": "开工时点现值核验（与派单/编排者告知一致）；本单零生产写面，预期收口时不变。"
+  },
+  "deviations": [
+    "D-1: NO INSTALL（两候选均命中 Failure Rule 3，探测全录 step2-no-install-record.md）——迁移停 SHADOW 前，state 保持 ACTIVE，Step 3-9 BLOCKED_NO_INSTALL；此为派单 §⚠ 预声明分支的如实执行（裁定性记录项，非流程失误），交编排者/Owner",
+    "D-2: 锁面收窄——NO INSTALL 分支零生产写面，仅对本单证据 migration-record.json 加锁 1 把（非生产写面 4 锁先例），收口 release",
+    "D-3: 夹具/expected-findings 未产出——结构性 BLOCKED（无新引擎可喂，差异表无对照对象），非遗漏；危险文本 tar 归档先例（D-7）本单未触发（无夹具）",
+    "D-4: change.record 未创建——CONTRACT 类归 L2/编排者；若 Owner 采纳 adapt 裁定（选项 1/2），由 L2 按需补立；本单仅交裁定材料（派单第 6 条 change.record 属『若晋升』分支，未触发）",
+    "D-5: 宿主技能绑定文档化以草案形态落本单证据目录（adaptation-adjudication.md 附录 A）——正式化落位（docs/ 等）超本单白名单，需 Owner 另行授权",
+    "D-6: step2-probe-b-coderabbit.txt 首行为控制台 GBK 回显 mojibake（纯装饰性；证据实质 ASCII，未改动原始捕获）——备查"
+  ],
+  "regression": {
+    "opening_preflight": "8 PASS / 0 FAIL / 0 SKIP（precheck-preflight.txt，开工时点）",
+    "closing_regression_all": "14 PASS / 0 FAIL（post-probe-regression-all.txt，S14 PASS，S15 占位照常）",
+    "closing_preflight": "8 PASS / 0 FAIL / 0 SKIP（post-probe-preflight.txt）",
+    "closing_validate_structure": "0 警告（post-probe-validate-structure.txt）",
+    "manifest_hash_zero_drift": "开工 sha256=d9f0d738… == 收口 sha256=d9f0d738…（零生产写面机证；本单无晋升，无 Gate-2 重算面）"
+  },
+  "adapt_verdict_materials": {
+    "file": "adaptation-adjudication.md",
+    "recommended_option": "选项 1：review 保留 prompt-backend（adapt 终局）；选项 2 叠加：宿主技能绑定文档化（附录 A 草案）；选项 3：未来再评估触发器已列明",
+    "decision_authority": "编排者/Owner（L1 不自称 DONE，不代裁定）"
+  },
+  "updated_at": "2026-09-25T09:50Z"
+}

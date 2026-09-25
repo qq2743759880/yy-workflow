@@ -1,1 +1,0 @@
-﻿#!/usr/bin/env python3"""detect: inventory the elements in an image and print pixel bounding boxes."""from pathlib import Pathimport syssys.path.insert(0, str(Path(__file__).resolve().parents[1]))from detect import main  # noqa: E402if __name__ == "__main__":    main()

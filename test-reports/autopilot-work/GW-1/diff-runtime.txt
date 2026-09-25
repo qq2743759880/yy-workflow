@@ -1,0 +1,41 @@
+--- test-reports/autopilot-work/GW-1/runtime.mjs.before	2026-09-25 18:09:25.720321500 +0800
++++ scripts/lib/runtime.mjs	2026-09-25 18:22:34.811425800 +0800
+@@ -4,6 +4,10 @@
+ import { resolveAdapter, PROMPT_ADAPTER } from './adapters/index.mjs';
+ import { withRetry, retryAcrossHosts, resolveHosts } from './resilience.mjs';
+ import { RetryableError, TimeoutError } from './errors.mjs';
++// GW-1 治理接线（接线点 B）：失败路径 GOVERNANCE 指路行单点（systematic-debugging）。
++// 只指路不注入正文（防 prompt 爆炸——GW-1 派单裁定）；governance-skills 缺失时
++// governancePointerLine → null，静默跳过（向后兼容）。单点实现见 scripts/lib/governance.mjs。
++import { governancePointerLine } from './governance.mjs';
+ import fs from 'node:fs/promises';
+ import path from 'node:path';
+ import crypto from 'node:crypto';
+@@ -46,6 +50,12 @@
+   if (text.includes('INELIGIBLE_WHEN_NOT_TO_USE')) return 'INELIGIBLE_WHEN_NOT_TO_USE';
+   return 'INELIGIBLE';
+ }
++// GW-1 治理接线：失败码触发面（gate/adapter 失败族）。触发 = adapter 执行失败（!result.ok，含
++// *_OUTPUT_INVALID / EXEC_TIMEOUT / OPENCODE_NOT_AVAILABLE 等宿主/工具不可用码——runCommand 语义
++// ok:false+error=具名码）+ 门控具名失败码（CAPABILITY_MISSING / INELIGIBLE_* /
++// RESOLVER_INTERNAL_ERROR / ADAPTER_NOT_AVAILABLE）。仅 dispatch 之前的依赖类 skip
++// （DEP_PRECONDITION / DEP_CONTRACT_NOT_FROZEN / CONTRACT_NOT_FROZEN，ok 无失败码）不在触发面。
++const GOV_FAILURE_CODE_RE = /^(?:CAPABILITY_MISSING|INELIGIBLE|RESOLVER_INTERNAL_ERROR|ADAPTER_NOT_AVAILABLE|OUTPUT_INVALID)/;
+ export function createContextBus() {
+   const values = new Map();
+   return { set(key, value) { JSON.stringify(value); values.set(key, value); }, get(key) { return values.get(key); }, has(key) { return values.has(key); }, dump() { return Object.fromEntries(values); } };
+@@ -357,6 +367,14 @@
+     if (unavailable) { subtask.status = 'skipped'; subtask.mode = 'skipped'; logger.warn('subtask skipped: ' + result.error); }
+     else if (!result.ok) { subtask.status = 'failed'; plan.status = 'failed'; logger.error('subtask failed ' + subtask.id + ': ' + result.error); }
+     else if (!opts.dryRun) subtask.status = 'done';
++    // GW-1 治理接线（接线点 B）：gate/adapter 失败路径 GOVERNANCE 指路行（systematic-debugging）。
++    // EX-1 能力门控段 / AV-3 资格门段零改动——全部失败码统一在 dispatch 返回后的本观察点消费
++    // （触发面见 GOV_FAILURE_CODE_RE 注释）；只指路不注入正文，governance-skills 缺失静默跳过。
++    const govFailCode = String((result && result.error) || subtask.error || '');
++    if ((result && result.ok === false) || GOV_FAILURE_CODE_RE.test(govFailCode)) {
++      const govLine = governancePointerLine('failure_recovery', 'gate_failed');
++      if (govLine) logger.warn('subtask ' + subtask.id + ' [' + subtask.asset + '] failure=' + (govFailCode || '(no code)') + ' | ' + govLine);
++    }
+     emitStatus(plan, subtask, subtask.status, opts, { elapsedMs: Date.now() - started });
+     logger.info('finish subtask ' + subtask.id + ' (' + (Date.now() - started) + 'ms)');
+   };
