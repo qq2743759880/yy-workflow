@@ -35,15 +35,15 @@
  "changeType": "GOVERNANCE_CONSISTENCY",
  "note": "类型说明：changeType=GOVERNANCE_CONSISTENCY 仅是变更内容语义标签（治理一致性/消 split-brain）；impactClass 按 change.mjs 最严类规则主动声明 CONTRACT——touchedFiles 两份冻结契约正文（指针措辞行），不因\"只改一行\"或\"不改机器语义\"降类。ownerApprovalReceipt.status=PENDING_OWNER_RECEIPT：本单触及冻结契约，须 Owner 签收后 F-031 才算完成——本单如实登记 PENDING，签收归 Owner（approvalEvidence 由 Owner 签发后回填 <指令文件路径>#<SHA256> 并将 status 改为 SIGNED，approvalId 不变）。机器可执行语义（状态机/五元组/三硬门/schema）全文未动，仅指针措辞两行——此事实已在 reason 与旧单 voidReason 登记为归类背景，不构成降类理由。",
  "ownerApprovalReceipt": {
-  "status": "PENDING_OWNER_RECEIPT",
-  "note": "Owner 签收位（canonical=本字段 status，唯一权威——F-033/F-034）：本单为 CONTRACT 类（触及两份冻结契约正文指针行），Owner 签收后 F-031 才算完成。签发时回填 approvalEvidence=<指令文件路径>#<SHA256> + approvedBy=owner + approvedAt=<ISO> + expiresAt=null，status→SIGNED（approvalId 同步回填）。签收前本处置为待确认态：两份冻结正文指针行已按方案 B 落地（机器面 S14b selftest 不受影响），但治理归类闭合以 Owner 签收为准。",
+  "status": "SIGNED",
+  "note": "Owner 2026-09-26 指令：签收+三项裁定全部按推荐（D-REG1-1 追认/E-4 kernel 门张力按推荐口径/AS-2-review adapt 选项 1 确认）",
   "target": {
    "scope": "change",
    "scopeId": "contracts/asset-migration.md+contracts/asset-manifest-v2.md@GOV-AUTHORITY:CONTRACT"
   },
   "approvedBy": null,
   "approvedAt": null,
-  "approvalEvidence": null,
+  "approvalEvidence": "plans/owner-receipt-signoff-20260925.md#6130f32c234a488f4356370adb86b9037c5aca84311af6ad5481fe61a0607828",
   "expiresAt": null,
   "relatedReceipts": [
    {
@@ -51,6 +51,12 @@
     "changeRecordId": "cr-20260926T000000Z-g0v3cons1",
     "note": "被作废旧单（DOC_ONLY 绕最严类规则——F-034）；voided=true + voidReason 留痕在案"
    }
-  ]
+  ],
+  "signedAt": "2026-09-26"
+ },
+ "rulings": {
+  "D-REG1-1": "追认 FAIL+override（推荐口径）",
+  "E-4": "kernel 门张力按推荐口径（机验宿主机制隔离+真实宿主行为面待 Batch 2）",
+  "AS-2-review": "选项 1 确认（review 保留 prompt-backend，bugbot 宿主绑定文档化）"
  }
 }

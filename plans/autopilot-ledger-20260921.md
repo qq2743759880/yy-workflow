@@ -254,3 +254,9 @@ R-2 package.json 名义依赖清理；D-3 类 C 历史豁免永久保留；senti
 - 【F-034 闭环】g0v3cons1 voided（replacedBy 留痕）+ r2 主动声明 CONTRACT（红线自检合规）——Owner PENDING 待签，签收前 F-031 不闭合（如实）
 - 【F-038 闭环】audit-index current/historical 分节 + sha256 semantic freshness（selftest 68/68 进 S14b）
 - 批 1 状态：READY-FOR-CLOSE 重新成立，唯剩 Owner 六项裁定（D-REG1-1/E-4/AS-2-review adapt/g0v3cons1-r2 签收 + 原有三项中已含）——签收后 close
+
+## 批 1 正式 CLOSE（2026-09-26，Owner 指令"签收+三项裁定全部按推荐"）
+- g0v3cons1-r2 SIGNED（approvalEvidence=签发记录#6130f3…）→ F-031 正式闭合（split-brain 方案 B 完成）
+- 三项裁定落账：D-REG1-1 追认（FAIL+人署名 override 永久口径）；E-4 kernel 门张力按推荐（机验宿主机制隔离 + 真实宿主行为面待 Batch 2）；AS-2-review adapt 选项 1 确认（review 保留 prompt-backend，bugbot 绑定文档化，CodeRabbit 再评估触发器）
+- research-gate.mjs 措辞"临时态待追认"→"已追认"（self-test 复绿）
+- 批 1 状态：**CLOSED**——三波 17 单 + 15 轮审计全部闭环；移交项：R-2 package.json 名义依赖、D-3 类 C 历史豁免、sentinel 多 agent API key（可选）、Batch 2（Prompt Compiler + capability dispatch）
