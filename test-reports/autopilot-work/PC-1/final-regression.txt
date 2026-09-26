@@ -1,0 +1,124 @@
+# TT regression-all（一键回归卡点）
+
+PASS S1 validate-structure
+PASS S2 test-retry
+S3 Phase 2 替换清单（占位卡点，替换启动前须保持全绿）：
+  ✓ implementation — 实现簇(dev-backend+be-implementer) → opencode 执行内核 [vendor OK] [能力探测验证: 专用 adapter 支持 write_files/run_cmd] [kernel 段] [probe] [marker OK]
+  ✓ sdlc — sdlc → BMAD-METHOD + cline 执行层 [vendor OK] [能力探测验证: 专用 adapter 支持 write_files/run_cmd] [kernel 段] [probe] [marker OK]
+  ✓ be-validator — be-validator → spectral 契约校验（AS-2-first 晋升；vendor 正文 marker 保留） [vendor OK] [能力探测验证: 专用 adapter 支持 write_files/run_cmd] [kernel 段] [probe] [marker OK]
+  ✓ skill-sentinel — skill 安全扫描 → skill-scanner 2.1.0 执行内核（AS-2-sentinel 晋升，cr-20260925T150000Z SIGNED；kernel marker 仍为 vendor 正文 SkillSpector/skill_sentinel——vendor 一字不改） [vendor OK] [能力探测验证: 专用 adapter 支持 write_files/run_cmd] [kernel 段] [probe] [marker OK]
+  ✓ security — 安全簇 → semgrep 扫描内核（AS-2-security 晋升；gitleaks 暂缺登记为能力收缩，第十一审计 F-018） [vendor OK] [能力探测验证: 专用 adapter 支持 write_files/run_cmd] [kernel 段] [probe] [marker OK]
+  ✓ frontend-design — 前端设计簇 → shadcn-ui/ui + bolt.new 内核 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+  ✓ planning — 需求规划 → MetaGPT / crewAI 对标 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+  ✓ review — 评审簇 → qodo-ai/pr-agent + continue 内核 [vendor OK] [prompt/auto 可达] [kernel 段] [probe] [marker OK]
+PASS S3 Phase 2 替换清单  （3 个高杠杆目标现状契约完整）
+PASS S4 契约工作流 smoke  contracts/<planId>.json 冻结 ✓ resume 复用 ✓ 篡改→exit4 ✓
+PASS S5 宿主执行 smoke  stdout → exec ✓；写文件(无 stdout) → exec ✓；空输出 → prompt 降级 ✓
+PASS S6 资产缓存 smoke  assets-cache.json 生成 ✓ 二次运行复用 ✓
+PASS S7 review-gate  self-test ✓ 填好plan→PASS ✓ 模板未填→拦截 ✓
+PASS S8 资产消费证据  exec=5 false(正)=0 false(负)=>2（kernel 资产仅锚点 → false，强化生效）
+PASS S9 域声明机验  missing→DOMAIN_DECL_MISSING ✓ true→ok ✓ 旧数据→N/A ✓
+PASS S10 token 量尺 gate（B0-②）  快照对比 PASS ✓
+PASS S11 引用链机验（C-25/C-33）  悬空引用 0 / tab 损坏 0 ✓
+PASS S12 kickoff 漂移门（C-26）  五簇资产双向一致 ✓
+[PASS] tt-journey 经 junction 渲染 145B
+[PASS] executor-setup 经 junction presence 有输出 896B
+[PASS] review-gate 经 junction 打印诊断 41B
+[PASS] tt-tui 经 junction 打印诊断 159B
+PASS S13 junction 部署形态 smoke  4/4 内部探针 PASS
+# preflight（v3 批 1 静态不变量预检：零 LLM / 零网络 / 确定性）
+PASS  P1 语法门 (node --check)  — 86 个 .mjs 全过编译器级预检
+PASS  P2 导出查重（跨模块同名）  — 无新增同名导出冲突（存量 legacy 登记 WARN: main(8), ERROR_CODES(8), run(15), name(7), CANDIDATE_INVALID(2), EXIT(2), JOURNEY_SCHEMA(2), GATE_VOCAB(3), STEPS(3), STATE(2), TRANSITIONS(3), STATE_VERSION(2), formatApprovalEvidence(2)）
+  WARN P2 存量同名导出 13 组（LEGACY_DUP_EXPORTS 登记，非阻断）：main(8), ERROR_CODES(8), run(15), name(7), CANDIDATE_INVALID(2), EXIT(2), JOURNEY_SCHEMA(2), GATE_VOCAB(3), STEPS(3), STATE(2), TRANSITIONS(3), STATE_VERSION(2), formatApprovalEvidence(2)
+PASS  P3 ADAPTERS 一致性  — 注册 8 个 adapter（implementation, dev-backend, be-implementer, sdlc, be-validator, portman, security, skill-sentinel），映射路径与资产名全部有效
+PASS  P4 CLUSTERS ↔ 磁盘  — 9 资产 vendor/<name>/ 文档齐全（唯一事实源 scripts/lib/matrix.mjs；AS-1 drop 后随 candidates 收缩自动通过）
+PASS  P5 buildManifest 单源  — 唯一写方 scripts/manifest-build.mjs ✓（命中 0 处合法写调用）
+PASS  P5b legacy manifest.mjs 写域  — 遗留缓存写域限于 stateDir，零 contracts/ 写调用（边界声明在文件头）
+PASS  P6 DROP_ALLOWED 断言  — 扫描 9 行：无 drop-pending 行（当前无 drop 意图）
+PASS  P7 change-lock 核查  — active 锁 0/0，--changed 0 条改动路径 0 冲突
+
+结果: 8 PASS / 0 FAIL / 0 SKIP
+preflight 通过。
+PASS S14 preflight invariants  7 项静态不变量全过
+PASS SECTION [freshness/unknown] historical 节 superseded_by: REMEDIATION-2 S16 三段 声明在场（分节纪律）
+PASS A-1 [evidence/current] paths=2 全在场
+PASS A-1 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS A-1 [command/current] exit=0 out=-rw-r--r-- 1 Administrator 197121 1605 Sep 25 14:26 test-reports/autopilot-work/REMEDIATIO
+PASS A-2 [evidence/current] paths=3 全在场
+PASS A-2 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS A-2 [command/current] exit=0 out=PASS mech true,true,true,true,true,true,true,true,true
+PASS A-3 [evidence/current] paths=1 全在场
+PASS A-3 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS A-3 [command/current] exit=0 out=approval_effect": {
+PASS A-4 [evidence/current] paths=1 全在场
+PASS A-4 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS A-4 [command/current] exit=0 out={"assert_scope_language_unsupported":true}
+PASS B-1 [evidence/current] paths=4 全在场
+PASS B-1 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS B-1 [command/current] exit=0 out=test-reports/autopilot-work/AS-1/regression-final.log:PASS S15-A2 replace 资产真实消费探针  be-val
+PASS B-2 [evidence/current] paths=2 全在场
+PASS B-2 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS B-2 [command/current] exit=0 out=PASS INJ-1 A1 孤儿引用  A1 FAIL 具名: FAIL S15-A1 drop 资产引用 0 命中（治理活面）  DROP_REF_HIT 1 文件: scrip
+PASS B-3 [evidence/current] paths=1 全在场
+PASS B-3 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS B-3 [command/current] SKIP-git（git 收口归编排者/审计者，L1 禁 git；命令已在案）
+PASS B-4 [evidence/current] paths=5 全在场
+PASS B-4 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS B-4 [command/current] exit=0 out=35
+PASS B-5 [evidence/current] paths=2 全在场
+PASS B-5 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS B-5 [command/current] exit=0 out=ZERO_DELTA
+PASS B-6 [evidence/current] paths=3 全在场
+PASS B-6 [sha256/current] sha256 登记值 1 项全部机验一致（semantic freshness）
+PASS B-6 [command/current] exit=0 out=c30fee6b4d1a8130af8536df9b45342c78667eaebaad172d0dac767e471f25d1 *contracts/asset-manifest
+PASS B-7 [evidence/current] paths=4 全在场
+PASS B-7 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS B-7 [command/current] exit=0 out=结果: 20 PASS / 0 FAIL
+PASS B-8 [evidence/current] paths=2 全在场
+PASS B-8 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS B-8 [command/current] exit=0 out=# AS-2-review — adapt（而非 replace）裁定材料
+PASS B-9 [evidence/current] paths=3 全在场
+PASS B-9 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS B-9 [command/current] exit=0 out="detail": "findings_total=6 pass=false exit_code=0 rules=security.hardcoded-api-key,securi
+PASS C-3 [evidence/current] paths=3 全在场
+PASS C-3 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS C-3 [command/current] exit=0 out=# FINAL-E2E RESULTS — Runtime Boundary E2E（Host Mode: mechanical acceptance host——验证 runti
+PASS C-4 [evidence/current] paths=1 全在场
+PASS C-4 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS C-4 [command/current] exit=0 out=63 plans/audit-index-20260925.md
+PASS N-1 [evidence/gap] GAP_ROW（披露面无路径要求，指向 目录只有探针/回归证据文件 + ledger 执行行（`plans/autopilot-ledger-20260921.…）
+PASS N-1 [command/gap] exit=0 out=baseline-regression.txt
+PASS N-2 [evidence/gap] GAP_ROW（披露面无路径要求，指向 以 A-1 复验命令现算为准（以物证为准，不以转述为准）…）
+PASS N-2 [command/gap] GAP_ROW（披露面无独立复验命令，指向 以 A-1 复验命令现算为准（以物证为准，不以转述为准） | A-1 命令 | …）
+PASS N-3 [evidence/gap] GAP_ROW（披露面无路径要求，指向 post-Owner-ruling 可选项，非缺口掩盖——RESULTS §三.5 显式声明…）
+PASS N-3 [command/gap] GAP_ROW（披露面无独立复验命令，指向 post-Owner-ruling 可选项，非缺口掩盖——RESULTS §三.5 显式声明 | `…）
+PASS D-1 [evidence/current] paths=4 全在场
+PASS D-1 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS D-1 [command/current] exit=0 out=all_terminal_rejections": true
+PASS D-2 [evidence/current] paths=2 全在场
+PASS D-2 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS D-2 [command/current] exit=0 out=legal_edges=5 shapes=shadow_fail/rollback_fail/runtime_binding_fail
+PASS D-3 [evidence/current] paths=2 全在场
+PASS D-3 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS D-3 [command/current] exit=0 out=all_pass=true verification_assets=["be-validator","review","skill-sentinel"]
+PASS D-4 [evidence/current] paths=3 全在场
+PASS D-4 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS D-4 [command/current] exit=0 out=r2=CONTRACT/SIGNED voided=true
+PASS C-1 [evidence/historical] paths=3 全在场
+PASS C-1 [command/historical] HISTORICAL（只查命令在案，不查 freshness——F-038 分节口径）
+PASS C-2 [evidence/historical] paths=2 全在场
+PASS C-2 [command/historical] HISTORICAL（只查命令在案，不查 freshness——F-038 分节口径）
+结果: 68 PASS / 0 FAIL
+PASS S14b audit-index self-test（P5c）  索引 结果: 68 PASS / 0 FAIL——未 stale
+PASS S15-A1 drop 资产引用 0 命中（治理活面）  扫描 167 文件 0 命中；类 C 豁免残留面 3 文件（D-3 处置后仅剩历史/schema 豁免件 + S15 猎手名单自身，不阻断）: contracts/asset-manifest-v2.md (be-architect,be-resilience,be-provider,colorize,frontend-visual-validation,agent-vision-toolkit,agent-research); contracts/C-R3-review-checklist.md (colorize); scripts/regression-all.mjs (S15 断言持有 drop 清单常量——猎手名单≠资产引用)
+PASS S15-A2 replace 资产真实消费探针  be-validator/spectral: 真扫 6 findings pass=false | security/semgrep: 真扫 1 findings pass=false | skill-sentinel/skill-scanner: 真扫 is_safe=true threats=0（os.tmpdir 夹具已清理）
+PASS S15-A3 manifest 驱动路由断言  manifest-build 9 行 hash 三方一致: c30fee6b4d1a… ✓ | Gate-2 dispatch 日志 hash==build: ✓ | eligible 9 true / 7 false: ✓
+PASS S15-A4 legacy loader 不可达  生产 loadAssets 恒 manifest 驱动: ✓ | adapter 旧引擎路径 EXPLICIT_COMPAT_MODE 旗标门在场: ✓ | loader 双路径 drop 资产 0 输出 + 9 资产可达: ✓
+PASS S15-A5 真实执行≠能力覆盖（模式 1）  semgrep 真扫 0 findings 仍 pass=false，UNCOVERED_LANGUAGES=["js"]（真实执行≠能力覆盖成立）（夹具已清理）
+PASS S15-A6 correction≠作废（模式 2）  voided 留痕 1 条(voidReason 在场) ✓ | 回放跳过 voided 终态 PRIMARY == 记录终态 ✓ | voided 身份零复用（不可再入）✓（证据 AS-2-sentinel/migration-record.json）
+PASS S16-1 Runtime plane：真实状态机拒绝 failed→done/executing（INVALID_TRANSITION）  合法链→failed ✓ | failed→done/executing/reviewing 全 INVALID_TRANSITION 且 canonical state 不变 ✓ | 只读面 checkPhase 同拒 ✓（证据 REMEDIATION-2/s16-1-runtime-plane.json）
+PASS S16-2 Migration plane：三失败形态真实机验器 → SHADOW→MIGRATING 与 MIGRATING→PRIMARY 均拒绝  shadow FAIL: spectral 真扫 6 findings pass=false ✓ | rollback FAIL: SPECTRAL_NOT_AVAILABLE 无旗标拒绝 ✓ | runtime_binding FAIL: SPECTRAL_OUTPUT_INVALID ✓ | SHADOW→MIGRATING×3 形态全拒（生产 authority MIGRATION_BLOCKED）✓ | MIGRATING→PRIMARY×3 形态全拒 ✓ | 干净记录放行（非恒拒）✓ | receipt 负终态→verified 拒绝 ✓ | 生产 promotionReceipt 生成处校验（负终态全拒/verified 签发）✓ | AS-2 三张回放兼容 ✓（证据 REMEDIATION-2/s16-2-migration-plane.json）
+PASS S16-3 Cross-plane：FAILED/UNRESOLVED execution receipt 阻断 promotion（对照 verified 放行）  状态层 done + receipt 终态 FAILED → planning→executing 拒绝（PHASE_PREREQ_UNMET） ✓ | receipt 终态 UNRESOLVED 同拒 ✓ | 对照组 behavior_verified 放行（非恒拒） ✓ | promotionReceipt 生成处校验 FAILED/UNRESOLVED/INVALID/缺失全阻断 ✓（证据 REMEDIATION-2/s16-3-cross-plane.json）
+
+结果: 24 PASS / 0 FAIL
+回归基线通过。

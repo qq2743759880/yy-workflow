@@ -264,3 +264,8 @@ R-2 package.json 名义依赖清理；D-3 类 C 历史豁免永久保留；senti
 - 七项孤儿依赖全删零活引用（三重 grep 核实）；**D-1 关键修复**：npm prune 误移除 @stoplight/spectral-cli（be-validator PRIMARY 内核，--no-save 装入无 lock 记录）→ 首跑回归 22/2 抓住 → 重装恢复（版本一致）→ 24 PASS——**--no-save 装入的生产依赖无 lock 保障教训沉淀**（playbook 增补候选：专用引擎改正式 dependencies 或 vendor node_modules）
 - D-2（移交 Owner）：reflect-metadata/tslib 无脚本 import 但超出七项授权，不扩权
 - D-3：回归器自会重写 REMEDIATION-2 探针 JSON（固有行为非越权）
+| PC-1 | PASS | agent_5c101801 | orchestrator-L2(六段亲测+确定性+S8 兼容+回归 24 亲跑) | 2026-09-26T03:00:00Z | scripts/lib/prompt-composer.mjs（composeBrief/loadCapabilityRows/composePlanAssets/truncateSection）; scripts/orchestrator.mjs（brief 组装切换最小 diff）; test-reports/autopilot-work/PC-1/ |
+- L2 亲测：六段全命中（Role/Mission/Context/Output Contract/Constraints/Verification）；legacy 降级字节级兼容；确定性同输入同 hash；manifest c30fee6b 零归因；回归 24/24 + preflight exit 0
+- 偏差裁定：D-PC1-1 六段在 vendor 正文后（S8 负向探针强制）采纳；D-PC1-4 kill-switch YY_PROMPT_COMPOSER=off 追认（应急回退合理）
+- 输入形态澄清：composeBrief({body, capability, task})——capability 为 manifest 行对象；L2 首测传参形状错误报错属调用侧问题非实现缺陷（agent 的 orchestrator 集成探针 T4e/f 已证明真实链路正确）
+- Batch 2 第一波全收（PC-1 + R-2）；第二波 CD-1/GV-2 派发

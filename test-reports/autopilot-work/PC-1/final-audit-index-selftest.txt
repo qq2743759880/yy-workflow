@@ -1,0 +1,76 @@
+# audit-index self-test（plans/audit-index-20260925.md 证据指针表机检——F-038 current/historical 分节 + semantic freshness）
+解析条目: 24 行（A/B/C/D/N 系）
+分节: current=19 historical=2 gap=3
+
+逐条结果:
+PASS SECTION [freshness/unknown] historical 节 superseded_by: REMEDIATION-2 S16 三段 声明在场（分节纪律）
+PASS A-1 [evidence/current] paths=2 全在场
+PASS A-1 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS A-1 [command/current] exit=0 out=-rw-r--r-- 1 Administrator 197121 1605 Sep 25 14:26 test-reports/autopilot-work/REMEDIATIO
+PASS A-2 [evidence/current] paths=3 全在场
+PASS A-2 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS A-2 [command/current] exit=0 out=PASS mech true,true,true,true,true,true,true,true,true
+PASS A-3 [evidence/current] paths=1 全在场
+PASS A-3 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS A-3 [command/current] exit=0 out=approval_effect": {
+PASS A-4 [evidence/current] paths=1 全在场
+PASS A-4 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS A-4 [command/current] exit=0 out={"assert_scope_language_unsupported":true}
+PASS B-1 [evidence/current] paths=4 全在场
+PASS B-1 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS B-1 [command/current] exit=0 out=test-reports/autopilot-work/AS-1/regression-final.log:PASS S15-A2 replace 资产真实消费探针  be-val
+PASS B-2 [evidence/current] paths=2 全在场
+PASS B-2 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS B-2 [command/current] exit=0 out=PASS INJ-1 A1 孤儿引用  A1 FAIL 具名: FAIL S15-A1 drop 资产引用 0 命中（治理活面）  DROP_REF_HIT 1 文件: scrip
+PASS B-3 [evidence/current] paths=1 全在场
+PASS B-3 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS B-3 [command/current] SKIP-git（git 收口归编排者/审计者，L1 禁 git；命令已在案）
+PASS B-4 [evidence/current] paths=5 全在场
+PASS B-4 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS B-4 [command/current] exit=0 out=35
+PASS B-5 [evidence/current] paths=2 全在场
+PASS B-5 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS B-5 [command/current] exit=0 out=ZERO_DELTA
+PASS B-6 [evidence/current] paths=3 全在场
+PASS B-6 [sha256/current] sha256 登记值 1 项全部机验一致（semantic freshness）
+PASS B-6 [command/current] exit=0 out=c30fee6b4d1a8130af8536df9b45342c78667eaebaad172d0dac767e471f25d1 *contracts/asset-manifest
+PASS B-7 [evidence/current] paths=4 全在场
+PASS B-7 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS B-7 [command/current] exit=0 out=结果: 20 PASS / 0 FAIL
+PASS B-8 [evidence/current] paths=2 全在场
+PASS B-8 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS B-8 [command/current] exit=0 out=# AS-2-review — adapt（而非 replace）裁定材料
+PASS B-9 [evidence/current] paths=3 全在场
+PASS B-9 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS B-9 [command/current] exit=0 out="detail": "findings_total=6 pass=false exit_code=0 rules=security.hardcoded-api-key,securi
+PASS C-3 [evidence/current] paths=3 全在场
+PASS C-3 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS C-3 [command/current] exit=0 out=# FINAL-E2E RESULTS — Runtime Boundary E2E（Host Mode: mechanical acceptance host——验证 runti
+PASS C-4 [evidence/current] paths=1 全在场
+PASS C-4 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS C-4 [command/current] exit=0 out=63 plans/audit-index-20260925.md
+PASS N-1 [evidence/gap] GAP_ROW（披露面无路径要求，指向 目录只有探针/回归证据文件 + ledger 执行行（`plans/autopilot-ledger-20260921.…）
+PASS N-1 [command/gap] exit=0 out=baseline-regression.txt
+PASS N-2 [evidence/gap] GAP_ROW（披露面无路径要求，指向 以 A-1 复验命令现算为准（以物证为准，不以转述为准）…）
+PASS N-2 [command/gap] GAP_ROW（披露面无独立复验命令，指向 以 A-1 复验命令现算为准（以物证为准，不以转述为准） | A-1 命令 | …）
+PASS N-3 [evidence/gap] GAP_ROW（披露面无路径要求，指向 post-Owner-ruling 可选项，非缺口掩盖——RESULTS §三.5 显式声明…）
+PASS N-3 [command/gap] GAP_ROW（披露面无独立复验命令，指向 post-Owner-ruling 可选项，非缺口掩盖——RESULTS §三.5 显式声明 | `…）
+PASS D-1 [evidence/current] paths=4 全在场
+PASS D-1 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS D-1 [command/current] exit=0 out=all_terminal_rejections": true
+PASS D-2 [evidence/current] paths=2 全在场
+PASS D-2 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS D-2 [command/current] exit=0 out=legal_edges=5 shapes=shadow_fail/rollback_fail/runtime_binding_fail
+PASS D-3 [evidence/current] paths=2 全在场
+PASS D-3 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS D-3 [command/current] exit=0 out=all_pass=true verification_assets=["be-validator","review","skill-sentinel"]
+PASS D-4 [evidence/current] paths=3 全在场
+PASS D-4 [sha256/current] 无 sha256 登记值——本行 freshness 面=路径存在+命令可执行
+PASS D-4 [command/current] exit=0 out=r2=CONTRACT/SIGNED voided=true
+PASS C-1 [evidence/historical] paths=3 全在场
+PASS C-1 [command/historical] HISTORICAL（只查命令在案，不查 freshness——F-038 分节口径）
+PASS C-2 [evidence/historical] paths=2 全在场
+PASS C-2 [command/historical] HISTORICAL（只查命令在案，不查 freshness——F-038 分节口径）
+
+结果: 68 PASS / 0 FAIL
+audit-index current 节 sha256/路径/命令三面新鲜、historical 节分节留痕合规——索引未 stale（F-038 semantic freshness）。

@@ -1,0 +1,35 @@
+PASS T1-pre manifest 行加载 — rows=9 source=contracts/asset-manifest-v2.json
+PASS T1-pre2 be-validator 行三字段齐 — role=You design and implement Zod schemas for…
+PASS T1a 六段齐 — mode=composer sections=Role,Mission,Context,Output Contract,Constraints,Verification
+PASS T1b when_not_to_use 进 Constraints — when_not_to_use 全文逐字进 Constraints 段=true
+PASS T1c verification 进 Verification 段 — manifest.verification 前缀命中 Verification 段
+PASS T1d verify_command（TK-1 executor_acceptance 口径）进 Verification 段 — JSON 形态 {"ac","verify_command","expected_exit"} 逐字命中
+PASS T1e 全局红线三项进 Constraints — 派单三项逐字口径
+PASS T1f Role 段含 manifest role/name/capability — capability 命名
+PASS T2a 无 manifest 行 → legacy 原样 — mode=legacy 字节级相等=true sections=true
+PASS T2b 空输入（无 capability/task/…）不崩溃 → legacy — 零崩溃
+PASS T2c manifest 产物不可读 → fail-soft 报告 — error=manifest v2 不可读（ENOENT: no such file or directory, open 'C:\…
+PASS T2d legacy 字节级兼容比对 — 见 probe-legacy-bytes.txt
+PASS T3a 同输入两次构建 hash 一致 — sha256=e35cd9cca5f21f01…
+PASS T3b 输入键序无关性（同语义同 hash） — 键序重排 hash 不变
+PASS T4a 锚点保持（composer 产物首标题 = vendor 正文首标题） — composer 锚点="Backend Validator Agent" vendor 锚点="Backend Validator Agent"
+PASS T4b 内核词保持（hasKernelSection + tokens 逐项一致） — hasKernelSection=true tokens=[portman,scripts/lib/adapters/portman.mjs.]
+PASS T4c S8 正向判定（锚点 AND 内核词 → consumed） — 产物首两行="# Backend Validator Agent\nportman scripts/lib/adapters/portman.mjs."
+PASS T4d S8 负向判定（仅锚点 → 不 consumed） — kernel 资产仅锚点 → assetConsumed=false（防门禁退化，D-1）
+PASS T4e S8 E2E 正向：composer 接线后 exec>0 且 false(正)=0 — exec=5 prompt 子任务=5 false(正)=0
+PASS T4f S8 E2E：brief.md 确为 composer 六段产物 — be-validator brief 含 # Role/# Verification 段
+PASS T4g S8 E2E 负向：composer 产物仅锚点 → false>0（门禁未退化） — false(负)=2
+PASS T5a 6KB 段截断为 4096B 前缀 — prefixBytes=4096 (期望 4096) originalBytes=6170（期望 6170）
+PASS T5b 截断标注 [truncated] 具名 — 标注含段名与全文指引
+PASS T5c UTF-8 安全（无残字符 �） — CJK 边界字符清除
+PASS T5d CJK 多字节边界截断安全 — 7500B CJK → ≤4096B 且无残字符
+PASS T5e 段内 ≤4KB 不截断 — 原样返回
+PASS T5f GW-1 截断语义不受影响（治理仍 5KB） — composer 段 4KB / 治理正文 5KB 独立护栏
+PASS T6a governanceSection 插槽嵌入（六段之后） — 治理节位于 Verification 段之后
+PASS T6b 无 governanceSection → 不渲染该节 — 插槽缺省零行为
+PASS T6c 治理节与六段共存（governPlanAssets 后接 composer） — implementation: 正文+TDD 治理节（前缀）→ # Role…六段（后缀）共存；be-validator 六段独立
+PASS T6d 行缺失资产原样返回（Map 同一实例） — 零组合 → 原样返回
+PASS T6e kill-switch YY_PROMPT_COMPOSER=off → 原样 — 逃生舱零行为面
+PASS T6f YY_ACTIVATION=lib 帧路径跳过（T4 谓词 (b) 护栏） — 与 governPlanAssets 同护栏
+
+TOTAL=33 PASS=33 FAIL=0
