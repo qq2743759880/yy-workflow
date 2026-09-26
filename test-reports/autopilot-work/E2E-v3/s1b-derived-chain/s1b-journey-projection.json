@@ -1,0 +1,63 @@
+{
+  "workspace": "D:/.ai-hub/skills/yy/test-reports/autopilot-work/E2E-v3/tmp/ws-s1b",
+  "ok": true,
+  "code": null,
+  "subtaskRows": [
+    {
+      "subtaskId": "plan-muir3xku-0",
+      "asset": "be-validator",
+      "status": "done",
+      "capability": "openapi-validation",
+      "capabilitySource": "derived",
+      "selectedAsset": "be-validator"
+    },
+    {
+      "subtaskId": "plan-muir3xku-1",
+      "asset": "sdlc",
+      "status": "skipped",
+      "capability": "openapi-validation",
+      "capabilitySource": "derived",
+      "selectedAsset": "sdlc"
+    },
+    {
+      "subtaskId": "plan-muir3xku-2",
+      "asset": "be-validator",
+      "status": "done",
+      "capability": "openapi-validation",
+      "capabilitySource": "derived",
+      "selectedAsset": "be-validator"
+    },
+    {
+      "subtaskId": "plan-muir3xku-3",
+      "asset": "review",
+      "status": "skipped",
+      "capability": "openapi-validation",
+      "capabilitySource": "derived",
+      "selectedAsset": "review"
+    },
+    {
+      "subtaskId": "plan-muir3xku-4",
+      "asset": "be-validator",
+      "status": "skipped",
+      "capability": "openapi-validation",
+      "capabilitySource": "derived",
+      "selectedAsset": "be-validator"
+    }
+  ],
+  "planRows": [
+    {
+      "planId": "plan-muir3xku",
+      "cluster": "T2_BACKEND",
+      "status": "done",
+      "provenance": null,
+      "inferred": false
+    },
+    {
+      "planId": "plan-muir3xku",
+      "cluster": "T2_BACKEND",
+      "status": "done",
+      "provenance": null,
+      "inferred": true
+    }
+  ]
+}

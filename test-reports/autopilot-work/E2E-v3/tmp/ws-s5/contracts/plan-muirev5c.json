@@ -1,0 +1,7 @@
+{
+  "planId": "plan-muirev5c",
+  "cluster": "T2_BACKEND",
+  "contract": "backend interface and error contract",
+  "task": "对登录接口做安全审计",
+  "frozenAt": "2026-09-26T19:05:14.545Z"
+}

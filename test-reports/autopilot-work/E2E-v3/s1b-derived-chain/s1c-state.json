@@ -1,0 +1,121 @@
+{
+  "id": "plan-muir4n38",
+  "task": "数据库 schema 做 OpenAPI 校验",
+  "cluster": "T1_DATABASE",
+  "contract": "database contract",
+  "requireExec": false,
+  "preconditions": [
+    "数据库 schema/数据契约产物须先冻结（contracts/<planId>.json 或 --contract），下游 be-validator/sdlc 才开工",
+    "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1 机验，缺则 assetConsumed=false）"
+  ],
+  "phases": 2,
+  "subtasks": [
+    {
+      "id": "plan-muir4n38-0",
+      "planId": "plan-muir4n38",
+      "asset": "be-validator",
+      "contract": "contracts\\plan-muir4n38.json",
+      "status": "done",
+      "artifactPath": "artifacts\\plan-muir4n38-0\\contract-result.json",
+      "attempts": 1,
+      "phase": 0,
+      "dependsOn": [],
+      "preconditions": [
+        "数据库 schema/数据契约产物须先冻结（contracts/<planId>.json 或 --contract），下游 be-validator/sdlc 才开工",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1 机验，缺则 assetConsumed=false）"
+      ],
+      "capability": "openapi-validation",
+      "capabilitySource": "derived",
+      "task": "数据库 schema 做 OpenAPI 校验",
+      "contractMode": "frozen",
+      "eligibility": {
+        "capability": "openapi-validation",
+        "selected_asset": "be-validator",
+        "eligible": true,
+        "reason": [
+          "capability match: 请求「openapi-validation」→ CAPABILITY_MAP 命中 manifest id「be-validator」（受控映射，无语义扩展）",
+          "无正向依据：未提供 requirements/constraints 提示——如实标注，不否决（无负向命中）"
+        ]
+      },
+      "selectedAsset": "be-validator",
+      "mode": "planned-only",
+      "adapter": "be-validator"
+    },
+    {
+      "id": "plan-muir4n38-1",
+      "planId": "plan-muir4n38",
+      "asset": "be-validator",
+      "contract": "D:/.ai-hub/skills/yy/test-reports/autopilot-work/E2E-v3/s1b-derived-chain/openapi.json",
+      "status": "done",
+      "artifactPath": "artifacts\\plan-muir4n38-1\\contract-result.json",
+      "attempts": 1,
+      "phase": 1,
+      "dependsOn": [
+        "plan-muir4n38-0"
+      ],
+      "preconditions": [
+        "数据库 schema/数据契约产物须先冻结（contracts/<planId>.json 或 --contract），下游 be-validator/sdlc 才开工",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1 机验，缺则 assetConsumed=false）"
+      ],
+      "capability": "openapi-validation",
+      "capabilitySource": "derived",
+      "task": "数据库 schema 做 OpenAPI 校验",
+      "contractMode": "frozen",
+      "eligibility": {
+        "capability": "openapi-validation",
+        "selected_asset": "be-validator",
+        "eligible": true,
+        "reason": [
+          "capability match: 请求「openapi-validation」→ CAPABILITY_MAP 命中 manifest id「be-validator」（受控映射，无语义扩展）",
+          "无正向依据：未提供 requirements/constraints 提示——如实标注，不否决（无负向命中）"
+        ]
+      },
+      "selectedAsset": "be-validator",
+      "mode": "exec",
+      "adapter": "be-validator"
+    },
+    {
+      "id": "plan-muir4n38-2",
+      "planId": "plan-muir4n38",
+      "asset": "be-validator",
+      "contract": "contracts\\plan-muir4n38.json",
+      "status": "done",
+      "artifactPath": "artifacts\\plan-muir4n38-2\\contract-result.json",
+      "attempts": 1,
+      "phase": 1,
+      "dependsOn": [
+        "plan-muir4n38-0"
+      ],
+      "preconditions": [
+        "数据库 schema/数据契约产物须先冻结（contracts/<planId>.json 或 --contract），下游 be-validator/sdlc 才开工",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1 机验，缺则 assetConsumed=false）"
+      ],
+      "capability": "openapi-validation",
+      "capabilitySource": "derived",
+      "task": "数据库 schema 做 OpenAPI 校验",
+      "contractMode": "frozen",
+      "eligibility": {
+        "capability": "openapi-validation",
+        "selected_asset": "be-validator",
+        "eligible": true,
+        "reason": [
+          "capability match: 请求「openapi-validation」→ CAPABILITY_MAP 命中 manifest id「be-validator」（受控映射，无语义扩展）",
+          "无正向依据：未提供 requirements/constraints 提示——如实标注，不否决（无负向命中）"
+        ]
+      },
+      "selectedAsset": "be-validator",
+      "mode": "planned-only",
+      "adapter": "be-validator"
+    }
+  ],
+  "status": "done",
+  "createdAt": "2026-09-26T18:57:17.541Z",
+  "degraded": false,
+  "modes": {
+    "planned-only": 2,
+    "exec": 1
+  },
+  "warnings": [
+    "2 个子任务为 planned-only 降级（外部 CLI 缺失）"
+  ]
+}

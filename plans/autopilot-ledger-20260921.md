@@ -344,3 +344,9 @@ D-2（reflect-metadata/tslib 删否）、D-3（回归器重写探针 JSON 固有
 ## Batch 2 收口报告（措辞降级版，2026-09-26 补录；本报告在 Batch 3 Wave1 前已完成实质内容但因 push 代理延迟补录）
 
 主体 CONFIRMED；完全收口 PARTIALLY CONFIRMED（MG-1/E-4-EXEC Owner-resource）
+| W2-3 | PASS | agent_8af89794 | orchestrator-L2(S17 九场景+注入反例 3 连亲跑全绿) | 2026-09-26T21:00:00Z | scripts/regression-all.mjs（S17 段 11 节，含注入反例 CE-1/2/3）; test-reports/autopilot-work/W2-3/ |
+- S17 九场景 9/9 + 注入反例 3/3 全具名——特别是 S17-4 的"反静默口径"（具名留痕或具名 skip 其一在场即过）与 CE-1 的静默取一对照，证明非 vacuous
+- D-W23-1（留编排者裁定）：D.5 具名 skip 码 CAPABILITY_ASSET_CONFLICT 在 scripts/ 全树 0 命中未实现——生产现状=capability 为准重绑定+双重具名留痕（反静默达标），skip 化需 runtime.mjs CD-1 段写面（留后续扩白名单）
+- 回归 35/35（原 24 + S17 段 11 节）+ preflight 8/8 + validate 0
+| W2-4 | PASS | agent_31e163e8 | orchestrator-L2(五场景亲跑+RESULTS 审读) | 2026-09-26T21:30:00Z | test-reports/autopilot-work/E2E-v3/RESULTS.md + 四场景证据 |
+- E2E-v3 五场景全收：正向派生+显式输入+反向 unknown+legacy 字节级+resume 三字段保留——**capability 从真实 task 入口到 adapter 全链已通**

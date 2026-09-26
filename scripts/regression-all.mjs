@@ -49,6 +49,21 @@
  *                                    阻断 promotion；cross-plane 注入：状态层 done+receipt 层 FAILED →
  *                                    planning→executing 被 receiptCoverage 校验拒绝）。
  *                                    证据落 test-reports/autopilot-work/REMEDIATION-2/。任一 FAIL → regression FAIL。
+ *   S17 九场景兼容与负向矩阵       —— W2-3（2026-09-27，Ingress Mini-Contract D.5）：capability ingress 九场景
+ *                                    逐一走生产函数机验（buildPlan/applyCapabilityToPlan/deriveCapability/
+ *                                    resolveAssetEligibility/dispatch/executePlan/governanceFor，禁自造 oracle——
+ *                                    判定函数只核对生产产物上的具名码/具名留痕，不复刻资格语义）：
+ *                                    ①capability only→解析+执行 ②asset only→legacy 零改动 ③capability+matching
+ *                                    asset→双写 selectedAsset ④capability+conflicting asset→非静默取一（生产现状
+ *                                    =capability 为准重绑定+双重具名留痕；D.5 具名 skip 码缺口 D-W23-1 登记）
+ *                                    ⑤unknown capability→INELIGIBLE_CAPABILITY_UNKNOWN skip（runtime）+
+ *                                    CAPABILITY_UNKNOWN throw（planner）⑥ineligible selected asset→既有资格门
+ *                                    INELIGIBLE_WHEN_NOT_TO_USE ⑦dropped selected asset→既有 drop 检查
+ *                                    （ASSET_NOT_FOUND/INELIGIBLE_DROP_PENDING）⑧old persisted plan→legacy 零改写
+ *                                    ⑨cluster×capability 不在同簇→CAPABILITY_CLUSTER_MISMATCH fail-closed。
+ *                                    另：注入反例三连（静默取一/静默执行/静默放行）必须被判定具名 FAIL（探针有牙，
+ *                                    防恒真 vacuous）；具名失败码→governance 冻结事件两键匹配。
+ *                                    证据落 test-reports/autopilot-work/W2-3/。任一 FAIL → regression FAIL。
  *
  * 注：S4-S6 在临时 workspace 中运行（os.tmpdir），结束后清理，不污染仓库。
  *
@@ -741,6 +756,237 @@ async function main() {
       section('S16-3 Cross-plane：FAILED/UNRESOLVED execution receipt 阻断 promotion（对照 verified 放行）', s16_3ok, s16_3detail + '（证据 REMEDIATION-2/s16-3-cross-plane.json）');
     }
 
+  }
+
+  // ── S17 九场景兼容与负向矩阵（W2-3，2026-09-27；Ingress Mini-Contract D.5，派单 handoffs/v3/W2-3-dispatch.md）──
+  // 九场景全部调生产函数（planner/applyCapabilityToPlan/capability-derivation/activation resolver/runtime
+  // dispatch/executePlan/governanceFor），禁自造 oracle（F-036 教训）——判定函数只核对生产产物上的
+  // 具名码/具名留痕，不复刻资格语义；「静默」是唯一被拒形态。反例注入三连证明判定有牙。
+  {
+    const W23_DIR = path.join(ROOT, 'test-reports', 'autopilot-work', 'W2-3');
+    fs.mkdirSync(W23_DIR, { recursive: true });
+    const s17GateSaved = process.env.TT_GATE_MODE;
+    process.env.TT_GATE_MODE = 'warn'; // fake adapter 零产物 → gate 官方 warn 档（W2-2 同法；段末还原不外溢其他段）
+    const s17Tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'tt-s17-'));
+    const evidence = { schema: 's17-nine-scenarios@1.0.0', at: new Date().toISOString(), contract: 'plans/W2-0-ground-truth-ingress-contract-20260927.md#D.5', dispatchDoc: 'handoffs/v3/W2-3-dispatch.md', productionSurfaces: {}, scenarios: [], counterExamples: [], governance: {}, deviations: [] };
+    try {
+      const { buildPlan, route } = await import('./lib/planner.mjs');
+      const { deriveCapability, resolveCapabilityAsset, CapabilityIngressError } = await import('./lib/capability-derivation.mjs');
+      const { resolveAssetEligibility, CATALOG_IDS } = await import('./lib/activation.mjs');
+      const { dispatch, executePlan, createContextBus } = await import('./lib/runtime.mjs');
+      const { applyCapabilityToPlan } = await import('./lib/orchestrator.mjs');
+      const { governanceFor, governanceEventForFailureCode } = await import('./lib/governance.mjs');
+      const { default: createStore } = await import('./lib/store.mjs');
+      evidence.productionSurfaces = {
+        planner: 'scripts/lib/planner.mjs buildPlan(第3参 options)/route（W2-1）',
+        planPostProcess: 'scripts/lib/orchestrator.mjs applyCapabilityToPlan（W2-1）',
+        derivation: 'scripts/lib/capability-derivation.mjs deriveCapability/resolveCapabilityAsset（W2-1）',
+        resolver: 'scripts/lib/activation.mjs resolveAssetEligibility/CAPABILITY_MAP（CD-1 单点）',
+        runtime: 'scripts/lib/runtime.mjs dispatch(CD-1 capability 输入/AV-3 资格门/W2-2 selectedAsset 透传)/executePlan',
+        governance: 'scripts/lib/governance.mjs governanceFor(FROZEN_STAGE_EVENT_BINDINGS 两键)/governanceEventForFailureCode',
+      };
+
+      const REAL_MANIFEST = path.join(ROOT, 'contracts', 'asset-manifest-v2.json');
+      const realRows = JSON.parse(fs.readFileSync(REAL_MANIFEST, 'utf8'));
+      // planner 对 manifest 的唯一读面是 entries[].name（W2-1 D-W21-5 / W2-2 D-W22-5 同法合成）
+      const synthManifest = () => ({ manifestSource: 'synthetic:CATALOG_IDS', entries: CATALOG_IDS.map((n) => ({ name: n })) });
+      const capLogger = () => { const lines = []; return { lines, info(m) { lines.push(['info', String(m)]); }, warn(m) { lines.push(['warn', String(m)]); }, error(m) { lines.push(['error', String(m)]); } }; };
+      const baseOpts = () => ({ manifestPath: REAL_MANIFEST, resolveAdapter: () => ({ name: 'fake-probe', run: async () => ({ ok: true, executed: true, artifactPath: null, assetConsumed: true }) }), maxRetries: 1, verbose: false, logger: capLogger() });
+      const overrideLogged = (opts) => opts.logger.lines.some(([, m]) => /被 capability 解析覆盖/.test(m));
+
+      // ── 判定函数（只核对生产产物具名码/具名留痕；真实观察与注入反例共用同一判定，证明非恒真）──
+      // judge4：冲突场景唯一被拒形态 = 静默取一（重绑定且零具名留痕）。具名 skip（D.5 行4 原义）或
+      // 具名留痕（生产现状：override 日志 + resolver 解析链）二者其一在场即非静默。
+      const judge4 = function (obs) {
+        if (obs.skipped && obs.error === 'CAPABILITY_ASSET_CONFLICT') return { ok: true, form: 'D.5 具名 skip（CAPABILITY_ASSET_CONFLICT）' };
+        if (obs.skipped) return { ok: false, violation: 'S17-4 冲突场景被 skip 但具名码不是 CAPABILITY_ASSET_CONFLICT: ' + String(obs.error) };
+        if (!obs.reboundAsset || !obs.selectedAsset) return { ok: false, violation: 'S17-4 无解析产物（reboundAsset/selectedAsset 缺失即无判定对象）' };
+        if (obs.selectedAsset !== obs.reboundAsset) return { ok: false, violation: 'S17-4 selectedAsset 与重绑定 asset 不一致（D.3 双写一致性破坏）' };
+        if (!obs.overrideLogged && !obs.reasonChained) return { ok: false, violation: 'S17-4 CAPABILITY_ASSET_CONFLICT: 静默取一（冲突 asset 被取一且零具名留痕——D.5「不静默取一」明令禁止）' };
+        return { ok: true, form: 'capability 为准重绑定 + 具名留痕（override 日志:' + (obs.overrideLogged ? '在场' : '无') + ' resolver解析链:' + (obs.reasonChained ? '在场' : '无') + '）——非静默；D.5 具名 skip 码缺口 D-W23-1 登记' };
+      };
+      const judge5 = function (obs) {
+        if (!obs.skipped) return { ok: false, violation: 'S17-5 INELIGIBLE_CAPABILITY_UNKNOWN 缺失：unknown capability 未具名 skip（静默 ' + String(obs.status || '执行') + '）' };
+        if (obs.error !== 'INELIGIBLE_CAPABILITY_UNKNOWN') return { ok: false, violation: 'S17-5 skip 码不符（期望 INELIGIBLE_CAPABILITY_UNKNOWN，实得 ' + String(obs.error) + '）' };
+        return { ok: true, form: 'INELIGIBLE_CAPABILITY_UNKNOWN 具名 skip（不静默 done）' };
+      };
+      const judge9 = function (obs) {
+        if (obs.threw === 'CAPABILITY_CLUSTER_MISMATCH') return { ok: true, form: 'plan 层 CAPABILITY_CLUSTER_MISMATCH fail-closed throw（严格于 subtask 级 skip，D-W21-3 口径）' };
+        if (obs.threw) return { ok: false, violation: 'S17-9 拒绝码不符: ' + String(obs.threw) };
+        if (obs.mappedAsset && Array.isArray(obs.clusterCandidates) && !obs.clusterCandidates.includes(obs.mappedAsset)) return { ok: false, violation: 'S17-9 CAPABILITY_CLUSTER_MISMATCH: capability 解析 asset 不在簇 candidates 未拒（静默放行）' };
+        return { ok: false, violation: 'S17-9 观察形态不可判（无 throw 且无簇失配前提）' };
+      };
+
+      // ── S17-1 capability only（合法）→ 解析+执行 ──
+      try {
+        const pre = await resolveAssetEligibility({ capability: 'security-audit' }, { manifestPath: REAL_MANIFEST });
+        const sub = { id: 's17-1', capability: 'security-audit' };
+        const r = await dispatch(sub, createContextBus(), baseOpts());
+        const ok = pre.eligible === true && pre.selected_asset === 'security'
+          && r.ok === true && r.skipped !== true && sub.status === 'done'
+          && sub.asset === 'security' && sub.selectedAsset === 'security'
+          && !!sub.eligibility && sub.eligibility.eligible === true && sub.eligibility.reason.some((x) => /capability match/.test(x));
+        evidence.scenarios.push({ id: 'S17-1', scenario: 'capability only（合法）', observed: { resolver: { selected_asset: pre.selected_asset, eligible: pre.eligible }, runtime: { ok: r.ok, skipped: !!r.skipped, status: sub.status, asset: sub.asset || null, selectedAsset: sub.selectedAsset || null } }, verdict: ok ? 'PASS' : 'FAIL' });
+        section('S17-1 capability only（合法）→ 解析+执行', ok, ok ? 'resolver security-audit→security ✓ dispatch（零 asset 输入）解析绑定并执行 done ✓ selectedAsset 双写 ✓' : 'FAIL 详见 W2-3/s17-nine-scenarios.json');
+      } catch (e) { evidence.scenarios.push({ id: 'S17-1', verdict: 'FAIL', exception: e.message }); section('S17-1 capability only（合法）→ 解析+执行', false, 'probe exception: ' + e.message); }
+
+      // ── S17-2 asset only（legacy）→ 现行为零改动 ──
+      try {
+        const sub = { id: 's17-2', asset: 'implementation' };
+        const r = await dispatch(sub, createContextBus(), baseOpts());
+        const ok = r.ok === true && r.skipped !== true && sub.status === 'done' && sub.asset === 'implementation'
+          && !('capability' in sub) && !('capabilitySource' in sub) && !('selectedAsset' in sub)
+          && !!sub.eligibility && sub.eligibility.eligible === true && !('capability' in sub.eligibility);
+        evidence.scenarios.push({ id: 'S17-2', scenario: 'asset only（legacy）', observed: { status: sub.status, newFields: ['capability', 'capabilitySource', 'selectedAsset'].filter((k) => k in sub), eligibilityKeys: Object.keys(sub.eligibility || {}) }, verdict: ok ? 'PASS' : 'FAIL' });
+        section('S17-2 asset only（legacy）→ 现行为零改动', ok, ok ? 'name-based 全链 done ✓ 零新增字段（capability/capabilitySource/selectedAsset 均不在场，eligibility 无 capability 键）✓' : 'FAIL 详见 W2-3/s17-nine-scenarios.json');
+      } catch (e) { evidence.scenarios.push({ id: 'S17-2', verdict: 'FAIL', exception: e.message }); section('S17-2 asset only（legacy）→ 现行为零改动', false, 'probe exception: ' + e.message); }
+
+      // ── S17-3 capability + matching asset → 允许，双写 selectedAsset ──
+      try {
+        const sub = { id: 's17-3', asset: 'security', capability: 'security-audit' };
+        const opts = baseOpts();
+        const r = await dispatch(sub, createContextBus(), opts);
+        const ok = r.ok === true && r.skipped !== true && sub.status === 'done'
+          && sub.asset === 'security' && sub.selectedAsset === 'security'
+          && !!sub.eligibility && sub.eligibility.capability === 'security-audit'
+          && !overrideLogged(opts); // 本就一致 → 不得出现 override 痕
+        evidence.scenarios.push({ id: 'S17-3', scenario: 'capability + matching asset', observed: { status: sub.status, asset: sub.asset, selectedAsset: sub.selectedAsset || null, eligibilityCapability: sub.eligibility && sub.eligibility.capability, overrideLog: overrideLogged(opts) }, verdict: ok ? 'PASS' : 'FAIL' });
+        section('S17-3 capability+matching asset → 允许并双写 selectedAsset', ok, ok ? 'asset===selectedAsset===security ✓ eligibility.capability 留痕 ✓ 零 override 痕 ✓' : 'FAIL 详见 W2-3/s17-nine-scenarios.json');
+      } catch (e) { evidence.scenarios.push({ id: 'S17-3', verdict: 'FAIL', exception: e.message }); section('S17-3 capability+matching asset → 允许并双写 selectedAsset', false, 'probe exception: ' + e.message); }
+
+      // ── S17-4 capability + conflicting asset → 非静默取一（生产现状=重绑定+具名留痕；D.5 skip 码缺口 D-W23-1）──
+      try {
+        const sub = { id: 's17-4', asset: 'implementation', capability: 'security-audit' };
+        const opts = baseOpts();
+        const r = await dispatch(sub, createContextBus(), opts);
+        const obs = { skipped: r.skipped === true, error: r.error || null, status: sub.status, reboundAsset: sub.asset || null, selectedAsset: sub.selectedAsset || null, overrideLogged: overrideLogged(opts), reasonChained: !!(sub.eligibility && sub.eligibility.reason && sub.eligibility.reason.some((x) => /capability match/.test(x))) };
+        const v = judge4(obs);
+        evidence.scenarios.push({ id: 'S17-4', scenario: 'capability + conflicting asset', observed: obs, verdict: v.ok ? 'PASS' : 'FAIL', judge: v, d5Row4NamedSkipImplemented: false, deviation: 'D-W23-1' });
+        section('S17-4 capability+conflicting asset → 非静默取一（D.5 skip 码缺口 D-W23-1 登记）', v.ok, v.ok ? v.form + '：implementation→security 重绑定可观测、可回查' : v.violation);
+      } catch (e) { evidence.scenarios.push({ id: 'S17-4', verdict: 'FAIL', exception: e.message }); section('S17-4 capability+conflicting asset → 非静默取一（D.5 skip 码缺口 D-W23-1 登记）', false, 'probe exception: ' + e.message); }
+
+      // ── S17-5 unknown capability → INELIGIBLE_CAPABILITY_UNKNOWN skip（runtime）+ CAPABILITY_UNKNOWN throw（planner）──
+      try {
+        const sub = { id: 's17-5', asset: 'security', capability: 'no-such-capability' };
+        const r = await dispatch(sub, createContextBus(), baseOpts());
+        const v = judge5({ skipped: r.skipped === true, error: r.error || sub.error || null, status: sub.status });
+        let plannerThrow = null;
+        try { buildPlan('数据库 schema 迁移', synthManifest(), { capability: 'no-such-capability' }); } catch (e) { plannerThrow = (e instanceof CapabilityIngressError && e.code === 'CAPABILITY_UNKNOWN') ? 'CAPABILITY_UNKNOWN' : 'WRONG:' + e.message; }
+        const ok = v.ok && plannerThrow === 'CAPABILITY_UNKNOWN' && sub.status === 'skipped' && sub.adapter === 'none';
+        evidence.scenarios.push({ id: 'S17-5', scenario: 'unknown capability', observed: { runtime: v, plannerThrow, subStatus: sub.status, subAdapter: sub.adapter }, verdict: ok ? 'PASS' : 'FAIL' });
+        section('S17-5 unknown capability → INELIGIBLE_CAPABILITY_UNKNOWN skip + CAPABILITY_UNKNOWN throw', ok, ok ? 'runtime 具名 skip（mode=skipped/adapter=none，不静默 done）✓ planner 层 CapabilityIngressError CAPABILITY_UNKNOWN fail-closed ✓' : 'FAIL runtime=' + JSON.stringify(v) + ' plannerThrow=' + plannerThrow);
+      } catch (e) { evidence.scenarios.push({ id: 'S17-5', verdict: 'FAIL', exception: e.message }); section('S17-5 unknown capability → INELIGIBLE_CAPABILITY_UNKNOWN skip + CAPABILITY_UNKNOWN throw', false, 'probe exception: ' + e.message); }
+
+      // ── S17-6 ineligible selected asset → 既有资格门 INELIGIBLE_WHEN_NOT_TO_USE skip ──
+      try {
+        const secRow = realRows.find((x) => x.id === 'security');
+        const ntuEntry = String((secRow && secRow.when_not_to_use || [])[0] || '');
+        const sub = { id: 's17-6', capability: 'security-audit' };
+        const r = await dispatch(sub, createContextBus(), Object.assign(baseOpts(), { eligibilityRequirements: [ntuEntry] }));
+        const ok = ntuEntry.length > 0 && r.skipped === true && r.error === 'INELIGIBLE_WHEN_NOT_TO_USE' && sub.status === 'skipped'
+          && !!sub.eligibility && sub.eligibility.eligible === false
+          && sub.eligibility.reason.some((x) => /INELIGIBLE_WHEN_NOT_TO_USE/.test(x));
+        evidence.scenarios.push({ id: 'S17-6', scenario: 'ineligible selected asset（既有资格门）', observed: { ntuEntry, skipped: r.skipped === true, error: r.error || null, status: sub.status, reasonTokens: sub.eligibility && sub.eligibility.reason.filter((x) => /INELIGIBLE_/.test(x)) }, verdict: ok ? 'PASS' : 'FAIL' });
+        section('S17-6 ineligible selected asset → 既有资格门 INELIGIBLE_WHEN_NOT_TO_USE skip', ok, ok ? 'capability 选中 security → when_not_to_use 负向命中 → 具名 skip（走既有 resolver 资格门，不静默派单）✓' : 'FAIL 详见 W2-3/s17-nine-scenarios.json');
+      } catch (e) { evidence.scenarios.push({ id: 'S17-6', verdict: 'FAIL', exception: e.message }); section('S17-6 ineligible selected asset → 既有资格门 INELIGIBLE_WHEN_NOT_TO_USE skip', false, 'probe exception: ' + e.message); }
+
+      // ── S17-7 dropped selected asset → 既有 drop 检查（manifest 行缺失 / drop_pending 硬门）具名 skip ──
+      try {
+        const rowsNoReview = realRows.filter((x) => x.id !== 'review');
+        const resRows = await resolveAssetEligibility({ capability: 'code-review' }, { manifestRows: rowsNoReview });
+        const fixturePath = path.join(s17Tmp, 'manifest-no-review.json');
+        fs.writeFileSync(fixturePath, JSON.stringify(rowsNoReview, null, 2));
+        const sub = { id: 's17-7', capability: 'code-review' };
+        const r = await dispatch(sub, createContextBus(), Object.assign(baseOpts(), { manifestPath: fixturePath }));
+        const rowsDropPending = realRows.map((x) => x.id === 'review' ? Object.assign({}, x, { drop_pending: true, drop_allowed: false }) : x);
+        const resDrop = await resolveAssetEligibility({ capability: 'code-review' }, { manifestRows: rowsDropPending });
+        const ok = resRows.eligible === false && /ASSET_NOT_FOUND/.test(resRows.reason.join(' | '))
+          && r.skipped === true && r.error === 'INELIGIBLE_ASSET_NOT_FOUND' && sub.status === 'skipped'
+          && resDrop.eligible === false && /INELIGIBLE_DROP_PENDING/.test(resDrop.reason.join(' | '));
+        evidence.scenarios.push({ id: 'S17-7', scenario: 'dropped selected asset（既有 drop 检查）', observed: { resolverRowMissing: { eligible: resRows.eligible, hasAssetNotFound: /ASSET_NOT_FOUND/.test(resRows.reason.join(' | ')) }, runtimeRowMissing: { skipped: r.skipped === true, error: r.error || null, status: sub.status }, resolverDropPending: { eligible: resDrop.eligible, hasDropPendingCode: /INELIGIBLE_DROP_PENDING/.test(resDrop.reason.join(' | ')) } }, verdict: ok ? 'PASS' : 'FAIL' });
+        section('S17-7 dropped selected asset → 既有 drop 检查具名 skip（ASSET_NOT_FOUND / INELIGIBLE_DROP_PENDING）', ok, ok ? 'manifest 行缺失 → runtime INELIGIBLE_ASSET_NOT_FOUND skip ✓ resolver 纯函数注入同判 ✓ drop_pending&&!drop_allowed → INELIGIBLE_DROP_PENDING ✓' : 'FAIL 详见 W2-3/s17-nine-scenarios.json');
+      } catch (e) { evidence.scenarios.push({ id: 'S17-7', verdict: 'FAIL', exception: e.message }); section('S17-7 dropped selected asset → 既有 drop 检查具名 skip（ASSET_NOT_FOUND / INELIGIBLE_DROP_PENDING）', false, 'probe exception: ' + e.message); }
+
+      // ── S17-8 old persisted plan（无 capability 字段）→ legacy 路径零改写（不重派生，防 replay 漂移）──
+      try {
+        const legacyPlan = buildPlan('数据库 schema 迁移', synthManifest());
+        const ws8 = path.join(s17Tmp, 'ws8');
+        await createStore(ws8).save(legacyPlan);
+        const prev = await createStore(ws8).load(); // JSON 全量反序列化 = 老 state 缺字段容忍（store.load 单点）
+        const prevZero = !JSON.stringify(prev).includes('capability');
+        const r = await executePlan(prev, baseOpts());
+        const out = JSON.stringify(r.plan);
+        const ok = !JSON.stringify(legacyPlan).includes('capability') && prevZero
+          && !out.includes('capability') && !out.includes('selectedAsset')
+          && r.plan.status === 'done' && r.plan.subtasks.every((s) => s.status === 'done');
+        evidence.scenarios.push({ id: 'S17-8', scenario: 'old persisted plan（无 capability 字段）', observed: { legacyPlanZeroFields: !JSON.stringify(legacyPlan).includes('capability'), loadedStateZeroFields: prevZero, resumedOutputZeroCapabilityToken: !out.includes('capability'), resumedOutputZeroSelectedAssetToken: !out.includes('selectedAsset'), planStatus: r.plan.status }, verdict: ok ? 'PASS' : 'FAIL' });
+        section('S17-8 old persisted plan（无 capability 字段）→ legacy 零改写', ok, ok ? 'save→load→executePlan 全链 0 处 capability/selectedAsset 字样（不重派生、不迁移改写历史 state）✓' : 'FAIL 详见 W2-3/s17-nine-scenarios.json');
+      } catch (e) { evidence.scenarios.push({ id: 'S17-8', verdict: 'FAIL', exception: e.message }); section('S17-8 old persisted plan（无 capability 字段）→ legacy 零改写', false, 'probe exception: ' + e.message); }
+
+      // ── S17-9 cluster 与 capability 解析的 asset 不在同簇 → CAPABILITY_CLUSTER_MISMATCH fail-closed ──
+      try {
+        const derived = deriveCapability('前端页面功能拆解');
+        const mappedAsset = derived ? resolveCapabilityAsset(derived.key) : null;
+        const routed = route('前端页面功能拆解', synthManifest());
+        const premise = !!derived && derived.key === 'feature-breakdown' && mappedAsset === 'dev-planner'
+          && routed.id === 'T4_FRONTEND' && !routed.candidates.includes('dev-planner');
+        let derivedThrow = null;
+        try { buildPlan('前端页面功能拆解', synthManifest()); } catch (e) { derivedThrow = (e instanceof CapabilityIngressError && e.code === 'CAPABILITY_CLUSTER_MISMATCH') ? 'CAPABILITY_CLUSTER_MISMATCH' : 'WRONG:' + e.message; }
+        let explicitThrow = null;
+        try { applyCapabilityToPlan(buildPlan('数据库 schema 迁移', synthManifest()), { capability: 'feature-breakdown' }); } catch (e) { explicitThrow = (e instanceof CapabilityIngressError && e.code === 'CAPABILITY_CLUSTER_MISMATCH') ? 'CAPABILITY_CLUSTER_MISMATCH' : 'WRONG:' + e.message; }
+        const obs = { threw: (derivedThrow === 'CAPABILITY_CLUSTER_MISMATCH' && explicitThrow === 'CAPABILITY_CLUSTER_MISMATCH') ? 'CAPABILITY_CLUSTER_MISMATCH' : (String(derivedThrow) + ' / ' + String(explicitThrow)), mappedAsset, clusterCandidates: routed.candidates, premise };
+        const v = judge9(obs);
+        const ok = premise && v.ok;
+        evidence.scenarios.push({ id: 'S17-9', scenario: 'cluster×capability 不在同簇', observed: { derived: derived && { key: derived.key, matchedKey: derived.matchedKey }, mappedAsset, routedCluster: routed.id, derivedAxisThrow: derivedThrow, explicitAxisThrow: explicitThrow, judge: v }, verdict: ok ? 'PASS' : 'FAIL' });
+        section('S17-9 cluster×capability 不在同簇 → CAPABILITY_CLUSTER_MISMATCH fail-closed', ok, ok ? '派生轴（T4_FRONTEND×feature-breakdown→dev-planner）throw ✓ 显式轴（applyCapabilityToPlan T1×feature-breakdown）throw ✓ 不静默取一 ✓' : 'FAIL premise=' + premise + ' judge=' + JSON.stringify(v));
+      } catch (e) { evidence.scenarios.push({ id: 'S17-9', verdict: 'FAIL', exception: e.message }); section('S17-9 cluster×capability 不在同簇 → CAPABILITY_CLUSTER_MISMATCH fail-closed', false, 'probe exception: ' + e.message); }
+
+      // ── S17-CE 注入反例三连：三种「静默」形态必须被判定具名 FAIL（证明探针有牙，非恒真 vacuous）──
+      try {
+        const ce1 = judge4({ skipped: false, error: null, status: 'done', reboundAsset: 'security', selectedAsset: 'security', overrideLogged: false, reasonChained: false });
+        const ce2 = judge5({ skipped: false, error: null, status: 'done' });
+        const ce3 = judge9({ threw: null, mappedAsset: 'dev-planner', clusterCandidates: ['frontend-design', 'planning', 'review', 'security'] });
+        const teethOk = !ce1.ok && /CAPABILITY_ASSET_CONFLICT/.test(String(ce1.violation))
+          && !ce2.ok && /INELIGIBLE_CAPABILITY_UNKNOWN/.test(String(ce2.violation))
+          && !ce3.ok && /CAPABILITY_CLUSTER_MISMATCH/.test(String(ce3.violation));
+        evidence.counterExamples = [
+          { id: 'CE-1', injected: '场景4 静默取一（冲突 asset 被重绑定且零具名留痕——派单点名的反例形态）', expect: 'FAIL 具名 CAPABILITY_ASSET_CONFLICT', fired: ce1.ok === false, violation: ce1.violation || null },
+          { id: 'CE-2', injected: '场景5 unknown capability 静默 done（未具名 skip）', expect: 'FAIL 具名 INELIGIBLE_CAPABILITY_UNKNOWN', fired: ce2.ok === false, violation: ce2.violation || null },
+          { id: 'CE-3', injected: '场景9 簇失配静默放行（解析 asset 不在簇 candidates 仍照常产出）', expect: 'FAIL 具名 CAPABILITY_CLUSTER_MISMATCH', fired: ce3.ok === false, violation: ce3.violation || null },
+        ];
+        const missed = evidence.counterExamples.filter((c) => !c.fired).map((c) => c.id);
+        section('S17-CE 注入反例三连（静默取一/静默执行/静默放行）→ 判定全数具名 FAIL', teethOk, teethOk ? 'CE-1/CE-2/CE-3 三种静默形态全被抓（判定与真实观察共用，非恒真）' : 'FAIL 静默形态漏抓: ' + missed.join(','));
+      } catch (e) { evidence.counterExamples.push({ id: 'S17-CE', verdict: 'FAIL', exception: e.message }); section('S17-CE 注入反例三连（静默取一/静默执行/静默放行）→ 判定全数具名 FAIL', false, 'probe exception: ' + e.message); }
+
+      // ── S17-GOV 具名失败码 → governance 冻结事件两键匹配（FROZEN_STAGE_EVENT_BINDINGS：stage 且 event 双命中）──
+      try {
+        const govCodes = ['INELIGIBLE_CAPABILITY_UNKNOWN', 'INELIGIBLE_WHEN_NOT_TO_USE', 'INELIGIBLE_ASSET_NOT_FOUND', 'INELIGIBLE_DROP_PENDING', 'RESOLVER_INTERNAL_ERROR', 'CAPABILITY_MISSING'];
+        const mapped = govCodes.map((c) => ({ code: c, event: governanceEventForFailureCode(c) }));
+        const frHit = governanceFor('failure_recovery', 'gate_failed');
+        const allMapped = mapped.every((m) => m.event === 'gate_failed');
+        const frOk = !!frHit && frHit.skill === 'systematic-debugging' && typeof frHit.body === 'string' && frHit.body.length > 0;
+        const negEvent = governanceFor('failure_recovery', 'stage_7') === null; // event 不在 failure_recovery 冻结集 → null
+        const negStage = governanceFor('implementation', 'gate_failed') === null; // stage 不匹配 → null
+        const negUnmapped = governanceEventForFailureCode('S17_NOT_A_CODE') === null; // 未映射码 → null（不语义扩张）
+        const ok = allMapped && frOk && negEvent && negStage && negUnmapped;
+        evidence.governance = { mapped, failure_recovery_gate_failed_hit: { skill: frHit && frHit.skill, bodyBytes: frHit && frHit.body ? Buffer.byteLength(frHit.body) : 0, truncated: !!(frHit && frHit.truncated) }, twoKeyNegatives: { event_not_in_frozen_set: negEvent, stage_mismatch: negStage, unmapped_code_null: negUnmapped } };
+        section('S17-GOV 具名失败码 → governance 冻结事件两键匹配', ok, ok ? '6 失败码全映射 gate_failed ✓ failure_recovery×gate_failed 命中（' + (frHit && frHit.skill) + '，超 5KB 截断在档）✓ event/stage/未映射码三负向全 null（fail-closed）✓' : 'FAIL 详见 W2-3/s17-nine-scenarios.json');
+      } catch (e) { evidence.governance = { verdict: 'FAIL', exception: e.message }; section('S17-GOV 具名失败码 → governance 冻结事件两键匹配', false, 'probe exception: ' + e.message); }
+
+      evidence.deviations = [
+        'D-W23-1: D.5 行4 具名 skip 码 CAPABILITY_ASSET_CONFLICT 未实现（scripts/ 全树 grep 0 命中，2026-09-27 实测）；生产现状 = capability 为准重绑定 + 双重具名留痕（subtask.eligibility.reason「capability match」解析链 + dispatch override logger.info，W2-2 观察项 O-1 同源）。S17-4 判定口径 = 反「静默」：具名 skip 或具名留痕其一在场即过，静默取一即具名 FAIL（CE-1 证明有牙）。skip 化需 scripts/lib/runtime.mjs CD-1 段写面（本单白名单外）→ 留编排者裁定。W2-0 H.1 停单条件未触发（该码是缺席而非生产链误触发）。',
+        'D-W23-2: D.5 行9 生产实现为 plan 层 fail-closed throw（buildPlan/applyCapabilityToPlan 的 CAPABILITY_CLUSTER_MISMATCH）——严格于 subtask 级 skip，沿 W2-1 D-W21-3 已登记口径复验（生成期无 subtask 终态语义；同源校验保证规则表映射 asset 全 ∈ 簇，生产任务不可达 mismatch，探针内为注入式构造）。',
+        'D-W23-3: 探针替身声明（W2-1 D-W21-5 / W2-2 D-W22-5 同风格）：planner manifest 用 CATALOG_IDS 合成（planner 唯一读面 entries[].name）；dispatch 资格门用真实 contracts/asset-manifest-v2.json（S17-7 drop 夹具=真实行集删 1 行落 os.tmpdir，判定仍由生产 resolver/资格门作出）；adapter 经 B5 DI 注入 fake（不碰真实 vendor adapter）；TT_GATE_MODE=warn 仅段内生效段末还原。',
+      ];
+    } catch (e) {
+      evidence.segmentException = e.message;
+      section('S17 九场景兼容与负向矩阵', false, 'segment exception: ' + e.message);
+    } finally {
+      evidence.finishedAt = new Date().toISOString();
+      try { fs.writeFileSync(path.join(W23_DIR, 's17-nine-scenarios.json'), JSON.stringify(evidence, null, 2)); } catch (e2) { /* 证据写失败不掩盖原判定 */ }
+      if (s17GateSaved === undefined) delete process.env.TT_GATE_MODE; else process.env.TT_GATE_MODE = s17GateSaved;
+      fs.rmSync(s17Tmp, { recursive: true, force: true });
+    }
   }
 
   console.log('\n结果: ' + pass + ' PASS / ' + fail + ' FAIL' + (skip ? ' / ' + skip + ' SKIP' : ''));

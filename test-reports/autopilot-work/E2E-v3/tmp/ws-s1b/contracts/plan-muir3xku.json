@@ -1,0 +1,8 @@
+{
+  "planId": "plan-muir3xku",
+  "cluster": "T2_BACKEND",
+  "contract": "backend interface and error contract",
+  "task": "对登录接口做 OpenAPI 校验",
+  "frozenAt": "2026-09-26T18:56:44.480Z",
+  "contractSource": "D:/.ai-hub/skills/yy/test-reports/autopilot-work/E2E-v3/s1b-derived-chain/openapi.json"
+}
