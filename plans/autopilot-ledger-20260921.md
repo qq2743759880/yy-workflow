@@ -237,3 +237,13 @@ R-2 package.json 名义依赖清理；D-3 类 C 历史豁免永久保留；senti
 - V-1/V-3/V-5 偏差裁定：V-1 stage_7 单事件（shadow run 前无发射点，shadow-run 前注入列 backlog）；V-3 DOC_ONLY 形态追认；V-5 Failure Rules 代码化探针承认（仓内无独立 migration 状态机消费点——真实机验器是当前最优可行面）
 - FINAL-E2E 复跑 PASS + manifest c30fee6b 未变（REMEDIATION-2 全部改动对 manifest 零归因）
 - 批 1 closeout 状态：REMEDIATION-2 闭环 → PARTIALLY CONFIRMED 的三个补齐项（H1 真实拒绝/H2 更名/H3 索引 self-test）全部完成——升格 READY-FOR-CLOSE 待 Owner 三项裁定确认
+
+## 第十五轮审计处置（2026-09-26，四件事全盘认领——批 1 close 前最后一批）
+- **F-033【P0·成立】F-031 方案 B 反向暴露 split-brain**：冻结正文指针指向 ownerSignOff，而该字段全单 PENDING（ownerApprovalReceipt=SIGNED 并存同 JSON）——"消灭重复事实源"声明 CONFIRMED FALSE，split-brain 从跨文件变为单文件内双字段。整改=GOV-AUTHORITY 任务三：canonical=ownerApprovalReceipt.status（有机器校验函数），ownerSignOff 全量删除，指针改指 canonical
+- **F-034【P0/P1·成立】g0v3cons1 DOC_ONLY 绕过最严类规则**（touchedFiles 含两份冻结契约，change.mjs isFrozenContractPath 必须自动归 CONTRACT+receipt；手工登记+ownerSignOff PENDING=治理 authority bypass）——整改=旧单 voided+重立 r2（CONTRACT 类，Owner PENDING）；**新增 Owner PENDING 第 6 项**，此前"只剩三项"声明作废
+- **F-035【P1·成立】verification 生产不可达**（修掉错时注入但没补正确发射点：全仓唯一 governPlanAssets 调用传 stage_7，before_final_receipt 无生产发射者）——整改=GOV-AUTHORITY 任务二：review 类子任务终验收前注入点
+- **F-036/F-037【P0/P1·成立】S16-2/3 的 promote()/validatePromotionEvidence() 是 test oracle 非生产 authority**（S16-1 真 authority CONFIRMED；S16-3 的 cross-plane phase gate probe 是真测试）——整改=GOV-AUTHORITY 任务一：新建 scripts/lib/migration.mjs 生产 authority，S16-2/3 改调用、oracle 删除、AS-2 三张回放兼容
+- **F-038【P1·成立】audit-index 当场 stale 反证自身**（C-1/C-2 仍描述已废除的旧 S16，selftest 40 PASS 因只查 path exists+exit 0——漂亮的现成反例）——整改=GOV-AUTHORITY 任务四：historical/current 分节 + sha256 semantic freshness
+- **F-029【CLOSED WITH RETROACTIVE RATIFICATION】**——账面保持"violation occurred→subsequently ratified"区别，不写 original compliant
+- **两条深层模式再+1**：③"test oracle ≠ production authority"（promote/validatePromotionEvidence 自造）④"指针指向的字段本身可以是 stale 的"（指针声明方向对但指向 PENDING 字段）——S15/S16 设计输入追加
+- 批 1 状态：READY-FOR-CLOSE 撤回→GOV-AUTHORITY 闭环后重评；Owner PENDING 升至 6 张（含 g0v3cons1-r2）
