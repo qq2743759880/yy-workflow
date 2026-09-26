@@ -279,3 +279,26 @@ R-2 package.json 名义依赖清理；D-3 类 C 历史豁免永久保留；senti
 - Batch 2 第三波第一项：composer/dispatch 新链下 Runtime Boundary E2E 复跑 PASS——批 2 验收口径第一项（production 主链双模式）mech 侧达成
 | Batch2 | 部分收口 | orchestrator | — | 2026-09-26T11:35:00Z | 第一波 PC-1/R-2 + 第二波 CD-1/GV-2 + FINAL-E2E v2 |
 - 待完成：MG-1（Owner key）/E-4-EXEC（llm 行为面，Owner 拍板时机）——两者均 Owner 资源依赖，不阻塞批 2 主体收口；收口报告待拟
+
+## 批 2 收口报告（2026-09-26，措辞降级版）
+
+**结论：批 2 主体达成 CONFIRMED（composer/dispatch/治理管道新链 + FINAL-E2E v2 复跑 PASS）；完全收口 PARTIALLY CONFIRMED（MG-1/E-4-EXEC 属 Owner 资源依赖，不阻塞）**
+
+### 一、已验证闭环（L2 亲验）
+1. **PC-1 Prompt Compiler v1**：六段 brief 亲测全命中；legacy 降级字节级兼容；确定性同 hash；S8 锚点/内核词在 composer 产物上照常命中（E2E exec=5）；4KB 截断护栏；kill-switch
+2. **CD-1 capability dispatch 完整形态**：受控 CAPABILITY_MAP 10 键⊆manifest id（禁模糊语义匹配）；{capability:"openapi-validation"}→be-validator eligible=true 亲跑；未知→INELIGIBLE_CAPABILITY_UNKNOWN fail-closed；选择过程留痕
+3. **GV-2 治理管道**：治理节经 composer 插槽（slotIdx 3698 > #Verification 3273，非尾巴拼接）；debugging 摘要 523B≤2KB（失败后重派 E2E 两轮实证）；kill-switch 字节级前缀
+4. **FINAL-E2E v2**：composer/dispatch 新链下 Runtime Boundary E2E 复跑 verdict=PASS（mech 侧达成）
+5. **R-2**：七项孤儿依赖删除（deps 9→3）；D-1 教训（--no-save 生产依赖无 lock 保护，prune 误删 spectral 被回归抓住）已沉淀 playbook 候选
+
+### 二、边界声明（诚实口径）
+- FINAL-E2E v2 验证 runtime 执行链 + composer 产物结构，非 LLM 规划质量（mech host；llm 模式 E-4-EXEC 待 Owner 拍板时机）
+- capability dispatch 的 E2E 记录侧经生产 runtime.dispatch 触发（planner 尚无 capability 入口——v3.2 主键精神边界内，D-1 已登记）
+- 多候选评分择优未做（映射键唯一→id 唯一；保守口径留 Batch 3）
+- MG-1 sentinel 多 agent 分析器需 Owner API key（backlog）
+
+### 三、五项偏差裁定（CD-1-GV2 §六，全部追认/登记）
+E2E 记录侧边界 / 记忆面宽于指路行 / 多候选保守口径 / capability 优先于 asset 同传 / 插槽与 GW-1 尾节共存——均合理或保守正确
+
+### 四、挂账
+D-2（reflect-metadata/tslib 删否）、D-3（回归器重写探针 JSON 固有行为）、MG-1、E-4-EXEC、D-REG1-1/E-4/AS-2-review adapt 三项裁定已按"全部按推荐"落账（批 1 CLOSED）
