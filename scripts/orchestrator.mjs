@@ -35,7 +35,7 @@ import { loadCapabilityRows, composePlanAssets, composeGovernedPlanAssets } from
 // B7（T6 接线）：核心循环改用 lib/orchestrator.mjs 的 A2 纯逻辑（parseArgs/validateOpts/
 // isOpenApiSpec/parseBacklogRows/backlogIsPending 逐字等价，planDryRun 已差分验证）；
 // 删除顶层内联副本，单点维护。新路径（phase 门/change.record/--evolve）全部旗标制，默认 no-op。
-import { parseArgs as libParseArgs, validateOpts as libValidateOpts, isOpenApiSpec as libIsOpenApiSpec, parseBacklogRows as libParseBacklogRows, backlogIsPending as libBacklogIsPending } from './lib/orchestrator.mjs';
+import { parseArgs as libParseArgs, validateOpts as libValidateOpts, isOpenApiSpec as libIsOpenApiSpec, parseBacklogRows as libParseBacklogRows, backlogIsPending as libBacklogIsPending, applyCapabilityToPlan } from './lib/orchestrator.mjs';
 const parseArgs = libParseArgs;
 const isOpenApiSpec = libIsOpenApiSpec;
 const parseBacklogRows = libParseBacklogRows;
@@ -698,6 +698,12 @@ async function main() {
       if (approval.draft.approvedAt) plan.approvedAt = approval.draft.approvedAt;
     } else {
       plan = buildPlan(opts.task, manifest);
+    }
+    // --capability 显式输入（W2-1 Ingress Mini-Contract D.1 rule 1）：buildPlan 后 applyCapabilityToPlan
+    // （lib/orchestrator.mjs 导出）重绑定子任务 asset——否则 --capability 走 parseArgs 后被静默丢弃（F-E2E-2 实锤）
+    if (opts.capability) {
+      applyCapabilityToPlan(plan, { capability: opts.capability });
+      logger.info('capability override (--capability): ' + opts.capability + ' → ' + plan.subtasks.filter(s => s.capability).map(s => s.id + '(' + s.asset + ')').join(', '));
     }
     for (const subtask of plan.subtasks) subtask.task = plan.task;
     // --contract 提供 OpenAPI 契约：be-validator 子任务契约指向该文件（portman 真校验路径），其他子任务保持 cluster 描述不变

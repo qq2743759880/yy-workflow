@@ -350,3 +350,15 @@ D-2（reflect-metadata/tslib 删否）、D-3（回归器重写探针 JSON 固有
 - 回归 35/35（原 24 + S17 段 11 节）+ preflight 8/8 + validate 0
 | W2-4 | PASS | agent_31e163e8 | orchestrator-L2(五场景亲跑+RESULTS 审读) | 2026-09-26T21:30:00Z | test-reports/autopilot-work/E2E-v3/RESULTS.md + 四场景证据 |
 - E2E-v3 五场景全收：正向派生+显式输入+反向 unknown+legacy 字节级+resume 三字段保留——**capability 从真实 task 入口到 adapter 全链已通**
+
+## Batch 3 Wave 2 L2 收口（2026-09-26，编排者直修 + 逐单关账）
+
+- **F-E2E-2【P0 已修·编排者直修】**：applyCapabilityToPlan 在 lib 导出但主链 0 调用——--capability 走 parseArgs 后被静默丢弃。修复：scripts/orchestrator.mjs 加 import + buildPlan 后调用 applyCapabilityToPlan（--capability override 日志）
+- E-3【已修】ACCEPTANCE-ENTRY --backend prompt 与 auto 断言冲突系编排者文档 bug
+- W2-4 O-E2E-1【驳回】"W2-3 未执行"判断错误——S17 在场且 35/35 绿，W2-3 证据目录在场
+- Batch 2 收口报告补录到 ledger（此前在批 3 T0 前已完成实质内容）
+
+### 批 2+3 Wave 2 状态汇总
+- 批 2：主体 CONFIRMED，MG-1/E-4-EXEC Owner-resource
+- 批 3 Wave 2 四单全收：W2-1 planner production / W2-2 状态传播 / W2-3 S17 九场景 / W2-4 E2E-v3 真实 CLI
+- capability ingress 全链：task → planner 派生 → orchestrator --capability → runtime dispatch → resolver → adapter → receipt
