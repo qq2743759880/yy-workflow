@@ -147,6 +147,8 @@ manifest    : 188eb01ae0d88d1cdf2750d5bbfa24165ac8b8d84deac45ab61fb39fa031f1c9�
 
 结论：ACC-1 文档写入**零门禁归因**成立（静态论证 §5.1 + 写前写后一致实测双证）。
 
+**观察项（并发窗口瞬态，非归因）**：本单复跑期间捕获一次 `audit-index selftest 67 PASS / 1 FAIL（B-9 exit=null）` 瞬态——发生在兄弟单 KERNEL-1（在写 `scripts/bootstrap-kernels.mjs` / `package.json`）与 SECMAN-1（在写 `contracts/` 与 `plans/audit-index-20260925.md`）并发落盘窗口内；B-9 复验命令即 FINAL-E2E 驱动（`final-e2e-assert.mjs --backend auto`），该瞬态下其子进程未返回（exit=null）。窗口结束后连跑 3 次均 `68 PASS / 0 FAIL`（含 B-6 sha256 登记值 1 项机验一致），单独复跑 B-9 命令 exit=0 verdict=PASS。→ 判为并发写面窗口的瞬态，**非** ACC-1 归因（ACC-1 写面不在任何门禁列举面，§5.1）。
+
 ---
 
 ## 6. 被拒绝的裁定（明确不做）

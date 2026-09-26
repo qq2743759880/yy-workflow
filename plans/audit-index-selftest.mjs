@@ -179,7 +179,7 @@ for (const row of rows) {
         if (claim.via === 'command-expected') {
           const cmd = extractCommand(cmdCellRaw);
           if (cmd) {
-            const r = spawnSync('bash', ['-c', cmd], { cwd: ROOT, encoding: 'utf8', timeout: 60000 });
+            const r = spawnSync('bash', ['-c', cmd], { cwd: ROOT, encoding: 'utf8', timeout: 180000 });
             const out = String((r.stdout || '') + (r.stderr || ''));
             if (!out.includes(claim.hash)) mismatches.push(claim.hash.slice(0, 12) + '…(command stdout 不含登记值，实测 out=' + out.trim().slice(0, 24) + '…)');
             continue;
@@ -220,7 +220,7 @@ for (const row of rows) {
     record(row.id, 'command', true, 'HISTORICAL（只查命令在案，不查 freshness——F-038 分节口径）', row.section);
     continue;
   }
-  const r = spawnSync('bash', ['-c', cmd], { cwd: ROOT, encoding: 'utf8', timeout: 60000 });
+  const r = spawnSync('bash', ['-c', cmd], { cwd: ROOT, encoding: 'utf8', timeout: 180000 });
   const out = String((r.stdout || '') + (r.stderr || ''));
   const exitOk = r.status === 0;
   record(row.id, 'command', exitOk, 'exit=' + r.status + ' out=' + out.trim().split('\n')[0].slice(0, 90), row.section);

@@ -7,7 +7,7 @@ when_to_use:
 when_not_to_use:
   - 无后端接口面的纯静态页面/文档任务
   - 接口契约尚未定义（契约先行冻结，再做校验落地）
-verification: 执行内核=Spectral（provider identity 三件套：official_source=github:stoplightio/spectral（npm @stoplight/spectral-cli 6.16.3，Apache-2.0 实测见 test-reports/asset-eval-20260923/LICENSES.md §5）；install 通道=npm install @stoplight/spectral-cli --no-save（node_modules 不入库，装后必跑 spectral --version 期望 6.16.3——npm 假包教训沉淀）；runtime_test=spectral lint <openapi文档> --ruleset vendor/be-validator/rulesets/spectral-oas.yaml --format json 期望 exit_code 0（无 error 级违规）或 1（有 error 级违规，默认 fail-severity=error））——AS-2-first 迁移范例（contracts/asset-migration.md 六态：PRIMARY），旧 portman 内核保留在 adapter 内 EXPLICIT_COMPAT_MODE 显式旗标后（Gate-1 禁静默并存），迁移证据 test-reports/autopilot-work/AS-2-first/；专用 adapter 真实执行，regression S3 保留 OpenAPI/contract marker；消费锚点+内核词 D-1 机验
+verification: 执行内核=Spectral（provider identity 三件套：official_source=github:stoplightio/spectral（npm @stoplight/spectral-cli 6.16.3，Apache-2.0 实测见 test-reports/asset-eval-20260923/LICENSES.md §5）；install 通道=npm ci（@stoplight/spectral-cli 6.16.3 已为 package.json 正式 dependencies 精确锁定；node_modules 不入库，装后必跑 spectral --version 期望 6.16.3——R-2 D-1 教训：--no-save 无 lock 保护会被 prune 误删；pip 内核经 scripts/bootstrap-kernels.mjs 恢复）；runtime_test=spectral lint <openapi文档> --ruleset vendor/be-validator/rulesets/spectral-oas.yaml --format json 期望 exit_code 0（无 error 级违规）或 1（有 error 级违规，默认 fail-severity=error））——AS-2-first 迁移范例（contracts/asset-migration.md 六态：PRIMARY），旧 portman 内核保留在 adapter 内 EXPLICIT_COMPAT_MODE 显式旗标后（Gate-1 禁静默并存），迁移证据 test-reports/autopilot-work/AS-2-first/；专用 adapter 真实执行，regression S3 保留 OpenAPI/contract marker；消费锚点+内核词 D-1 机验
 source: vendor/be-validator/be-validator.md#L1-L5
 drop_pending: false
 drop_allowed: false

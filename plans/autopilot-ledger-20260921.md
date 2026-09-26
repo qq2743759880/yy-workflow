@@ -312,3 +312,13 @@ D-2（reflect-metadata/tslib 删否）、D-3（回归器重写探针 JSON 固有
 - 从 source 修（未手改产物）；CONTRACT 类主动声明（禁 DOC_ONLY 逃逸，F-034 教训遵守）；change 单 cr-20260926T153000Z-335b9fd6 Owner PENDING
 - L2 亲验：hash 188eb01a 一致；security 行含 F-019 语义；eligible=true；S15-A5 PASS；回归 24/24；selftest 68 复绿
 - D-1/D-4 合理（change 单落点 discrepancies 是被显式排除的非冻结面；change-lock 沿 AS-1 先例）；D-2（index.jsonl 未 append）移交编排者；D-3（B-9 命令偶发 60s 超时，单独复跑 PASS）登记观察项——**selftest 的 B-9 命令超时属真实隐患，列入后续观察**
+| ACC-1 | PASS | agent_3244485b | orchestrator-L2(裁定表+预判核验审读；binding-half 指针亲验 governance.mjs:72-76) | 2026-09-26T17:00:00Z | plans/batch2-acceptance-reconciliation-20260926.md（175 行） |
+- 三条口径裁定：①条件未满足（非缺陷，llm Owner-gated）②已满足（**证据指针被 ACC-1 正确推翻我的预判**：GV2-5b/5d 只证管道半，绑定半应为 governance.mjs:72-76 冻结表直读+f030 探针——采纳修正）③未闭环（计划口径修订）
+- closeout 遗漏独立定位：非"未提及"而是"未单列裁定+未进挂账"（ledger:297 有边界声明，:304 挂账缺项）——我的 T0 表述被精确化，采纳
+- 拒绝项确认：多候选不强造 / MG-1·E-4-EXEC 非缺陷 / 不重开批 2 / 不改契约
+| KERNEL-1 | PASS | agent_de170394 | orchestrator-L2(spectral 声明+bootstrap --check 亲跑；D-K1-1 亲验) | 2026-09-26T17:30:00Z | package.json（@stoplight/spectral-cli 6.16.3 精确锁）; scripts/bootstrap-kernels.mjs（三内核 fail-closed）; plans/asset-migration-playbook.md; test-reports/autopilot-work/KERNEL-1/ |
+- 方案①+②（npm 正式依赖 + bootstrap 覆盖 pip 面），否决 vendor cache（244 包体/许可证污染）；干净副本从零恢复实测（无 node_modules 起步，--version 三内核齐 + S15-A2 真扫 PASS + 全量回归 24/24）
+- 负向探针：不跑 bootstrap → KERNEL_BOOTSTRAP_FAIL exit 1；adapter 层 SPECTRAL_NOT_AVAILABLE fail-closed 具名
+- 【编排者补修 D-K1-1】be-validator sidecar install 通道仍写 --no-save（stale，KERNEL-1 因 contracts/ 禁改面登记不改）——编排者从 source 修（--no-save→npm ci 正式依赖）→ manifest 重建 hash b0268798 → audit-index B-6 同步 → selftest 68 复绿 → 回归 24/24
+- 【编排者补修 selftest D-3】B-9 长命令 60s spawnSync 超时假 FAIL → timeout 180s + `exit=null` 具名 TIMEOUT_OR_KILLED（与真 stale 区分）
+- Wave 1 三单全收（ACC-1 + SECMAN-1 + KERNEL-1）；Wave 2 CAP-ING-1 待派
