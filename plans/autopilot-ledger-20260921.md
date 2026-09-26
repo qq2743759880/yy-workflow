@@ -269,3 +269,9 @@ R-2 package.json 名义依赖清理；D-3 类 C 历史豁免永久保留；senti
 - 偏差裁定：D-PC1-1 六段在 vendor 正文后（S8 负向探针强制）采纳；D-PC1-4 kill-switch YY_PROMPT_COMPOSER=off 追认（应急回退合理）
 - 输入形态澄清：composeBrief({body, capability, task})——capability 为 manifest 行对象；L2 首测传参形状错误报错属调用侧问题非实现缺陷（agent 的 orchestrator 集成探针 T4e/f 已证明真实链路正确）
 - Batch 2 第一波全收（PC-1 + R-2）；第二波 CD-1/GV-2 派发
+| CD-1+GV-2 | PASS | agent_bedfc66a | orchestrator-L2(31 探针复跑+capability 真扫探针亲跑+kill-switch 字节级审读) | 2026-09-26T11:00:00Z | scripts/lib/activation.mjs（CAPABILITY_MAP+capability 模式）; scripts/lib/runtime.mjs（dispatch capability 输入+recordFailureMemory）; scripts/lib/governance.mjs（debuggingMemorySection）; scripts/lib/prompt-composer.mjs（composeGovernedPlanAssets+截断策略）; scripts/orchestrator.mjs; test-reports/autopilot-work/CD-1-GV2/ |
+- 【CD-1 闭环】capability dispatch 真实可达（{capability:"openapi-validation"}→be-validator eligible=true 亲跑；未知→INELIGIBLE_CAPABILITY_UNKNOWN fail-closed）；受控 CAPABILITY_MAP 10 键⊆manifest id；F-036 教训遵守（判定全调生产函数）
+- 【GV-2 闭环】治理节经 composer 插槽（slotIdx 3698>#Verification 3273——非尾巴拼接）；debugging 摘要 523B≤2KB（失败后重派 E2E 两轮）；kill-switch 字节级前缀（on=off+六段）；governance-first-truncated-sections 策略登记
+- L2 初测误报澄清：我用 Map 形态直调 composeGovernedPlanAssets 得 mode=undefined——agent 的 probe 走其 harness 形态（assets 为 Map+briefInputs）全 PASS；两形态差异属调用侧约定非缺陷，登记说明
+- 五项偏差裁定：E2E 记录侧经生产 dispatch（planner capability 入口=v3.2 边界内）；记忆面宽于指路行（记录侧 best-effort 合理）；多候选保守口径（评分择优未做留 Batch 3）；capability 优先于 asset 同传；插槽与 GW-1 尾节共存
+- 回归 24/preflight 8/selftest 68/manifest c30fee6b 零归因——批 2 第二波全收

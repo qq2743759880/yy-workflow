@@ -1,0 +1,34 @@
+PASS CD1-1a capability 命中：selected_asset=be-validator — eligibility={"capability":"openapi-validation","selected_asset":"be-validator"}
+PASS CD1-1b 选择过程留痕（capability/selected_asset/eligible/reason[] 进 subtask.eligibility） — reason[0]=capability match: 请求「openapi-validation」→ CAPABILITY_MAP 命中 …
+PASS CD1-1c be-validator adapter 可达（portman/Spectral 执行内核注册表在册） — adapter.name=be-validator
+PASS CD1-1d security adapter 可达（semgrep 执行内核注册表在册） — adapter.name=security
+PASS CD1-2a 多候选夹具：capability→id 受控映射决策可审计 — selected=be-validator reason[]=2 条（capability match + 资格判定链）
+PASS CD1-2b 运行时多候选：dispatch 全链 reason 链留痕（≥2 条：capability match + 资格判定） — reason 条数=2
+PASS CD1-2c CAPABILITY_MAP 值全部 ∈ manifest id（受控映射完备性） — map 键数=10 值=be-validator,security,skill-sentinel,implementation,frontend-design,planning,dev-planner,review,sdlc
+PASS CD1-3a 未知 capability → INELIGIBLE_CAPABILITY_UNKNOWN 具名 — error=INELIGIBLE_CAPABILITY_UNKNOWN eligibility.selected_asset=null
+PASS CD1-3b fail-closed 不猜（selected_asset=null + reason 具名 + adapter 未触达） — reason[0]=INELIGIBLE_CAPABILITY_UNKNOWN: capability 请求「no-such-capability」不在 CAP…
+PASS CD1-3c 映射键大小写不敏感（OpenAPI-Validation → be-validator） — selected=be-validator
+PASS CD1-4a name-based 派单零改动（be-validator 资格门通过 + prompt adapter 真实产出 brief） — status=done artifact=artifacts\cd1-p4\brief.md error=undefined eligibility.capability 字段缺席=true
+PASS CD1-4b resolver name-based 输出形态不变（无 capability 模式 reason 注水） — reason=["无正向依据：未提供 requirements/constraints 提示——如实标注，不否决（无负向命中）"]
+PASS CD1-4c name-based 未知资产照旧 fail-closed（INELIGIBLE_ASSET_NOT_FOUND） — error=INELIGIBLE_ASSET_NOT_FOUND
+PASS GV2-5a debugging 摘要经插槽注入（失败记忆命中 → brief 治理节） — slot 位置（lastIndex）=3698；摘要含失败码计数 + 指路行
+PASS GV2-5b 摘要节位于六段之后（插槽=六段尾部，非正文尾巴拼接） — slotIdx=3698 > #Verification idx=3273
+PASS GV2-5c 摘要 ≤2KB（GV-2 上限） — 摘要节字节数=523 ≤ 2048
+PASS GV2-5d 无记忆 → brief 事件治理节兜底（stage_7 → TDD，六段+治理共存） — 插槽治理节 idx=3692 > #Verification idx=3267
+PASS GV2-5e E2E 记录侧：生产 dispatch 失败写记忆（.tt-state/debugging-memory.json） — 记忆条数=1 首条={"code":"INELIGIBLE_CAPABILITY_UNKNOWN","event":"gate_failed","at":"2026-09-26T10:24:50.525Z"}
+PASS GV2-5f E2E 消费侧：重派 brief 注入 debugging 摘要（运行时记忆式消费） — 命中资产=implementation（E2E 两轮：run1 失败写记忆 → run2 重派 brief 带摘要节）
+PASS GV2-6a 截断策略登记（truncateStrategy=governance-first-truncated-sections） — strategy=governance-first-truncated-sections truncated=[Mission,Context,Output Contract]
+PASS GV2-6b 治理节字节级完整（超限时优先保完整，零截断） — 6KB 治理节在产物中完整在场
+PASS GV2-6c 合成总长回落预算（六段+治理 ≤ 12KB + 标注容差） — compiled=10601B ≤ 14336B（标注计入容差）
+PASS GV2-6d 被压正文段具名 [truncated]（可审计） — truncated=[Mission,Context,Output Contract]
+PASS GV2-6e 无治理节 → 无策略登记（PC-1 逐段 4KB 护栏不变） — strategy 字段缺席
+PASS GV2-7a kill-switch 两轮生产运行均成功且产物可比（比对前置条件） — runOn.exit=0 runOff.exit=0 onBytes=15609 offBytes=7551（on=off+六段 → on>off）
+PASS GV2-7b on/off 字节级：on 正文段 = off 旧拼接段 + 六段（off 是 on 的前缀） — off=7551B on=15609B 前缀成立=true
+PASS GV2-7c off=旧拼接形态（治理尾节在正文内、无六段）；on=composer 形态（六段+插槽治理） — off 六段缺席=true on 六段在场=true
+PASS GV2-7d 纯函数基线：composeBrief 产物 = vendor 前缀 + 六段 + 治理节（字节级） — 字节级相等=true（比对文件 kill-switch-bytes.txt）
+PASS G-8a EX-1 能力门控共存：缺能力照旧 CAPABILITY_MISSING（capability 输入升级未触碰门序） — error=CAPABILITY_MISSING
+PASS G-8b governance-skills 缺失 → 摘要节静默跳过（null，零崩溃） — 返回=null
+PASS G-8c S16 transitionPhase 探针仍真实拒绝 failed→done（迁移门共存） — stdout=REJECTED=1
+
+TOTAL=31 PASS=31 FAIL=0
+manifest_sha256=c30fee6b4d1a8130af8536df9b45342c78667eaebaad172d0dac767e471f25d1

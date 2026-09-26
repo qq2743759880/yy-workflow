@@ -1,0 +1,6 @@
+PASS S16-1 Runtime plane：真实状态机拒绝 failed→done/executing（INVALID_TRANSITION）  合法链→failed ✓ | failed→done/executing/reviewing 全 INVALID_TRANSITION 且 canonical state 不变 ✓ | 只读面 checkPhase 同拒 ✓（证据 REMEDIATION-2/s16-1-runtime-plane.json）
+PASS S16-2 Migration plane：三失败形态真实机验器 → SHADOW→MIGRATING 与 MIGRATING→PRIMARY 均拒绝  shadow FAIL: spectral 真扫 6 findings pass=false ✓ | rollback FAIL: SPECTRAL_NOT_AVAILABLE 无旗标拒绝 ✓ | runtime_binding FAIL: SPECTRAL_OUTPUT_INVALID ✓ | SHADOW→MIGRATING×3 形态全拒（生产 authority MIGRATION_BLOCKED）✓ | MIGRATING→PRIMARY×3 形态全拒 ✓ | 干净记录放行（非恒拒）✓ | receipt 负终态→verified 拒绝 ✓ | 生产 promotionReceipt 生成处校验（负终态全拒/verified 签发）✓ | AS-2 三张回放兼容 ✓（证据 REMEDIATION-2/s16-2-migration-plane.json）
+PASS S16-3 Cross-plane：FAILED/UNRESOLVED execution receipt 阻断 promotion（对照 verified 放行）  状态层 done + receipt 终态 FAILED → planning→executing 拒绝（PHASE_PREREQ_UNMET） ✓ | receipt 终态 UNRESOLVED 同拒 ✓ | 对照组 behavior_verified 放行（非恒拒） ✓ | promotionReceipt 生成处校验 FAILED/UNRESOLVED/INVALID/缺失全阻断 ✓（证据 REMEDIATION-2/s16-3-cross-plane.json）
+
+结果: 24 PASS / 0 FAIL
+回归基线通过。

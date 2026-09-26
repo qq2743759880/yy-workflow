@@ -37,9 +37,26 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+// GV-2 治理插槽消费单点（governance.mjs 导出面）：debugging 摘要（≤2KB 记忆节）与 brief
+// 事件治理节（冻结绑定两键匹配单点在 governance.mjs）——本文件只做插槽合成，不复制绑定语义。
+import { debuggingMemorySection, governanceBriefSection, stageForAsset } from './governance.mjs';
 
 /** 单编译段截断上限：4KB（派单 PC-1 截断护栏；GW-1 治理正文为 5KB，两护栏独立不混用）。 */
 export const MAX_SECTION_BYTES = 4 * 1024;
+
+/**
+ * GV-2 截断策略（派单自测第 3 条）：六段 + governanceSection 合成总长预算 12KB——治理节
+ * （governanceSection：5KB 正文护栏或 2KB debugging 摘要，注入即承诺完整）优先保完整，
+ * 超限从最早编译段开始逐段压到 1KB 直至总长回落预算；仍超 → 登记策略（strategy:
+ * 'governance-first-truncated-sections'，truncated 标注保留）——治理节永不截断（正文段让位）。
+ * 正文段被压缩段在 [truncated] 标注中具名（可审计）；vendor 正文前缀不参与预算（D-PC1-2
+ * 前缀字节级不动）。无治理节时零行为（各段独立 4KB 护栏不变，PC-1 形态字节级保持）。
+ */
+export const MAX_COMPOSED_TOTAL_BYTES = 12 * 1024;
+/** 总长超限时编译段的压缩上限（逐段压到 1KB；仍超则登记策略，不再进一步压）。 */
+export const COMPACTED_SECTION_BYTES = 1 * 1024;
+/** 治理节截断策略登记名（进 composeBrief 产物 truncateStrategy 字段，机验可断言）。 */
+export const GOVERNANCE_FIRST_STRATEGY = 'governance-first-truncated-sections';
 
 /** manifest v2 产物默认路径（随包副本；探针可用 opts.manifestPath 覆盖指向沙箱副本）。 */
 export const DEFAULT_MANIFEST_V2_PATH = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'contracts', 'asset-manifest-v2.json');
@@ -59,18 +76,49 @@ function sha256Hex(text) {
 }
 
 /**
+ * GV-2 截断策略执行：治理节保完整、正文段逐段压缩（truncateSection 同构，1KB 上限 + 具名
+ * [truncated] 标注）。从最早编译段开始压，总长回落预算即停；全部段压完仍超 → 策略照常登记
+ * （治理节完整优先级不变）。纯字符串重排，零 IO。
+ */
+function compactSectionsForBudget(rendered, govIndex, govBytes) {
+  const truncated = [];
+  let total = govBytes;
+  for (let i = 0; i < rendered.length; i += 1) {
+    if (i === govIndex) continue;
+    total += Buffer.byteLength(rendered[i], 'utf8') + 2; // '\n\n' join
+  }
+  if (total <= MAX_COMPOSED_TOTAL_BYTES) return { rendered, truncated, strategy: null };
+  for (let i = 0; i < rendered.length; i += 1) {
+    if (i === govIndex) continue;
+    const nameGuess = (rendered[i].match(/^# (.+)$/m) || [])[1] || 'Section';
+    const originalBytes = Buffer.byteLength(rendered[i], 'utf8');
+    const compacted = truncateSection(rendered[i], nameGuess, COMPACTED_SECTION_BYTES);
+    if (compacted.truncated) truncated.push(nameGuess);
+    rendered[i] = compacted.text;
+    total = govBytes + 2 * (rendered.length - 1);
+    for (let j = 0; j < rendered.length; j += 1) {
+      if (j !== govIndex) total += Buffer.byteLength(rendered[j], 'utf8');
+    }
+    if (total <= MAX_COMPOSED_TOTAL_BYTES) break;
+  }
+  return { rendered, truncated, strategy: GOVERNANCE_FIRST_STRATEGY };
+}
+
+/**
  * 单段 4KB 截断护栏（GW-1 truncateBody 同构：UTF-8 安全、去边界残字符、标注 [truncated]）。
  * @param {string} text — 段全文（含段标题行）
  * @param {string} label — 段名（进截断标注，便于定位）
  * @returns {{text: string, truncated: boolean, originalBytes: number}}
  */
-export function truncateSection(text, label) {
+export function truncateSection(text, label, limitBytes) {
+  const cap = Number.isInteger(limitBytes) && limitBytes > 0 ? limitBytes : MAX_SECTION_BYTES;
   const raw = String(text == null ? '' : text);
   const buf = Buffer.from(raw, 'utf8');
-  if (buf.length <= MAX_SECTION_BYTES) return { text: raw, truncated: false, originalBytes: buf.length };
-  const sliced = buf.subarray(0, MAX_SECTION_BYTES).toString('utf8').replace(/\uFFFD+$/, '');
+  if (buf.length <= cap) return { text: raw, truncated: false, originalBytes: buf.length };
+  const sliced = buf.subarray(0, cap).toString('utf8').replace(/\uFFFD+$/, '');
+  const capLabel = cap === MAX_SECTION_BYTES ? '4KB' : cap + 'B';
   return {
-    text: sliced + '\n\n[truncated] 本段（' + label + '）超 4KB 注入上限（原始 ' + buf.length + 'B），已截断防 prompt 膨胀——全文见 contracts/asset-manifest-v2.json 对应字段',
+    text: sliced + '\n\n[truncated] 本段（' + label + '）超 ' + capLabel + ' 注入上限（原始 ' + buf.length + 'B），已截断防 prompt 膨胀——全文见 contracts/asset-manifest-v2.json 对应字段',
     truncated: true,
     originalBytes: buf.length,
   };
@@ -119,8 +167,11 @@ function renderVerifyCommand(constraints) {
  *   - project_context: string|Array|object — Context 段内容（workspace 现状/上一子任务产物引用）
  *   - constraints: string|Array|object — Output Contract 段内容（产出落点/格式）；可含
  *     verifyCommand/executorAcceptance/expectedExit 供 Verification 段 TK-1 口径渲染
- *   - governanceSection: string|null — GV-2 预留插槽（预渲染治理节原样嵌入六段之后；本期 orchestrator 不传）
- * @returns {{mode:'composer'|'legacy', body:string, sections:object|null, truncated:string[], sha256:string}}
+ *   - governanceSection: string|null — GV-2 治理插槽（预渲染治理节原样嵌入六段之后；orchestrator
+ *     经 GV-2 管道单点传入。带治理节时启用总长预算 12KB 截断策略：治理节优先保完整、正文段
+ *     逐段压 1KB，超限登记 strategy='governance-first-truncated-sections'）
+ * @returns {{mode:'composer'|'legacy', body:string, sections:object|null, truncated:string[],
+ *            truncateStrategy?:string, sha256:string}}
  */
 export function composeBrief(input) {
   const body = input && typeof input.body === 'string' ? input.body : '';
@@ -188,13 +239,27 @@ export function composeBrief(input) {
     if (t.truncated) truncated.push(name);
     rendered.push(t.text);
   }
-  // GV-2 预留插槽：预渲染治理节（governanceBriefSection 产物已自带 5KB 截断，原样嵌入，不重复截断）
+  // GV-2 治理插槽：预渲染治理节（governanceBriefSection 产物已自带 5KB 截断 / debugging 摘要
+  // 自带 2KB 截断，原样嵌入不重复截断——注入即承诺治理节完整）。
   const gov = input && typeof input.governanceSection === 'string' && input.governanceSection.trim() ? input.governanceSection : null;
-  if (gov) rendered.push(gov);
+  let truncateStrategy;
+  if (gov) {
+    // GV-2 截断策略：合成总长（六段+治理节）超 12KB → 治理节优先保完整、正文段逐段压 1KB；
+    // 仍超 → 策略登记（GOVERNANCE_FIRST_STRATEGY），治理节永不截断。
+    const govBytes = Buffer.byteLength(gov, 'utf8');
+    if (govBytes + 2 * rendered.length - 2 + rendered.reduce((acc, t) => acc + Buffer.byteLength(t, 'utf8'), 0) > MAX_COMPOSED_TOTAL_BYTES) {
+      const compacted = compactSectionsForBudget(rendered, rendered.length, govBytes);
+      for (const name of compacted.truncated) if (!truncated.includes(name)) truncated.push(name);
+      truncateStrategy = compacted.strategy;
+    }
+    rendered.push(gov);
+  }
 
   const compiled = rendered.join('\n\n');
   const newBody = body.trimEnd() + '\n\n' + compiled;
-  return { mode: 'composer', body: newBody, sections, truncated, sha256: sha256Hex(newBody) };
+  const out = { mode: 'composer', body: newBody, sections, truncated, sha256: sha256Hex(newBody) };
+  if (truncateStrategy) out.truncateStrategy = truncateStrategy;
+  return out;
 }
 
 /**
@@ -244,6 +309,8 @@ function defaultConstraints(subtask, plan) {
  * plan 级组合（orchestrator 接线单点，governPlanAssets 同构形态）：按子任务把 manifest 行在场的
  * 资产正文替换为「vendor 正文前缀 + 六段编译块」。原资产对象不改写（浅克隆），vendor/ 与
  * assets-cache 零污染；零组合/行缺失/kill-switch/lib 帧路径 → 原样返回同一 Map（零行为面）。
+ * PC-1 无治理形态保留：kill-switch 字节级比对基线（GV-2 探针）与无 workspace 记忆消费的
+ * 纯六段接线用；治理注入请走 composeGovernedPlanAssets（下方，governanceSection 插槽）。
  * @param {Map<string,{name,body,meta}>} assets — loadAssets 产物
  * @param {Array<{asset:string,task?:string,id:string,contract?:string}>} subtasks — plan.subtasks
  * @param {object} opts — {capabilityRows: Map, plan, briefInputs?: Map<asset,{project_context,constraints,governanceSection}>, governanceSectionByAsset?: Map, env?}
@@ -275,6 +342,66 @@ export function composePlanAssets(assets, subtasks, opts) {
       project_context: (extra && extra.project_context) || defaultProjectContext(s, plan, a),
       constraints: (extra && extra.constraints) || defaultConstraints(s, plan),
       governanceSection: (extra && extra.governanceSection) || ((opts && opts.governanceSectionByAsset && opts.governanceSectionByAsset.get(s.asset)) || null),
+    });
+    if (result.mode !== 'composer') continue;
+    out.set(s.asset, Object.assign({}, a, { body: result.body }));
+    composed += 1;
+  }
+  if (!composed) return assets; // 零组合 → 原样返回（零行为面，governPlanAssets 同惯例）
+  return out;
+}
+
+/**
+ * GV-2 管道单点（governPlanAssets 同构形态）：治理节 + debugging 摘要经 composer
+ * governanceSection 插槽注入。调用序：governPlanAssets/finalReceipt 注入（正文尾部治理节，
+ * GW-1 形态保持）→ 本函数（六段 + governanceSection 合成）。governanceSection 解析序（确定性）：
+ *   ① debugging 摘要（GV-2 升级面）：workspace 失败记忆命中（冻结事件过滤）→ 记忆节；
+ *   ② 否则（或摘要缺席）→ brief 组装事件治理节（stage entry：implementation 绑定 stage_7
+ *      注 TDD；review 类子任务由 orchestrator 先经 governPlanAssets(before_final_receipt) 注入
+ *      正文尾节，本函数 event 缺省 stage_7 与 GW-1 派单注入语义对齐）——冻结绑定两键匹配
+ *      单点在 governance.mjs（governanceBriefSection）。
+ * 治理缺席/kill-switch/行缺失 → 原样返回同一 Map（零行为面，向后兼容与 PC-1 一致）。
+ * @param {Map<string,{name,body,meta}>} assets — loadAssets 产物（可已含治理尾节）
+ * @param {Array<{asset:string,task?:string,id:string,contract?:string}>} subtasks — plan.subtasks
+ * @param {object} opts — {capabilityRows: Map, plan, workspace?, governanceDir?, env?,
+ *                        briefInputs?: Map<asset,{project_context,constraints}>,
+ *                        debuggingEvent?: 'gate_failed'|'regression_failed'|'migration_failed',
+ *                        briefEvent?: string}
+ */
+export function composeGovernedPlanAssets(assets, subtasks, opts) {
+  if (!assets || typeof assets.get !== 'function' || typeof assets !== 'object') return assets;
+  const env = (opts && opts.env) || process.env;
+  if (String(env.YY_ACTIVATION || '').trim().toLowerCase() === 'lib') return assets; // T4 谓词 (b) 同源耦合护栏（同 governPlanAssets）
+  if (String(env.YY_PROMPT_COMPOSER || '').trim().toLowerCase() === 'off') return assets; // 逃生舱（D-PC1-4）
+  const rows = opts && opts.capabilityRows;
+  if (!rows || typeof rows.get !== 'function' || rows.size === 0) return assets; // manifest 行缺失 → 全量 legacy
+  const plan = (opts && opts.plan) || {};
+  const inputs = opts && opts.briefInputs && typeof opts.briefInputs.get === 'function' ? opts.briefInputs : null;
+  // GV-2：debugging 摘要事件（冻结集三枚举，governance.mjs debuggingMemorySection 消费单点）
+  const debugEvent = opts && typeof opts.debuggingEvent === 'string' ? opts.debuggingEvent : 'gate_failed';
+  const briefEvent = opts && typeof opts.briefEvent === 'string' && opts.briefEvent ? opts.briefEvent : 'stage_7'; // stage entry（F-030）
+  const out = new Map(assets);
+  let composed = 0;
+  const seen = new Set();
+  for (const s of Array.isArray(subtasks) ? subtasks : []) {
+    if (!s || typeof s.asset !== 'string' || !s.asset || seen.has(s.asset)) continue;
+    seen.add(s.asset);
+    const row = rows.get(s.asset);
+    if (!row) continue;
+    const a = assets.get(s.asset);
+    if (!a || typeof a.body !== 'string') continue;
+    const extra = inputs ? inputs.get(s.asset) : null;
+    // 治理节解析（①摘要 → ②brief 事件治理节；两者皆缺席 → null 零注入）
+    const govSection = debuggingMemorySection(debugEvent, { workspace: opts && opts.workspace, governanceDir: opts && opts.governanceDir })
+      || governanceBriefSection(stageForAsset(s.asset) || '', briefEvent, { governanceDir: opts && opts.governanceDir })
+      || null;
+    const result = composeBrief({
+      body: a.body,
+      task: s.task || plan.task || '',
+      capability: row,
+      project_context: (extra && extra.project_context) || defaultProjectContext(s, plan, a),
+      constraints: (extra && extra.constraints) || defaultConstraints(s, plan),
+      governanceSection: (extra && extra.governanceSection) || govSection,
     });
     if (result.mode !== 'composer') continue;
     out.set(s.asset, Object.assign({}, a, { body: result.body }));

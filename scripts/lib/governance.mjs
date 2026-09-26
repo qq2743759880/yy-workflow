@@ -43,8 +43,20 @@ import { fileURLToPath } from 'node:url';
 /** governance-skills/ 默认根（随包副本；探针可用 opts.governanceDir 覆盖指向沙箱副本）。 */
 export const DEFAULT_GOVERNANCE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'governance-skills');
 
-/** 注入正文截断上限：5KB（派单 GW-1 截断护栏）。 */
+/** 注入正文截断上限：5KB（派单 GV-2 截断护栏）。 */
 export const MAX_GOVERNANCE_BODY_BYTES = 5 * 1024;
+
+/**
+ * GV-2 debugging 摘要注入上限：2KB（派单 GV-2 第 2 条逐字口径"≤2KB"；独立于正文 5KB 护栏，
+ * 摘要是记忆消费面（失败码/事件计数+指路），非技能正文，两护栏语义不混用）。
+ */
+export const MAX_DEBUGGING_MEMORY_BYTES = 2 * 1024;
+
+/** debugging 摘要消费的失败记忆文件相对路径（runtime.mjs recordFailureMemory 记录侧同一路径）。 */
+export const DEBUGGING_MEMORY_RELPATH = '.tt-state/debugging-memory.json';
+
+/** 摘要消费窗口：只读最近 N 条失败（防历史无限膨胀进 prompt——运行时记忆，非全量审计）。 */
+export const DEBUGGING_MEMORY_WINDOW = 3;
 
 /** Owner 圈选技能单点（VENDORED.md「入选清单与绑定」表 + superpowers-selection-v1.json 逐字口径）。 */
 const SKILLS = {
@@ -181,6 +193,87 @@ export function governanceBriefSection(stage, eventType, opts) {
     '',
     '（治理技能注入：' + gov.skill + '，绑定阶段=' + stage + '，激活时机=' + activationLabel(gov.binding.activation) + '）',
   ].join('\n');
+}
+
+// ---------------------------------------------------------------------------
+// GV-2：systematic-debugging 升级 —— debugging 摘要（运行时记忆式消费，≤2KB）
+// ---------------------------------------------------------------------------
+// 派单 GV-2 第 2 条：失败路径从"指路行"升级为"下一次同类失败任务的 brief 注入 debugging
+// 摘要（≤2KB，运行时记忆式消费——按 F-030 冻结绑定 gate_failed/regression_failed/migration_failed
+// 事件）"。摘要源 = workspace 失败记忆（runtime.mjs recordFailureMemory 记录侧：
+// .tt-state/debugging-memory.json，最近 20 条 {code,event,at}）；本模块只读消费单点：
+//   - loadFailureMemory：读记忆文件（fail-soft：缺失/损坏 → 空数组，静默跳过=向后兼容）；
+//   - debuggingMemorySection：按事件冻结集过滤最近窗口条目 → 预渲染摘要节（≤2KB 截断护栏
+//     同 GW-1 truncateBody 同构）——零记忆命中 → null（不注入空节）；
+//   - 摘要只含失败码/事件计数/最近一条时间（ISO）+ 指路行（全文照旧走 governancePointerLine），
+//     零正文注入（正文仍 5KB 由接线点 A 按冻结绑定注入，两链互不替代）；
+//   - 确定性：同记忆文件同输出（at 为记忆记录时刻，非生成时刻；不引入新时钟源）。
+// 消费点 = orchestrator brief 组装处（GV-2 迁移后经 composer governanceSection 插槽）：
+// 失败记忆命中的任务 brief 才带摘要节（"下一次同类失败任务"语义——记忆空/事件不匹配 → 无节）。
+
+/**
+ * 读 workspace 失败记忆（GV-2 消费侧，fail-soft）。
+ * @param {string} workspace — 工作区根（记忆文件 = <workspace>/.tt-state/debugging-memory.json）
+ * @returns {Array<{code:string,event:string,at:string}>} 记忆条目（缺失/损坏 → []，静默跳过）
+ */
+export function loadFailureMemory(workspace) {
+  try {
+    const file = path.join(String(workspace || '.'), DEBUGGING_MEMORY_RELPATH);
+    const memo = JSON.parse(fs.readFileSync(file, 'utf8'));
+    if (!memo || typeof memo !== 'object' || !Array.isArray(memo.failures)) return [];
+    return memo.failures
+      .filter((f) => f && typeof f === 'object' && typeof f.code === 'string' && f.code)
+      .map((f) => ({ code: f.code, event: typeof f.event === 'string' && f.event ? f.event : 'gate_failed', at: typeof f.at === 'string' ? f.at : '' }));
+  } catch (error) { /* ENOENT/坏 JSON：记忆缺失 = 静默跳过（向后兼容，不阻断编排） */ return []; }
+}
+
+/** 2KB 截断护栏（GW-1 truncateBody 同构：UTF-8 安全、去边界残字符、标注 [truncated]）。 */
+function truncateMemorySection(raw) {
+  const buf = Buffer.from(raw, 'utf8');
+  if (buf.length <= MAX_DEBUGGING_MEMORY_BYTES) return { body: raw, truncated: false };
+  const sliced = buf.subarray(0, MAX_DEBUGGING_MEMORY_BYTES).toString('utf8').replace(/\uFFFD+$/, '');
+  return {
+    body: sliced + '\n\n[truncated] debugging 摘要超 2KB 注入上限（原始 ' + buf.length + 'B），已截断防 prompt 膨胀——失败明细见 .tt-state/debugging-memory.json',
+    truncated: true,
+  };
+}
+
+/**
+ * debugging 摘要节（GV-2 升级面，≤2KB）：按冻结事件过滤最近窗口失败记忆 → 预渲染摘要节。
+ * 摘要格式（确定性，零时间戳新增——at 为记忆记录时刻原样）：
+ *   --- governance: systematic-debugging（failure memory） ---
+ *   - 本工作区最近 N 次相关失败（事件=<冻结事件>，窗口=最近 3 条）：
+ *     1. <code> ×<次数>（最近 <at>）
+ *   - 处置方法：GOVERNANCE: systematic-debugging 正文见 governance-skills/…（逐字指路行）
+ * 无命中（记忆空/事件不在冻结集）→ null（不注入空节；governance-skills 缺失 → 指路行 null
+ * → 摘要节也不产出——治理层缺席语义与 GW-1 一致）。
+ * @param {string} eventType — 冻结事件（'gate_failed'|'regression_failed'|'migration_failed'）
+ * @param {{workspace?: string, governanceDir?: string, memory?: Array}} [opts]
+ *        memory 注入供单测纯函数化（零 IO）；缺省读 <workspace>/.tt-state/debugging-memory.json
+ * @returns {string|null}
+ */
+export function debuggingMemorySection(eventType, opts) {
+  const memo = (opts && Array.isArray(opts.memory)) ? opts.memory : loadFailureMemory(opts && opts.workspace);
+  const hits = memo.filter((f) => f.event === eventType).slice(-DEBUGGING_MEMORY_WINDOW);
+  if (!hits.length) return null;
+  const pointer = governancePointerLine('failure_recovery', eventType, opts);
+  if (!pointer) return null; // governance-skills 缺失 → 静默跳过（与 GW-1 同语义）
+  const counts = new Map();
+  for (const h of hits) counts.set(h.code, (counts.get(h.code) || 0) + 1);
+  const lines = [
+    '--- governance: systematic-debugging（failure memory） ---',
+    '',
+    '- 本工作区最近失败（事件=' + eventType + '，窗口=最近 ' + DEBUGGING_MEMORY_WINDOW + ' 条，来源=.tt-state/debugging-memory.json）:',
+  ];
+  let i = 0;
+  for (const [code, n] of counts) {
+    i += 1;
+    const lastAt = hits.filter((h) => h.code === code).map((h) => h.at).filter(Boolean).pop() || '(无时间戳)';
+    lines.push('  ' + i + '. ' + code + ' ×' + n + '（最近 ' + lastAt + '）');
+  }
+  lines.push('- 处置方法（systematic-debugging，全文照旧走指路行，摘要不替代正文）: ' + pointer);
+  const { body, truncated } = truncateMemorySection(lines.join('\n'));
+  return truncated ? body + '\n[truncated-flag: debugging-memory]' : body;
 }
 
 /**

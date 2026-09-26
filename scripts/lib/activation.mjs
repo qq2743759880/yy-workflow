@@ -39,6 +39,33 @@ import { CLUSTERS } from './matrix.mjs';
 // 常量（契约 §2/§4/§5/§6/§8）
 // ---------------------------------------------------------------------------
 
+/**
+ * CD-1 CAPABILITY_MAP —— capability 请求 → manifest id 受控映射表（v3.2/v3.4 裁定的
+ * 完整形态入口：受控映射优先，禁模糊语义匹配）。
+ *
+ * 背景：manifest 行的 capability 字段是自由文本（非受控词表），直接做语义匹配 = 模糊
+ * 匹配（v3.4 禁）。capability dispatch 的解析单点是本表：capability 请求必须逐字命中
+ * 本表键（大小写不敏感的精确匹配，无子串/无 token 切分/无同义词）→ 唯一 manifest id；
+ * 无映射 → INELIGIBLE_CAPABILITY_UNKNOWN fail-closed（不猜）。
+ *
+ * 映射维护纪律：键 = capability 请求名（受控词表，注册即冻结）；值 = manifest id
+ * （asset-manifest-v2.json 行 id，9 资产）。新增映射 = 新增键值对（追加登记），不改语义。
+ * 映射完备性（value ⊆ manifest id）由 CD-1 探针 T1-pre 断言（resolver 自身不做断言，
+ * manifest 变更时探针暴露而非静默）。
+ */
+export const CAPABILITY_MAP = Object.freeze({
+  'openapi-validation': 'be-validator',
+  'backend-validation': 'be-validator',
+  'security-audit': 'security',
+  'skill-security-scan': 'skill-sentinel',
+  'code-implementation': 'implementation',
+  'frontend-design': 'frontend-design',
+  'prd-planning': 'planning',
+  'feature-breakdown': 'dev-planner',
+  'code-review': 'review',
+  'full-sdlc-orchestration': 'sdlc',
+});
+
 /** 9 个 YY 内置资产 id（drop 7 后幸存 vendor/ depth-1 目录；名单权威=manifest，此处仅为 catalog 视图静态断言） */
 export const CATALOG_IDS = Object.freeze([
   'dev-planner', 'frontend-design', 'implementation', 'planning',
@@ -243,11 +270,44 @@ function projectPhaseEligibility(assetId, plan, subtask) {
  * 输入 input: { asset: string, requirements?: string[], constraints?: Record<string,string> }
  * opts: { manifestPath?, manifestRows? }  —— manifestRows 注入供单测纯函数化（零 IO）；默认读产物文件
  * 输出: { selected_asset, eligible, reason: string[] }  // reason 为人读+机读混合令牌（含 fail-closed 码）
+ *
+ * CD-1（批 2，v3.2 capability dispatch 完整形态）：input.capability 在场时进入 capability
+ * 模式——asset 主键降为内部解析产物：
+ *   1. CAPABILITY_MAP 受控映射（本文件头注释，禁模糊语义匹配）：capability 请求逐字命中映射
+ *      键 → manifest id；无映射 → {selected_asset:null, eligible:false,
+ *      reason:['INELIGIBLE_CAPABILITY_UNKNOWN …']} fail-closed（不猜）；
+ *   2. 映射产物 id 作为 asset 主键走下方全部既有规则（manifest 行查找 / when_not_to_use /
+ *      drop_pending / when_to_use）——资格判定语义零改动（name-based 主键路径完全不受影响）；
+ *   3. reason[] 留痕解析链：capability → mapped id → manifest 行 → 资格判定（可审计）；
+ *   4. 同 id 多候选场景（v3.2 探针第 2 项）：CAPABILITY_MAP 键唯一 → 映射产物 id 唯一，但
+ *      manifest 多行可共享 capability/when_to_use 文本——capability 模式下映射后仍按行逐行判定，
+ *      eligible 行集与 reason 链全量返回（多候选决策留痕在 subtask.eligibility，见 runtime.mjs）。
+ *   资格语义仍以"eligible 且未 drop 的最优候选"为准：selected = 映射 id 行（eligible=true）；
+ *   映射 id 行 fail（负向/drop）→ eligible=false（候选无可用，fail-closed 不回退他行）。
  */
 export async function resolveAssetEligibility(input, opts = {}) {
   const asset = input && typeof input.asset === 'string' ? input.asset.trim() : '';
-  if (!asset) {
+  const capReq = input && typeof input.capability === 'string' ? input.capability.trim() : '';
+  if (!asset && !capReq) {
     return { selected_asset: input && input.asset !== undefined ? input.asset : null, eligible: false, reason: ['INPUT_INVALID: asset 缺失或非字符串（fail-closed，name-based 主键必填）'] };
+  }
+  if (!asset) {
+    // CD-1 capability 模式：受控映射解析（CAPABILITY_MAP，见本文件头注释声明；禁模糊语义匹配）
+    const mapped = Object.prototype.hasOwnProperty.call(CAPABILITY_MAP, capReq.toLowerCase())
+      ? CAPABILITY_MAP[capReq.toLowerCase()]
+      : null;
+    if (!mapped) {
+      return {
+        selected_asset: null,
+        eligible: false,
+        reason: ['INELIGIBLE_CAPABILITY_UNKNOWN: capability 请求「' + capReq + '」不在 CAPABILITY_MAP 受控映射（fail-closed 不猜，禁模糊语义匹配——v3.4 裁定；映射表声明于 activation.mjs 头注释）'],
+      };
+    }
+    const mappedInput = Object.assign({}, input, { asset: mapped });
+    const mappedResult = await resolveAssetEligibility(mappedInput, opts);
+    return Object.assign({}, mappedResult, {
+      reason: ['capability match: 请求「' + capReq + '」→ CAPABILITY_MAP 命中 manifest id「' + mapped + '」（受控映射，无语义扩展）'].concat(mappedResult.reason || []),
+    });
   }
 
   // 规则 1：manifest 读面（AV-1 readManifest 接口；缺必填字段/非数组/坏 JSON 均抛 CANDIDATE_INVALID 同码）
@@ -740,5 +800,5 @@ export default {
   resolveManifestPath, resolveAssetEligibility, ACTIVATION_LEVELS, DEFAULT_ACTIVATION_LEVEL, MODES, MODE_ENV,
   ERROR_CODES, TOKEN_METHOD, BUDGET_LIMIT, CATALOG_IDS, BRIEF_BODY_HEADING,
   METADATA_PLACEHOLDER, BRIEF_FILENAME, CATALOG_CACHE_IDENTITY_VERSION,
-  ASSET_MANIFEST_V2_PATH,
+  ASSET_MANIFEST_V2_PATH, CAPABILITY_MAP,
 };

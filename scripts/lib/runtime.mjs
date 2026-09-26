@@ -34,6 +34,28 @@ function resolveAdapterDI(asset, backend, opts) {
   return _adapterResolver(asset, backend);
 }
 
+// ---------------------------------------------------------------------------
+// CD-1（批 2）：capability dispatch 完整形态 —— runtime 失败记忆（F-030 同一失败族的面级记录）
+// ---------------------------------------------------------------------------
+// GV-2 debugging 摘要消费链的记录侧：失败码（含 INELIGIBLE_* 具名族）写入 workspace 记忆文件。
+// GV-2 派单把 debugging 注入从"指路行"升级为"下一次同类失败任务的 brief 注入 debugging 摘要
+// （≤2KB，运行时记忆式消费）"——本文件只做面级记录单点（运行时已具名失败码 + 事件时间戳 ISO，
+// 时间戳仅进记忆文件不进 brief——brief 组合零时间戳纪律不受影响）；摘要生成/注入单点在
+// governance.mjs（recordFailureMemory / debuggingMemorySection）。记录失败不阻断执行（best-effort）。
+const FAILURE_MEMORY_RELPATH = path.join('.tt-state', 'debugging-memory.json');
+async function recordFailureMemory(workspace, entry) {
+  try {
+    const file = path.join(workspace || '.', FAILURE_MEMORY_RELPATH);
+    let memo = { failures: [] };
+    try { memo = JSON.parse(await fs.readFile(file, 'utf8')); } catch (e) { /* 无记忆文件 → 初始化 */ }
+    if (!memo || typeof memo !== 'object' || !Array.isArray(memo.failures)) memo = { failures: [] };
+    memo.failures.push({ code: String(entry.code || ''), event: String(entry.event || 'gate_failed'), at: new Date().toISOString() });
+    memo.failures = memo.failures.slice(-20); // 防膨胀：只保留最近 20 条（摘要单点 governance.mjs 只消费最近 3 条）
+    await fs.mkdir(path.dirname(file), { recursive: true });
+    await fs.writeFile(file, JSON.stringify(memo, null, 2));
+  } catch (e) { /* 记忆写失败不阻断执行（best-effort） */ }
+}
+
 // YY_ACTIVATION=lib|legacy（默认 legacy，不改变旧行为）。与 activation.mjs 的 YY_RECEIPT_MODE 是两个变量。
 function resolveActivationMode(env = process.env) {
   const v = String((env && env.YY_ACTIVATION) || '').trim().toLowerCase();
@@ -47,6 +69,7 @@ const DEFAULT_MANIFEST_PATH = path.resolve(path.dirname(fileURLToPath(import.met
 /** 资格门失败码派生：resolver reason[] 内的 fail-closed 令牌 → INELIGIBLE_* 具名码（对齐 EX-1 CAPABILITY_MISSING 诚实降级）。 */
 function eligibilityCode(reasons) {
   const text = (reasons || []).join(' | ');
+  if (text.includes('INELIGIBLE_CAPABILITY_UNKNOWN')) return 'INELIGIBLE_CAPABILITY_UNKNOWN';
   if (text.includes('CANDIDATE_INVALID')) return 'INELIGIBLE_CANDIDATE_INVALID';
   if (text.includes('ASSET_NOT_FOUND')) return 'INELIGIBLE_ASSET_NOT_FOUND';
   if (text.includes('INELIGIBLE_DROP_PENDING')) return 'INELIGIBLE_DROP_PENDING';
@@ -104,6 +127,50 @@ export async function dispatch(subtask, ctx, opts = {}) {
   let logger = opts.logger;
   if (!logger) logger = createLogger(opts.verbose);
   if (opts.dryRun) { console.log('[dry-run] 将执行 ' + subtask.asset); return { ok: true, dryRun: true, artifactPath: null, error: null }; }
+  // CD-1（批 2，v3.2 capability dispatch 完整形态）：subtask.capability 在场 = capability 输入模式——
+  // asset name 降为内部解析产物：capability → resolver（CAPABILITY_MAP 受控映射，activation.mjs 头
+  // 注释声明；禁模糊语义匹配——v3.4 裁定）→ manifest id → 资格判定 → subtask.asset 内部绑定 → adapter。
+  //   - capability 解析/资格失败 → INELIGIBLE_* 具名（fail-closed 不猜；INELIGIBLE_CAPABILITY_UNKNOWN
+  //     = 无映射或映射产物无 manifest 行），不派单（对齐 AV-3 诚实降级）；
+  //   - 选择过程留痕：{capability, selected_asset, eligible, reason[]} 进 subtask.eligibility（审计面）；
+  //   - 向后兼容：无 capability 字段 → 走下方既有 name-based 全链（零改动）；同 subtask 同时带
+  //     asset + capability 时以 capability 为准（asset 视为过期缓存提示）。
+  //   - EX-1 能力门控（getRequiredCapabilities）：capability 模式下在 asset 绑定后按绑定资产名照常
+  //     生效（映射产物 id ⊆ manifest 9 资产 ⊆ getRequiredCapabilities 枚举面）。
+  let capabilityEligibility = null; // capability 模式解析产物（供下方 AV-3 资格门复用，避免重解析覆写审计链）
+  if (subtask.capability !== undefined && subtask.capability !== null && String(subtask.capability).trim()) {
+    const capReq = String(subtask.capability).trim();
+    try {
+      const { resolveAssetEligibility } = await import('./activation.mjs');
+      const eligibility = await resolveAssetEligibility(
+        { capability: capReq, requirements: opts.eligibilityRequirements, constraints: opts.eligibilityConstraints },
+        { manifestPath: opts.manifestPath || DEFAULT_MANIFEST_PATH }
+      );
+      subtask.eligibility = { capability: capReq, selected_asset: eligibility.selected_asset, eligible: eligibility.eligible, reason: eligibility.reason };
+      if (!eligibility.eligible || !eligibility.selected_asset) {
+        const code = eligibilityCode(eligibility.reason);
+        subtask.status = 'skipped'; subtask.mode = 'skipped'; subtask.adapter = 'none'; subtask.error = code;
+        logger.warn('subtask skipped: ' + code + ' (capability=' + capReq + ') —— capability dispatch fail-closed（CD-1：受控映射无命中/资格失败不派单，不猜）: ' + eligibility.reason.join(' | '));
+        if (opts.workspace) await recordFailureMemory(opts.workspace, { code, event: governanceEventForFailureCode(code) || 'gate_failed' });
+        emitStatus(null, subtask, 'skipped', opts, { elapsedMs: 0 });
+        return { ok: true, skipped: true, artifactPath: null, error: code };
+      }
+      const previousAsset = subtask.asset;
+      subtask.asset = eligibility.selected_asset; // asset name 降为内部解析产物（capability 模式）
+      capabilityEligibility = eligibility;        // 解析链留痕供 AV-3 资格门复用
+      if (previousAsset && previousAsset !== subtask.asset) {
+        logger.info('capability dispatch: ' + capReq + ' → asset=' + subtask.asset + '（原 asset 提示 ' + previousAsset + ' 被 capability 解析覆盖）');
+      }
+    } catch (e) {
+      // fail-closed（与 name-based 资格门同口径）：capability 解析异常 = 资格无法建立，不得静默回退
+      const code = 'RESOLVER_INTERNAL_ERROR';
+      subtask.status = 'skipped'; subtask.mode = 'skipped'; subtask.adapter = 'none'; subtask.error = code;
+      logger.warn('subtask skipped: ' + code + ' (capability=' + capReq + ') —— capability dispatch 异常 fail-closed（不静默放行）: ' + e.message);
+      if (opts.workspace) await recordFailureMemory(opts.workspace, { code, event: governanceEventForFailureCode(code) || 'gate_failed' });
+      emitStatus(null, subtask, 'skipped', opts, { elapsedMs: 0 });
+      return { ok: true, skipped: true, artifactPath: null, error: code };
+    }
+  }
   // AV-3（v3.5）：Gate-2 manifest hash 绑定 + 资格门——runtime 不得直接拿 asset，必须过 resolver→approved asset
   // （修复 F-007）。manifest 不在场 → 维持旧行为（向后兼容，与 preflight P6 同口径）；
   // 批 1 hash 不一致仅记账 warning 不阻断（AS-2 晋升时升级硬门）；resolver fail-closed（eligible=false）→
@@ -124,15 +191,18 @@ export async function dispatch(subtask, ctx, opts = {}) {
           + '（Gate-2 批 1 记账不阻断；AS-2 晋升时升级硬门）');
       }
       const { resolveAssetEligibility } = await import('./activation.mjs');
-      const eligibility = await resolveAssetEligibility(
+      const eligibility = capabilityEligibility || await resolveAssetEligibility(
         { asset: subtask.asset, requirements: opts.eligibilityRequirements, constraints: opts.eligibilityConstraints },
         { manifestPath }
       );
-      subtask.eligibility = { eligible: eligibility.eligible, reason: eligibility.reason };
+      subtask.eligibility = capabilityEligibility
+        ? { capability: String(subtask.capability).trim(), selected_asset: capabilityEligibility.selected_asset, eligible: eligibility.eligible, reason: eligibility.reason }
+        : { eligible: eligibility.eligible, reason: eligibility.reason };
       if (!eligibility.eligible) {
         const code = eligibilityCode(eligibility.reason);
         subtask.status = 'skipped'; subtask.mode = 'skipped'; subtask.adapter = 'none'; subtask.error = code;
         logger.warn('subtask skipped: ' + code + ' (asset=' + subtask.asset + ') —— 资格门 fail-closed（AV-3，不过 resolver 不派单）: ' + eligibility.reason.join(' | '));
+        if (opts.workspace) await recordFailureMemory(opts.workspace, { code, event: governanceEventForFailureCode(code) || 'gate_failed' });
         emitStatus(null, subtask, 'skipped', opts, { elapsedMs: 0 });
         return { ok: true, skipped: true, artifactPath: null, error: code };
       }
@@ -143,6 +213,7 @@ export async function dispatch(subtask, ctx, opts = {}) {
       const code = 'RESOLVER_INTERNAL_ERROR';
       subtask.status = 'skipped'; subtask.mode = 'skipped'; subtask.adapter = 'none'; subtask.error = code;
       logger.warn('subtask skipped: ' + code + ' (asset=' + subtask.asset + ') —— 资格门异常 fail-closed（manifest 在场但判定失败，不静默放行）: ' + e.message);
+      if (opts.workspace) await recordFailureMemory(opts.workspace, { code, event: governanceEventForFailureCode(code) || 'gate_failed' });
       emitStatus(null, subtask, 'skipped', opts, { elapsedMs: 0 });
       return { ok: true, skipped: true, artifactPath: null, error: code };
     }
@@ -381,6 +452,16 @@ async function runGroup(group, plan, ctx, opts, logger, limit) {
     if (govEvent) {
       const govLine = governancePointerLine('failure_recovery', govEvent);
       if (govLine) logger.warn('subtask ' + subtask.id + ' [' + subtask.asset + '] failure=' + (govFailCode || '(no code)') + ' gov_event=' + govEvent + ' | ' + govLine);
+    }
+    // GV-2 debugging 摘要消费链（记录侧）：真实执行失败（result.ok===false，含具名码/宿主输出串/
+    // 无码三形态）与 unavailable skip（*_NOT_AVAILABLE 外部工具缺失——同类重派最常见的失败形态）
+    // → workspace 记忆（.tt-state/debugging-memory.json），下一次同类失败任务的 brief 注入摘要用。
+    // 记忆记录面比指路行宽（指路行维持 F-030 映射表 fail-closed 不语义扩张）：宿主输出串等
+    // 未映射失败形态也是"门/执行面失败"（F-030 兜底语义），event 一律归 gate_failed。
+    // 记录 best-effort 不阻断；DEP_PRECONDITION/CONTRACT_NOT_FROZEN 等 dispatch 前短路不落本观察点。
+    const isUnavailableSkip = ['OPENCODE_NOT_AVAILABLE', 'SDLC_NOT_AVAILABLE', 'CONTRACT_TOOL_NOT_AVAILABLE', 'ADAPTER_NOT_AVAILABLE'].includes(result.error);
+    if (!opts.dryRun && opts.workspace && result && (result.ok === false || isUnavailableSkip)) {
+      await recordFailureMemory(opts.workspace, { code: govFailCode.slice(0, 120) || 'EXECUTION_FAILED', event: govEvent || 'gate_failed' });
     }
     emitStatus(plan, subtask, subtask.status, opts, { elapsedMs: Date.now() - started });
     logger.info('finish subtask ' + subtask.id + ' (' + (Date.now() - started) + 'ms)');

@@ -28,10 +28,10 @@ import { resolveCommandShim } from './lib/adapters/util.mjs';
 // 5KB 截断护栏 + governance-skills 缺失静默跳过（向后兼容）。单点实现见 scripts/lib/governance.mjs。
 import { governPlanAssets } from './lib/governance.mjs';
 // PC-1 Prompt Compiler v1（批 2 第一波）：manifest 行在场 → 六段 brief（composer 模式），
-// 否则/降级 → legacy（正文原样透传，字节级兼容）。纯函数单点实现见 scripts/lib/prompt-composer.mjs；
-// 治理注入（GW-1 governPlanAssets）保持现状叠加其上（composer 六段 + 治理尾部节共存，GV-2 后续迁移
-// 到 composer governanceSection 插槽——插槽已在 composer 预留）。
-import { loadCapabilityRows, composePlanAssets } from './lib/prompt-composer.mjs';
+// 否则/降级 → legacy（正文原样透传，字节级兼容）。纯函数单点见 scripts/lib/prompt-composer.mjs；
+// GV-2 迁移：治理注入经 composer governanceSection 插槽（管道单点 composeGovernedPlanAssets），
+// composePlanAssets 保留为无治理形态（kill-switch YY_PROMPT_COMPOSER=off 双双回落旧拼接）。
+import { loadCapabilityRows, composePlanAssets, composeGovernedPlanAssets } from './lib/prompt-composer.mjs';
 // B7（T6 接线）：核心循环改用 lib/orchestrator.mjs 的 A2 纯逻辑（parseArgs/validateOpts/
 // isOpenApiSpec/parseBacklogRows/backlogIsPending 逐字等价，planDryRun 已差分验证）；
 // 删除顶层内联副本，单点维护。新路径（phase 门/change.record/--evolve）全部旗标制，默认 no-op。
@@ -758,16 +758,16 @@ async function main() {
     return s && ['be-validator', 'review', 'sdlc', 'skill-sentinel'].includes(s.asset);
   });
   const finalReceiptAssets = governPlanAssets(governedAssets, reviewSubtasks, { event: 'before_final_receipt' });
-  // PC-1 Prompt Composer 接线（最小 diff）：contracts/asset-manifest-v2.json 行在场的资产 →
-  // 「vendor 正文前缀 + Role/Mission/Context/Output Contract/Constraints/Verification 六段」；
-  // 行缺失/产物不可读/YY_PROMPT_COMPOSER=off → 原样 legacy（零行为面）。组合在治理包装之后
-  // 叠加（governed/finalReceipt 正文尾部治理节保持在前缀正文之后、六段之前的位置由治理追加
-  // 时机决定——治理节追加于资产正文尾部，composer 再在其后编译六段，两节共存互不覆写；
-  // 锚点=正文首标题、kernel=正文 Execution kernel 段，均为前缀提取，S8 机验不受影响）。
-  // YY_ACTIVATION=lib 在 composePlanAssets 内部跳过（T4 谓词 (b) payloadSha256 同源耦合护栏）。
+  // PC-1/GV-2 Prompt Composer 接线（最小 diff；GV-2 迁移后经管道单点 composeGovernedPlanAssets）：
+  // contracts/asset-manifest-v2.json 行在场的资产 → 「vendor 正文前缀 + 六段 + governanceSection
+  // 插槽（debugging 摘要优先，缺省 brief 事件治理节）」。行缺失/产物不可读/YY_PROMPT_COMPOSER=off
+  // → 原样 legacy（零行为面）。GV-2 迁移语义：治理节不再由本处拼尾巴进 composer 输入——插槽
+  // 消费单点在 composeGovernedPlanAssets（governance.mjs debuggingMemorySection/
+  // governanceBriefSection）；GW-1 尾节注入（finalReceiptAssets）保持在前缀正文内，与插槽治理节
+  // 共存不覆写。YY_ACTIVATION=lib 在 composeGovernedPlanAssets 内部跳过（T4 谓词 (b) 护栏）。
   const capabilityRows = loadCapabilityRows();
   const composedAssets = capabilityRows.ok
-    ? composePlanAssets(finalReceiptAssets, plan.subtasks, { capabilityRows: capabilityRows.rows, plan })
+    ? composeGovernedPlanAssets(finalReceiptAssets, plan.subtasks, { capabilityRows: capabilityRows.rows, plan, workspace })
     : finalReceiptAssets;
   // M2-3 --tui：执行时叠加实时 DAG 渲染（不改变执行语义，只挂 onStatus 钩子）。逃生舱：TT_TUI=off 或 --no-tui 完全不渲染。
   const execOpts = { ...opts, workspace, logger, assets: composedAssets, assetsRoot: SKILL_DIR };
