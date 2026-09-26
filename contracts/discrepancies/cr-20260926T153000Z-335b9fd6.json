@@ -1,0 +1,50 @@
+{
+  "changeRecordId": "cr-20260926T153000Z-335b9fd6",
+  "basePlan": "contracts/asset-manifest-v2.md",
+  "baseVersion": "contracts/asset-manifest-v2.md@0e0b35c09cd4a330dbef0cfe3036e1470dfff747575c82931e53e21c332568d1（manifest schema 冻结正文 sha256，本单未改该文件，作 basePlan 权威）；受影响产物 contracts/asset-manifest-v2.json@变更前 c30fee6b4d1a8130af8536df9b45342c78667eaebaad172d0dac767e471f25d1",
+  "supersedes": null,
+  "reason": "SECMAN-1 Security Manifest Semantic Freshness（Batch 3 Wave 1）：contracts/manifest-sources/security.yaml 的 when_not_to_use 末条为 F-011 旧口径（『目录目标放行；0 findings 属真实扫描结果如实记录，REMEDIATION-1』），落后于 adapter scripts/lib/adapters/security-semgrep.mjs:69-110 的 F-019 真实语义（纯非 Python 源码目录 → SCOPE_LANGUAGE_UNSUPPORTED 拒绝；混合目录 → 照扫但 pass=false + uncovered_languages 显式列）。源头（sidecar，我方署责任）权威语义落后于适配器真实语义，污染 activation.mjs 资格判定（消费 when_not_to_use）与下游 manifest。按 AV-2 纪律从 source 修（禁手改生成物 contracts/asset-manifest-v2.json），并从 source 重建 manifest → 重跑 hash/consumers/regression/audit-index。归类为 CONTRACT（非 DOC_ONLY）：change.mjs isFrozenContractPath（contracts/ 下除 drafts/、discrepancies/ 均冻）机检本单 touchedFiles 含 contracts/manifest-sources/security.yaml ∈ 冻结契约面 → 按 OQ-R7-4=A 最严类规则主动声明 CONTRACT，owner approval receipt 成为必要条件（§5.1）。禁 F-034 同型逃逸（『改文案不改机器语义』不构成降类理由——冻结面任何规范性内容改动均在冻结面内）。",
+  "impactClass": "CONTRACT",
+  "owner": "Owner",
+  "sourceEvidence": [
+    "handoffs/v3/SECMAN-1-dispatch.md#02569cb0fc1db824719ece87779b28b530761dd261a795bb0b92c3813da98d72（派单：十六字段纪律+白名单+步骤）",
+    "plans/T0-ground-truth-20260926.md#§2 ACCEPT-3（编排者亲验的 stale 证据：sidecar 旧口径 vs adapter F-019 逐行比对）",
+    "contracts/manifest-sources/security.yaml#2fc5b6210ce3761cf97eb68d0247052150534d19d3abd5e954234ea0a315537d（改动后 sidecar sha256；改动前旧口径末条见 test-reports/autopilot-work/SECMAN-1/sidecar-before.txt）",
+    "scripts/lib/adapters/security-semgrep.mjs#L69-L110（F-019 真实语义基准，本单非目标=不改 adapter）",
+    "scripts/lib/change.mjs#isFrozenContractPath/resolveImpactClass（最严类机检规则——本单归类判定基准）",
+    "test-reports/autopilot-work/SECMAN-1/（sidecar diff、before/after hash、consumers 验证、negative probe、回归日志）"
+  ],
+  "invalidatedNodes": [
+    "security sidecar when_not_to_use 旧口径（F-011 目录放行 + 0 findings 如实记录）——失效，改以 F-019 真实语义（纯非 Python 目录拒绝 / 混合 pass=false + uncovered_languages）",
+    "contracts/asset-manifest-v2.json security 行（c30fee6b… 旧内嵌文案）——随 sidecar 重建失效，再生为 188eb01a…",
+    "plans/audit-index-20260925.md B-6 行 manifest hash 登记期望值（c30fee6b… → 188eb01a…）"
+  ],
+  "newVersionRef": null,
+  "supersededBy": null,
+  "status": "active",
+  "recordedAt": "2026-09-26T15:30:00.000Z",
+  "recordedBy": "SECMAN-1-L1-exec",
+  "idempotencyKey": "secman1-security-sidecar-f019-semantic-freshness",
+  "approvalId": null,
+  "touchedFiles": [
+    "contracts/manifest-sources/security.yaml",
+    "contracts/asset-manifest-v2.json",
+    "plans/audit-index-20260925.md"
+  ],
+  "manifestRebuild": {
+    "before": "asset-manifest-v2.json@sha256=c30fee6b4d1a8130af8536df9b45342c78667eaebaad172d0dac767e471f25d1（9 行，sidecar 旧口径）",
+    "after": "asset-manifest-v2.json@sha256=188eb01ae0d88d1cdf2750d5bbfa24165ac8b8d84deac45ab61fb39fa031f1c9（9 行；security 行 when_not_to_use 末条含 F-019 语义）",
+    "builder": "node scripts/manifest-build.mjs（唯一构建器；打印 hash == 落盘 sha256 一致）",
+    "eligible": "node scripts/eligible.mjs --asset security → eligible=true（未退化）；S15-A5 复跑 PASS（混合目录 0 findings 仍 pass=false + UNCOVERED_LANGUAGES=[js]）",
+    "negativeProbe": "sidecar 缺 when_not_to_use → 构建器 CANDIDATE_INVALID 具名（'必填字段缺失或为空 \"when_not_to_use\"'）+ 产物拒绝落盘（fail-closed 未退化）"
+  },
+  "ownerApprovalReceipt": {
+    "status": "PENDING_OWNER_RECEIPT",
+    "note": "Owner 签收位：本单为 CONTRACT 类（冻结契约面 sidecar normative 内容改动），owner approval receipt 为必要条件（§5.1）。L1 不代签（决策权纪律，AS-2-first D-3 / AS-1 drop7 先例）；签发后回填 approvalId/approvedBy=owner/approvedAt/approvalEvidence=<路径>#<SHA256> 并将 status 改为 SIGNED（change.mjs validateOwnerApprovalReceipt 校验面）。"
+  },
+  "deviations": [
+    "D-1: change.record 本体落入 contracts/discrepancies/（change.mjs §5.2 规定落点）——派单 allowed write face 未逐字列该路径，但 step 1 明令『建 change.record』，且 contracts/discrepancies/ 属 change record 证据层（isFrozenContractPath 显式排除），非冻结契约面；登记待 L2 核销",
+    "D-2: 本单未 append plans/active/changes/index.jsonl（该路径不在派单白名单；现存 10 张 change record 中仅 1 张（a6244b0c）在索引内，本单沿现行多数形态，索引登记移交 L2/编排者）",
+    "D-3: audit-index-selftest 单独运行 68 PASS/0 FAIL 复绿；但 B-9 复验命令（final-e2e-assert.mjs --backend auto）在 selftest 内联执行时受 60s 超时（spawnSync timeout=60000）影响——实测该命令耗时 38~122s 波动，selftest 单独复跑 B-9 命中 PASS；此非本单引入（命令既有耗时特性），登记为观察项"
+  ]
+}

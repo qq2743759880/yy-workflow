@@ -1,0 +1,37 @@
+# KERNEL-1 声明 diff（package.json / package-lock.json / playbook）
+生成: 2026-09-26T15:53:57Z  revision: 864860669cb4fcf996e12a4d97f14e2b2d906918
+
+## package.json diff
+diff --git a/package.json b/package.json
+index 5fb9d07..703776c 100644
+--- a/package.json
++++ b/package.json
+@@ -15,9 +15,11 @@
+     "orchestrate": "node scripts/orchestrator.mjs",
+     "review-gate": "node scripts/review-gate.mjs",
+     "security-scan": "node scripts/security-scan.mjs",
+-    "audit:deps": "node scripts/audit-deps.mjs"
++    "audit:deps": "node scripts/audit-deps.mjs",
++    "bootstrap:kernels": "node scripts/bootstrap-kernels.mjs"
+   },
+   "dependencies": {
++    "@stoplight/spectral-cli": "6.16.3",
+     "playwright-core": "^1.63.0",
+     "reflect-metadata": "^0.2.2",
+     "tslib": "^2.8.1"
+
+## package-lock.json：spectral 顶层 lock 行
+243:    "node_modules/@stoplight/spectral-cli": {
+244-      "version": "6.16.3",
+245-      "resolved": "https://registry.npmjs.org/@stoplight/spectral-cli/-/spectral-cli-6.16.3.tgz",
+246-      "integrity": "sha512-corAOQ/WhGoPJOQ3Tcipyn64TgKYDkEhsDplS6vNSGys3kzi9+zzxiVOlbzk9mWuafovzoW+TpGCoNwIZvFf5w==",
+247-      "license": "Apache-2.0",
+
+## lock 中 spectral 相关条目计数
+12
+
+## baseline sha256（改动前，见 baseline-sha256.txt）
+
+## 改动后 sha256
+e96a804c76c2769bc56d476d05c0529f55ad1e100d57a9d8eec73d509dd2a5e4 *package.json
+c1a649ed0136b4656af89eb1930756a14e0d926f9dd2b6864e984ccb1a7f0148 *package-lock.json

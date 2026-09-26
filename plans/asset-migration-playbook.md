@@ -22,12 +22,13 @@ migration_object:
     adapter_refs: []        # Gate-0 baseline + 注册表全部引用点（ADAPTERS 两键/regression 段/S8 链）
     engine: "<旧引擎名@版本>"
   new_asset:
-    vendor_path: vendor/<id>/...                       # 或 npm 包名（--no-save，不入库）
+    vendor_path: vendor/<id>/...                       # 或 npm 包名（迁移探测期 --no-save 不入库；
+                                                       #   晋升 PRIMARY 后须落可复现声明，见 Step 2.2 通道表）
     introduction: npm|clone|host-skill                 # 引入方式
     license_check: "<AS-0 结论引用：LICENSES.md#节>"
     provider_identity:                                 # 三件套缺一 = NO INSTALL（Failure Rule 3）
       official_source: "github:<org>/<repo>"
-      install_channel: "npm install <pkg> --no-save"
+      install_channel: "npm install <pkg> --no-save"   # 探测期；PRIMARY 晋升后改为仓库声明通道（KERNEL-1 Step 2.2：npm→package.json+lock；pip→bootstrap-kernels.mjs 声明）
       runtime_test: "<cli> --version → 期望 <version>"
       name_collision_check: "<install 前必查：registry 包名 == 官方项目名？不同名时先核对官方 repo 声明的真实包名，再安装（Failure Rule 3 增补 a，AS-2-sentinel D-2 实例）>"
   owner: "<编排者派发任务 id；Owner 签收位见 promotion_receipt>"
@@ -128,11 +129,36 @@ node scripts/preflight.mjs
 #     不同名（或存疑）时，先到 official_source（github:<org>/<repo>）核对官方声明的真实包名再装。
 #     反例（AS-2-sentinel D-2）：PyPI `skill-scanner`（0.3.3, MIT, thedevappsecguy）≠ 官方
 #     cisco-ai-skill-scanner（Apache-2.0, github:cisco-ai-defense/skill-scanner）——装错包 = 假接入。
-npm install --no-save @stoplight/spectral-cli
+# 2.1 安装通道（KERNEL-1 修订，2026-09-26）：迁移期探测可用 --no-save 临时装入；
+#     晋升 PRIMARY 后，该内核的**可复现声明**必须落到仓库（见 2.2）——--no-save 只允许存在于
+#     迁移探测阶段，禁止作为 PRIMARY 的长期安装记录（R-2 D-1 事故根因：npm prune 将无 lock 保护的
+#     extraneous 包当垃圾删除，spectral 当场失踪，S15-A2 真扫 FAIL）。
+npm install @stoplight/spectral-cli@6.16.3   # 写入 package.json dependencies + package-lock（可复现）
 spectral --version
 ```
 - **PASS**：--version 输出与期望版本一致（AS-2-first：6.16.3）；装的是 official_source 官方声明的包名。npm 假包教训：**装完必核**，package name ≠ capability。
-- **FAIL**：版本不符/命令不存在/来源非 official source（github:<org>/<repo> 对应的 npm 包）/ **registry 包名与官方项目名撞车或撞名**（PyPI skill-scanner 实例：npm semgrep 假包教训的 pip 版同型）→ **NO INSTALL**，换 official source + install 通道 + runtime_test 全链重验，禁用来历不明包。package.json/package-lock 零改动（--no-save）。
+- **FAIL**：版本不符/命令不存在/来源非 official source（github:<org>/<repo> 对应的 npm 包）/ **registry 包名与官方项目名撞车或撞名**（PyPI skill-scanner 实例：npm semgrep 假包教训的 pip 版同型）→ **NO INSTALL**，换 official source + install 通道 + runtime_test 全链重验，禁用来历不明包。
+
+### Step 2.2 三内核可复现安装通道声明（KERNEL-1，2026-09-26）
+
+三内核安装通道**不同**（诚实声明，不伪装统一；pip 两项**无法进 package.json**）：
+
+| 内核 | adapter | 通道 | 锁定声明落点 | 复现命令 |
+|---|---|---|---|---|
+| spectral 6.16.3 | be-validator（PRIMARY） | npm | `package.json` `dependencies`（精确 `6.16.3`，非 `^`）+ `package-lock.json` 完整传递树 | `npm ci` |
+| semgrep 1.175.0 | security（PRIMARY） | pip | 本表 + `scripts/bootstrap-kernels.mjs` 内声明（**无 lock 文件可锁，不得伪装已锁**） | `python -m pip install semgrep==1.175.0` |
+| cisco-ai-skill-scanner 2.1.0 | skill-sentinel（PRIMARY） | pip | 同上（包名用官方 `cisco-ai-skill-scanner`，PyPI `skill-scanner` 0.3.3 为同名撞车假目标） | `python -m pip install cisco-ai-skill-scanner==2.1.0` |
+
+```bash
+# 干净副本重建（KERNEL-1 实证：临时目录 + 空 node_modules）：
+npm ci                                   # npm 面：spectral 由 lock 恢复
+node scripts/bootstrap-kernels.mjs       # pip 面：semgrep / skill-scanner 安装并核验
+# → 三 --version 全绿（6.16.3 / 1.175.0 / 2.1.0）方可继续
+```
+- **PASS**：`node scripts/bootstrap-kernels.mjs` exit 0（三内核版本前缀符合声明）。
+- **FAIL**：任一内核缺失/版本不符 → 脚本具名列出（kernel/channel/期望/实测）+ exit≠0，**禁静默降级为"跳过"**。负向探针：干净副本**不跑** bootstrap → `--check` 明确报 `spectral … MISS`（不得静默成 pass）。
+- **边界**：`bootstrap-kernels.mjs` 只做 npm ci + pip 安装的**编排与核验**，不引入新内核、不改 adapter 调用逻辑、不改 ruleset（KERNEL-1 非目标）。
+
 
 ### Step 3 旧引擎行为实测 = 回滚路径前置验证（§五.2）
 

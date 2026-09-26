@@ -308,3 +308,7 @@ D-2（reflect-metadata/tslib 删否）、D-3（回归器重写探针 JSON 固有
 - 裁定汇总：ACCEPT-1（Batch2 边界差，MODIFY 为口径收口）/ ACCEPT-2（capability 单点≠主链，planner grep=0 实锤）/ ACCEPT-3（security sidecar 确 stale，逐行比对实锤）/ ACCEPT-4（Spectral 不可复现，package.json/lock 零命中实锤）；MODIFY-1（多候选降为"规则先冻结、无需求不实施"）；REJECT-1（不删 reflect-metadata/tslib）；REJECT-2（部分交接叙述过期）
 - Batch 3 成立：Wave1 三单（ACC-1/SECMAN-1/KERNEL-1，写面实测两两无交集）→ Wave2（CAP-ING-1）→ Wave3（E2E-v3）；MG-1/E-4-EXEC Owner-resource gated
 - 明确不做：Multi-candidate Resolver（无需求+规则未冻结）、模糊选择（禁 LLM/embedding）
+| SECMAN-1 | PASS | agent_610e962e | orchestrator-L2(hash/语义/eligible/回归/selftest 五项亲验) | 2026-09-26T16:00:00Z | contracts/manifest-sources/security.yaml（when_not_to_use → F-019 语义）; contracts/asset-manifest-v2.json（重建 hash 188eb01a）; plans/audit-index B-6 行; test-reports/autopilot-work/SECMAN-1/ |
+- 从 source 修（未手改产物）；CONTRACT 类主动声明（禁 DOC_ONLY 逃逸，F-034 教训遵守）；change 单 cr-20260926T153000Z-335b9fd6 Owner PENDING
+- L2 亲验：hash 188eb01a 一致；security 行含 F-019 语义；eligible=true；S15-A5 PASS；回归 24/24；selftest 68 复绿
+- D-1/D-4 合理（change 单落点 discrepancies 是被显式排除的非冻结面；change-lock 沿 AS-1 先例）；D-2（index.jsonl 未 append）移交编排者；D-3（B-9 命令偶发 60s 超时，单独复跑 PASS）登记观察项——**selftest 的 B-9 命令超时属真实隐患，列入后续观察**

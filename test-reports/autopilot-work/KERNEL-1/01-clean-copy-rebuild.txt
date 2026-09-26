@@ -1,0 +1,23 @@
+# KERNEL-1 干净副本重建证据（临时目录 /tmp/kernel1-clean-B0Rj7V）
+生成: 2026-09-26T15:47:31Z
+
+## 1. 干净副本条件
+- 从仓库复制（排除 node_modules/.git/artifacts）→ node_modules ABSENT 起步
+- npm ci（package-lock 唯一来源）
+
+## 2. 三内核 --version（重建后实测）
+$ ./node_modules/.bin/spectral --version
+6.16.3
+$ semgrep --version
+1.175.0
+$ skill-scanner --version
+python.exe C:\Python314\Scripts\skill-scanner 2.1.0
+
+## 3. bootstrap-kernels --check（重建后）
+# bootstrap-kernels (check-only)  python: Python 3.14.6
+  [OK  ] spectral       npm  @stoplight/spectral-cli    expect=6.16.3 measured=6.16.3
+  [OK  ] semgrep        pip  semgrep                    expect=1.175.0 measured=1.175.0
+  [OK  ] skill-scanner  pip  cisco-ai-skill-scanner     expect=2.1.0 measured=2.1.0
+
+KERNEL_BOOTSTRAP_OK: 3 内核全部可用且版本符合声明。
+exit=0

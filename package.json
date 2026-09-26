@@ -15,9 +15,11 @@
     "orchestrate": "node scripts/orchestrator.mjs",
     "review-gate": "node scripts/review-gate.mjs",
     "security-scan": "node scripts/security-scan.mjs",
-    "audit:deps": "node scripts/audit-deps.mjs"
+    "audit:deps": "node scripts/audit-deps.mjs",
+    "bootstrap:kernels": "node scripts/bootstrap-kernels.mjs"
   },
   "dependencies": {
+    "@stoplight/spectral-cli": "6.16.3",
     "playwright-core": "^1.63.0",
     "reflect-metadata": "^0.2.2",
     "tslib": "^2.8.1"

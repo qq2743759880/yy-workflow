@@ -6,7 +6,7 @@ when_to_use:
 when_not_to_use:
   - 无代码产物的纯调研/规划任务
   - 作为功能实现主链路（security 是横切审查资产，不承担常规功能实现）
-  - 非 Python 目标（晋升 ruleset 现为 Python-only；gitleaks/多语言暂缺——能力收缩登记，扩规前 adapter 以 SCOPE_LANGUAGE_UNSUPPORTED 拒绝）——F-011 后守门为文件级：显式非 Python 文件目标拒绝，目录目标放行（目录内 .py 生效；0 findings 属真实扫描结果如实记录，REMEDIATION-1）
+  - 非 Python 目标（晋升 ruleset 现为 Python-only；gitleaks/多语言暂缺——能力收缩登记）——F-019 后守门为文件级 + 目录能力发现：显式非 Python 文件目标拒绝（SCOPE_LANGUAGE_UNSUPPORTED）；纯非 Python 源码目录拒绝（SCOPE_LANGUAGE_UNSUPPORTED，Python-only ruleset 无可检对象）；混合目录照扫但 pass=false 且 uncovered_languages 显式列出未覆盖语言——"真的扫了"≠"能力覆盖了目标"，不能认证 ≠ 通过
 verification: 执行内核=semgrep（provider identity 三件套：official_source=github:semgrep/semgrep（pip 包 semgrep 1.175.0 实测 --version；npm semgrep 为 ISC 假包禁用；LGPL-2.1-or-later 实测 sdist LICENSE 全文，CLI spawn 形态使用无链接，自研 ruleset 零 registry 依赖，见 test-reports/autopilot-work/AS-2-security/）；install 通道=pip install semgrep（用户级，不入库，装后必跑 semgrep --version 期望 1.x 实测——npm 假包教训沉淀）；runtime_test=semgrep --config vendor/security/rulesets/security-local-rules.yaml --json <目标文件> 期望 exit_code 0（成功含 findings 均为 0，默认模式非 --error）且 results JSON 可解析）——AS-2-security 迁移（contracts/asset-migration.md：PRIMARY，Playbook §六 首个复制单），旧 prompt-backend 路径保留在 adapter EXPLICIT_COMPAT_MODE 显式旗标后（Gate-1 禁静默并存），迁移证据 test-reports/autopilot-work/AS-2-security/；专用 adapter 真实执行；消费锚点+内核词 D-1 机验
 source: vendor/security/SKILL.md#L1-L5
 drop_pending: false

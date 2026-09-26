@@ -1,0 +1,33 @@
+# 回归三件 + S15-A2（KERNEL-1）
+
+## regression（仓库内，改动后）
+PASS B-1 [command/current] exit=0 out=test-reports/autopilot-work/AS-1/regression-final.log:PASS S15-A2 replace 资产真实消费探针  be-val
+PASS S15-A2 replace 资产真实消费探针  be-validator/spectral: 真扫 6 findings pass=false | security/semgrep: 真扫 1 findings pass=false | skill-sentinel/skill-scanner: 真扫 is_safe=true threats=0（os.tmpdir 夹具已清理）
+结果: 24 PASS / 0 FAIL
+回归基线通过。
+REG_EXIT=0
+
+## regression（干净副本，npm ci 重建后）
+PASS B-1 [command/current] exit=0 out=test-reports/autopilot-work/AS-1/regression-final.log:PASS S15-A2 replace 资产真实消费探针  be-val
+PASS S15-A2 replace 资产真实消费探针  be-validator/spectral: 真扫 6 findings pass=false | security/semgrep: 真扫 1 findings pass=false | skill-sentinel/skill-scanner: 真扫 is_safe=true threats=0（os.tmpdir 夹具已清理）
+结果: 24 PASS / 0 FAIL
+回归基线通过。
+REG_EXIT=0
+
+## preflight（仓库内）
+
+结果: 8 PASS / 0 FAIL / 0 SKIP
+preflight 通过。
+
+## validate-structure（仓库内）
+  未声明变量: 无
+  随包 vendor 资产: 9/9 存在
+  接口漂移(vendor frontmatter): 无
+  可移植性泄露: 无
+  编码损坏(U+FFFD): 无
+  阶段命令防跳调用行(--prereq-check): 6/6 命中
+
+[OK] 结构校验通过 (0 项警告, 见 --verbose)
+
+## audit-index selftest（full = S14b 内嵌）
+PASS S14b audit-index self-test（P5c）  索引 结果: 68 PASS / 0 FAIL——未 stale

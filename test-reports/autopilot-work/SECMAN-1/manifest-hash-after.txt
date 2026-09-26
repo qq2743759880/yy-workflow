@@ -1,0 +1,1 @@
+188eb01ae0d88d1cdf2750d5bbfa24165ac8b8d84deac45ab61fb39fa031f1c9 *contracts/asset-manifest-v2.json
