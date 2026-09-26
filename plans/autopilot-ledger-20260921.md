@@ -218,3 +218,13 @@
 
 ### 四、移交后续
 R-2 package.json 名义依赖清理；D-3 类 C 历史豁免永久保留；sentinel 多 agent 分析器 API key 接入（可选增强）
+
+## 第十四轮审计处置（2026-09-25，跨层身份关联——F-028 是全项目最重要发现之一）
+- **F-028【P0·成立·S16 REOPEN】**S16 验错身份域（asset-migration 六态无 failed；runtime promotionReceipt 无真实生产者；change receipt 身份域 cr-/apr- 与 plan-id 本不相引——"4 failed×6 SIGNED=0 违例"恒真）。审计者定性精准："测试不是 vacuous，但验证了错误的关系"。裁定：F-027 REOPEN、HARDEN-1 H1 PARTIAL。整改=REMEDIATION-2 F-028 三层真实拒绝路径（Runtime plane INVALID_TRANSITION / Migration plane 三失败形态拒 transition / Cross-plane FAILED 引用阻断 promotion），废除文本匹配
+- **F-029【P1·成立】D-3 写面越界**（regression-all 在 HARDEN-1 零触碰条款内被 D-3 修改，agent RESULTS 自解释≠授权；并发冲突无证据——时序上 HARDEN-1 先收）——整改=REMEDIATION-2 F-029 编排者签发 amendment 追认单；ledger 的 D-3 verdict 补记 PASS WITH AUTHORIZATION DEVIATION
+- **F-030【P1·成立】governance stage-event 降维为 asset-role binding**（STAGE_BY_ASSET 资产映射≠Owner 冻结的 stage/event binding；failure 事件统一包装 gate_failed）——"技能被消费"CONFIRMED 与"严格按冻结绑定"NOT CONFIRMED 分列。整改=REMEDIATION-2 F-030 两键匹配冻结集+调用端真实传参（最小改动禁造 stage engine）
+- **F-031【P1·成立】SIGNED/PENDING split-brain**（change record SIGNED vs 两份冻结正文 PENDING/草稿态）——采纳审计者方案 B（冻结正文去 mutable 状态，改指针声明，消灭重复事实源）；REMEDIATION-2 F-031
+- **F-032【P2·成立】audit-index A-4 命令读错结构（j.assertions 不存在）+ index 无 self-test——REMEDIATION-2 F-032（A-4 修正+selftest 进门禁）**
+- 两项证据边界提醒采纳：GW-1 hash "归因零增量"措辞修正（未触输入面+concurrent AS-1 可解释，非 hash-isolation proof）；R-2 package.json 名义依赖真实存在（已移交不另立）
+- **核心教训（审计者原话采信）**：跨层状态机做强治理后，跨层身份关联本身成为主要幻觉点——22/22 全绿不能单独作为收口依据
+- 批 1 closeout 结论降级：REMEDIATION-2 闭环前"PARTIALLY CONFIRMED"维持
