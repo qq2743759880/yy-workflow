@@ -247,3 +247,10 @@ R-2 package.json 名义依赖清理；D-3 类 C 历史豁免永久保留；senti
 - **F-029【CLOSED WITH RETROACTIVE RATIFICATION】**——账面保持"violation occurred→subsequently ratified"区别，不写 original compliant
 - **两条深层模式再+1**：③"test oracle ≠ production authority"（promote/validatePromotionEvidence 自造）④"指针指向的字段本身可以是 stale 的"（指针声明方向对但指向 PENDING 字段）——S15/S16 设计输入追加
 - 批 1 状态：READY-FOR-CLOSE 撤回→GOV-AUTHORITY 闭环后重评；Owner PENDING 升至 6 张（含 g0v3cons1-r2）
+| GOV-AUTHORITY | PASS | agent_fdaa191a | orchestrator-L2(S16-2/3 生产 authority 复跑/selftest 68/68/canonical 清点/g0v3cons1 voided 亲验) | 2026-09-26T01:30:00Z | scripts/lib/migration.mjs（生产 authority）; scripts/lib/signoff-canonical.mjs; scripts/lib/adapters/skill-scanner.mjs 前发射点（orchestrator +14 行）; contracts/discrepancies/cr-20260926T010000Z-g0v3cons1-r2.json（CONTRACT, Owner PENDING）; plans/audit-index-selftest.mjs 升级 |
+- 【F-036 闭环】migration.mjs 生产 authority（五合法边穷举/三失败形态 MIGRATION_BLOCKED/evidence 校验内化/promote 仅校验后签发）——S16-2/3 改调用、test oracle 删除、AS-2 三张回放 ALLOWED 兼容
+- 【F-035 闭环】before_final_receipt 生产发射点实证：be-validator/review/skill-sentinel 三 review 类 brief 全注 verification-before-completion（3646B 全文）；implementation 仍注 TDD；零交叉
+- 【F-033 闭环】canonical=ownerApprovalReceipt.status 单点（signoff-canonical.mjs：stale ownerSignOff 忽略+warning/voided→VOIDED/缺失→UNDETERMINED fail-closed）；六张单 ownerSignOff 零残留（仅两张曾有，已删+登记）
+- 【F-034 闭环】g0v3cons1 voided（replacedBy 留痕）+ r2 主动声明 CONTRACT（红线自检合规）——Owner PENDING 待签，签收前 F-031 不闭合（如实）
+- 【F-038 闭环】audit-index current/historical 分节 + sha256 semantic freshness（selftest 68/68 进 S14b）
+- 批 1 状态：READY-FOR-CLOSE 重新成立，唯剩 Owner 六项裁定（D-REG1-1/E-4/AS-2-review adapt/g0v3cons1-r2 签收 + 原有三项中已含）——签收后 close

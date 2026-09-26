@@ -1,0 +1,185 @@
+{
+  "schema": "gov-authority-selftest-migration@1.0.0",
+  "at": "2026-09-26T06:51:17.493Z",
+  "checks": {
+    "five_legal_transitions_allowed": true,
+    "three_failure_shapes_hard_denied": true,
+    "promotion_evidence_negative_terminals_denied": true,
+    "promotion_receipt_issued_only_after_gate": true,
+    "as2_three_records_replay_allowed": true,
+    "illegal_transitions_rejected": true
+  },
+  "five_legal_transitions": [
+    {
+      "edge": "ACTIVE>SHADOW",
+      "ok": true,
+      "code": null
+    },
+    {
+      "edge": "SHADOW>MIGRATING",
+      "ok": true,
+      "code": null
+    },
+    {
+      "edge": "MIGRATING>PRIMARY",
+      "ok": true,
+      "code": null
+    },
+    {
+      "edge": "PRIMARY>DEPRECATED",
+      "ok": true,
+      "code": null
+    },
+    {
+      "edge": "DEPRECATED>REMOVED",
+      "ok": true,
+      "code": null
+    }
+  ],
+  "three_failure_shapes": [
+    {
+      "edge": "SHADOW>MIGRATING",
+      "shape": "shadow_fail",
+      "expected": "MIGRATION_BLOCKED:shadow_fail",
+      "actual": "MIGRATION_BLOCKED:shadow_fail",
+      "ok": true
+    },
+    {
+      "edge": "SHADOW>MIGRATING",
+      "shape": "rollback_fail",
+      "expected": "MIGRATION_BLOCKED:rollback_fail",
+      "actual": "MIGRATION_BLOCKED:rollback_fail",
+      "ok": true
+    },
+    {
+      "edge": "SHADOW>MIGRATING",
+      "shape": "runtime_binding_fail",
+      "expected": "MIGRATION_BLOCKED:runtime_binding_fail",
+      "actual": "MIGRATION_BLOCKED:runtime_binding_fail",
+      "ok": true
+    },
+    {
+      "edge": "MIGRATING>PRIMARY",
+      "shape": "shadow_fail",
+      "expected": "MIGRATION_BLOCKED:shadow_fail",
+      "actual": "MIGRATION_BLOCKED:shadow_fail",
+      "ok": true
+    },
+    {
+      "edge": "MIGRATING>PRIMARY",
+      "shape": "rollback_fail",
+      "expected": "MIGRATION_BLOCKED:rollback_fail",
+      "actual": "MIGRATION_BLOCKED:rollback_fail",
+      "ok": true
+    },
+    {
+      "edge": "MIGRATING>PRIMARY",
+      "shape": "runtime_binding_fail",
+      "expected": "MIGRATION_BLOCKED:runtime_binding_fail",
+      "actual": "MIGRATION_BLOCKED:runtime_binding_fail",
+      "ok": true
+    }
+  ],
+  "promotion_evidence": [
+    {
+      "terminal": "FAILED",
+      "ok": true,
+      "expectOk": false,
+      "actual": false,
+      "code": "PROMOTION_BLOCKED"
+    },
+    {
+      "terminal": "UNRESOLVED",
+      "ok": true,
+      "expectOk": false,
+      "actual": false,
+      "code": "PROMOTION_BLOCKED"
+    },
+    {
+      "terminal": "INVALID",
+      "ok": true,
+      "expectOk": false,
+      "actual": false,
+      "code": "PROMOTION_BLOCKED"
+    },
+    {
+      "terminal": "null",
+      "ok": true,
+      "expectOk": false,
+      "actual": false,
+      "code": "PROMOTION_BLOCKED"
+    },
+    {
+      "terminal": "behavior_verified",
+      "ok": true,
+      "expectOk": true,
+      "actual": true,
+      "code": null
+    },
+    {
+      "terminal": "(transition M2P 缺 terminal)",
+      "ok": true,
+      "expectOk": false,
+      "actual": false,
+      "code": "PROMOTION_BLOCKED"
+    }
+  ],
+  "promotion_receipt_gate": {
+    "deny_code": "PROMOTION_BLOCKED",
+    "allow_receipt_id": "apr-selftest"
+  },
+  "as2_replay": [
+    {
+      "record": "AS-2-first",
+      "ok": true,
+      "terminal": "PRIMARY",
+      "voidedSkipped": 0,
+      "code": null
+    },
+    {
+      "record": "AS-2-security",
+      "ok": true,
+      "terminal": "PRIMARY",
+      "voidedSkipped": 0,
+      "code": null
+    },
+    {
+      "record": "AS-2-sentinel",
+      "ok": true,
+      "terminal": "PRIMARY",
+      "voidedSkipped": 1,
+      "code": null
+    }
+  ],
+  "illegal_transitions": [
+    {
+      "edge": "ACTIVE>MIGRATING",
+      "rejected": true
+    },
+    {
+      "edge": "ACTIVE>PRIMARY",
+      "rejected": true
+    },
+    {
+      "edge": "SHADOW>PRIMARY",
+      "rejected": true
+    },
+    {
+      "edge": "MIGRATING>SHADOW",
+      "rejected": true
+    },
+    {
+      "edge": "PRIMARY>ACTIVE",
+      "rejected": true
+    },
+    {
+      "edge": "DEPRECATED>PRIMARY",
+      "rejected": true
+    },
+    {
+      "edge": "REMOVED>ACTIVE",
+      "rejected": true
+    }
+  ],
+  "verdict": "PASS"
+}

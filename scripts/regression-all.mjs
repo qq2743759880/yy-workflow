@@ -38,10 +38,14 @@
  *                                    state 不变；mech 主链自然 failed 形态佐证）；S16-2 Migration plane（三失败
  *                                    形态真实机验器：shadow FAIL=真实 spectral 缺陷夹具 pass=false /
  *                                    rollback FAIL=SPECTRAL_NOT_AVAILABLE 无旗标拒绝 / runtime_binding FAIL=
- *                                    假 spectral SPECTRAL_OUTPUT_INVALID——三形态下 SHADOW→MIGRATING 与
- *                                    MIGRATING→PRIMARY 按 playbook Failure Rules 拒绝；receipt 链负终态
- *                                    →behavior_verified 拒绝）；S16-3 Cross-plane（migration promotionReceipt
- *                                    生成处校验——sourceEvidence 引用 execution receipt 终态 FAILED/UNRESOLVED
+ *                                    假 spectral SPECTRAL_OUTPUT_INVALID——三形态喂给生产 migration.mjs authority（scripts/lib/migration.mjs——本批新建生产模块，
+ *                                    探针内自造 promote()/validatePromotionEvidence() test oracle 删除），
+ *                                    SHADOW→MIGRATING 与 MIGRATING→PRIMARY 按 playbook Failure Rules 经生产
+ *                                    transition()/promote() 硬拒绝（MIGRATION_BLOCKED:<形态>）；promotion
+ *                                    evidence 校验=生产 validatePromotionEvidence（负终态→behavior_verified
+ *                                    拒绝）；AS-2 三张已 PRIMARY migration-record 经生产 replayTransitions
+ *                                    回放放行（兼容性证明）。S16-3 Cross-plane（migration promotionReceipt
+ *                                    生成处校验=生产 migration.mjs validatePromotionEvidence 单点——sourceEvidence 引用 execution receipt 终态 FAILED/UNRESOLVED
  *                                    阻断 promotion；cross-plane 注入：状态层 done+receipt 层 FAILED →
  *                                    planning→executing 被 receiptCoverage 校验拒绝）。
  *                                    证据落 test-reports/autopilot-work/REMEDIATION-2/。任一 FAIL → regression FAIL。
@@ -587,18 +591,28 @@ async function main() {
         process.env.PATH = oldPath2;
         const bindingFail = rInvalid.ok === false && rInvalid.error === 'SPECTRAL_OUTPUT_INVALID' && rInvalid.contract && rInvalid.contract.invalid_output === true;
         ev17.shapes.runtime_binding_fail = { adapter_ok: rInvalid.ok, error: rInvalid.error, invalid_output: rInvalid.contract && rInvalid.contract.invalid_output, detected: bindingFail };
-        // playbook Failure Rules 判定（契约 §一转移表映射）：三形态 → 两转移均拒绝；干净记录 → 放行（非恒拒）
+        // playbook Failure Rules 判定改走生产 authority（GOV-AUTHORITY 任务一：test oracle 删除）——
+        // 三失败形态逐个喂给生产 migration.transition()（合法边 + 形态门），断言 3×2 全拒（MIGRATION_BLOCKED:<形态>）；
+        // 干净记录（零形态 + receipt 证据齐 + evidence 终态 behavior_verified）→ 生产 authority 放行（非恒拒）。
+        const { transition: migrationTransition, promote: migrationPromote, validatePromotionEvidence, replayTransitions } = await import('./lib/migration.mjs');
         const PLAYBOOK = { SHADOW_TO_MIGRATING: '影子跑 FAIL（forbidden_difference/binding 违约）→ NO PROMOTION；回滚 FAIL → NO DROP', MIGRATING_TO_PRIMARY: '三硬门（Gate-1/2/3）任一 FAIL → 不得晋升 PRIMARY' };
-        const promote = (shapes) => ({
-          shadow_to_migrating: !(shapes.shadow_fail || shapes.rollback_fail || shapes.runtime_binding_fail),
-          migrating_to_primary: !(shapes.shadow_fail || shapes.rollback_fail || shapes.runtime_binding_fail),
-        });
-        const denied = promote({ shadow_fail: true }); const denied2 = promote({ rollback_fail: true }); const denied3 = promote({ runtime_binding_fail: true });
-        const allowed = promote({});
+        const tryTransition = (from, to, evidence) => migrationTransition({ current_state: from }, from, to, evidence);
+        const denied = tryTransition('SHADOW', 'MIGRATING', { promotionReceipt: 'apr-x', failureShapes: ['shadow_fail'] });
+        const deniedRb = tryTransition('SHADOW', 'MIGRATING', { promotionReceipt: 'apr-x', failureShapes: ['rollback_fail'] });
+        const deniedRbP = tryTransition('MIGRATING', 'PRIMARY', { failureShapes: ['rollback_fail'] });
+        const denied2 = tryTransition('MIGRATING', 'PRIMARY', { failureShapes: ['runtime_binding_fail'] });
+        const denied3 = tryTransition('MIGRATING', 'PRIMARY', { terminal: 'behavior_verified', failureShapes: ['shadow_fail'] });
+        const allowedS2M = tryTransition('SHADOW', 'MIGRATING', { promotionReceipt: 'apr-clean' });
+        const allowedM2P = tryTransition('MIGRATING', 'PRIMARY', { terminal: 'behavior_verified' });
         ev17.checks.three_shapes_detected = shadowFail && rollbackFail && bindingFail;
-        ev17.checks.shadow_to_migrating_denied_all = !denied.shadow_to_migrating && !denied2.shadow_to_migrating && !denied3.shadow_to_migrating;
-        ev17.checks.migrating_to_primary_denied_all = !denied.migrating_to_primary && !denied2.migrating_to_primary && !denied3.migrating_to_primary;
-        ev17.checks.clean_record_allowed = allowed.shadow_to_migrating && allowed.migrating_to_primary;
+        ev17.checks.shadow_to_migrating_denied_all = !denied.ok && String(denied.code).startsWith('MIGRATION_BLOCKED:shadow_fail')
+          && !deniedRb.ok && String(deniedRb.code).startsWith('MIGRATION_BLOCKED:rollback_fail')
+          && !denied3.ok && String(denied3.code).startsWith('MIGRATION_BLOCKED:shadow_fail');
+        ev17.checks.migrating_to_primary_denied_all = !deniedRbP.ok && String(deniedRbP.code).startsWith('MIGRATION_BLOCKED:rollback_fail')
+          && !denied2.ok && String(denied2.code).startsWith('MIGRATION_BLOCKED:runtime_binding_fail')
+          && !denied3.ok;
+        ev17.checks.clean_record_allowed = allowedS2M.ok === true && allowedM2P.ok === true;
+        ev17.production_authority = { module: 'scripts/lib/migration.mjs', codes: { shadow: denied.code, rollback_s2m: deniedRb.code, rollback_m2p: deniedRbP.code, binding: denied2.code } };
         ev17.playbook_rules = PLAYBOOK;
         // receipt 事件链机验器：真实 receiptAppend 走 T1-T5 → verification_failed 负终态 → behavior_verified 拒绝
         const { receiptAppend } = await import('./lib/receipt.mjs');
@@ -625,8 +639,28 @@ async function main() {
         const rUpgrade = receiptAppend({ event: mkEvent('behavior_verified', { behaviorCheck: { result: 'VERIFIED' }, evidenceRefs: [1, 2, 3, 4, 5].map((n) => ({ eventSeq: n })) }, 'k7'), opts: { workspace: wsRDir, vendorDir: path.join(ROOT, 'vendor') } });
         ev17.receipt_chain = { t1_t5_all_ok: chainOk, verification_failed_ok: rNeg.ok === true, terminal: rNeg.data && rNeg.data.state, post_terminal_upgrade_rejected: rUpgrade.ok === false && rUpgrade.code === 'RECEIPT_INVALID', reason: rUpgrade.data && rUpgrade.data.reason };
         ev17.checks.receipt_negative_terminal_blocks_verified = chainOk && rNeg.ok === true && ev17.receipt_chain.post_terminal_upgrade_rejected;
-        s16_2ok = ev17.checks.three_shapes_detected && ev17.checks.shadow_to_migrating_denied_all && ev17.checks.migrating_to_primary_denied_all && ev17.checks.clean_record_allowed && ev17.checks.receipt_negative_terminal_blocks_verified;
-        s16_2detail = 'shadow FAIL: spectral 真扫 ' + (rShadow.contract ? rShadow.contract.findings_total : '?') + ' findings pass=false ' + (shadowFail ? '✓' : 'FAIL') + ' | rollback FAIL: SPECTRAL_NOT_AVAILABLE 无旗标拒绝 ' + (rollbackFail ? '✓' : 'FAIL') + ' | runtime_binding FAIL: SPECTRAL_OUTPUT_INVALID ' + (bindingFail ? '✓' : 'FAIL') + ' | SHADOW→MIGRATING×3 形态全拒 ' + (ev17.checks.shadow_to_migrating_denied_all ? '✓' : 'FAIL') + ' | MIGRATING→PRIMARY×3 形态全拒 ' + (ev17.checks.migrating_to_primary_denied_all ? '✓' : 'FAIL') + ' | 干净记录放行（非恒拒）' + (ev17.checks.clean_record_allowed ? '✓' : 'FAIL') + ' | receipt 负终态→verified 拒绝 ' + (ev17.checks.receipt_negative_terminal_blocks_verified ? '✓' : 'FAIL');
+        // 生产 promotionReceipt 生成处校验（S16-3 语义升为生产函数 validatePromotionEvidence——test oracle 删除）：
+        // 负终态（FAILED/UNRESOLVED/INVALID/缺失）全拒，仅 behavior_verified 放行；promote() 生成 receipt 只在校验通过后
+        const negTerminals = ['FAILED', 'UNRESOLVED', 'INVALID', null].every((t) => validatePromotionEvidence(t).ok === false) && validatePromotionEvidence('behavior_verified').ok === true;
+        const promoteDenied = migrationPromote({ current_state: 'MIGRATING' }, { receiptTerminal: 'FAILED' });
+        const promoteAllowed = migrationPromote({ current_state: 'MIGRATING' }, { receiptTerminal: 'behavior_verified', promotionReceiptId: 'apr-s16-clean' });
+        ev17.production_promotion_receipt_gate = {
+          negative_terminals_blocked: negTerminals,
+          promote_failed_blocked: promoteDenied.ok === false && promoteDenied.code === 'PROMOTION_BLOCKED',
+          promote_verified_receipt_issued: promoteAllowed.ok === true && promoteAllowed.data && promoteAllowed.data.promotionReceipt && promoteAllowed.data.promotionReceipt.receiptId === 'apr-s16-clean',
+        };
+        ev17.checks.promotion_receipt_issued_only_after_evidence_gate = negTerminals && promoteDenied.ok === false && promoteAllowed.ok === true;
+        // AS-2 三张已 PRIMARY migration-record 回放兼容（GOV-AUTHORITY 任务一第 4 条）：真实 authority 对既有合法链放行
+        const as2Dirs = ['AS-2-first', 'AS-2-security', 'AS-2-sentinel'];
+        const as2Replays = as2Dirs.map((d) => {
+          const rec = JSON.parse(fs.readFileSync(path.join(ROOT, 'test-reports', 'autopilot-work', d, 'migration-record.json'), 'utf8'));
+          const r = replayTransitions(rec);
+          return { record: d, ok: r.ok === true, terminal: r.data && r.data.current, code: r.code };
+        });
+        ev17.as2_replay_compatibility = as2Replays;
+        ev17.checks.as2_three_records_replay_allowed = as2Replays.every((r) => r.ok && r.terminal === 'PRIMARY');
+        s16_2ok = ev17.checks.three_shapes_detected && ev17.checks.shadow_to_migrating_denied_all && ev17.checks.migrating_to_primary_denied_all && ev17.checks.clean_record_allowed && ev17.checks.receipt_negative_terminal_blocks_verified && ev17.checks.promotion_receipt_issued_only_after_evidence_gate && ev17.checks.as2_three_records_replay_allowed;
+        s16_2detail = 'shadow FAIL: spectral 真扫 ' + (rShadow.contract ? rShadow.contract.findings_total : '?') + ' findings pass=false ' + (shadowFail ? '✓' : 'FAIL') + ' | rollback FAIL: SPECTRAL_NOT_AVAILABLE 无旗标拒绝 ' + (rollbackFail ? '✓' : 'FAIL') + ' | runtime_binding FAIL: SPECTRAL_OUTPUT_INVALID ' + (bindingFail ? '✓' : 'FAIL') + ' | SHADOW→MIGRATING×3 形态全拒（生产 authority MIGRATION_BLOCKED）' + (ev17.checks.shadow_to_migrating_denied_all ? '✓' : 'FAIL') + ' | MIGRATING→PRIMARY×3 形态全拒 ' + (ev17.checks.migrating_to_primary_denied_all ? '✓' : 'FAIL') + ' | 干净记录放行（非恒拒）' + (ev17.checks.clean_record_allowed ? '✓' : 'FAIL') + ' | receipt 负终态→verified 拒绝 ' + (ev17.checks.receipt_negative_terminal_blocks_verified ? '✓' : 'FAIL') + ' | 生产 promotionReceipt 生成处校验（负终态全拒/verified 签发）' + (ev17.checks.promotion_receipt_issued_only_after_evidence_gate ? '✓' : 'FAIL') + ' | AS-2 三张回放兼容 ' + (ev17.checks.as2_three_records_replay_allowed ? '✓' : 'FAIL ' + JSON.stringify(as2Replays));
         fs.writeFileSync(path.join(REMED_DIR, 's16-2-migration-plane.json'), JSON.stringify(ev17, null, 2));
         fs.rmSync(wsM, { recursive: true, force: true }); fs.rmSync(wsRDir, { recursive: true, force: true });
       } catch (e) {
@@ -688,14 +722,10 @@ async function main() {
         const unresolvedCase = await attemptPlanningToExecuting('UNRESOLVED');
         const verifiedCase = await attemptPlanningToExecuting('behavior_verified');
         ev18.failed_upstream = failedCase; ev18.unresolved_upstream = unresolvedCase; ev18.verified_upstream = verifiedCase;
-        // promotionReceipt 生成处校验（迁移面）：sourceEvidence 引用 receipt 终态，FAILED/UNRESOLVED/INVALID/缺失 → 阻断
-        const validatePromotionEvidence = (terminal) => {
-          if (!terminal) return { ok: false, reason: 'sourceEvidence 缺 execution receipt 终态引用——fail-closed' };
-          if (terminal === 'FAILED') return { ok: false, reason: 'PROMOTION_BLOCKED: 引用的 execution receipt 终态=FAILED' };
-          if (terminal === 'UNRESOLVED') return { ok: false, reason: 'PROMOTION_BLOCKED: 引用的 execution receipt 终态=UNRESOLVED' };
-          if (terminal === 'INVALID') return { ok: false, reason: 'PROMOTION_BLOCKED: receipt 事件重放违约（RECEIPT_INVALID）' };
-          return { ok: terminal === 'behavior_verified', reason: terminal === 'behavior_verified' ? null : '未到终态不得晋升' };
-        };
+        // promotionReceipt 生成处校验（迁移面）= 生产 authority migration.validatePromotionEvidence
+        // （GOV-AUTHORITY 任务一：S16-3 内自造 oracle 删除——本断言消费 scripts/lib/migration.mjs 单点）：
+        // sourceEvidence 引用 receipt 终态，FAILED/UNRESOLVED/INVALID/缺失 → 阻断
+        const { validatePromotionEvidence } = await import('./lib/migration.mjs');
         const ev19 = ['FAILED', 'UNRESOLVED', 'INVALID'].map((t) => ({ terminal: t, blocked: validatePromotionEvidence(t).ok === false })).every((x) => x.blocked) && validatePromotionEvidence('behavior_verified').ok === true && validatePromotionEvidence(null).ok === false;
         ev18.promotion_evidence_gate = { failed_unresolved_invalid_blocked: ev19 };
         ev18.checks.failed_receipt_blocks = failedCase.transition_ok === false && /^PHASE_PREREQ_UNMET$/.test(String(failedCase.code));

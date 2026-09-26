@@ -54,10 +54,9 @@
   "status": "SIGNED",
   "signedAt": "2026-09-25"
  },
- "ownerSignOff": {
-  "status": "PENDING",
-  "note": "Owner 签收位：本单按 CONTRACT 类提交，ownerApprovalReceipt.approvalEvidence 须由 Owner 签发后回填 <指令文件路径>#<SHA256> 并将 status 改为 SIGNED（approvalId 不变）；签发前本契约文档为待确认草稿态，不得作为 AS-2-first replace 的放行依据（机器可先行消费其定义，施工放行待签收）",
-  "signedAt": null,
-  "signedBy": null
+ "ownerSignOffRemoval": {
+  "removedAt": "2026-09-26",
+  "removedBy": "GOV-AUTHORITY-L1-exec（handoffs/v3/GOV-AUTHORITY-dispatch.md 任务三第 3 条授权）",
+  "reason": "F-033/F-034 连带：冗余签收位与 canonical（ownerApprovalReceipt.status）双源分裂——字段删除（派单二选一取删除更彻底），读取一律走 scripts/lib/signoff-canonical.mjs canonicalSignoff() 单点"
  }
 }

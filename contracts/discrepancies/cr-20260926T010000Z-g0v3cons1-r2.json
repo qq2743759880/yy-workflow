@@ -1,0 +1,56 @@
+{
+ "changeRecordId": "cr-20260926T010000Z-g0v3cons1-r2",
+ "supersedes": "cr-20260926T000000Z-g0v3cons1",
+ "supersedeReason": "F-034 修复（第十五审计 GOV-AUTHORITY 任务三第 5 条）：旧单 cr-20260926T000000Z-g0v3cons1 的 impactClass=DOC_ONLY 声明系绕过 change.mjs 最严类规则——其 touchedFiles 含两份冻结契约（contracts/asset-migration.md + contracts/asset-manifest-v2.md），按 scripts/lib/change.mjs resolveImpactClass/isFrozenContractPath 机检（contracts/ 下除 drafts/、discrepancies/ 均为冻结契约面）必须自动归 CONTRACT 且 owner approval receipt 成为必要条件（§5.1）。旧单已作废（voided=true + voidReason 留痕），本体保留（supersede-not-delete），本单重立并按最严类主动声明 CONTRACT。",
+ "basePlan": "contracts/asset-migration.md + contracts/asset-manifest-v2.md（双冻结正文同触，本单合并登记——与被取代旧单同一变更范围）",
+ "baseVersion": "contracts/asset-migration.md@ae7455da22d2a60973f5b67d696029c1901162953d20c4128ff10f59c8577d9a（变更前冻结 sha256）；contracts/asset-manifest-v2.md@变更前 sha256 见 REMEDIATION-2 RESULTS §F-031 / f031-sha256-after.txt",
+ "reason": "GOVERNANCE_CONSISTENCY 补充单重立（r2，第十四审计 F-031 处置 + 第十五审计 F-034 归类纠正）：两份冻结正文各自内嵌 mutable 的 Owner 签收状态行，与 change.record 内的权威 ownerApprovalReceipt 字段构成 split-brain——方案 B 最小 diff：两份正文各只改该一行，替换为指针声明。r2 纠正点：①原 DOC_ONLY 声明错误——\"治理一致性不改机器语义\"≠不触冻结契约（冻结正文任何行改动都在 change.mjs isFrozenContractPath 冻结面内），主动声明 impactClass=CONTRACT（红线：本单产出物不再绕最严类规则）；②canonical 字段统一——Owner 签收状态唯一权威 = <cr id>.json 的 ownerApprovalReceipt.status（F-033 连带：六张 SIGNED 单冗余 ownerSignOff 字段已删除，读取走 scripts/lib/signoff-canonical.mjs canonicalSignoff() 单点）；③两份冻结正文指针行措辞同步更新为\"Owner 签收状态唯一权威 = <cr id>.json 的 ownerApprovalReceipt.status\"。",
+ "impactClass": "CONTRACT",
+ "owner": "Owner",
+ "sourceEvidence": [
+  "handoffs/v3/GOV-AUTHORITY-dispatch.md#任务三（F-033/F-034 连带处置指令）",
+  "handoffs/v3/REMEDIATION-2-dispatch.md#任务F-031（split-brain 方案 B 原处置指令）",
+  "contracts/discrepancies/cr-20260926T000000Z-g0v3cons1.json（被作废旧单：voided=true + voidReason 留痕，supersede-not-delete）",
+  "scripts/lib/change.mjs#resolveImpactClass/isFrozenContractPath（最严类机检规则——本单归类判定基准）",
+  "scripts/lib/signoff-canonical.mjs（canonical 单点读函数——本批新建）",
+  "test-reports/autopilot-work/REMEDIATION-2/f031-frozen-docs.diff（两行修正 diff 与前后 sha256）",
+  "test-reports/autopilot-work/GOV-AUTHORITY/RESULTS.md（本变更实施证据与自测记录）"
+ ],
+ "invalidatedNodes": [
+  "cr-20260926T000000Z-g0v3cons1 的 DOC_ONLY 归类与 ownerSignOff 签收位（作废——以本单 CONTRACT 归类 + ownerApprovalReceipt 单点取代）",
+  "任何读取方对 ownerSignOff 冗余字段的直接消费（F-033：一律改读 ownerApprovalReceipt.status）"
+ ],
+ "newVersionRef": null,
+ "supersededBy": null,
+ "status": "active",
+ "recordedAt": "2026-09-26T01:00:00.000Z",
+ "recordedBy": "GOV-AUTHORITY-L1-exec",
+ "idempotencyKey": "g0v3consistency-splitbrain-planb-f031-r2-contract",
+ "approvalId": null,
+ "touchedFiles": [
+  "contracts/asset-migration.md",
+  "contracts/asset-manifest-v2.md"
+ ],
+ "schemaVersion": "governance-consistency@1",
+ "changeType": "GOVERNANCE_CONSISTENCY",
+ "note": "类型说明：changeType=GOVERNANCE_CONSISTENCY 仅是变更内容语义标签（治理一致性/消 split-brain）；impactClass 按 change.mjs 最严类规则主动声明 CONTRACT——touchedFiles 两份冻结契约正文（指针措辞行），不因\"只改一行\"或\"不改机器语义\"降类。ownerApprovalReceipt.status=PENDING_OWNER_RECEIPT：本单触及冻结契约，须 Owner 签收后 F-031 才算完成——本单如实登记 PENDING，签收归 Owner（approvalEvidence 由 Owner 签发后回填 <指令文件路径>#<SHA256> 并将 status 改为 SIGNED，approvalId 不变）。机器可执行语义（状态机/五元组/三硬门/schema）全文未动，仅指针措辞两行——此事实已在 reason 与旧单 voidReason 登记为归类背景，不构成降类理由。",
+ "ownerApprovalReceipt": {
+  "status": "PENDING_OWNER_RECEIPT",
+  "note": "Owner 签收位（canonical=本字段 status，唯一权威——F-033/F-034）：本单为 CONTRACT 类（触及两份冻结契约正文指针行），Owner 签收后 F-031 才算完成。签发时回填 approvalEvidence=<指令文件路径>#<SHA256> + approvedBy=owner + approvedAt=<ISO> + expiresAt=null，status→SIGNED（approvalId 同步回填）。签收前本处置为待确认态：两份冻结正文指针行已按方案 B 落地（机器面 S14b selftest 不受影响），但治理归类闭合以 Owner 签收为准。",
+  "target": {
+   "scope": "change",
+   "scopeId": "contracts/asset-migration.md+contracts/asset-manifest-v2.md@GOV-AUTHORITY:CONTRACT"
+  },
+  "approvedBy": null,
+  "approvedAt": null,
+  "approvalEvidence": null,
+  "expiresAt": null,
+  "relatedReceipts": [
+   {
+    "kind": "voided-predecessor",
+    "changeRecordId": "cr-20260926T000000Z-g0v3cons1",
+    "note": "被作废旧单（DOC_ONLY 绕最严类规则——F-034）；voided=true + voidReason 留痕在案"
+   }
+  ]
+ }
+}

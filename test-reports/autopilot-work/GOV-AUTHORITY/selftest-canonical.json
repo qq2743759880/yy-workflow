@@ -1,0 +1,68 @@
+{
+  "schema": "gov-authority-selftest-canonical@1.0.0",
+  "at": "2026-09-26T06:51:17.497Z",
+  "checks": {
+    "six_signed_records_ownerSignOff_removed": true,
+    "six_signed_records_canonical_all_signed": true,
+    "g0v3cons1_voided_explicit": true,
+    "r2_contract_pending_explicit": true,
+    "stale_ownerSignOff_ignored_with_warning": true
+  },
+  "six_signed_inventory": [
+    {
+      "record": "cr-20260923T040000Z-av1schema.json",
+      "ownerSignOff_absent": true,
+      "status": "SIGNED",
+      "signed": true
+    },
+    {
+      "record": "cr-20260924T090000Z-b1g4te5c.json",
+      "ownerSignOff_absent": true,
+      "status": "SIGNED",
+      "signed": true
+    },
+    {
+      "record": "cr-20260924T120000Z-as2f1rst-promotion.json",
+      "ownerSignOff_absent": true,
+      "status": "SIGNED",
+      "signed": true
+    },
+    {
+      "record": "cr-20260925T063000Z-as2sec-promotion.json",
+      "ownerSignOff_absent": true,
+      "status": "SIGNED",
+      "signed": true
+    },
+    {
+      "record": "cr-20260925T130000Z-as2sec-promotion-r2.json",
+      "ownerSignOff_absent": true,
+      "status": "SIGNED",
+      "signed": true
+    },
+    {
+      "record": "cr-20260925T150000Z-as2sent-promotion.json",
+      "ownerSignOff_absent": true,
+      "status": "SIGNED",
+      "signed": true
+    }
+  ],
+  "g0v3cons1_voided": {
+    "voided": true,
+    "canonical_status": "VOIDED",
+    "replacedBy": "cr-20260926T010000Z-g0v3cons1-r2"
+  },
+  "r2": {
+    "impactClass": "CONTRACT",
+    "ownerApprovalReceipt_status": "PENDING_OWNER_RECEIPT",
+    "canonical_status": "PENDING_OWNER_RECEIPT",
+    "supersedes": "cr-20260926T000000Z-g0v3cons1",
+    "ownerSignOff_absent": true
+  },
+  "stale_field_semantics": {
+    "injected_status": "SIGNED",
+    "canonical_status_unchanged": true,
+    "ignored": true,
+    "warned": true
+  },
+  "verdict": "PASS"
+}

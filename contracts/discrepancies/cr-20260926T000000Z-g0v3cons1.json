@@ -35,5 +35,10 @@
   "note": "Owner 裁定位：方案 B（指针声明）系审计者倾向与执行方向一致的最小处置；Owner 可改判方案 A（回填同步）或否决——否决时按 supersede-not-delete 以新单取代本单并回滚两行。",
   "signedAt": null,
   "signedBy": null
- }
+ },
+ "voided": true,
+ "voidedAt": "2026-09-26T01:00:00.000Z",
+ "voidedBy": "GOV-AUTHORITY-L1-exec（handoffs/v3/GOV-AUTHORITY-dispatch.md 任务三第 5 条授权）",
+ "voidReason": "F-034 修复：本单 impactClass=DOC_ONLY 声明系绕过 change.mjs 最严类规则——touchedFiles 含两份冻结契约（contracts/asset-migration.md + contracts/asset-manifest-v2.md），按 scripts/lib/change.mjs resolveImpactClass（isFrozenContractPath：contracts/ 下除 drafts/、discrepancies/）必须自动归 CONTRACT + owner approval receipt。原 DOC_ONLY 声明错误：\"治理一致性不改机器语义\"≠不触冻结契约（冻结正文的任何改动——即便仅指针措辞一行——都在冻结面内）。按 supersede-not-delete 作废本单（本体保留留痕），重立 cr-20260926T010000Z-g0v3cons1-r2（CONTRACT 类，ownerApprovalReceipt=PENDING_OWNER_RECEIPT 等 Owner 签收）。",
+ "replacedBy": "cr-20260926T010000Z-g0v3cons1-r2"
 }

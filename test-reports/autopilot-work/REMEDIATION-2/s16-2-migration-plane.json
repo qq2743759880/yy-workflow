@@ -1,6 +1,6 @@
 {
   "schema": "s16-migration-plane@1.0.0",
-  "at": "2026-09-26T05:44:45.278Z",
+  "at": "2026-09-26T07:00:21.402Z",
   "shapes": {
     "shadow_fail": {
       "adapter_ok": true,
@@ -25,7 +25,18 @@
     "shadow_to_migrating_denied_all": true,
     "migrating_to_primary_denied_all": true,
     "clean_record_allowed": true,
-    "receipt_negative_terminal_blocks_verified": true
+    "receipt_negative_terminal_blocks_verified": true,
+    "promotion_receipt_issued_only_after_evidence_gate": true,
+    "as2_three_records_replay_allowed": true
+  },
+  "production_authority": {
+    "module": "scripts/lib/migration.mjs",
+    "codes": {
+      "shadow": "MIGRATION_BLOCKED:shadow_fail",
+      "rollback_s2m": "MIGRATION_BLOCKED:rollback_fail",
+      "rollback_m2p": "MIGRATION_BLOCKED:rollback_fail",
+      "binding": "MIGRATION_BLOCKED:runtime_binding_fail"
+    }
   },
   "playbook_rules": {
     "SHADOW_TO_MIGRATING": "影子跑 FAIL（forbidden_difference/binding 违约）→ NO PROMOTION；回滚 FAIL → NO DROP",
@@ -37,5 +48,30 @@
     "terminal": "verification_failed",
     "post_terminal_upgrade_rejected": true,
     "reason": "链已到终态 verification_failed，禁止再验证（§7.2；新链须由新 sourceHash 的新 activation 开启）"
-  }
+  },
+  "production_promotion_receipt_gate": {
+    "negative_terminals_blocked": true,
+    "promote_failed_blocked": true,
+    "promote_verified_receipt_issued": true
+  },
+  "as2_replay_compatibility": [
+    {
+      "record": "AS-2-first",
+      "ok": true,
+      "terminal": "PRIMARY",
+      "code": null
+    },
+    {
+      "record": "AS-2-security",
+      "ok": true,
+      "terminal": "PRIMARY",
+      "code": null
+    },
+    {
+      "record": "AS-2-sentinel",
+      "ok": true,
+      "terminal": "PRIMARY",
+      "code": null
+    }
+  ]
 }

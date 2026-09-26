@@ -739,8 +739,22 @@ async function main() {
   // event='stage_7'——implementation 绑定（TDD）注入，verification 绑定（before_final_receipt）
   // 在派单事件下不注入（两键匹配，见 governance.mjs FROZEN_STAGE_EVENT_BINDINGS）。
   const governedAssets = governPlanAssets(assets, plan.subtasks, { event: 'stage_7' });
+  // GOV-AUTHORITY 任务二（第十五审计 F-035）：before_final_receipt 生产发射点。
+  // 现状缺陷：governPlanAssets 唯一生产调用传 event:'stage_7'，而 verification 组
+  // （be-validator/review/sdlc/skill-sentinel）绑定 before_final_receipt——生产路径不可达。
+  // 发射点选型（派单两候选中取最小 diff）：review 类子任务（be-validator/review/sdlc/
+  // skill-sentinel）run 前把 verification 技能正文（verification-before-completion）注入其
+  // brief 资产正文（agent 宣称完成/终验收前的语义位，governance.mjs FROZEN_STAGE_EVENT_BINDINGS
+  // 冻结集内）；implementation 类子任务（implementation/frontend-design/security）不受影响
+  // （before_final_receipt 事件下其冻结绑定不命中，两键匹配零行为）。
+  // 复用 governPlanAssets 包装机制：浅克隆追加、零命中原样返回、YY_ACTIVATION=lib 跳过——
+  // 不改 runtime.mjs/适配器本体（最小 diff），锚点/kernel 提取为前缀匹配，消费证据判定不受影响。
+  const reviewSubtasks = plan.subtasks.filter(function(s) {
+    return s && ['be-validator', 'review', 'sdlc', 'skill-sentinel'].includes(s.asset);
+  });
+  const finalReceiptAssets = governPlanAssets(governedAssets, reviewSubtasks, { event: 'before_final_receipt' });
   // M2-3 --tui：执行时叠加实时 DAG 渲染（不改变执行语义，只挂 onStatus 钩子）。逃生舱：TT_TUI=off 或 --no-tui 完全不渲染。
-  const execOpts = { ...opts, workspace, logger, assets: governedAssets, assetsRoot: SKILL_DIR };
+  const execOpts = { ...opts, workspace, logger, assets: finalReceiptAssets, assetsRoot: SKILL_DIR };
   let tui = null;
   if (opts.tui && !opts.noTui && process.env.TT_TUI !== 'off') {
     tui = createTui(plan, { stream: process.stdout });
