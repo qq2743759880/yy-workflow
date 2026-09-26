@@ -260,3 +260,7 @@ R-2 package.json 名义依赖清理；D-3 类 C 历史豁免永久保留；senti
 - 三项裁定落账：D-REG1-1 追认（FAIL+人署名 override 永久口径）；E-4 kernel 门张力按推荐（机验宿主机制隔离 + 真实宿主行为面待 Batch 2）；AS-2-review adapt 选项 1 确认（review 保留 prompt-backend，bugbot 绑定文档化，CodeRabbit 再评估触发器）
 - research-gate.mjs 措辞"临时态待追认"→"已追认"（self-test 复绿）
 - 批 1 状态：**CLOSED**——三波 17 单 + 15 轮审计全部闭环；移交项：R-2 package.json 名义依赖、D-3 类 C 历史豁免、sentinel 多 agent API key（可选）、Batch 2（Prompt Compiler + capability dispatch）
+| R-2 | PASS | agent_10703ebb | orchestrator-L2(deps 清点/spectral 在场/回归 24/manifest 亲验) | 2026-09-26T02:00:00Z | package.json（deps 9→3）; package-lock.json（packages 18→4）; test-reports/autopilot-work/R-2/RESULTS.md |
+- 七项孤儿依赖全删零活引用（三重 grep 核实）；**D-1 关键修复**：npm prune 误移除 @stoplight/spectral-cli（be-validator PRIMARY 内核，--no-save 装入无 lock 记录）→ 首跑回归 22/2 抓住 → 重装恢复（版本一致）→ 24 PASS——**--no-save 装入的生产依赖无 lock 保障教训沉淀**（playbook 增补候选：专用引擎改正式 dependencies 或 vendor node_modules）
+- D-2（移交 Owner）：reflect-metadata/tslib 无脚本 import 但超出七项授权，不扩权
+- D-3：回归器自会重写 REMEDIATION-2 探针 JSON（固有行为非越权）
