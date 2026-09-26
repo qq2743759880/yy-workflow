@@ -302,3 +302,9 @@ E2E 记录侧边界 / 记忆面宽于指路行 / 多候选保守口径 / capabil
 
 ### 四、挂账
 D-2（reflect-metadata/tslib 删否）、D-3（回归器重写探针 JSON 固有行为）、MG-1、E-4-EXEC、D-REG1-1/E-4/AS-2-review adapt 三项裁定已按"全部按推荐"落账（批 1 CLOSED）
+
+## T0 Ground Truth Reconciliation（2026-09-26，编排者亲验，见 plans/T0-ground-truth-20260926.md）
+- 交接文档（docs/AUDIT-HANDOFF / ORCHESTRATOR-NEXT-ACTIONS）按 Evidence Boundary 降级为 ADVISORY，未入库；结论以当前 revision 实测为准
+- 裁定汇总：ACCEPT-1（Batch2 边界差，MODIFY 为口径收口）/ ACCEPT-2（capability 单点≠主链，planner grep=0 实锤）/ ACCEPT-3（security sidecar 确 stale，逐行比对实锤）/ ACCEPT-4（Spectral 不可复现，package.json/lock 零命中实锤）；MODIFY-1（多候选降为"规则先冻结、无需求不实施"）；REJECT-1（不删 reflect-metadata/tslib）；REJECT-2（部分交接叙述过期）
+- Batch 3 成立：Wave1 三单（ACC-1/SECMAN-1/KERNEL-1，写面实测两两无交集）→ Wave2（CAP-ING-1）→ Wave3（E2E-v3）；MG-1/E-4-EXEC Owner-resource gated
+- 明确不做：Multi-candidate Resolver（无需求+规则未冻结）、模糊选择（禁 LLM/embedding）
