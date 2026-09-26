@@ -1,0 +1,155 @@
+{
+  "generatedAt": "2026-09-26T18:06:25.581Z",
+  "manifestSource": "synthetic:CATALOG_IDS",
+  "summary": {
+    "total": 24,
+    "passed": 24,
+    "failed": 0
+  },
+  "results": [
+    {
+      "id": "T1a",
+      "name": "含「安全审计」→ security-audit",
+      "pass": true,
+      "detail": "{\"key\":\"security-audit\",\"matchedKey\":\"安全审计\"}"
+    },
+    {
+      "id": "T1b",
+      "name": "含「OpenAPI 校验」→ openapi-validation",
+      "pass": true,
+      "detail": "{\"key\":\"openapi-validation\",\"matchedKey\":\"openapi 校验\"}"
+    },
+    {
+      "id": "T1c",
+      "name": "无命中 → null",
+      "pass": true,
+      "detail": "null"
+    },
+    {
+      "id": "T1d",
+      "name": "确定性：同输入同 key（5 轮）",
+      "pass": true,
+      "detail": "distinctOutputs=1"
+    },
+    {
+      "id": "T1e",
+      "name": "plan subtask 附加 capability/capabilitySource=derived",
+      "pass": true,
+      "detail": "cluster=T2_BACKEND subtasks=implementation:security-audit:derived,sdlc:security-audit:derived,security:security-audit:derived,review:security-audit:derived,be-validator:security-audit:derived"
+    },
+    {
+      "id": "T1f",
+      "name": "openapi-validation plan：be-validator 子任务带 derived 字段",
+      "pass": true,
+      "detail": "implementation:openapi-validation,sdlc:openapi-validation,security:openapi-validation,review:openapi-validation,be-validator:openapi-validation"
+    },
+    {
+      "id": "T2a",
+      "name": "派生 asset 不在同簇 → CAPABILITY_CLUSTER_MISMATCH（派生轴）",
+      "pass": true,
+      "detail": "route=T4_FRONTEND, derived=feature-breakdown→dev-planner∉T4, got=CAPABILITY_CLUSTER_MISMATCH"
+    },
+    {
+      "id": "T2b",
+      "name": "显式 capability 不在同簇 → CAPABILITY_CLUSTER_MISMATCH（显式/后处理轴）",
+      "pass": true,
+      "detail": "route=T1_DATABASE, explicit=frontend-design→frontend-design∉T1, got=CAPABILITY_CLUSTER_MISMATCH"
+    },
+    {
+      "id": "T2c",
+      "name": "buildPlan 显式未知键 → CAPABILITY_UNKNOWN（值域守卫 fail-closed）",
+      "pass": true,
+      "detail": "got=CAPABILITY_UNKNOWN"
+    },
+    {
+      "id": "T2d",
+      "name": "显式命中同簇 → explicit 覆盖（precedence 1>2，不派生）",
+      "pass": true,
+      "detail": "implementation:explicit,sdlc:explicit,security:explicit,review:explicit,be-validator:explicit"
+    },
+    {
+      "id": "T2e",
+      "name": "applyCapabilityToPlan：显式 override 派生（大小写不敏感）",
+      "pass": true,
+      "detail": "explicit,explicit,explicit,explicit,explicit"
+    },
+    {
+      "id": "T2f",
+      "name": "applyCapabilityToPlan：无显式 → plan 原样（派生字段保留）",
+      "pass": true,
+      "detail": "legacy/derived untouched"
+    },
+    {
+      "id": "T3a",
+      "name": "parseArgs 解析 --capability",
+      "pass": true,
+      "detail": "capability=security-audit"
+    },
+    {
+      "id": "T3b",
+      "name": "--capability 缺值 → argError",
+      "pass": true,
+      "detail": "--capability 需要一个值 (CAPABILITY_MAP 受控键，如 security-audit)"
+    },
+    {
+      "id": "T3c",
+      "name": "未知键 → CAPABILITY_UNKNOWN argError（exit 2）",
+      "pass": true,
+      "detail": "exitCode=2"
+    },
+    {
+      "id": "T3d",
+      "name": "合法键 → validateOpts ok",
+      "pass": true,
+      "detail": "-"
+    },
+    {
+      "id": "T3e",
+      "name": "--exec KNOWN 集合同步：--capability 不被吞入宿主命令",
+      "pass": true,
+      "detail": "exec=[\"node\",\"host.mjs\"] capability=security-audit"
+    },
+    {
+      "id": "T3f",
+      "name": "未知旗标仍收集进 exec（既有 --exec 行为零改动）",
+      "pass": true,
+      "detail": "exec=[\"node\",\"host.mjs\",\"--port\",\"3000\"]"
+    },
+    {
+      "id": "T4a",
+      "name": "无 capability 任务：新旧 plan JSON 字节级一致且零 capability 字段（5 例）",
+      "pass": true,
+      "detail": "all identical, no capability key anywhere"
+    },
+    {
+      "id": "T5a",
+      "name": "derivationRulesConsistent()（activation 导出，探针实测）",
+      "pass": true,
+      "detail": "{\"consistent\":true,\"violations\":[],\"rulesCount\":10,\"capabilityMapKeys\":10}"
+    },
+    {
+      "id": "T5b",
+      "name": "规则键 ⊆ CAPABILITY_MAP keys（10/10，无第二 taxonomy）",
+      "pass": true,
+      "detail": "ruleKeys=10 mapKeys=10"
+    },
+    {
+      "id": "T5c",
+      "name": "每键映射 asset ∈ ∪CLUSTERS[].candidates（簇系统内，交叉校验静态前提）",
+      "pass": true,
+      "detail": "openapi-validation→be-validator,backend-validation→be-validator,security-audit→security,skill-security-scan→skill-sentinel,code-implementation→implementation,frontend-design→frontend-design,prd-planning→planning,feature-breakdown→dev-planner,code-review→review,full-sdlc-orchestration→sdlc"
+    },
+    {
+      "id": "T5d",
+      "name": "既有探针保持：CAPABILITY_MAP values ⊆ CATALOG_IDS（9 资产）",
+      "pass": true,
+      "detail": "values=be-validator,be-validator,security,skill-sentinel,implementation,frontend-design,planning,dev-planner,review,sdlc"
+    },
+    {
+      "id": "T5e",
+      "name": "resolveCapabilityAsset 未知键 → null（D.2 单点 fail-closed）",
+      "pass": true,
+      "detail": "-"
+    }
+  ]
+}

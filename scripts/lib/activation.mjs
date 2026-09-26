@@ -72,6 +72,19 @@ export const CATALOG_IDS = Object.freeze([
   'review', 'sdlc', 'security', 'skill-sentinel', 'be-validator',
 ]);
 
+/**
+ * W2-1（Ingress Mini-Contract D.1 rule 2 / D.2）派生规则同源校验导出（供探针；仅新增导出，
+ * 既有逻辑零改动）。动态 import 防 activation ⇄ capability-derivation 静态环
+ * （capability-derivation 静态依赖本文件 CAPABILITY_MAP 作唯一词表事实源）。
+ * 断言：派生规则键 ⊆ CAPABILITY_MAP keys，且每键映射 asset ∈ ∪CLUSTERS[].candidates
+ * （派生不可指向 CAPABILITY_MAP 值域/簇系统之外的键——禁复制第二份 taxonomy 的机验）。
+ * @returns {Promise<{consistent: boolean, violations: string[], rulesCount: number, capabilityMapKeys: number}>}
+ */
+export async function derivationRulesConsistent() {
+  const derivation = await import('./capability-derivation.mjs');
+  return derivation.checkDerivationRulesConsistency();
+}
+
 /** 三级激活级别（§4）；级别选择策略 = hybrid（OQ-R3-4=A）：body 为默认投递级别 */
 export const ACTIVATION_LEVELS = Object.freeze(['metadata', 'body', 'resource']);
 export const DEFAULT_ACTIVATION_LEVEL = 'body';

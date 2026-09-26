@@ -332,3 +332,7 @@ D-2（reflect-metadata/tslib 删否）、D-3（回归器重写探针 JSON 固有
 - **编排者补充的三项交接文档未提及风险**：①`--exec` 透传 KNOWN 集合须同步（否则旗标静默透传宿主）②派生规则表须与 CLUSTERS keywords 同源校验（防两套关键词漂移）③journey.mjs:665 为唯一投影写点，遗漏则「state 有 UI 无」半链
 - consumer 实测分布（62 处 asset 读）：runtime 24 / activation 23 / composer 15 / orchestrator 21 / governance 3 / journey 1 / planner 1 / matrix 0
 - Gate：无契约不进入 W2-1——本文件即契约，W2-1 可派
+| W2-1 | PASS | agent_d375b83b | orchestrator-L2(同源/派生/plan 集成/回归四项亲跑) | 2026-09-26T19:30:00Z | scripts/lib/capability-derivation.mjs（DERIVATION_RULES 10 键 CN/EN + deriveCapability 纯 includes）; scripts/lib/planner.mjs（buildPlan 最小 diff：capability/capabilitySource 字段 + CAPABILITY_CLUSTER_MISMATCH throw）; scripts/lib/orchestrator.mjs（parseArgs --capability + KNOWN 集合 + validateOpts CAPABILITY_UNKNOWN exit 2 + applyCapabilityToPlan）; scripts/lib/activation.mjs（仅 derivationRulesConsistent 导出，动态 import 防静态环）; test-reports/autopilot-work/W2-1/ |
+- L2 亲跑：同源 {consistent:true, 10/10}；派生 安全审计→security-audit / OpenAPI 校验→openapi-validation / 无关→null（含中文 matchedKey）；plan 集成 五子任务全带 derived 字段；回归 24/24 + preflight exit 0
+- 偏差 D-W21-1..7：最后一跳（--capability→plan）留 W2-2（串行同写面）；selectedAsset 双写留 W2-2；plan 层 mismatch throw 严于 skip；usage 文案白名单外；CAPABILITY_SOURCE_CONFLICT 单显式来源不可达（非放宽）
+- 停单条件 H.1–H.5 全未触发

@@ -27,6 +27,10 @@ import path from 'node:path';
 // S5 口径单点（消双口径，T7 收尾批①）：⬜◐ 标记集与"未清零"判定统一由 lib/ci.mjs 提供，
 // 本文件不再自持该字符类字面量（第三次分叉的入口）。见 plans/decision-s5-p0-semantics-20260920.md。
 import { OPEN_P0_MARKERS, OPEN_P0_MARKER_RE } from './ci.mjs';
+// W2-1 capability ingress（Ingress Mini-Contract D.1 rule 1 / D.2）：显式 CLI 输入解析 + 受控词表校验。
+import { CAPABILITY_MAP } from './activation.mjs';
+import { getCluster } from './matrix.mjs';
+import { CapabilityIngressError } from './capability-derivation.mjs';
 
 // ---------------------------------------------------------------------------
 // parseArgs — 逐字复制自 orchestrator.mjs（纯函数）
@@ -37,7 +41,7 @@ import { OPEN_P0_MARKERS, OPEN_P0_MARKER_RE } from './ci.mjs';
  * @returns {object} 解析后的选项对象
  */
 export function parseArgs(args) {
-  const out = { task: '', workspace: '.', dryRun: false, verbose: false, help: false, resume: false, validate: false, plan: false, draft: null, backend: 'auto', maxRetries: undefined, exec: null, execTimeoutMs: undefined, parallel: undefined, contract: null, contractDraft: null, tui: false, noTui: false, hosts: null, configHosts: null, argError: null, session: undefined };
+  const out = { task: '', workspace: '.', dryRun: false, verbose: false, help: false, resume: false, validate: false, plan: false, draft: null, backend: 'auto', maxRetries: undefined, exec: null, execTimeoutMs: undefined, parallel: undefined, contract: null, contractDraft: null, tui: false, noTui: false, hosts: null, configHosts: null, argError: null, session: undefined, capability: null };
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i];
     if (arg === '--help' || arg === '-h') out.help = true;
@@ -56,7 +60,9 @@ export function parseArgs(args) {
     else if (arg === '--hosts') { const v = args[i + 1]; if (v === undefined || v.startsWith('--')) out.argError = '--hosts 需要一个值 (逗号分隔的备选宿主命令，如 "node host1.mjs,node host2.mjs --model gpt-5.6-luna")'; else { out.hosts = v; i += 1; } }
     else if (arg === '--contract') { const v = args[i + 1]; if (v === undefined || v.startsWith('--')) out.argError = '--contract 需要一个值 (OpenAPI JSON 文件路径)'; else { out.contract = v; i += 1; } }
     else if (arg === '--contract-draft') { const v = args[i + 1]; if (v === undefined || v.startsWith('--')) out.argError = '--contract-draft 需要一个值 (棕地契约草案 JSON 路径)'; else { out.contractDraft = v; i += 1; } }
-    else if (arg === '--exec') { const collected = []; const KNOWN = new Set(['--task', '--workspace', '--backend', '--max-retries', '--exec-timeout', '--parallel', '--contract', '--contract-draft', '--hosts', '--dry-run', '--verbose', '--resume', '--validate', '--plan', '--draft', '--tui', '--no-tui', '--help', '-h']); while (i + 1 < args.length && !KNOWN.has(args[i + 1])) { collected.push(args[i + 1]); i += 1; } out.exec = collected.length ? collected : null; }
+    else if (arg === '--exec') { const collected = []; const KNOWN = new Set(['--task', '--workspace', '--backend', '--max-retries', '--exec-timeout', '--parallel', '--contract', '--contract-draft', '--hosts', '--dry-run', '--verbose', '--resume', '--validate', '--plan', '--draft', '--tui', '--no-tui', '--help', '-h', '--capability']); while (i + 1 < args.length && !KNOWN.has(args[i + 1])) { collected.push(args[i + 1]); i += 1; } out.exec = collected.length ? collected : null; }
+    // W2-1：--capability 显式输入（D.1 rule 1，最高优先级，override 派生）；值合法性由 validateOpts 按 CAPABILITY_MAP 校验。
+    else if (arg === '--capability') { const v = args[i + 1]; if (v === undefined || v.startsWith('--')) out.argError = '--capability 需要一个值 (CAPABILITY_MAP 受控键，如 security-audit)'; else { out.capability = v; i += 1; } }
     else if (arg === '--task') { out.task = args[i + 1]; if (out.task === undefined) out.task = ''; i += 1; }
     else if (arg === '--workspace') { out.workspace = args[i + 1]; if (out.workspace === undefined) out.workspace = '.'; i += 1; }
     else if (arg === '--session') { const v = args[i + 1]; if (v === undefined || v.startsWith('--')) out.argError = '--session 需要一个值 (命名空间 id，仅 [A-Za-z0-9_-]+)'; else if (!/^[A-Za-z0-9_-]+$/.test(v)) out.argError = '--session 非法：仅允许 [A-Za-z0-9_-]+（防路径穿越）'; else { out.session = v; i += 1; } }
@@ -82,6 +88,14 @@ export function validateOpts(opts) {
   if (opts.resume && opts.dryRun) return { ok: false, error: '--resume 不能与 --dry-run 同时使用', exitCode: EXIT.ARGS };
   if (opts.plan && opts.resume) return { ok: false, error: '--plan 不能与 --resume 同时使用', exitCode: EXIT.ARGS };
   if (!['auto', 'prompt', 'cli'].includes(opts.backend)) return { ok: false, error: '--backend 仅支持 auto|prompt|cli', exitCode: EXIT.ARGS };
+  // W2-1（D.1 rule 1 / D.2）：显式 --capability 必须逐字命中 CAPABILITY_MAP 受控键（大小写不敏感精确匹配），
+  // 未知键 → CAPABILITY_UNKNOWN argError fail-closed（不猜、不做语义匹配）。
+  if (opts.capability !== null && opts.capability !== undefined && String(opts.capability).trim()) {
+    const capKey = String(opts.capability).trim().toLowerCase();
+    if (!Object.prototype.hasOwnProperty.call(CAPABILITY_MAP, capKey)) {
+      return { ok: false, error: 'CAPABILITY_UNKNOWN: --capability 「' + opts.capability + '」不在 CAPABILITY_MAP 受控映射（fail-closed 不猜；键集事实源=scripts/lib/activation.mjs CAPABILITY_MAP）', exitCode: EXIT.ARGS };
+    }
+  }
   if (opts.maxRetries !== undefined && (!Number.isInteger(opts.maxRetries) || opts.maxRetries < 0)) return { ok: false, error: '--max-retries 必须是非负整数', exitCode: EXIT.ARGS };
   if (opts.execTimeoutMs !== undefined && (!Number.isInteger(opts.execTimeoutMs) || opts.execTimeoutMs < 1)) return { ok: false, error: '--exec-timeout 必须是正整数（毫秒）', exitCode: EXIT.ARGS };
   if (opts.parallel !== undefined && opts.parallel !== Infinity && (!Number.isInteger(opts.parallel) || opts.parallel < 1)) return { ok: false, error: '--parallel 必须是正整数（缺省 = 全部并行）', exitCode: EXIT.ARGS };
@@ -281,6 +295,40 @@ export async function planDryRun(argv, ctx) {
 }
 
 // ---------------------------------------------------------------------------
+// applyCapabilityToPlan — W2-1 plan 后处理（D.1 rule 1 显式输入 → plan；纯函数零 IO）
+// ---------------------------------------------------------------------------
+
+/**
+ * 将显式 CLI --capability 应用到 buildPlan 产物（D.1 precedence：显式 1 > 派生 2）。
+ * - 无显式输入 → plan 原样返回（派生字段已由 buildPlan 附加；legacy 任务零字段）。
+ * - 有显式输入 → 覆盖全部 subtask 的 capability/capabilitySource:'explicit'（override 派生）；
+ *   解析 asset（CAPABILITY_MAP 单点）不在 plan.cluster 的 candidates → CAPABILITY_CLUSTER_MISMATCH
+ *   fail-closed 抛错（不静默取一，与 buildPlan 同款守卫）。
+ * 纯函数：原地覆盖 subtask 加法字段并返回同一 plan 引用；不触碰 asset 及其余字段。
+ * @param {object} plan - buildPlan 产物
+ * @param {object} opts - parseArgs 输出（读 opts.capability）
+ * @returns {object} 同一 plan 引用
+ */
+export function applyCapabilityToPlan(plan, opts) {
+  if (!plan || !Array.isArray(plan.subtasks)) return plan;
+  const explicit = opts && typeof opts.capability === 'string' && opts.capability.trim()
+    ? opts.capability.trim().toLowerCase() : null;
+  if (!explicit) return plan;
+  const mapped = Object.prototype.hasOwnProperty.call(CAPABILITY_MAP, explicit) ? CAPABILITY_MAP[explicit] : null;
+  if (!mapped) throw new CapabilityIngressError('CAPABILITY_UNKNOWN', 'CAPABILITY_UNKNOWN: capability「' + explicit + '」不在 CAPABILITY_MAP 受控映射（fail-closed 不猜）');
+  const cluster = getCluster(plan.cluster);
+  const candidates = cluster ? cluster.candidates : [];
+  if (!candidates.includes(mapped)) {
+    throw new CapabilityIngressError('CAPABILITY_CLUSTER_MISMATCH', 'CAPABILITY_CLUSTER_MISMATCH: capability「' + explicit + '」解析 asset「' + mapped + '」不在 plan 簇 ' + plan.cluster + ' candidates ' + JSON.stringify(candidates) + '（fail-closed，不静默取一）');
+  }
+  for (const subtask of plan.subtasks) {
+    subtask.capability = explicit;
+    subtask.capabilitySource = 'explicit';
+  }
+  return plan;
+}
+
+// ---------------------------------------------------------------------------
 // 导出
 // ---------------------------------------------------------------------------
 
@@ -294,6 +342,7 @@ export default {
   backlogIsPending,
   classifyExitError,
   planDryRun,
+  applyCapabilityToPlan,
   EXIT,
   EXIT_APPROVAL_ABORTED,
 };
