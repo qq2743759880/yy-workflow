@@ -735,7 +735,10 @@ async function main() {
   // GW-1 接线点 A：按 plan 子任务角色把治理技能节追加进对应资产正文尾部（prompt 适配器从
   // assets.get(asset).body 渲染 brief「方法论正文」段，治理节随之注入；资产对象浅克隆不改写，
   // 锚点/kernel 均前缀提取，消费证据判定不受影响）。零命中/缺失时原样返回（零行为面）。
-  const governedAssets = governPlanAssets(assets, plan.subtasks);
+  // F-030 真实传参：brief 组装发生在子任务派单时（stage 7 并行派单的 stage entry），故传
+  // event='stage_7'——implementation 绑定（TDD）注入，verification 绑定（before_final_receipt）
+  // 在派单事件下不注入（两键匹配，见 governance.mjs FROZEN_STAGE_EVENT_BINDINGS）。
+  const governedAssets = governPlanAssets(assets, plan.subtasks, { event: 'stage_7' });
   // M2-3 --tui：执行时叠加实时 DAG 渲染（不改变执行语义，只挂 onStatus 钩子）。逃生舱：TT_TUI=off 或 --no-tui 完全不渲染。
   const execOpts = { ...opts, workspace, logger, assets: governedAssets, assetsRoot: SKILL_DIR };
   let tui = null;

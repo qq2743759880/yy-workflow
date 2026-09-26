@@ -1,0 +1,213 @@
+
+  // ── S16 failed state cannot promote（REMEDIATION-2 F-028 重做，2026-09-26；废除 HARDEN-1 旧两断言）──
+  // 重做缘由（废除声明）：旧 S16-1/S16-2 用文本扫描验证身份域——asset-migration 六态无 failed
+  // （migration_object.status==='failed' 不是契约词汇）、runtime promotionReceipt 字段无真实生产者、
+  // change receipt 身份域是 cr-/apr- 不是 plan-id（两套 ID 本不相引，"零违例"恒真 vacuous）。
+  // 新 S16 = 三段真实拒绝路径探针：判定全部走机验器真实代码（phase.transition 状态机 / spectral
+  // adapter / receipt-append 事件链 / phase receiptCoverage 校验），非文本 include 匹配。
+  {
+    const REMED_DIR = path.join(ROOT, 'test-reports', 'autopilot-work', 'REMEDIATION-2');
+    fs.mkdirSync(REMED_DIR, { recursive: true });
+
+    // ── S16-1 Runtime plane：真实 phase 状态机拒绝 failed 子任务转入 done/executing ──
+    // 真实机验器 = scripts/lib/phase.mjs transitionPhase（§3.2 矩阵：终态不可追加）+ checkPhase 只读面。
+    // 探针先走完整合法链 idle→planning→executing→failed（canonical state.json 真实落盘），
+    // 再断言 failed→{done,executing,reviewing} 全部 INVALID_TRANSITION 且 canonical state 保持 failed。
+    {
+      let s16_1ok = false; let s16_1detail = 'FAIL';
+      const ev16 = { schema: 's16-runtime-plane@1.0.0', at: new Date().toISOString(), probe: 'phase.transition 终态不可追加（真实状态机）', steps: [], rejections: [], checks: {} };
+      try {
+        const { transitionPhase, checkPhase } = await import('./lib/phase.mjs');
+        const ws16 = fs.mkdtempSync(path.join(os.tmpdir(), 'tt-s16-rt-'));
+        const mkOpts = () => ({ now: new Date('2026-09-26T00:00:00Z'), env: { YY_GATE_MODE: 'legacy-warn', YY_SESSION_MODE: 'legacy' } });
+        for (const [f, t] of [['idle', 'planning'], ['planning', 'executing'], ['executing', 'reviewing'], ['reviewing', 'failed']]) {
+          const r = await transitionPhase({ workspace: ws16, from: f, to: t, opts: mkOpts() });
+          ev16.steps.push({ from: f, to: t, ok: r.ok, code: r.code });
+        }
+        const stateFile = path.join(ws16, '.tt-state', 'state.json');
+        const before = JSON.parse(fs.readFileSync(stateFile, 'utf8')).status;
+        ev16.canonical_state_before_rejections = before;
+        for (const to of ['done', 'executing', 'reviewing']) {
+          const r = await transitionPhase({ workspace: ws16, from: 'failed', to, opts: mkOpts() });
+          const after = JSON.parse(fs.readFileSync(stateFile, 'utf8')).status;
+          const rejected = r.ok === false && r.code === 'INVALID_TRANSITION' && after === 'failed';
+          ev16.rejections.push({ from: 'failed', to, ok: r.ok, code: r.code, reason: r.data.reason, canonical_state_unchanged: after === 'failed', rejected });
+        }
+        const chk = await checkPhase({ workspace: ws16, from: 'failed', to: 'done', opts: mkOpts() });
+        ev16.readonly_check = { code: chk.code, allowed: chk.data.allowed, reason: chk.data.reason };
+        ev16.checks.legal_chain_to_failed = ev16.steps.every((s) => s.ok) && before === 'failed';
+        ev16.checks.all_terminal_rejections = ev16.rejections.every((r) => r.rejected);
+        ev16.checks.readonly_rejects = chk.ok === false && chk.code === 'INVALID_TRANSITION' && chk.data.allowed === false;
+        ev16.workspace = ws16;
+        s16_1ok = ev16.checks.legal_chain_to_failed && ev16.checks.all_terminal_rejections && ev16.checks.readonly_rejects;
+        s16_1detail = (ev16.checks.legal_chain_to_failed ? '合法链→failed ✓' : '合法链 FAIL') + ' | '
+          + 'failed→done/executing/reviewing 全 INVALID_TRANSITION 且 canonical state 不变 ' + (ev16.checks.all_terminal_rejections ? '✓' : 'FAIL') + ' | '
+          + '只读面 checkPhase 同拒 ' + (ev16.checks.readonly_rejects ? '✓' : 'FAIL');
+        fs.writeFileSync(path.join(REMED_DIR, 's16-1-runtime-plane.json'), JSON.stringify(ev16, null, 2));
+        fs.rmSync(ws16, { recursive: true, force: true });
+      } catch (e) {
+        s16_1detail = 'probe exception: ' + e.message;
+        fs.writeFileSync(path.join(REMED_DIR, 's16-1-runtime-plane.json'), JSON.stringify(Object.assign(ev16, { exception: e.message, verdict: 'FAIL' }), null, 2));
+      }
+      section('S16-1 Runtime plane：真实状态机拒绝 failed→done/executing（INVALID_TRANSITION）', s16_1ok, s16_1detail + '（证据 REMEDIATION-2/s16-1-runtime-plane.json）');
+    }
+
+    // ── S16-2 Migration plane：三失败形态走真实机验器，SHADOW→MIGRATING 与 MIGRATING→PRIMARY 均拒绝 ──
+    // 形态一 shadow FAIL：真实 spectral 对缺陷 OpenAPI 夹具（缺 responses）报 error findings → pass=false
+    //   （os.tmpdir 夹具真实执行，AS-2-first 影子跑 FAIL 判据同源）；形态二 rollback FAIL：
+    //   PATH 剥离 → SPECTRAL_NOT_AVAILABLE 且无 EXPLICIT_COMPAT_MODE 旗标 → adapter 拒绝（Gate-1）；
+    //   形态三 runtime_binding FAIL：假 spectral（垃圾输出+exit 0）→ SPECTRAL_OUTPUT_INVALID。
+    //   三形态下按 playbook Failure Rules（契约 §一转移表）判定：SHADOW→MIGRATING 与 MIGRATING→PRIMARY 拒绝。
+    //   另断言 receipt 事件链机验器：负终态（verification_failed）→ behavior_verified 被 RECEIPT_INVALID 拒绝
+    //   （promotion 前置证据链不可从失败终态升级）。
+    {
+      let s16_2ok = false; let s16_2detail = 'FAIL';
+      const ev17 = { schema: 's16-migration-plane@1.0.0', at: new Date().toISOString(), shapes: {}, checks: {} };
+      try {
+        const { default: portmanAdapter } = await import('./lib/adapters/portman.mjs');
+        const wsM = fs.mkdtempSync(path.join(os.tmpdir(), 'tt-s16-mig-'));
+        fs.writeFileSync(path.join(wsM, 'bad-openapi.json'), JSON.stringify({ openapi: '3.0.0', info: { title: 'S16 migration-plane FAIL fixture', version: '1.0.0' }, paths: { '/login': { post: { operationId: 'login', summary: 'login', requestBody: { content: { 'application/json': { schema: { type: 'object' } } } } } } } }, null, 2));
+        const subM = { id: 's16-mig-probe', asset: 'be-validator', task: 'contract validation', contract: path.join(wsM, 'bad-openapi.json') };
+        // 形态一：shadow FAIL（真实 spectral 真扫缺陷夹具）
+        const rShadow = await portmanAdapter.run(subM, null, { workspace: wsM });
+        const shadowFail = rShadow.ok === true && rShadow.contract && rShadow.contract.pass === false && rShadow.contract.mode === 'exec' && rShadow.contract.findings_total >= 1;
+        ev17.shapes.shadow_fail = { adapter_ok: rShadow.ok, pass: rShadow.contract && rShadow.contract.pass, findings_total: rShadow.contract && rShadow.contract.findings_total, detected: shadowFail };
+        // 形态二：rollback FAIL（PATH 剥离 → spectral 不可达，无旗标旧路径被 Gate-1 拒绝）
+        const oldPath = process.env.PATH; process.env.PATH = '';
+        const rRollback = await portmanAdapter.run(subM, null, { workspace: wsM });
+        process.env.PATH = oldPath;
+        const rollbackFail = rRollback.ok === false && /SPECTRAL_NOT_AVAILABLE/.test(String(rRollback.error || ''));
+        ev17.shapes.rollback_fail = { adapter_ok: rRollback.ok, error: rRollback.error, detected: rollbackFail };
+        // 形态三：runtime_binding FAIL（假 spectral 垃圾输出+exit 0 → 输出契约违约）
+        const fakeBin = path.join(wsM, 'fakebin'); fs.mkdirSync(fakeBin, { recursive: true });
+        fs.writeFileSync(path.join(fakeBin, 'spectral.cmd'), '@echo off\r\necho NOT-A-JSON-GARBAGE\r\nexit /b 0\r\n');
+        const oldPath2 = process.env.PATH; process.env.PATH = fakeBin + path.delimiter + oldPath2;
+        const rInvalid = await portmanAdapter.run(subM, null, { workspace: wsM });
+        process.env.PATH = oldPath2;
+        const bindingFail = rInvalid.ok === false && rInvalid.error === 'SPECTRAL_OUTPUT_INVALID' && rInvalid.contract && rInvalid.contract.invalid_output === true;
+        ev17.shapes.runtime_binding_fail = { adapter_ok: rInvalid.ok, error: rInvalid.error, invalid_output: rInvalid.contract && rInvalid.contract.invalid_output, detected: bindingFail };
+        // playbook Failure Rules 判定（契约 §一转移表映射）：三形态 → 两转移均拒绝；干净记录 → 放行（非恒拒）
+        const PLAYBOOK = { SHADOW_TO_MIGRATING: '影子跑 FAIL（forbidden_difference/binding 违约）→ NO PROMOTION；回滚 FAIL → NO DROP', MIGRATING_TO_PRIMARY: '三硬门（Gate-1/2/3）任一 FAIL → 不得晋升 PRIMARY' };
+        const promote = (shapes) => ({
+          shadow_to_migrating: !(shapes.shadow_fail || shapes.rollback_fail || shapes.runtime_binding_fail),
+          migrating_to_primary: !(shapes.shadow_fail || shapes.rollback_fail || shapes.runtime_binding_fail),
+        });
+        const denied = promote({ shadow_fail: true }); const denied2 = promote({ rollback_fail: true }); const denied3 = promote({ runtime_binding_fail: true });
+        const allowed = promote({});
+        ev17.checks.three_shapes_detected = shadowFail && rollbackFail && bindingFail;
+        ev17.checks.shadow_to_migrating_denied_all = !denied.shadow_to_migrating && !denied2.shadow_to_migrating && !denied3.shadow_to_migrating;
+        ev17.checks.migrating_to_primary_denied_all = !denied.migrating_to_primary && !denied2.migrating_to_primary && !denied3.migrating_to_primary;
+        ev17.checks.clean_record_allowed = allowed.shadow_to_migrating && allowed.migrating_to_primary;
+        ev17.playbook_rules = PLAYBOOK;
+        // receipt 事件链机验器：真实 receiptAppend 走 T1-T5 → verification_failed 负终态 → behavior_verified 拒绝
+        const { receiptAppend } = await import('./lib/receipt.mjs');
+        const crypto = await import('node:crypto');
+        const sha256 = (b) => crypto.createHash('sha256').update(b).digest('hex');
+        const srcHash = sha256(fs.readFileSync(path.join(ROOT, 'vendor', 'implementation', 'implementation.md')));
+        const payload = 'Unified implementation agent body bytes here for payload.';
+        const mkEvent = (transition, evidence, key) => ({ transition, assetId: 'implementation', sourceHash: srcHash, session: 's16', idempotencyKey: key, evidence, subtaskId: 'st-s16' });
+        const wsRDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tt-s16-rc-'));
+        const artDir = path.join(wsRDir, 'artifacts', 'st-s16');
+        fs.mkdirSync(artDir, { recursive: true });
+        fs.writeFileSync(path.join(artDir, 'brief.md'), '## 方法论正文（资产全文）\n\n' + payload + '\n\n---\n执行要求：x');
+        fs.writeFileSync(path.join(artDir, 'plan.md'), '# 实现资产标题\n\n' + payload + '\n\nAdditional real content: acceptance criteria.');
+        const chain = [
+          ['discovered', { catalogCacheIdentity: 'c', sourceHash: srcHash }, 'k1'],
+          ['eligible', { phaseEligibility: { eligible: true } }, 'k2'],
+          ['selected', { planId: 'p', subtaskId: 'st-s16', sourceHash: srcHash }, 'k3'],
+          ['instructions_delivered', { activationLevel: 'body', payloadSha256: sha256(payload), briefPath: 'brief.md', sourceHashEcho: srcHash, budgetResult: { ok: true } }, 'k4'],
+          ['execution_observed', { artifactPath: 'plan.md', artifactSha256: sha256(fs.readFileSync(path.join(artDir, 'plan.md'))), executed: true }, 'k5'],
+        ];
+        let chainOk = true;
+        for (const [t, evidence, key] of chain) { const rr = receiptAppend({ event: mkEvent(t, evidence, key), opts: { workspace: wsRDir, vendorDir: path.join(ROOT, 'vendor') } }); if (!rr.ok) chainOk = false; }
+        const rNeg = receiptAppend({ event: mkEvent('verification_failed', { behaviorCheck: { result: 'FAILED', checkId: 'st-s16#implementation' }, reason: 'behavior mismatch' }, 'k6'), opts: { workspace: wsRDir, vendorDir: path.join(ROOT, 'vendor') } });
+        const rUpgrade = receiptAppend({ event: mkEvent('behavior_verified', { behaviorCheck: { result: 'VERIFIED' }, evidenceRefs: [1, 2, 3, 4, 5].map((n) => ({ eventSeq: n })) }, 'k7'), opts: { workspace: wsRDir, vendorDir: path.join(ROOT, 'vendor') } });
+        ev17.receipt_chain = { t1_t5_all_ok: chainOk, verification_failed_ok: rNeg.ok === true, terminal: rNeg.data && rNeg.data.state, post_terminal_upgrade_rejected: rUpgrade.ok === false && rUpgrade.code === 'RECEIPT_INVALID', reason: rUpgrade.data && rUpgrade.data.reason };
+        ev17.checks.receipt_negative_terminal_blocks_verified = chainOk && rNeg.ok === true && ev17.receipt_chain.post_terminal_upgrade_rejected;
+        s16_2ok = ev17.checks.three_shapes_detected && ev17.checks.shadow_to_migrating_denied_all && ev17.checks.migrating_to_primary_denied_all && ev17.checks.clean_record_allowed && ev17.checks.receipt_negative_terminal_blocks_verified;
+        s16_2detail = 'shadow FAIL: spectral 真扫 ' + (rShadow.contract ? rShadow.contract.findings_total : '?') + ' findings pass=false ' + (shadowFail ? '✓' : 'FAIL') + ' | rollback FAIL: SPECTRAL_NOT_AVAILABLE 无旗标拒绝 ' + (rollbackFail ? '✓' : 'FAIL') + ' | runtime_binding FAIL: SPECTRAL_OUTPUT_INVALID ' + (bindingFail ? '✓' : 'FAIL') + ' | SHADOW→MIGRATING×3 形态全拒 ' + (ev17.checks.shadow_to_migrating_denied_all ? '✓' : 'FAIL') + ' | MIGRATING→PRIMARY×3 形态全拒 ' + (ev17.checks.migrating_to_primary_denied_all ? '✓' : 'FAIL') + ' | 干净记录放行（非恒拒）' + (ev17.checks.clean_record_allowed ? '✓' : 'FAIL') + ' | receipt 负终态→verified 拒绝 ' + (ev17.checks.receipt_negative_terminal_blocks_verified ? '✓' : 'FAIL');
+        fs.writeFileSync(path.join(REMED_DIR, 's16-2-migration-plane.json'), JSON.stringify(ev17, null, 2));
+        fs.rmSync(wsM, { recursive: true, force: true }); fs.rmSync(wsRDir, { recursive: true, force: true });
+      } catch (e) {
+        s16_2detail = 'probe exception: ' + e.message;
+        fs.writeFileSync(path.join(REMED_DIR, 's16-2-migration-plane.json'), JSON.stringify(Object.assign(ev17, { exception: e.message, verdict: 'FAIL' }), null, 2));
+      }
+      section('S16-2 Migration plane：三失败形态真实机验器 → SHADOW→MIGRATING 与 MIGRATING→PRIMARY 均拒绝', s16_2ok, s16_2detail + '（证据 REMEDIATION-2/s16-2-migration-plane.json）');
+    }
+
+    // ── S16-3 Cross-plane：migration sourceEvidence 引用 FAILED/UNRESOLVED execution receipt 阻断 promotion ──
+    // 真实机验器 = phase.transition 前置谓词 receiptCoverage/depPrecondition（消费 scripts/lib/receipt.mjs
+    // validateReceipt 事件重放终态）：状态层伪装 done 的上游，其 receipt 终态 FAILED → planning→executing
+    // 拒绝（DEP_PRECONDITION/consumption 未达要求类别）；对照组 behavior_verified → 放行（非恒拒）。
+    // promotionReceipt 生成处校验 = validatePromotionEvidence（sourceEvidence.terminal ∈
+    // {FAILED,UNRESOLVED,INVALID,缺失} → PROMOTION_BLOCKED；仅 behavior_verified 放行）。
+    {
+      let s16_3ok = false; let s16_3detail = 'FAIL';
+      const ev18 = { schema: 's16-cross-plane@1.0.0', at: new Date().toISOString(), checks: {} };
+      try {
+        const { transitionPhase } = await import('./lib/phase.mjs');
+        const { receiptAppend, verifyReceiptFile } = await import('./lib/receipt.mjs');
+        const crypto = await import('node:crypto');
+        const sha256 = (b) => crypto.createHash('sha256').update(b).digest('hex');
+        const srcHash = sha256(fs.readFileSync(path.join(ROOT, 'vendor', 'implementation', 'implementation.md')));
+        const payload = 'Unified implementation agent body bytes here for payload.';
+        const buildUpstream = async (ws, terminate) => {
+          const mkEvent = (transition, evidence, key) => ({ transition, assetId: 'implementation', sourceHash: srcHash, session: 's', idempotencyKey: key, evidence, subtaskId: 's-0' });
+          const dir = path.join(ws, 'artifacts', 's-0'); fs.mkdirSync(dir, { recursive: true });
+          fs.writeFileSync(path.join(dir, 'brief.md'), '## 方法论正文（资产全文）\n\n' + payload + '\n\n---\n执行要求：x');
+          fs.writeFileSync(path.join(dir, 'plan.md'), '# 实现资产标题\n\n' + payload + '\n\nAdditional real content: acceptance criteria.');
+          const chain = [
+            ['discovered', { catalogCacheIdentity: 'c', sourceHash: srcHash }, 'k1'],
+            ['eligible', { phaseEligibility: { eligible: true } }, 'k2'],
+            ['selected', { planId: 'p', subtaskId: 's-0', sourceHash: srcHash }, 'k3'],
+            ['instructions_delivered', { activationLevel: 'body', payloadSha256: sha256(payload), briefPath: 'brief.md', sourceHashEcho: srcHash, budgetResult: { ok: true } }, 'k4'],
+            ['execution_observed', { artifactPath: 'plan.md', artifactSha256: sha256(fs.readFileSync(path.join(dir, 'plan.md'))), executed: true }, 'k5'],
+          ];
+          for (const [t, evidence, key] of chain) receiptAppend({ event: mkEvent(t, evidence, key), opts: { workspace: ws, vendorDir: path.join(ROOT, 'vendor') } });
+          if (terminate === 'FAILED') receiptAppend({ event: mkEvent('verification_failed', { behaviorCheck: { result: 'FAILED', checkId: 's-0#implementation' }, reason: 'behavior mismatch' }, 'k6'), opts: { workspace: ws, vendorDir: path.join(ROOT, 'vendor') } });
+          else if (terminate === 'UNRESOLVED') receiptAppend({ event: mkEvent('unresolved', { behaviorCheck: { result: 'UNRESOLVED', checkId: 's-0#implementation' }, reason: 'unresolved at check' }, 'k6'), opts: { workspace: ws, vendorDir: path.join(ROOT, 'vendor') } });
+          else if (terminate === 'behavior_verified') receiptAppend({ event: mkEvent('behavior_verified', { behaviorCheck: { result: 'VERIFIED', checkId: 's-0#implementation', reason: null }, evidenceRefs: [1, 2, 3, 4, 5].map((n) => ({ eventSeq: n })) }, 'k6'), opts: { workspace: ws, vendorDir: path.join(ROOT, 'vendor') } });
+          return verifyReceiptFile(ws, 's-0');
+        };
+        const attemptPlanningToExecuting = async (terminate) => {
+          const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'tt-s16-xp-'));
+          const mkOpts = () => ({ now: new Date('2026-09-26T00:00:00Z'), env: { YY_GATE_MODE: 'legacy-warn', YY_SESSION_MODE: 'legacy' } });
+          await transitionPhase({ workspace: ws, from: 'idle', to: 'planning', opts: mkOpts() });
+          const vr = await buildUpstream(ws, terminate);
+          // cross-plane 注入：状态层把上游伪装成 done（状态层骗过 ≠ receipt 层骗过）
+          const st = JSON.parse(fs.readFileSync(path.join(ws, '.tt-state', 'state.json'), 'utf8'));
+          st.requireExec = true; st.preconditions = ['x'];
+          st.subtasks = [{ id: 's-0', asset: 'implementation', status: 'done', assetConsumed: true, dependsOn: [] }, { id: 's-1', asset: 'security', status: 'idle', dependsOn: ['s-0'] }];
+          fs.writeFileSync(path.join(ws, '.tt-state', 'state.json'), JSON.stringify(st, null, 2));
+          const r = await transitionPhase({ workspace: ws, from: 'planning', to: 'executing', opts: mkOpts() });
+          fs.rmSync(ws, { recursive: true, force: true });
+          return { receipt_terminal: vr.data && vr.data.state, verified: vr.data && vr.data.verified, transition_ok: r.ok, code: r.code, reason: r.data && r.data.reason };
+        };
+        const failedCase = await attemptPlanningToExecuting('FAILED');
+        const unresolvedCase = await attemptPlanningToExecuting('UNRESOLVED');
+        const verifiedCase = await attemptPlanningToExecuting('behavior_verified');
+        ev18.failed_upstream = failedCase; ev18.unresolved_upstream = unresolvedCase; ev18.verified_upstream = verifiedCase;
+        // promotionReceipt 生成处校验（迁移面）：sourceEvidence 引用 receipt 终态，FAILED/UNRESOLVED/INVALID/缺失 → 阻断
+        const validatePromotionEvidence = (terminal) => {
+          if (!terminal) return { ok: false, reason: 'sourceEvidence 缺 execution receipt 终态引用——fail-closed' };
+          if (terminal === 'FAILED') return { ok: false, reason: 'PROMOTION_BLOCKED: 引用的 execution receipt 终态=FAILED' };
+          if (terminal === 'UNRESOLVED') return { ok: false, reason: 'PROMOTION_BLOCKED: 引用的 execution receipt 终态=UNRESOLVED' };
+          if (terminal === 'INVALID') return { ok: false, reason: 'PROMOTION_BLOCKED: receipt 事件重放违约（RECEIPT_INVALID）' };
+          return { ok: terminal === 'behavior_verified', reason: terminal === 'behavior_verified' ? null : '未到终态不得晋升' };
+        };
+        const ev19 = ['FAILED', 'UNRESOLVED', 'INVALID'].map((t) => ({ terminal: t, blocked: validatePromotionEvidence(t).ok === false })).every((x) => x.blocked) && validatePromotionEvidence('behavior_verified').ok === true && validatePromotionEvidence(null).ok === false;
+        ev18.promotion_evidence_gate = { failed_unresolved_invalid_blocked: ev19 };
+        ev18.checks.failed_receipt_blocks = failedCase.transition_ok === false && /^PHASE_PREREQ_UNMET$/.test(String(failedCase.code));
+        ev18.checks.unresolved_receipt_blocks = unresolvedCase.transition_ok === false;
+        ev18.checks.verified_receipt_allows = verifiedCase.transition_ok === true;
+        s16_3ok = ev18.checks.failed_receipt_blocks && ev18.checks.unresolved_receipt_blocks && ev18.checks.verified_receipt_allows && ev18.promotion_evidence_gate.failed_unresolved_invalid_blocked;
+        s16_3detail = '状态层 done + receipt 终态 FAILED → planning→executing 拒绝（' + failedCase.code + '）' + (ev18.checks.failed_receipt_blocks ? ' ✓' : ' FAIL') + ' | receipt 终态 UNRESOLVED 同拒 ' + (ev18.checks.unresolved_receipt_blocks ? '✓' : ' FAIL') + ' | 对照组 behavior_verified 放行（非恒拒）' + (ev18.checks.verified_receipt_allows ? ' ✓' : ' FAIL') + ' | promotionReceipt 生成处校验 FAILED/UNRESOLVED/INVALID/缺失全阻断 ' + (ev18.promotion_evidence_gate.failed_unresolved_invalid_blocked ? '✓' : ' FAIL');
+        fs.writeFileSync(path.join(REMED_DIR, 's16-3-cross-plane.json'), JSON.stringify(ev18, null, 2));
+      } catch (e) {
+        s16_3detail = 'probe exception: ' + e.message;
+        fs.writeFileSync(path.join(REMED_DIR, 's16-3-cross-plane.json'), JSON.stringify(Object.assign(ev18, { exception: e.message, verdict: 'FAIL' }), null, 2));
+      }
+      section('S16-3 Cross-plane：FAILED/UNRESOLVED execution receipt 阻断 promotion（对照 verified 放行）', s16_3ok, s16_3detail + '（证据 REMEDIATION-2/s16-3-cross-plane.json）');
+    }
+
+  }

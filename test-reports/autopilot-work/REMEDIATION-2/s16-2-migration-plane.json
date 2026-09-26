@@ -1,0 +1,41 @@
+{
+  "schema": "s16-migration-plane@1.0.0",
+  "at": "2026-09-26T05:44:45.278Z",
+  "shapes": {
+    "shadow_fail": {
+      "adapter_ok": true,
+      "pass": false,
+      "findings_total": 6,
+      "detected": true
+    },
+    "rollback_fail": {
+      "adapter_ok": false,
+      "error": "SPECTRAL_NOT_AVAILABLE (legacy portman path blocked: EXPLICIT_COMPAT_MODE flag required — Gate-1 asset-migration.md §三)",
+      "detected": true
+    },
+    "runtime_binding_fail": {
+      "adapter_ok": false,
+      "error": "SPECTRAL_OUTPUT_INVALID",
+      "invalid_output": true,
+      "detected": true
+    }
+  },
+  "checks": {
+    "three_shapes_detected": true,
+    "shadow_to_migrating_denied_all": true,
+    "migrating_to_primary_denied_all": true,
+    "clean_record_allowed": true,
+    "receipt_negative_terminal_blocks_verified": true
+  },
+  "playbook_rules": {
+    "SHADOW_TO_MIGRATING": "影子跑 FAIL（forbidden_difference/binding 违约）→ NO PROMOTION；回滚 FAIL → NO DROP",
+    "MIGRATING_TO_PRIMARY": "三硬门（Gate-1/2/3）任一 FAIL → 不得晋升 PRIMARY"
+  },
+  "receipt_chain": {
+    "t1_t5_all_ok": true,
+    "verification_failed_ok": true,
+    "terminal": "verification_failed",
+    "post_terminal_upgrade_rejected": true,
+    "reason": "链已到终态 verification_failed，禁止再验证（§7.2；新链须由新 sourceHash 的新 activation 开启）"
+  }
+}

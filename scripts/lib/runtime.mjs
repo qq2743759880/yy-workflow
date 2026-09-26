@@ -7,7 +7,10 @@ import { RetryableError, TimeoutError } from './errors.mjs';
 // GW-1 治理接线（接线点 B）：失败路径 GOVERNANCE 指路行单点（systematic-debugging）。
 // 只指路不注入正文（防 prompt 爆炸——GW-1 派单裁定）；governance-skills 缺失时
 // governancePointerLine → null，静默跳过（向后兼容）。单点实现见 scripts/lib/governance.mjs。
-import { governancePointerLine } from './governance.mjs';
+// F-030：失败码 → failure_recovery 组冻结事件映射（CAPABILITY_MISSING/INELIGIBLE_* 等 → gate_failed）
+// 单点在 governanceEventForFailureCode（governance.mjs，映射表对应关系见其文件头注释）。
+import { governancePointerLine, governanceEventForFailureCode } from './governance.mjs';
+
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -50,12 +53,11 @@ function eligibilityCode(reasons) {
   if (text.includes('INELIGIBLE_WHEN_NOT_TO_USE')) return 'INELIGIBLE_WHEN_NOT_TO_USE';
   return 'INELIGIBLE';
 }
-// GW-1 治理接线：失败码触发面（gate/adapter 失败族）。触发 = adapter 执行失败（!result.ok，含
-// *_OUTPUT_INVALID / EXEC_TIMEOUT / OPENCODE_NOT_AVAILABLE 等宿主/工具不可用码——runCommand 语义
-// ok:false+error=具名码）+ 门控具名失败码（CAPABILITY_MISSING / INELIGIBLE_* /
-// RESOLVER_INTERNAL_ERROR / ADAPTER_NOT_AVAILABLE）。仅 dispatch 之前的依赖类 skip
-// （DEP_PRECONDITION / DEP_CONTRACT_NOT_FROZEN / CONTRACT_NOT_FROZEN，ok 无失败码）不在触发面。
-const GOV_FAILURE_CODE_RE = /^(?:CAPABILITY_MISSING|INELIGIBLE|RESOLVER_INTERNAL_ERROR|ADAPTER_NOT_AVAILABLE|OUTPUT_INVALID)/;
+// GW-1 治理接线：失败码触发面（gate/adapter 失败族）——F-030 后指路判定不再由本文件正则承担，
+// 单点 = governance.mjs governanceEventForFailureCode 的映射表 + Owner 冻结集两键匹配（其文件头
+// 注释显式声明映射关系：CAPABILITY_MISSING / INELIGIBLE_* / RESOLVER_INTERNAL_ERROR /
+// *_NOT_AVAILABLE / *_OUTPUT_INVALID → gate_failed；regression_failed/migration_failed 直通）。
+// 原 GOV_FAILURE_CODE_RE 正则随 F-030 废除删除；触发面语义不变，仅判定单点收敛到 governance.mjs。
 export function createContextBus() {
   const values = new Map();
   return { set(key, value) { JSON.stringify(value); values.set(key, value); }, get(key) { return values.get(key); }, has(key) { return values.has(key); }, dump() { return Object.fromEntries(values); } };
@@ -368,12 +370,17 @@ async function runGroup(group, plan, ctx, opts, logger, limit) {
     else if (!result.ok) { subtask.status = 'failed'; plan.status = 'failed'; logger.error('subtask failed ' + subtask.id + ': ' + result.error); }
     else if (!opts.dryRun) subtask.status = 'done';
     // GW-1 治理接线（接线点 B）：gate/adapter 失败路径 GOVERNANCE 指路行（systematic-debugging）。
-    // EX-1 能力门控段 / AV-3 资格门段零改动——全部失败码统一在 dispatch 返回后的本观察点消费
-    // （触发面见 GOV_FAILURE_CODE_RE 注释）；只指路不注入正文，governance-skills 缺失静默跳过。
+    // EX-1 能力门控段 / AV-3 资格门段零改动——全部失败码统一在 dispatch 返回后的本观察点消费。
+    // F-030 真实传参：具名失败码经 governance.mjs 头注释声明的映射表（GOV_FAILURE_EVENT_MAP 语义）
+    // 映射到 failure_recovery 组冻结事件（CAPABILITY_MISSING/INELIGIBLE_*/RESOLVER_INTERNAL_ERROR/
+    // *_NOT_AVAILABLE/*_OUTPUT_INVALID → gate_failed；regression_failed/migration_failed 显式直通）；
+    // 未映射码 → null（不指路）。真实执行失败（result.ok===false 无具名码）按映射表头声明的
+    // "门/执行面失败兜底"显式传 gate_failed。
     const govFailCode = String((result && result.error) || subtask.error || '');
-    if ((result && result.ok === false) || GOV_FAILURE_CODE_RE.test(govFailCode)) {
-      const govLine = governancePointerLine('failure_recovery', 'gate_failed');
-      if (govLine) logger.warn('subtask ' + subtask.id + ' [' + subtask.asset + '] failure=' + (govFailCode || '(no code)') + ' | ' + govLine);
+    const govEvent = (result && result.ok === false && !govFailCode) ? 'gate_failed' : governanceEventForFailureCode(govFailCode);
+    if (govEvent) {
+      const govLine = governancePointerLine('failure_recovery', govEvent);
+      if (govLine) logger.warn('subtask ' + subtask.id + ' [' + subtask.asset + '] failure=' + (govFailCode || '(no code)') + ' gov_event=' + govEvent + ' | ' + govLine);
     }
     emitStatus(plan, subtask, subtask.status, opts, { elapsedMs: Date.now() - started });
     logger.info('finish subtask ' + subtask.id + ' (' + (Date.now() - started) + 'ms)');

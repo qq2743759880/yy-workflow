@@ -74,7 +74,7 @@ AS 系列后续会 drop 7 资产（be-architect / be-resilience / be-provider / 
 | Schema 版本 | asset-manifest-v2@1.0.0 |
 | 变更单 | cr-20260923T040000Z-1a2b3c4d（contracts/discrepancies/cr-20260923T040000Z-av1schema.json，CONTRACT 类） |
 | 影响类别 | CONTRACT（变更触及冻结契约规范性内容；失效传播至 AV-2/AV-3） |
-| Owner 签收 | `approvalId`: apr-20260923T035000Z-1a2b3c4d / `approvedBy`: owner / `approvedAt`: 2026-09-23T03:50:00Z / `expiresAt`: null / `approvalEvidence`: PENDING_OWNER_RECEIPT（待 Owner 签发 <指令文件路径>#<SHA256> 回填，签发前本文档为待确认草稿态） |
+| Owner 签收状态 | 本文档不复制品 mutable 签收状态（split-brain 方案 B，第十四审计 F-031）：Owner 签收状态唯一权威 = contracts/discrepancies/cr-20260923T040000Z-av1schema.json（ownerSignOff 字段）；本文档只记录 changeRecordId，不复制 mutable status |
 | Owner 备注 | 三字段（when_to_use / when_not_to_use / verification）采纳，R2 T3-04 A6 词汇缺口 + BW-3 模糊 prompt 缺口 |
 
 ## 变更历史

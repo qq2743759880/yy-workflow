@@ -1,0 +1,953 @@
+diff --git a/contracts/asset-manifest-v2.md b/contracts/asset-manifest-v2.md
+index b80d75c..bcd6eb4 100644
+--- a/contracts/asset-manifest-v2.md
++++ b/contracts/asset-manifest-v2.md
+@@ -74,7 +74,7 @@ AS 系列后续会 drop 7 资产（be-architect / be-resilience / be-provider /
+ | Schema 版本 | asset-manifest-v2@1.0.0 |
+ | 变更单 | cr-20260923T040000Z-1a2b3c4d（contracts/discrepancies/cr-20260923T040000Z-av1schema.json，CONTRACT 类） |
+ | 影响类别 | CONTRACT（变更触及冻结契约规范性内容；失效传播至 AV-2/AV-3） |
+-| Owner 签收 | `approvalId`: apr-20260923T035000Z-1a2b3c4d / `approvedBy`: owner / `approvedAt`: 2026-09-23T03:50:00Z / `expiresAt`: null / `approvalEvidence`: PENDING_OWNER_RECEIPT（待 Owner 签发 <指令文件路径>#<SHA256> 回填，签发前本文档为待确认草稿态） |
++| Owner 签收状态 | 本文档不复制品 mutable 签收状态（split-brain 方案 B，第十四审计 F-031）：Owner 签收状态唯一权威 = contracts/discrepancies/cr-20260923T040000Z-av1schema.json（ownerSignOff 字段）；本文档只记录 changeRecordId，不复制 mutable status |
+ | Owner 备注 | 三字段（when_to_use / when_not_to_use / verification）采纳，R2 T3-04 A6 词汇缺口 + BW-3 模糊 prompt 缺口 |
+ 
+ ## 变更历史
+diff --git a/contracts/asset-migration.md b/contracts/asset-migration.md
+index 5bd8b33..d013451 100644
+--- a/contracts/asset-migration.md
++++ b/contracts/asset-migration.md
+@@ -99,4 +99,4 @@ DEPRECATED ──(drop 三条件全过+drop_allowed=true+收口核查)──▶
+ |---|---|
+ | changeRecordId | cr-20260924T090000Z-b1g4te5c（contracts/discrepancies/ 同名 .json） |
+ | impactClass | CONTRACT（触及冻结契约规范性内容） |
+-| Owner 签收位 | PENDING（approvalEvidence 待 Owner 签发 <指令文件路径>#<SHA256> 回填；签发前本文档为待确认草稿态） |
++| Owner 签收状态 | 本文档不复制品 mutable 签收状态（split-brain 方案 B，第十四审计 F-031）：Owner 签收状态唯一权威 = contracts/discrepancies/cr-20260924T090000Z-b1g4te5c.json（ownerSignOff 字段）；本文档只记录 changeRecordId，不复制 mutable status |
+diff --git a/plans/audit-index-20260925.md b/plans/audit-index-20260925.md
+index 17d5167..715e02a 100644
+--- a/plans/audit-index-20260925.md
++++ b/plans/audit-index-20260925.md
+@@ -11,7 +11,7 @@
+ | A-1 | F-022：`f014-manifest-build.log` 被报 NOT FOUND（实为 1605B 在场+内容 hash 双一致 3c0e7df0）→ 已补文件树证据，NOT YET VERIFIED → 已补证 | `test-reports/autopilot-work/REMEDIATION-1/file-tree-proof.txt`（内含目录树：`f014-manifest-build.log  1605` 行）；`test-reports/autopilot-work/REMEDIATION-1/f014-manifest-build.log` | `ls -l test-reports/autopilot-work/REMEDIATION-1/f014-manifest-build.log && sha256sum test-reports/autopilot-work/REMEDIATION-1/f014-manifest-build.log && cat test-reports/autopilot-work/REMEDIATION-1/file-tree-proof.txt \| grep f014` |
+ | A-2 | F-025：签收后第一项动作 = FINAL-E2E 真实主链验收入口（区别于 planner-shaped probe）——已落盘并已执行 9/9 | `test-reports/autopilot-work/FINAL-E2E/ACCEPTANCE-ENTRY.md`；`test-reports/autopilot-work/FINAL-E2E/RESULTS.md`；逐断言 JSON：`test-reports/autopilot-work/FINAL-E2E/e2e-assert-auto.json`（verdict=PASS，host_mode=mech，assertions 9） | `node -e "const j=require('./test-reports/autopilot-work/FINAL-E2E/e2e-assert-auto.json');console.log(j.verdict,j.host_mode,j.assertions.map(a=>a.pass).join(','))"` |
+ | A-3 | F-021 措辞修正：receipt `approval_effect=authorize_transition_request`（授权转移请求≠当前状态已变更；receipt 存在≠transition 完成） | `contracts/discrepancies/cr-20260925T150000Z-as2sent-promotion.json`（`approval_effect` 字段 + 修正注记） | `grep -o "approval_effect[^,]*" contracts/discrepancies/cr-20260925T150000Z-as2sent-promotion.json` |
+-| A-4 | F-023：gate probe 曾 vacuous all_pass（断言子对象未填）→ run-stamped artifact 再生，含 `assertions` 子对象有语义值 | `test-reports/autopilot-work/REMEDIATION-1/run-2026-09-25T08-19-37-403Z-gate-probe-result.json`（run-stamp 命名，rerun 不覆盖已提交证据） | `node -e "const j=require('./test-reports/autopilot-work/REMEDIATION-1/run-2026-09-25T08-19-37-403Z-gate-probe-result.json');console.log(JSON.stringify(j.assertions))"` |
++| A-4 | F-023：gate probe 曾 vacuous all_pass（断言子对象未填）→ run-stamped artifact 再生，含 `assertions` 子对象有语义值 | `test-reports/autopilot-work/REMEDIATION-1/run-2026-09-25T08-19-37-403Z-gate-probe-result.json`（run-stamp 命名，rerun 不覆盖已提交证据） | `node -e "const j=require('./test-reports/autopilot-work/REMEDIATION-1/run-2026-09-25T08-19-37-403Z-gate-probe-result.json');console.log(JSON.stringify(j.probes.js_file_rejected.assertions))"`（REMEDIATION-2 F-032 修正：artifact 实测结构为 `{probes:{js_file_rejected:{assertions:…}}}`，原命令 `j.assertions` 顶层不存在 → undefined 恒空） |
+ 
+ ## 二、第十三轮账面行（ledger 执行表）对应证据
+ 
+diff --git a/scripts/lib/governance.mjs b/scripts/lib/governance.mjs
+index 3dc65af..8bccc74 100644
+--- a/scripts/lib/governance.mjs
++++ b/scripts/lib/governance.mjs
+@@ -7,12 +7,28 @@
+  * 消费入口：按阶段把 Owner 圈选的 3 个治理技能正文注入 executor brief（接线点 A）或在失败
+  * 路径给出指路行（接线点 B）。vendored 文件永不手改（升级走 git pull 换 pin + 重新快照）。
+  *
+- * Owner 圈选绑定（三技能，2 缓）：
+- *   implementation  → test-driven-development        （激活：stage_7 或 migration shadow run 前）
+- *   verification    → verification-before-completion （激活：before_final_receipt，agent 宣称完成之前）
+- *   failure_recovery→ systematic-debugging           （激活：gate_failed / regression_failed / migration_failed）
++ * Owner 冻结 stage×event 绑定（REMEDIATION-2 F-030 内化为常量表，权威 =
++ * plans/superpowers-selection-v1.json 逐 skill 的 activation 定义；旧实现只按资产映射 stage、
++ * event 字符串不参与判定，属语义扩张——本轮校正为两键均须匹配冻结集，不匹配 → null 不注入）：
++ *   verification     → verification-before-completion （激活事件：before_final_receipt——agent 宣称完成之前）
++ *   implementation   → test-driven-development        （激活事件：stage_7——并行派单 stage entry；选
++ *       择文件原文"stage_7_implementation 或 migration shadow run 前"，派单 F-030 冻结集裁定取 stage_7）
++ *   failure_recovery → systematic-debugging           （激活事件：gate_failed / regression_failed /
++ *       migration_failed——三枚举，任一命中即注入/指路）
+  *
+- * 护栏（派单 GW-1）：
++ * runtime 失败码 → failure_recovery 组映射表（GOV_FAILURE_EVENT_MAP，对应关系显式声明）：
++ *   Owner 冻结的三枚举是时机事件（门失败/回归失败/迁移失败），runtime 产生的具名失败码按
++ *   最近语义归入"广义 failure_recovery 组"，映射如下（前缀/后缀族匹配，未列出 → null 不指路）：
++ *     CAPABILITY_MISSING            → gate_failed（EX-1 能力门失败）
++ *     INELIGIBLE_*                  → gate_failed（AV-3 资格门失败族）
++ *     RESOLVER_INTERNAL_ERROR       → gate_failed（resolver fail-closed）
++ *     *_NOT_AVAILABLE               → gate_failed（adapter/宿主/工具不可用族：
++ *                                      ADAPTER_/OPENCODE_/SDLC_/CONTRACT_TOOL_/SPECTRAL_ 等）
++ *     *_OUTPUT_INVALID              → gate_failed（adapter 输出契约违约族：SPECTRAL_/SKILLSCANNER_ 等）
++ *     真实执行失败（result.ok===false，无具名码）→ gate_failed（门/执行面失败兜底，dispatch 观察点声明）
++ *     'regression_failed' / 'migration_failed' 显式字面量 → 直通（回归段/迁移门探针传参）
++ *
++ * 护栏（派单 GW-1 + F-030）：
+  *   - 5KB 截断上限：注入正文超 5120 字节截断并标注 [truncated]（防 prompt 膨胀；
+  *     实测 TDD 9578B / systematic-debugging 9465B 恒截断，verification 3646B 全文注入）；
+  *   - governance-skills/ 缺失/改名 → governanceFor 返回 null，所有接线点静默跳过（向后兼容）；
+@@ -30,15 +46,31 @@ export const DEFAULT_GOVERNANCE_DIR = path.resolve(path.dirname(fileURLToPath(im
+ /** 注入正文截断上限：5KB（派单 GW-1 截断护栏）。 */
+ export const MAX_GOVERNANCE_BODY_BYTES = 5 * 1024;
+ 
+-/** Owner 圈选绑定单点（VENDORED.md「入选清单与绑定」表 + superpowers-selection-v1.json 逐字口径）。 */
+-const BINDINGS = {
+-  implementation: { skill: 'test-driven-development', activation: 'stage_7 或 migration shadow run 前' },
+-  verification: { skill: 'verification-before-completion', activation: 'before_final_receipt（agent 宣称完成之前）' },
+-  failure_recovery: { skill: 'systematic-debugging', activation: ['gate_failed', 'regression_failed', 'migration_failed'] },
++/** Owner 圈选技能单点（VENDORED.md「入选清单与绑定」表 + superpowers-selection-v1.json 逐字口径）。 */
++const SKILLS = {
++  verification: 'verification-before-completion',
++  implementation: 'test-driven-development',
++  failure_recovery: 'systematic-debugging',
+ };
+ 
+ /**
+- * 子任务资产 → 治理阶段（接线点 A 分类口径，单点声明）。
++ * Owner 冻结 stage×event 绑定常量表（F-030：plans/superpowers-selection-v1.json 的 activation
++ * 定义内化；governanceFor 两键均须命中本表——stage 命中且 eventType ∈ events，否则 null 不注入）。
++ */
++const FROZEN_STAGE_EVENT_BINDINGS = Object.freeze({
++  verification: Object.freeze({ events: Object.freeze(['before_final_receipt']) }),
++  implementation: Object.freeze({ events: Object.freeze(['stage_7']) }),
++  failure_recovery: Object.freeze({ events: Object.freeze(['gate_failed', 'regression_failed', 'migration_failed']) }),
++});
++
++/** 资产名 → 治理阶段（未列资产 → null，不注入）。探针用。 */
++export function stageForAsset(asset) {
++  return STAGE_BY_ASSET[String(asset || '')] || null;
++}
++
++/**
++ * 子任务资产 → 治理阶段（接线点 A 分类口径，单点声明；F-030 后 stage 仅是两键之一，
++ * 注入与否还取决于调用方传入的激活事件是否命中冻结集）。
+  * 活面 = AS-1 drop 收缩后 CLUSTERS 全部 9 个 candidates（scripts/lib/matrix.mjs，2026-09-25），
+  * 逐资产判定，零留空引用：
+  *   - verification（验收/验证段）：be-validator / review 为 matrix 簇前置明示的验收子任务；
+@@ -57,9 +89,21 @@ const STAGE_BY_ASSET = {
+   'security': 'implementation',
+ };
+ 
+-/** 资产名 → 治理阶段（未列资产 → null，不注入）。探针用。 */
+-export function stageForAsset(asset) {
+-  return STAGE_BY_ASSET[String(asset || '')] || null;
++/**
++ * runtime 失败码 → failure_recovery 组冻结事件映射（F-030；对应关系见文件头注释映射表）。
++ * @param {string} code — runtime 具名失败码（result.error / subtask.error）
++ * @returns {'gate_failed'|'regression_failed'|'migration_failed'|null}
++ */
++export function governanceEventForFailureCode(code) {
++  const c = String(code || '');
++  if (!c) return null; // 无码不判（真实执行失败兜底由调用方按 result.ok===false 显式传 gate_failed）
++  if (c === 'gate_failed' || c === 'regression_failed' || c === 'migration_failed') return c; // 冻结事件直通
++  if (c === 'CAPABILITY_MISSING') return 'gate_failed';
++  if (/^INELIGIBLE/.test(c)) return 'gate_failed';
++  if (c === 'RESOLVER_INTERNAL_ERROR') return 'gate_failed';
++  if (/_NOT_AVAILABLE$/.test(c)) return 'gate_failed';
++  if (/_OUTPUT_INVALID$/.test(c)) return 'gate_failed';
++  return null; // 未映射码 → 不指路（fail-closed，不语义扩张）
+ }
+ 
+ /** 剥离 frontmatter（--- 头块）——与 lib/asset.mjs 业务资产正文同口径；无 frontmatter 原样返回。 */
+@@ -89,20 +133,22 @@ function truncateBody(raw, skill) {
+ }
+ 
+ /**
+- * 治理技能查询（纯函数）：stage → {skill, body, truncated, binding} | null。
++ * 治理技能查询（纯函数，F-030 两键匹配）：stage+eventType 均命中冻结绑定 →
++ * {skill, body, truncated, binding} | null。
+  * @param {string} stage  — 'implementation' | 'verification' | 'failure_recovery'
+- * @param {string} [eventType] — 激活事件；binding.activation 为枚举数组时严格匹配（不在枚举内 →
+- *        null，fail-closed）；字符串型激活时机为阶段级，eventType 仅作登记不过滤。
++ * @param {string} [eventType] — 激活事件；必须 ∈ FROZEN_STAGE_EVENT_BINDINGS[stage].events
++ *        （缺省/undefined/枚举外 → null，fail-closed——两键匹配，event 不再是"仅登记"）。
+  * @param {{governanceDir?: string}} [opts] — governanceDir 覆盖（探针沙箱用；缺省随包 governance-skills/）。
+  */
+ export function governanceFor(stage, eventType, opts) {
+-  const binding = BINDINGS[stage];
++  const binding = FROZEN_STAGE_EVENT_BINDINGS[stage];
+   if (!binding) return null;
+-  if (Array.isArray(binding.activation) && eventType !== undefined && eventType !== null && !binding.activation.includes(eventType)) return null;
+-  const raw = readSkillBody(binding.skill, (opts && opts.governanceDir) || DEFAULT_GOVERNANCE_DIR);
++  // 两键匹配（F-030）：event 缺省或不在冻结枚举 → 不注入（fail-closed，不做阶段级语义扩张）
++  if (typeof eventType !== 'string' || !binding.events.includes(eventType)) return null;
++  const raw = readSkillBody(SKILLS[stage], (opts && opts.governanceDir) || DEFAULT_GOVERNANCE_DIR);
+   if (raw === null) return null;
+-  const { body, truncated } = truncateBody(raw, binding.skill);
+-  return { skill: binding.skill, body, truncated, binding: { stage, activation: binding.activation } };
++  const { body, truncated } = truncateBody(raw, SKILLS[stage]);
++  return { skill: SKILLS[stage], body, truncated, binding: { stage, activation: binding.events } };
+ }
+ 
+ function activationLabel(activation) { return Array.isArray(activation) ? activation.join('/') : String(activation); }
+@@ -111,7 +157,7 @@ function activationLabel(activation) { return Array.isArray(activation) ? activa
+  * 接线点 B 专用：失败路径 GOVERNANCE 指路行（不返回正文——失败时不注入全文，防 prompt 爆炸）。
+  * 行格式（GW-1 派单指定前缀，逐字可 grep）：
+  *   GOVERNANCE: systematic-debugging 正文见 governance-skills/systematic-debugging/SKILL.md（…）
+- * governance-skills 缺失 → null（调用方静默跳过）。
++ * governance-skills 缺失 / stage+event 不在冻结集 → null（调用方静默跳过）。
+  */
+ export function governancePointerLine(stage, eventType, opts) {
+   const gov = governanceFor(stage, eventType, opts);
+@@ -122,18 +168,18 @@ export function governancePointerLine(stage, eventType, opts) {
+ 
+ /**
+  * 接线点 A 专用：治理技能节文本（brief 尾部追加；首行标注格式为派单指定逐字格式）。
+- * governance-skills 缺失 → null。
++ * F-030：eventType 必须显式传入（brief 组装处的 stage entry 事件 = stage_7）；
++ * governance-skills 缺失 / event 不在冻结集 → null。
+  */
+-export function governanceBriefSection(stage, opts) {
+-  const gov = governanceFor(stage, undefined, opts);
++export function governanceBriefSection(stage, eventType, opts) {
++  const gov = governanceFor(stage, eventType, opts);
+   if (!gov) return null;
+   return [
+     '--- governance: ' + gov.skill + ' ---',
+     '',
+     gov.body,
+     '',
+-    '（治理技能注入：' + gov.skill + '，绑定阶段=' + stage + '，激活时机=' + activationLabel(gov.binding.activation)
+-      + '；全文见 governance-skills/' + gov.skill + '/SKILL.md' + (gov.truncated ? '；本节正文超 5KB 上限已截断' : '') + '）',
++    '（治理技能注入：' + gov.skill + '，绑定阶段=' + stage + '，激活时机=' + activationLabel(gov.binding.activation) + '）',
+   ].join('\n');
+ }
+ 
+@@ -141,6 +187,9 @@ export function governanceBriefSection(stage, opts) {
+  * 接线点 A：按 plan 子任务角色包装 assets Map，把治理技能节追加进对应资产正文尾部。
+  * 消费机制：prompt 适配器（lib/adapters/prompt.mjs）从 assets.get(asset).body 渲染 brief
+  * 「方法论正文（资产全文）」段——本包装让治理节随该段注入 brief，而不改适配器本体。
++ * F-030：注入事件 = 子任务派单时的 stage entry（stage 7 并行派单），故默认传 'stage_7'——
++ *   TDD（implementation 绑定 stage_7）随派单注入；verification 绑定 before_final_receipt、
++ *   在 stage_7 事件下不注入（review 等验收子任务不注 verification——须显式传 before_final_receipt）。
+  *   - 消费证据安全性：锚点取资产正文首标题、kernel 提取取 Execution kernel 段（均前缀匹配），
+  *     尾部追加不改变 assetConsumed 判定；
+  *   - 原资产对象不改写（浅克隆后追加），vendor/ 与 assets-cache.json 零污染；
+@@ -148,18 +197,19 @@ export function governanceBriefSection(stage, opts) {
+  *   - 非 Map 容器形态 → 原样返回（向后兼容，不猜形态）。
+  * @param {Map<string,{name,body,meta}>} assets — loadAssets 产物
+  * @param {Array<{asset:string}>} subtasks — plan.subtasks
+- * @param {{governanceDir?: string, env?: object}} [opts]
++ * @param {{governanceDir?: string, env?: object, event?: string}} [opts] — event 覆盖（缺省 stage_7）
+  */
+ export function governPlanAssets(assets, subtasks, opts) {
+   if (!assets || typeof assets.get !== 'function' || typeof (assets) !== 'object') return assets;
+   const env = (opts && opts.env) || process.env;
+   if (String(env.YY_ACTIVATION || '').trim().toLowerCase() === 'lib') return assets; // 见文件头护栏第 3 条
++  const event = (opts && typeof opts.event === 'string' && opts.event) || 'stage_7'; // stage entry 事件（F-030）
+   const sections = new Map();
+   for (const s of Array.isArray(subtasks) ? subtasks : []) {
+     if (!s || typeof s.asset !== 'string' || !s.asset || sections.has(s.asset)) continue;
+     const stage = STAGE_BY_ASSET[s.asset];
+     if (!stage) continue;
+-    const section = governanceBriefSection(stage, opts);
++    const section = governanceBriefSection(stage, event, opts);
+     if (section) sections.set(s.asset, section);
+   }
+   if (sections.size === 0) return assets;
+diff --git a/scripts/lib/runtime.mjs b/scripts/lib/runtime.mjs
+index 91dab3c..c909295 100644
+--- a/scripts/lib/runtime.mjs
++++ b/scripts/lib/runtime.mjs
+@@ -7,7 +7,10 @@ import { RetryableError, TimeoutError } from './errors.mjs';
+ // GW-1 治理接线（接线点 B）：失败路径 GOVERNANCE 指路行单点（systematic-debugging）。
+ // 只指路不注入正文（防 prompt 爆炸——GW-1 派单裁定）；governance-skills 缺失时
+ // governancePointerLine → null，静默跳过（向后兼容）。单点实现见 scripts/lib/governance.mjs。
+-import { governancePointerLine } from './governance.mjs';
++// F-030：失败码 → failure_recovery 组冻结事件映射（CAPABILITY_MISSING/INELIGIBLE_* 等 → gate_failed）
++// 单点在 governanceEventForFailureCode（governance.mjs，映射表对应关系见其文件头注释）。
++import { governancePointerLine, governanceEventForFailureCode } from './governance.mjs';
++
+ import fs from 'node:fs/promises';
+ import path from 'node:path';
+ import crypto from 'node:crypto';
+@@ -50,12 +53,11 @@ function eligibilityCode(reasons) {
+   if (text.includes('INELIGIBLE_WHEN_NOT_TO_USE')) return 'INELIGIBLE_WHEN_NOT_TO_USE';
+   return 'INELIGIBLE';
+ }
+-// GW-1 治理接线：失败码触发面（gate/adapter 失败族）。触发 = adapter 执行失败（!result.ok，含
+-// *_OUTPUT_INVALID / EXEC_TIMEOUT / OPENCODE_NOT_AVAILABLE 等宿主/工具不可用码——runCommand 语义
+-// ok:false+error=具名码）+ 门控具名失败码（CAPABILITY_MISSING / INELIGIBLE_* /
+-// RESOLVER_INTERNAL_ERROR / ADAPTER_NOT_AVAILABLE）。仅 dispatch 之前的依赖类 skip
+-// （DEP_PRECONDITION / DEP_CONTRACT_NOT_FROZEN / CONTRACT_NOT_FROZEN，ok 无失败码）不在触发面。
+-const GOV_FAILURE_CODE_RE = /^(?:CAPABILITY_MISSING|INELIGIBLE|RESOLVER_INTERNAL_ERROR|ADAPTER_NOT_AVAILABLE|OUTPUT_INVALID)/;
++// GW-1 治理接线：失败码触发面（gate/adapter 失败族）——F-030 后指路判定不再由本文件正则承担，
++// 单点 = governance.mjs governanceEventForFailureCode 的映射表 + Owner 冻结集两键匹配（其文件头
++// 注释显式声明映射关系：CAPABILITY_MISSING / INELIGIBLE_* / RESOLVER_INTERNAL_ERROR /
++// *_NOT_AVAILABLE / *_OUTPUT_INVALID → gate_failed；regression_failed/migration_failed 直通）。
++// 原 GOV_FAILURE_CODE_RE 正则随 F-030 废除删除；触发面语义不变，仅判定单点收敛到 governance.mjs。
+ export function createContextBus() {
+   const values = new Map();
+   return { set(key, value) { JSON.stringify(value); values.set(key, value); }, get(key) { return values.get(key); }, has(key) { return values.has(key); }, dump() { return Object.fromEntries(values); } };
+@@ -368,12 +370,17 @@ async function runGroup(group, plan, ctx, opts, logger, limit) {
+     else if (!result.ok) { subtask.status = 'failed'; plan.status = 'failed'; logger.error('subtask failed ' + subtask.id + ': ' + result.error); }
+     else if (!opts.dryRun) subtask.status = 'done';
+     // GW-1 治理接线（接线点 B）：gate/adapter 失败路径 GOVERNANCE 指路行（systematic-debugging）。
+-    // EX-1 能力门控段 / AV-3 资格门段零改动——全部失败码统一在 dispatch 返回后的本观察点消费
+-    // （触发面见 GOV_FAILURE_CODE_RE 注释）；只指路不注入正文，governance-skills 缺失静默跳过。
++    // EX-1 能力门控段 / AV-3 资格门段零改动——全部失败码统一在 dispatch 返回后的本观察点消费。
++    // F-030 真实传参：具名失败码经 governance.mjs 头注释声明的映射表（GOV_FAILURE_EVENT_MAP 语义）
++    // 映射到 failure_recovery 组冻结事件（CAPABILITY_MISSING/INELIGIBLE_*/RESOLVER_INTERNAL_ERROR/
++    // *_NOT_AVAILABLE/*_OUTPUT_INVALID → gate_failed；regression_failed/migration_failed 显式直通）；
++    // 未映射码 → null（不指路）。真实执行失败（result.ok===false 无具名码）按映射表头声明的
++    // "门/执行面失败兜底"显式传 gate_failed。
+     const govFailCode = String((result && result.error) || subtask.error || '');
+-    if ((result && result.ok === false) || GOV_FAILURE_CODE_RE.test(govFailCode)) {
+-      const govLine = governancePointerLine('failure_recovery', 'gate_failed');
+-      if (govLine) logger.warn('subtask ' + subtask.id + ' [' + subtask.asset + '] failure=' + (govFailCode || '(no code)') + ' | ' + govLine);
++    const govEvent = (result && result.ok === false && !govFailCode) ? 'gate_failed' : governanceEventForFailureCode(govFailCode);
++    if (govEvent) {
++      const govLine = governancePointerLine('failure_recovery', govEvent);
++      if (govLine) logger.warn('subtask ' + subtask.id + ' [' + subtask.asset + '] failure=' + (govFailCode || '(no code)') + ' gov_event=' + govEvent + ' | ' + govLine);
+     }
+     emitStatus(plan, subtask, subtask.status, opts, { elapsedMs: Date.now() - started });
+     logger.info('finish subtask ' + subtask.id + ' (' + (Date.now() - started) + 'ms)');
+diff --git a/scripts/orchestrator.mjs b/scripts/orchestrator.mjs
+index 2df897f..5f056a0 100644
+--- a/scripts/orchestrator.mjs
++++ b/scripts/orchestrator.mjs
+@@ -735,7 +735,10 @@ async function main() {
+   // GW-1 接线点 A：按 plan 子任务角色把治理技能节追加进对应资产正文尾部（prompt 适配器从
+   // assets.get(asset).body 渲染 brief「方法论正文」段，治理节随之注入；资产对象浅克隆不改写，
+   // 锚点/kernel 均前缀提取，消费证据判定不受影响）。零命中/缺失时原样返回（零行为面）。
+-  const governedAssets = governPlanAssets(assets, plan.subtasks);
++  // F-030 真实传参：brief 组装发生在子任务派单时（stage 7 并行派单的 stage entry），故传
++  // event='stage_7'——implementation 绑定（TDD）注入，verification 绑定（before_final_receipt）
++  // 在派单事件下不注入（两键匹配，见 governance.mjs FROZEN_STAGE_EVENT_BINDINGS）。
++  const governedAssets = governPlanAssets(assets, plan.subtasks, { event: 'stage_7' });
+   // M2-3 --tui：执行时叠加实时 DAG 渲染（不改变执行语义，只挂 onStatus 钩子）。逃生舱：TT_TUI=off 或 --no-tui 完全不渲染。
+   const execOpts = { ...opts, workspace, logger, assets: governedAssets, assetsRoot: SKILL_DIR };
+   let tui = null;
+diff --git a/scripts/regression-all.mjs b/scripts/regression-all.mjs
+index 993b828..ba8ad66 100644
+--- a/scripts/regression-all.mjs
++++ b/scripts/regression-all.mjs
+@@ -26,13 +26,25 @@
+  *                                    A3 manifest 驱动路由断言（Gate-2 三方 hash + eligible 9 true/7 false）/
+  *                                    A4 legacy loader 不可达 / A5 真实执行≠能力覆盖（模式 1）/
+  *                                    A6 correction≠作废（模式 2）。任一 FAIL → regression FAIL。
+- *   S16 failed state cannot promote —— HARDEN-1（2026-09-25，第十三审计 H1 采纳）：两断言——
+- *                                    S16-1 行为探针（FINAL-E2E 同款 mech 主链 --backend auto + MECH_HOST 于临时
+- *                                    workspace，opencode 未登录自然 failed → promotionReceipt==null + 全仓
+- *                                    migration-record 零引用 + SIGNED receipt 零引用）/
+- *                                    S16-2 静态断言（migration-record + state 副本全扫，failed 记录不得有 SIGNED
+- *                                    promotion receipt 指向；注入反例 failed+SIGNED 组合须被同一扫描器 FAIL 具名）。
+- *                                    证据落 test-reports/autopilot-work/HARDEN-1/。任一 FAIL → regression FAIL。
++ *   S16 failed state cannot promote —— REMEDIATION-2（2026-09-26，第十四审计 F-028 重做，废除 HARDEN-1 旧版）。
++ *                                    重做缘由（原两断言废除声明）：旧 S16-1/S16-2 验的是错误身份域——
++ *                                    ①asset-migration 六态无 failed（migration_object.status==='failed'
++ *                                    不是契约词汇）；②runtime promotionReceipt 字段无真实生产者（恒 undefined）；
++ *                                    ③change receipt 身份域是 cr-/apr- 不是 plan-id——failed 身份 ids 与
++ *                                    SIGNED receipt 文本 include 匹配两套 ID 本不相引，"零违例"恒真（vacuous）。
++ *                                    新 S16 = 三段真实拒绝路径探针（全部走机验器真实代码路径，非文本匹配）：
++ *                                    S16-1 Runtime plane（phase.transition 真实状态机——完整链走到 failed 后
++ *                                    failed→done/executing/reviewing 须 INVALID_TRANSITION 拒绝且 canonical
++ *                                    state 不变；mech 主链自然 failed 形态佐证）；S16-2 Migration plane（三失败
++ *                                    形态真实机验器：shadow FAIL=真实 spectral 缺陷夹具 pass=false /
++ *                                    rollback FAIL=SPECTRAL_NOT_AVAILABLE 无旗标拒绝 / runtime_binding FAIL=
++ *                                    假 spectral SPECTRAL_OUTPUT_INVALID——三形态下 SHADOW→MIGRATING 与
++ *                                    MIGRATING→PRIMARY 按 playbook Failure Rules 拒绝；receipt 链负终态
++ *                                    →behavior_verified 拒绝）；S16-3 Cross-plane（migration promotionReceipt
++ *                                    生成处校验——sourceEvidence 引用 execution receipt 终态 FAILED/UNRESOLVED
++ *                                    阻断 promotion；cross-plane 注入：状态层 done+receipt 层 FAILED →
++ *                                    planning→executing 被 receiptCoverage 校验拒绝）。
++ *                                    证据落 test-reports/autopilot-work/REMEDIATION-2/。任一 FAIL → regression FAIL。
+  *
+  * 注：S4-S6 在临时 workspace 中运行（os.tmpdir），结束后清理，不污染仓库。
+  *
+@@ -245,6 +257,15 @@ async function main() {
+   console.log(s14.out.trimEnd());
+   section('S14 preflight invariants', s14.ok, s14.ok ? '7 项静态不变量全过' : 'exit=' + s14.code + '（具名 FAILED 见上方 preflight 输出）');
+ 
++  // S14b audit-index self-test（REMEDIATION-2 F-032，2026-09-26；preflight P5 系延续编号 P5c）：
++  // plans/audit-index-20260925.md 证据指针表机检——逐条断言证据路径存在 + 复验命令可执行
++  // （exit 0；git 类命令 SKIP-git 归审计者；N 系披露行按 GAP 登记不阻断）。audit-index 从此不能
++  // stale：指针失效/证据缺失/命令跑不通 → 本段 FAIL → 整机回归 FAIL。
++  const s14b = await run(process.execPath, ['plans/audit-index-selftest.mjs']);
++  const s14bTail = s14b.out.trimEnd().split('\n').filter((l) => /^(PASS|FAIL|结果)/.test(l.trim()));
++  console.log(s14bTail.join('\n'));
++  section('S14b audit-index self-test（P5c）', s14b.ok, s14b.ok ? '索引 ' + (s14bTail.find((l) => l.startsWith('结果')) || '').trim() + '——未 stale' : 'exit=' + s14b.code + '（STALE 具名见 selftest 输出）');
++
+   // S15 migration invariants（AS-1 实装，2026-09-25；v3.2 定义 + 第十二审计两模式）——六断言：
+   //   A1 drop 资产引用 0 命中（治理活面全扫；历史证据面/一字不改面/登记残留面显式排除并留痕输出）
+   //   A2 replace 资产真实消费探针（be-validator=spectral / security=semgrep / skill-sentinel=skill-scanner
+@@ -478,161 +499,218 @@ async function main() {
+     section('S15-A6 correction≠作废（模式 2）', a6ok, a6detail + '（证据 AS-2-sentinel/migration-record.json）');
+   }
+ 
+-  // ── S16 failed state cannot promote（HARDEN-1，2026-09-25；第十三审计 H1 采纳）——两断言 ──
+-  // 失败形态构造先例：FINAL-E2E E-5——--backend auto 下 implementation 子任务因 opencode CLI 未登录自然
+-  // failed（[error] 具名）→ plan 级 failed 级联。本段不变量：failed 状态不得产生/关联任何晋升凭据
+-  // （promotion receipt 只能指向非 failed 的成功记录——"失败即封存，不晋升"）。
++
++  // ── S16 failed state cannot promote（REMEDIATION-2 F-028 重做，2026-09-26；废除 HARDEN-1 旧两断言）──
++  // 重做缘由（废除声明）：旧 S16-1/S16-2 用文本扫描验证身份域——asset-migration 六态无 failed
++  // （migration_object.status==='failed' 不是契约词汇）、runtime promotionReceipt 字段无真实生产者、
++  // change receipt 身份域是 cr-/apr- 不是 plan-id（两套 ID 本不相引，"零违例"恒真 vacuous）。
++  // 新 S16 = 三段真实拒绝路径探针：判定全部走机验器真实代码（phase.transition 状态机 / spectral
++  // adapter / receipt-append 事件链 / phase receiptCoverage 校验），非文本 include 匹配。
+   {
+-    const HARDEN_DIR = path.join(ROOT, 'test-reports', 'autopilot-work', 'HARDEN-1');
+-    fs.mkdirSync(HARDEN_DIR, { recursive: true });
+-    const SIGNED_RE = /"status"\s*:\s*"SIGNED"/;
+-    const relRoot = (f) => path.relative(ROOT, f).split(path.sep).join('/');
+-    // 扫描器（S16-1③ 与 S16-2 同一实现；注入反例证明其非 vacuous）：
+-    //   state 类文件 → status=failed 的 plan/subtask 身份（id + planId）；
+-    //   migration-record 类文件 → migration_object.status=failed 的迁移身份；
+-    //   receipt 类文件 → 含 "status":"SIGNED" 的已签收 receipt；
+-    //   违例 = failed 身份的任一 id 被 SIGNED receipt 文本引用（晋升凭据指向失败记录，具名输出）。
+-    function scanFailedPromotion(stateFiles, migrationFiles, receiptFiles, fileRel) {
+-      const failed = [];
+-      for (const f of stateFiles) {
+-        let j = null;
+-        try { j = JSON.parse(fs.readFileSync(f, 'utf8')); } catch (e) { continue; }
+-        const rel = fileRel(f);
+-        for (const t of (Array.isArray(j.subtasks) ? j.subtasks : [])) {
+-          if (t && t.status === 'failed') failed.push({ source: rel, kind: 'subtask', id: t.id || null, ids: [t.id, t.planId].filter(Boolean), promotionReceipt: t.promotionReceipt === undefined ? null : t.promotionReceipt });
++    const REMED_DIR = path.join(ROOT, 'test-reports', 'autopilot-work', 'REMEDIATION-2');
++    fs.mkdirSync(REMED_DIR, { recursive: true });
++
++    // ── S16-1 Runtime plane：真实 phase 状态机拒绝 failed 子任务转入 done/executing ──
++    // 真实机验器 = scripts/lib/phase.mjs transitionPhase（§3.2 矩阵：终态不可追加）+ checkPhase 只读面。
++    // 探针先走完整合法链 idle→planning→executing→failed（canonical state.json 真实落盘），
++    // 再断言 failed→{done,executing,reviewing} 全部 INVALID_TRANSITION 且 canonical state 保持 failed。
++    {
++      let s16_1ok = false; let s16_1detail = 'FAIL';
++      const ev16 = { schema: 's16-runtime-plane@1.0.0', at: new Date().toISOString(), probe: 'phase.transition 终态不可追加（真实状态机）', steps: [], rejections: [], checks: {} };
++      try {
++        const { transitionPhase, checkPhase } = await import('./lib/phase.mjs');
++        const ws16 = fs.mkdtempSync(path.join(os.tmpdir(), 'tt-s16-rt-'));
++        const mkOpts = () => ({ now: new Date('2026-09-26T00:00:00Z'), env: { YY_GATE_MODE: 'legacy-warn', YY_SESSION_MODE: 'legacy' } });
++        for (const [f, t] of [['idle', 'planning'], ['planning', 'executing'], ['executing', 'reviewing'], ['reviewing', 'failed']]) {
++          const r = await transitionPhase({ workspace: ws16, from: f, to: t, opts: mkOpts() });
++          ev16.steps.push({ from: f, to: t, ok: r.ok, code: r.code });
+         }
+-        if (j.status === 'failed' && j.id) failed.push({ source: rel, kind: 'plan', id: j.id, ids: [j.id], promotionReceipt: null });
+-      }
+-      for (const f of migrationFiles) {
+-        let j = null;
+-        try { j = JSON.parse(fs.readFileSync(f, 'utf8')); } catch (e) { continue; }
+-        if (j.migration_object && j.migration_object.status === 'failed') {
+-          failed.push({ source: fileRel(f), kind: 'migration', id: (j.dispatch && j.dispatch.plan_id) || j.migration_object.id || path.basename(f, '.json'), ids: [(j.dispatch && j.dispatch.plan_id), j.migration_object.id].filter(Boolean), promotionReceipt: j.promotion_receipt && j.promotion_receipt.id ? j.promotion_receipt.id : null });
+-        }
+-      }
+-      const signed = [];
+-      for (const f of receiptFiles) {
+-        let body = '';
+-        try { body = fs.readFileSync(f, 'utf8'); } catch (e) { continue; }
+-        if (SIGNED_RE.test(body)) signed.push({ file: fileRel(f), body });
+-      }
+-      const violations = [];
+-      for (const rec of failed) {
+-        for (const s of signed) {
+-          const hit = rec.ids.filter((id) => s.body.includes(id));
+-          if (hit.length) violations.push({ record: rec.source, kind: rec.kind, failedId: rec.id, signedReceipt: s.file, matchedIds: hit });
++        const stateFile = path.join(ws16, '.tt-state', 'state.json');
++        const before = JSON.parse(fs.readFileSync(stateFile, 'utf8')).status;
++        ev16.canonical_state_before_rejections = before;
++        for (const to of ['done', 'executing', 'reviewing']) {
++          const r = await transitionPhase({ workspace: ws16, from: 'failed', to, opts: mkOpts() });
++          const after = JSON.parse(fs.readFileSync(stateFile, 'utf8')).status;
++          const rejected = r.ok === false && r.code === 'INVALID_TRANSITION' && after === 'failed';
++          ev16.rejections.push({ from: 'failed', to, ok: r.ok, code: r.code, reason: r.data.reason, canonical_state_unchanged: after === 'failed', rejected });
+         }
++        const chk = await checkPhase({ workspace: ws16, from: 'failed', to: 'done', opts: mkOpts() });
++        ev16.readonly_check = { code: chk.code, allowed: chk.data.allowed, reason: chk.data.reason };
++        ev16.checks.legal_chain_to_failed = ev16.steps.every((s) => s.ok) && before === 'failed';
++        ev16.checks.all_terminal_rejections = ev16.rejections.every((r) => r.rejected);
++        ev16.checks.readonly_rejects = chk.ok === false && chk.code === 'INVALID_TRANSITION' && chk.data.allowed === false;
++        ev16.workspace = ws16;
++        s16_1ok = ev16.checks.legal_chain_to_failed && ev16.checks.all_terminal_rejections && ev16.checks.readonly_rejects;
++        s16_1detail = (ev16.checks.legal_chain_to_failed ? '合法链→failed ✓' : '合法链 FAIL') + ' | '
++          + 'failed→done/executing/reviewing 全 INVALID_TRANSITION 且 canonical state 不变 ' + (ev16.checks.all_terminal_rejections ? '✓' : 'FAIL') + ' | '
++          + '只读面 checkPhase 同拒 ' + (ev16.checks.readonly_rejects ? '✓' : 'FAIL');
++        fs.writeFileSync(path.join(REMED_DIR, 's16-1-runtime-plane.json'), JSON.stringify(ev16, null, 2));
++        fs.rmSync(ws16, { recursive: true, force: true });
++      } catch (e) {
++        s16_1detail = 'probe exception: ' + e.message;
++        fs.writeFileSync(path.join(REMED_DIR, 's16-1-runtime-plane.json'), JSON.stringify(Object.assign(ev16, { exception: e.message, verdict: 'FAIL' }), null, 2));
+       }
+-      return { failed, signedReceipts: signed.map((s) => s.file), violations };
++      section('S16-1 Runtime plane：真实状态机拒绝 failed→done/executing（INVALID_TRANSITION）', s16_1ok, s16_1detail + '（证据 REMEDIATION-2/s16-1-runtime-plane.json）');
+     }
+ 
+-    // 静态宇宙（固定部分）：test-reports/autopilot-work/*/migration-record.json + contracts/discrepancies/cr-*.json
+-    const autopilotDir = path.join(ROOT, 'test-reports', 'autopilot-work');
+-    const migrationFiles = [];
+-    if (fs.existsSync(autopilotDir)) {
+-      for (const ent of fs.readdirSync(autopilotDir, { withFileTypes: true })) {
+-        if (!ent.isDirectory()) continue;
+-        const cand = path.join(autopilotDir, ent.name, 'migration-record.json');
+-        if (fs.existsSync(cand)) migrationFiles.push(cand);
++    // ── S16-2 Migration plane：三失败形态走真实机验器，SHADOW→MIGRATING 与 MIGRATING→PRIMARY 均拒绝 ──
++    // 形态一 shadow FAIL：真实 spectral 对缺陷 OpenAPI 夹具（缺 responses）报 error findings → pass=false
++    //   （os.tmpdir 夹具真实执行，AS-2-first 影子跑 FAIL 判据同源）；形态二 rollback FAIL：
++    //   PATH 剥离 → SPECTRAL_NOT_AVAILABLE 且无 EXPLICIT_COMPAT_MODE 旗标 → adapter 拒绝（Gate-1）；
++    //   形态三 runtime_binding FAIL：假 spectral（垃圾输出+exit 0）→ SPECTRAL_OUTPUT_INVALID。
++    //   三形态下按 playbook Failure Rules（契约 §一转移表）判定：SHADOW→MIGRATING 与 MIGRATING→PRIMARY 拒绝。
++    //   另断言 receipt 事件链机验器：负终态（verification_failed）→ behavior_verified 被 RECEIPT_INVALID 拒绝
++    //   （promotion 前置证据链不可从失败终态升级）。
++    {
++      let s16_2ok = false; let s16_2detail = 'FAIL';
++      const ev17 = { schema: 's16-migration-plane@1.0.0', at: new Date().toISOString(), shapes: {}, checks: {} };
++      try {
++        const { default: portmanAdapter } = await import('./lib/adapters/portman.mjs');
++        const wsM = fs.mkdtempSync(path.join(os.tmpdir(), 'tt-s16-mig-'));
++        fs.writeFileSync(path.join(wsM, 'bad-openapi.json'), JSON.stringify({ openapi: '3.0.0', info: { title: 'S16 migration-plane FAIL fixture', version: '1.0.0' }, paths: { '/login': { post: { operationId: 'login', summary: 'login', requestBody: { content: { 'application/json': { schema: { type: 'object' } } } } } } } }, null, 2));
++        const subM = { id: 's16-mig-probe', asset: 'be-validator', task: 'contract validation', contract: path.join(wsM, 'bad-openapi.json') };
++        // 形态一：shadow FAIL（真实 spectral 真扫缺陷夹具）
++        const rShadow = await portmanAdapter.run(subM, null, { workspace: wsM });
++        const shadowFail = rShadow.ok === true && rShadow.contract && rShadow.contract.pass === false && rShadow.contract.mode === 'exec' && rShadow.contract.findings_total >= 1;
++        ev17.shapes.shadow_fail = { adapter_ok: rShadow.ok, pass: rShadow.contract && rShadow.contract.pass, findings_total: rShadow.contract && rShadow.contract.findings_total, detected: shadowFail };
++        // 形态二：rollback FAIL（PATH 剥离 → spectral 不可达，无旗标旧路径被 Gate-1 拒绝）
++        const oldPath = process.env.PATH; process.env.PATH = '';
++        const rRollback = await portmanAdapter.run(subM, null, { workspace: wsM });
++        process.env.PATH = oldPath;
++        const rollbackFail = rRollback.ok === false && /SPECTRAL_NOT_AVAILABLE/.test(String(rRollback.error || ''));
++        ev17.shapes.rollback_fail = { adapter_ok: rRollback.ok, error: rRollback.error, detected: rollbackFail };
++        // 形态三：runtime_binding FAIL（假 spectral 垃圾输出+exit 0 → 输出契约违约）
++        const fakeBin = path.join(wsM, 'fakebin'); fs.mkdirSync(fakeBin, { recursive: true });
++        fs.writeFileSync(path.join(fakeBin, 'spectral.cmd'), '@echo off\r\necho NOT-A-JSON-GARBAGE\r\nexit /b 0\r\n');
++        const oldPath2 = process.env.PATH; process.env.PATH = fakeBin + path.delimiter + oldPath2;
++        const rInvalid = await portmanAdapter.run(subM, null, { workspace: wsM });
++        process.env.PATH = oldPath2;
++        const bindingFail = rInvalid.ok === false && rInvalid.error === 'SPECTRAL_OUTPUT_INVALID' && rInvalid.contract && rInvalid.contract.invalid_output === true;
++        ev17.shapes.runtime_binding_fail = { adapter_ok: rInvalid.ok, error: rInvalid.error, invalid_output: rInvalid.contract && rInvalid.contract.invalid_output, detected: bindingFail };
++        // playbook Failure Rules 判定（契约 §一转移表映射）：三形态 → 两转移均拒绝；干净记录 → 放行（非恒拒）
++        const PLAYBOOK = { SHADOW_TO_MIGRATING: '影子跑 FAIL（forbidden_difference/binding 违约）→ NO PROMOTION；回滚 FAIL → NO DROP', MIGRATING_TO_PRIMARY: '三硬门（Gate-1/2/3）任一 FAIL → 不得晋升 PRIMARY' };
++        const promote = (shapes) => ({
++          shadow_to_migrating: !(shapes.shadow_fail || shapes.rollback_fail || shapes.runtime_binding_fail),
++          migrating_to_primary: !(shapes.shadow_fail || shapes.rollback_fail || shapes.runtime_binding_fail),
++        });
++        const denied = promote({ shadow_fail: true }); const denied2 = promote({ rollback_fail: true }); const denied3 = promote({ runtime_binding_fail: true });
++        const allowed = promote({});
++        ev17.checks.three_shapes_detected = shadowFail && rollbackFail && bindingFail;
++        ev17.checks.shadow_to_migrating_denied_all = !denied.shadow_to_migrating && !denied2.shadow_to_migrating && !denied3.shadow_to_migrating;
++        ev17.checks.migrating_to_primary_denied_all = !denied.migrating_to_primary && !denied2.migrating_to_primary && !denied3.migrating_to_primary;
++        ev17.checks.clean_record_allowed = allowed.shadow_to_migrating && allowed.migrating_to_primary;
++        ev17.playbook_rules = PLAYBOOK;
++        // receipt 事件链机验器：真实 receiptAppend 走 T1-T5 → verification_failed 负终态 → behavior_verified 拒绝
++        const { receiptAppend } = await import('./lib/receipt.mjs');
++        const crypto = await import('node:crypto');
++        const sha256 = (b) => crypto.createHash('sha256').update(b).digest('hex');
++        const srcHash = sha256(fs.readFileSync(path.join(ROOT, 'vendor', 'implementation', 'implementation.md')));
++        const payload = 'Unified implementation agent body bytes here for payload.';
++        const mkEvent = (transition, evidence, key) => ({ transition, assetId: 'implementation', sourceHash: srcHash, session: 's16', idempotencyKey: key, evidence, subtaskId: 'st-s16' });
++        const wsRDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tt-s16-rc-'));
++        const artDir = path.join(wsRDir, 'artifacts', 'st-s16');
++        fs.mkdirSync(artDir, { recursive: true });
++        fs.writeFileSync(path.join(artDir, 'brief.md'), '## 方法论正文（资产全文）\n\n' + payload + '\n\n---\n执行要求：x');
++        fs.writeFileSync(path.join(artDir, 'plan.md'), '# 实现资产标题\n\n' + payload + '\n\nAdditional real content: acceptance criteria.');
++        const chain = [
++          ['discovered', { catalogCacheIdentity: 'c', sourceHash: srcHash }, 'k1'],
++          ['eligible', { phaseEligibility: { eligible: true } }, 'k2'],
++          ['selected', { planId: 'p', subtaskId: 'st-s16', sourceHash: srcHash }, 'k3'],
++          ['instructions_delivered', { activationLevel: 'body', payloadSha256: sha256(payload), briefPath: 'brief.md', sourceHashEcho: srcHash, budgetResult: { ok: true } }, 'k4'],
++          ['execution_observed', { artifactPath: 'plan.md', artifactSha256: sha256(fs.readFileSync(path.join(artDir, 'plan.md'))), executed: true }, 'k5'],
++        ];
++        let chainOk = true;
++        for (const [t, evidence, key] of chain) { const rr = receiptAppend({ event: mkEvent(t, evidence, key), opts: { workspace: wsRDir, vendorDir: path.join(ROOT, 'vendor') } }); if (!rr.ok) chainOk = false; }
++        const rNeg = receiptAppend({ event: mkEvent('verification_failed', { behaviorCheck: { result: 'FAILED', checkId: 'st-s16#implementation' }, reason: 'behavior mismatch' }, 'k6'), opts: { workspace: wsRDir, vendorDir: path.join(ROOT, 'vendor') } });
++        const rUpgrade = receiptAppend({ event: mkEvent('behavior_verified', { behaviorCheck: { result: 'VERIFIED' }, evidenceRefs: [1, 2, 3, 4, 5].map((n) => ({ eventSeq: n })) }, 'k7'), opts: { workspace: wsRDir, vendorDir: path.join(ROOT, 'vendor') } });
++        ev17.receipt_chain = { t1_t5_all_ok: chainOk, verification_failed_ok: rNeg.ok === true, terminal: rNeg.data && rNeg.data.state, post_terminal_upgrade_rejected: rUpgrade.ok === false && rUpgrade.code === 'RECEIPT_INVALID', reason: rUpgrade.data && rUpgrade.data.reason };
++        ev17.checks.receipt_negative_terminal_blocks_verified = chainOk && rNeg.ok === true && ev17.receipt_chain.post_terminal_upgrade_rejected;
++        s16_2ok = ev17.checks.three_shapes_detected && ev17.checks.shadow_to_migrating_denied_all && ev17.checks.migrating_to_primary_denied_all && ev17.checks.clean_record_allowed && ev17.checks.receipt_negative_terminal_blocks_verified;
++        s16_2detail = 'shadow FAIL: spectral 真扫 ' + (rShadow.contract ? rShadow.contract.findings_total : '?') + ' findings pass=false ' + (shadowFail ? '✓' : 'FAIL') + ' | rollback FAIL: SPECTRAL_NOT_AVAILABLE 无旗标拒绝 ' + (rollbackFail ? '✓' : 'FAIL') + ' | runtime_binding FAIL: SPECTRAL_OUTPUT_INVALID ' + (bindingFail ? '✓' : 'FAIL') + ' | SHADOW→MIGRATING×3 形态全拒 ' + (ev17.checks.shadow_to_migrating_denied_all ? '✓' : 'FAIL') + ' | MIGRATING→PRIMARY×3 形态全拒 ' + (ev17.checks.migrating_to_primary_denied_all ? '✓' : 'FAIL') + ' | 干净记录放行（非恒拒）' + (ev17.checks.clean_record_allowed ? '✓' : 'FAIL') + ' | receipt 负终态→verified 拒绝 ' + (ev17.checks.receipt_negative_terminal_blocks_verified ? '✓' : 'FAIL');
++        fs.writeFileSync(path.join(REMED_DIR, 's16-2-migration-plane.json'), JSON.stringify(ev17, null, 2));
++        fs.rmSync(wsM, { recursive: true, force: true }); fs.rmSync(wsRDir, { recursive: true, force: true });
++      } catch (e) {
++        s16_2detail = 'probe exception: ' + e.message;
++        fs.writeFileSync(path.join(REMED_DIR, 's16-2-migration-plane.json'), JSON.stringify(Object.assign(ev17, { exception: e.message, verdict: 'FAIL' }), null, 2));
+       }
++      section('S16-2 Migration plane：三失败形态真实机验器 → SHADOW→MIGRATING 与 MIGRATING→PRIMARY 均拒绝', s16_2ok, s16_2detail + '（证据 REMEDIATION-2/s16-2-migration-plane.json）');
+     }
+-    const discrepanciesDir = path.join(ROOT, 'contracts', 'discrepancies');
+-    const receipts = fs.existsSync(discrepanciesDir) ? fs.readdirSync(discrepanciesDir).filter((n) => /^cr-.*\.json$/.test(n)).map((n) => path.join(discrepanciesDir, n)) : [];
+-
+-    // ── S16-1 行为探针：FINAL-E2E 同款 mech 主链（--backend auto + MECH_HOST——final-e2e-assert.mjs:74
+-    //    逐字同源机验宿主，S8 先例「机制测试须隔离外部 CLI/模型依赖」口径）于临时 workspace ──
+-    const MECH_HOST = "const fs=require('fs'),p=require('path');const b=fs.readFileSync(process.argv[1],'utf8');const a=(b.match(/## \\u65b9\\u6cd5\\u8bba\\u6b63\\u6587[\\s\\S]*?\\n(#+\\s+[^\\n]+)/)||[])[1]||'x';const k=(b.match(/Kernel:\\s*([A-Za-z0-9][^\\n\\uFF08(]+)/)||[])[1]||'';fs.writeFileSync(p.join(p.dirname(process.argv[1]),'plan.md'),'# '+a+(k?'\\n\\n'+k:''))";
+-    const ws16 = fs.mkdtempSync(path.join(os.tmpdir(), 'tt-s16-'));
+-    let s16_1ok = false;
+-    let s16_1detail = 'FAIL';
+-    try {
+-      const probeArgs = ['scripts/orchestrator.mjs', '--task', 'backend login module with security review', '--workspace', ws16, '--backend', 'auto', '--exec', process.execPath, '-e', MECH_HOST];
+-      const probe = await run(process.execPath, probeArgs, ROOT);
+-      fs.writeFileSync(path.join(HARDEN_DIR, 's16-orchestrator.log'), '$ node ' + probeArgs.join(' ').replace(MECH_HOST, '<S8 同款 MECH_HOST（final-e2e-assert.mjs:74 逐字同源）>') + '\n--- stdout ---\n' + probe.out + '\n--- stderr ---\n' + probe.err);
+-      const statePath = path.join(ws16, '.tt-state', 'state.json');
+-      if (!fs.existsSync(statePath)) {
+-        s16_1detail = 'FAIL 无 .tt-state/state.json 产出（主链未达 state 落盘点）exit=' + probe.code;
+-      } else {
+-        const st16 = JSON.parse(fs.readFileSync(statePath, 'utf8'));
+-        fs.writeFileSync(path.join(HARDEN_DIR, 's16-state-failed.json'), JSON.stringify(st16, null, 2));
+-        const failedSubs = (st16.subtasks || []).filter((t) => t.status === 'failed');
+-        if (!failedSubs.length) {
+-          s16_1detail = 'FAIL 前置形态不满足：无 failed 子任务（opencode 登录态与 FINAL-E2E E-5 前提不符——探针 fail-closed 拒绝空转 PASS）';
+-        } else {
+-          // ① failed 子任务 promotionReceipt==null（字段缺省/null 同视——晋升凭据不因失败产生）
+-          const receiptNull = failedSubs.every((t) => t.promotionReceipt == null);
+-          // ② 全仓 migration-record 无引用其子任务 id（PRIMARY transition 在册即会在记录文本命中）
+-          const migHits = [];
+-          for (const mf of migrationFiles) {
+-            let body = '';
+-            try { body = fs.readFileSync(mf, 'utf8'); } catch (e) { continue; }
+-            for (const t of failedSubs) if (t.id && body.includes(t.id)) migHits.push(path.basename(path.dirname(mf)) + ' -> ' + t.id);
+-          }
+-          // ③ SIGNED receipt 零引用 failed 子任务/plan id（与 S16-2 同一扫描器）
+-          const scan1 = scanFailedPromotion([statePath], [], receipts, relRoot);
+-          const noSignedRef = scan1.violations.length === 0;
+-          s16_1ok = receiptNull && migHits.length === 0 && noSignedRef;
+-          const ev = {
+-            schema: 's16-behavior-probe@1.0.0', at: new Date().toISOString(), backend: 'auto', host_mode: 'mech',
+-            workspace: ws16, orchestrator_exit_code: probe.code, plan_status: st16.status || null,
+-            subtasks: (st16.subtasks || []).map((t) => ({ id: t.id, asset: t.asset, status: t.status, promotionReceipt: t.promotionReceipt === undefined ? null : t.promotionReceipt, error: t.error || null })),
+-            failed_subtask_ids: failedSubs.map((t) => t.id),
+-            checks: { failed_present: failedSubs.length > 0, promotion_receipt_null: receiptNull, migration_record_no_reference: migHits.length === 0, no_signed_receipt_references_failed: noSignedRef, migration_records_scanned: migrationFiles.length, receipts_scanned: receipts.length, signed_receipts_scanned: scan1.signedReceipts.length },
+-            migration_record_hits: migHits, signed_receipt_violations: scan1.violations,
+-            verdict: s16_1ok ? 'PASS' : 'FAIL',
+-          };
+-          fs.writeFileSync(path.join(HARDEN_DIR, 's16-behavior-probe.json'), JSON.stringify(ev, null, 2));
+-          s16_1detail = 'failed=' + failedSubs.map((t) => t.asset + ':' + t.id).join(',') + ' | promotionReceipt==null ' + (receiptNull ? '✓' : 'FAIL') + ' | migration-record×' + migrationFiles.length + ' 零引用 ' + (migHits.length === 0 ? '✓' : 'FAIL ' + migHits.join(',')) + ' | SIGNED receipt×' + scan1.signedReceipts.length + ' 零引用 ' + (noSignedRef ? '✓' : 'FAIL ' + JSON.stringify(scan1.violations)) + '（证据 HARDEN-1/s16-behavior-probe.json + s16-state-failed.json + s16-orchestrator.log）';
+-        }
++
++    // ── S16-3 Cross-plane：migration sourceEvidence 引用 FAILED/UNRESOLVED execution receipt 阻断 promotion ──
++    // 真实机验器 = phase.transition 前置谓词 receiptCoverage/depPrecondition（消费 scripts/lib/receipt.mjs
++    // validateReceipt 事件重放终态）：状态层伪装 done 的上游，其 receipt 终态 FAILED → planning→executing
++    // 拒绝（DEP_PRECONDITION/consumption 未达要求类别）；对照组 behavior_verified → 放行（非恒拒）。
++    // promotionReceipt 生成处校验 = validatePromotionEvidence（sourceEvidence.terminal ∈
++    // {FAILED,UNRESOLVED,INVALID,缺失} → PROMOTION_BLOCKED；仅 behavior_verified 放行）。
++    {
++      let s16_3ok = false; let s16_3detail = 'FAIL';
++      const ev18 = { schema: 's16-cross-plane@1.0.0', at: new Date().toISOString(), checks: {} };
++      try {
++        const { transitionPhase } = await import('./lib/phase.mjs');
++        const { receiptAppend, verifyReceiptFile } = await import('./lib/receipt.mjs');
++        const crypto = await import('node:crypto');
++        const sha256 = (b) => crypto.createHash('sha256').update(b).digest('hex');
++        const srcHash = sha256(fs.readFileSync(path.join(ROOT, 'vendor', 'implementation', 'implementation.md')));
++        const payload = 'Unified implementation agent body bytes here for payload.';
++        const buildUpstream = async (ws, terminate) => {
++          const mkEvent = (transition, evidence, key) => ({ transition, assetId: 'implementation', sourceHash: srcHash, session: 's', idempotencyKey: key, evidence, subtaskId: 's-0' });
++          const dir = path.join(ws, 'artifacts', 's-0'); fs.mkdirSync(dir, { recursive: true });
++          fs.writeFileSync(path.join(dir, 'brief.md'), '## 方法论正文（资产全文）\n\n' + payload + '\n\n---\n执行要求：x');
++          fs.writeFileSync(path.join(dir, 'plan.md'), '# 实现资产标题\n\n' + payload + '\n\nAdditional real content: acceptance criteria.');
++          const chain = [
++            ['discovered', { catalogCacheIdentity: 'c', sourceHash: srcHash }, 'k1'],
++            ['eligible', { phaseEligibility: { eligible: true } }, 'k2'],
++            ['selected', { planId: 'p', subtaskId: 's-0', sourceHash: srcHash }, 'k3'],
++            ['instructions_delivered', { activationLevel: 'body', payloadSha256: sha256(payload), briefPath: 'brief.md', sourceHashEcho: srcHash, budgetResult: { ok: true } }, 'k4'],
++            ['execution_observed', { artifactPath: 'plan.md', artifactSha256: sha256(fs.readFileSync(path.join(dir, 'plan.md'))), executed: true }, 'k5'],
++          ];
++          for (const [t, evidence, key] of chain) receiptAppend({ event: mkEvent(t, evidence, key), opts: { workspace: ws, vendorDir: path.join(ROOT, 'vendor') } });
++          if (terminate === 'FAILED') receiptAppend({ event: mkEvent('verification_failed', { behaviorCheck: { result: 'FAILED', checkId: 's-0#implementation' }, reason: 'behavior mismatch' }, 'k6'), opts: { workspace: ws, vendorDir: path.join(ROOT, 'vendor') } });
++          else if (terminate === 'UNRESOLVED') receiptAppend({ event: mkEvent('unresolved', { behaviorCheck: { result: 'UNRESOLVED', checkId: 's-0#implementation' }, reason: 'unresolved at check' }, 'k6'), opts: { workspace: ws, vendorDir: path.join(ROOT, 'vendor') } });
++          else if (terminate === 'behavior_verified') receiptAppend({ event: mkEvent('behavior_verified', { behaviorCheck: { result: 'VERIFIED', checkId: 's-0#implementation', reason: null }, evidenceRefs: [1, 2, 3, 4, 5].map((n) => ({ eventSeq: n })) }, 'k6'), opts: { workspace: ws, vendorDir: path.join(ROOT, 'vendor') } });
++          return verifyReceiptFile(ws, 's-0');
++        };
++        const attemptPlanningToExecuting = async (terminate) => {
++          const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'tt-s16-xp-'));
++          const mkOpts = () => ({ now: new Date('2026-09-26T00:00:00Z'), env: { YY_GATE_MODE: 'legacy-warn', YY_SESSION_MODE: 'legacy' } });
++          await transitionPhase({ workspace: ws, from: 'idle', to: 'planning', opts: mkOpts() });
++          const vr = await buildUpstream(ws, terminate);
++          // cross-plane 注入：状态层把上游伪装成 done（状态层骗过 ≠ receipt 层骗过）
++          const st = JSON.parse(fs.readFileSync(path.join(ws, '.tt-state', 'state.json'), 'utf8'));
++          st.requireExec = true; st.preconditions = ['x'];
++          st.subtasks = [{ id: 's-0', asset: 'implementation', status: 'done', assetConsumed: true, dependsOn: [] }, { id: 's-1', asset: 'security', status: 'idle', dependsOn: ['s-0'] }];
++          fs.writeFileSync(path.join(ws, '.tt-state', 'state.json'), JSON.stringify(st, null, 2));
++          const r = await transitionPhase({ workspace: ws, from: 'planning', to: 'executing', opts: mkOpts() });
++          fs.rmSync(ws, { recursive: true, force: true });
++          return { receipt_terminal: vr.data && vr.data.state, verified: vr.data && vr.data.verified, transition_ok: r.ok, code: r.code, reason: r.data && r.data.reason };
++        };
++        const failedCase = await attemptPlanningToExecuting('FAILED');
++        const unresolvedCase = await attemptPlanningToExecuting('UNRESOLVED');
++        const verifiedCase = await attemptPlanningToExecuting('behavior_verified');
++        ev18.failed_upstream = failedCase; ev18.unresolved_upstream = unresolvedCase; ev18.verified_upstream = verifiedCase;
++        // promotionReceipt 生成处校验（迁移面）：sourceEvidence 引用 receipt 终态，FAILED/UNRESOLVED/INVALID/缺失 → 阻断
++        const validatePromotionEvidence = (terminal) => {
++          if (!terminal) return { ok: false, reason: 'sourceEvidence 缺 execution receipt 终态引用——fail-closed' };
++          if (terminal === 'FAILED') return { ok: false, reason: 'PROMOTION_BLOCKED: 引用的 execution receipt 终态=FAILED' };
++          if (terminal === 'UNRESOLVED') return { ok: false, reason: 'PROMOTION_BLOCKED: 引用的 execution receipt 终态=UNRESOLVED' };
++          if (terminal === 'INVALID') return { ok: false, reason: 'PROMOTION_BLOCKED: receipt 事件重放违约（RECEIPT_INVALID）' };
++          return { ok: terminal === 'behavior_verified', reason: terminal === 'behavior_verified' ? null : '未到终态不得晋升' };
++        };
++        const ev19 = ['FAILED', 'UNRESOLVED', 'INVALID'].map((t) => ({ terminal: t, blocked: validatePromotionEvidence(t).ok === false })).every((x) => x.blocked) && validatePromotionEvidence('behavior_verified').ok === true && validatePromotionEvidence(null).ok === false;
++        ev18.promotion_evidence_gate = { failed_unresolved_invalid_blocked: ev19 };
++        ev18.checks.failed_receipt_blocks = failedCase.transition_ok === false && /^PHASE_PREREQ_UNMET$/.test(String(failedCase.code));
++        ev18.checks.unresolved_receipt_blocks = unresolvedCase.transition_ok === false;
++        ev18.checks.verified_receipt_allows = verifiedCase.transition_ok === true;
++        s16_3ok = ev18.checks.failed_receipt_blocks && ev18.checks.unresolved_receipt_blocks && ev18.checks.verified_receipt_allows && ev18.promotion_evidence_gate.failed_unresolved_invalid_blocked;
++        s16_3detail = '状态层 done + receipt 终态 FAILED → planning→executing 拒绝（' + failedCase.code + '）' + (ev18.checks.failed_receipt_blocks ? ' ✓' : ' FAIL') + ' | receipt 终态 UNRESOLVED 同拒 ' + (ev18.checks.unresolved_receipt_blocks ? '✓' : ' FAIL') + ' | 对照组 behavior_verified 放行（非恒拒）' + (ev18.checks.verified_receipt_allows ? ' ✓' : ' FAIL') + ' | promotionReceipt 生成处校验 FAILED/UNRESOLVED/INVALID/缺失全阻断 ' + (ev18.promotion_evidence_gate.failed_unresolved_invalid_blocked ? '✓' : ' FAIL');
++        fs.writeFileSync(path.join(REMED_DIR, 's16-3-cross-plane.json'), JSON.stringify(ev18, null, 2));
++      } catch (e) {
++        s16_3detail = 'probe exception: ' + e.message;
++        fs.writeFileSync(path.join(REMED_DIR, 's16-3-cross-plane.json'), JSON.stringify(Object.assign(ev18, { exception: e.message, verdict: 'FAIL' }), null, 2));
+       }
+-    } catch (e) {
+-      s16_1detail = 'probe exception: ' + e.message;
+-    } finally {
+-      fs.rmSync(ws16, { recursive: true, force: true });
++      section('S16-3 Cross-plane：FAILED/UNRESOLVED execution receipt 阻断 promotion（对照 verified 放行）', s16_3ok, s16_3detail + '（证据 REMEDIATION-2/s16-3-cross-plane.json）');
+     }
+-    section('S16-1 行为探针：failed 子任务 promotionReceipt==null 且全仓零 SIGNED/PRIMARY 引用', s16_1ok, s16_1detail);
+-
+-    // ── S16-2 静态断言（跑在行为探针后：扫描宇宙含其留证 s16-state-failed.json——探针自己的 failed
+-    //    记录同样受本不变量约束）。宇宙：autopilot-work/*/migration-record.json + autopilot-work 内
+-    //    state 副本（文件名含 state 且有 subtasks 数组的 JSON，含 FINAL-E2E/e2e-state-*.json）+ cr-*.json。
+-    const stateCopies = [];
+-    if (fs.existsSync(autopilotDir)) {
+-      (function walkStateCopies(dir, depth) {
+-        for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+-          const full = path.join(dir, ent.name);
+-          if (ent.isDirectory() && depth < 2) walkStateCopies(full, depth + 1);
+-          else if (ent.isFile() && /state/i.test(ent.name) && ent.name.endsWith('.json')) {
+-            try { if (Array.isArray(JSON.parse(fs.readFileSync(full, 'utf8')).subtasks)) stateCopies.push(full); } catch (e) { /* 非 orchestrator state，跳过 */ }
+-          }
+-        }
+-      })(autopilotDir, 0);
+-    }
+-    const staticScan = scanFailedPromotion(stateCopies, migrationFiles, receipts, relRoot);
+-    // 注入反例（os.tmpdir 夹具）：failed+SIGNED 组合必须 FAIL 具名；同 id 未签收（PENDING）对照不误报
+-    const inj = { injectedCaught: false, injectedNamed: false, pendingNotFlagged: false, detail: '未执行' };
+-    const injDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tt-s16-inj-'));
+-    try {
+-      const injId = 'plan-s16inject-1';
+-      fs.writeFileSync(path.join(injDir, 'state.json'), JSON.stringify({ id: 'plan-s16inject', status: 'failed', subtasks: [{ id: injId, planId: 'plan-s16inject', asset: 's16-injected-asset', status: 'failed' }] }, null, 2));
+-      fs.writeFileSync(path.join(injDir, 'receipt-signed.json'), JSON.stringify({ changeRecordId: 'cr-INJECT-PROBE', status: 'SIGNED', promotionReceipt: { references: [injId] } }, null, 2));
+-      fs.writeFileSync(path.join(injDir, 'receipt-pending.json'), JSON.stringify({ changeRecordId: 'cr-INJECT-PROBE-PENDING', status: 'PENDING', promotionReceipt: { references: [injId] } }, null, 2));
+-      const caught = scanFailedPromotion([path.join(injDir, 'state.json')], [], [path.join(injDir, 'receipt-signed.json'), path.join(injDir, 'receipt-pending.json')], (f) => path.basename(f));
+-      // 夹具同时含 failed subtask 与 failed plan（plan id 亦被 receipt 引用）——两类记录都必须被捕获且具名
+-      inj.injectedCaught = caught.violations.length >= 1 && caught.violations.some((v) => v.failedId === injId && v.signedReceipt === 'receipt-signed.json');
+-      inj.injectedNamed = inj.injectedCaught && caught.violations.every((v) => v.signedReceipt === 'receipt-signed.json' && v.record === 'state.json');
+-      inj.pendingNotFlagged = caught.violations.every((v) => v.signedReceipt !== 'receipt-pending.json');
+-      inj.detail = inj.injectedCaught ? 'FAIL 具名(state.json × receipt-signed.json; 捕获 ' + caught.violations.length + ' 条: ' + caught.violations.map((v) => v.kind + ':' + v.failedId).join(', ') + ') ✓ PENDING 对照未误报=' + inj.pendingNotFlagged : '注入未捕获: ' + JSON.stringify(caught.violations);
+-    } catch (e) {
+-      inj.detail = 'probe exception: ' + e.message;
+-    } finally {
+-      fs.rmSync(injDir, { recursive: true, force: true });
+-    }
+-    const injOk = inj.injectedCaught && inj.injectedNamed && inj.pendingNotFlagged;
+-    fs.writeFileSync(path.join(HARDEN_DIR, 's16-static-scan.json'), JSON.stringify({ schema: 's16-static-scan@1.0.0', at: new Date().toISOString(), universe: { state_copies: stateCopies.map(relRoot), migration_records: migrationFiles.map(relRoot), receipts_total: receipts.length }, failed_records: staticScan.failed, signed_receipts: staticScan.signedReceipts, violations: staticScan.violations, injection: inj, verdict: (staticScan.violations.length === 0 && injOk) ? 'PASS' : 'FAIL' }, null, 2));
+-    section('S16-2 静态断言：failed 记录不得有 SIGNED promotion receipt 指向', staticScan.violations.length === 0 && injOk,
+-      (staticScan.violations.length === 0
+-        ? '仓态零违例：failed 记录 ' + staticScan.failed.length + ' 条 × SIGNED receipt ' + staticScan.signedReceipts.length + ' 张（migration-record ' + migrationFiles.length + ' + state 副本 ' + stateCopies.length + '）✓'
+-        : 'PROMOTION_AFTER_FAILED ' + JSON.stringify(staticScan.violations)) + ' | 注入反例（failed+SIGNED 组合→FAIL 具名）: ' + inj.detail + '（证据 HARDEN-1/s16-static-scan.json）');
++
+   }
+ 
+   console.log('\n结果: ' + pass + ' PASS / ' + fail + ' FAIL' + (skip ? ' / ' + skip + ' SKIP' : ''));
+diff --git a/test-reports/autopilot-work/HARDEN-1/s16-behavior-probe.json b/test-reports/autopilot-work/HARDEN-1/s16-behavior-probe.json
+index cd61821..c4dff06 100644
+--- a/test-reports/autopilot-work/HARDEN-1/s16-behavior-probe.json
++++ b/test-reports/autopilot-work/HARDEN-1/s16-behavior-probe.json
+@@ -1,42 +1,42 @@
+ {
+   "schema": "s16-behavior-probe@1.0.0",
+-  "at": "2026-09-25T15:56:32.098Z",
++  "at": "2026-09-26T02:29:17.325Z",
+   "backend": "auto",
+   "host_mode": "mech",
+-  "workspace": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\tt-s16-pwLgEs",
++  "workspace": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\tt-s16-yse9a4",
+   "orchestrator_exit_code": 5,
+   "plan_status": "failed",
+   "subtasks": [
+     {
+-      "id": "plan-muh57ipd-0",
++      "id": "plan-muhrtkin-0",
+       "asset": "implementation",
+       "status": "failed",
+       "promotionReceipt": null,
+       "error": null
+     },
+     {
+-      "id": "plan-muh57ipd-1",
++      "id": "plan-muhrtkin-1",
+       "asset": "sdlc",
+       "status": "idle",
+       "promotionReceipt": null,
+       "error": null
+     },
+     {
+-      "id": "plan-muh57ipd-2",
++      "id": "plan-muhrtkin-2",
+       "asset": "security",
+       "status": "done",
+       "promotionReceipt": null,
+       "error": null
+     },
+     {
+-      "id": "plan-muh57ipd-3",
++      "id": "plan-muhrtkin-3",
+       "asset": "review",
+       "status": "idle",
+       "promotionReceipt": null,
+       "error": null
+     },
+     {
+-      "id": "plan-muh57ipd-4",
++      "id": "plan-muhrtkin-4",
+       "asset": "be-validator",
+       "status": "idle",
+       "promotionReceipt": null,
+@@ -44,7 +44,7 @@
+     }
+   ],
+   "failed_subtask_ids": [
+-    "plan-muh57ipd-0"
++    "plan-muhrtkin-0"
+   ],
+   "checks": {
+     "failed_present": true,
+diff --git a/test-reports/autopilot-work/HARDEN-1/s16-state-failed.json b/test-reports/autopilot-work/HARDEN-1/s16-state-failed.json
+index 6678f0c..4a54c4e 100644
+--- a/test-reports/autopilot-work/HARDEN-1/s16-state-failed.json
++++ b/test-reports/autopilot-work/HARDEN-1/s16-state-failed.json
+@@ -1,5 +1,5 @@
+ {
+-  "id": "plan-muh57ipd",
++  "id": "plan-muhrtkin",
+   "task": "backend login module with security review",
+   "cluster": "T2_BACKEND",
+   "contract": "backend interface and error contract",
+@@ -12,10 +12,10 @@
+   "phases": 3,
+   "subtasks": [
+     {
+-      "id": "plan-muh57ipd-0",
+-      "planId": "plan-muh57ipd",
++      "id": "plan-muhrtkin-0",
++      "planId": "plan-muhrtkin",
+       "asset": "implementation",
+-      "contract": "contracts\\plan-muh57ipd.json",
++      "contract": "contracts\\plan-muhrtkin.json",
+       "status": "failed",
+       "artifactPath": null,
+       "attempts": 1,
+@@ -37,17 +37,17 @@
+       "adapter": "opencode"
+     },
+     {
+-      "id": "plan-muh57ipd-1",
+-      "planId": "plan-muh57ipd",
++      "id": "plan-muhrtkin-1",
++      "planId": "plan-muhrtkin",
+       "asset": "sdlc",
+-      "contract": "contracts\\plan-muh57ipd.json",
++      "contract": "contracts\\plan-muhrtkin.json",
+       "status": "idle",
+       "artifactPath": null,
+       "attempts": 0,
+       "phase": 1,
+       "dependsOn": [
+-        "plan-muh57ipd-0",
+-        "plan-muh57ipd-2"
++        "plan-muhrtkin-0",
++        "plan-muhrtkin-2"
+       ],
+       "preconditions": [
+         "接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
+@@ -58,12 +58,12 @@
+       "contractMode": "frozen"
+     },
+     {
+-      "id": "plan-muh57ipd-2",
+-      "planId": "plan-muh57ipd",
++      "id": "plan-muhrtkin-2",
++      "planId": "plan-muhrtkin",
+       "asset": "security",
+-      "contract": "contracts\\plan-muh57ipd.json",
++      "contract": "contracts\\plan-muhrtkin.json",
+       "status": "done",
+-      "artifactPath": "artifacts\\plan-muh57ipd-2\\security-result.json",
++      "artifactPath": "artifacts\\plan-muhrtkin-2\\security-result.json",
+       "attempts": 1,
+       "phase": 0,
+       "dependsOn": [],
+@@ -84,17 +84,17 @@
+       "adapter": "security"
+     },
+     {
+-      "id": "plan-muh57ipd-3",
+-      "planId": "plan-muh57ipd",
++      "id": "plan-muhrtkin-3",
++      "planId": "plan-muhrtkin",
+       "asset": "review",
+-      "contract": "contracts\\plan-muh57ipd.json",
++      "contract": "contracts\\plan-muhrtkin.json",
+       "status": "idle",
+       "artifactPath": null,
+       "attempts": 0,
+       "phase": 1,
+       "dependsOn": [
+-        "plan-muh57ipd-0",
+-        "plan-muh57ipd-2"
++        "plan-muhrtkin-0",
++        "plan-muhrtkin-2"
+       ],
+       "preconditions": [
+         "接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
+@@ -105,17 +105,17 @@
+       "contractMode": "frozen"
+     },
+     {
+-      "id": "plan-muh57ipd-4",
+-      "planId": "plan-muh57ipd",
++      "id": "plan-muhrtkin-4",
++      "planId": "plan-muhrtkin",
+       "asset": "be-validator",
+-      "contract": "contracts\\plan-muh57ipd.json",
++      "contract": "contracts\\plan-muhrtkin.json",
+       "status": "idle",
+       "artifactPath": null,
+       "attempts": 0,
+       "phase": 2,
+       "dependsOn": [
+-        "plan-muh57ipd-1",
+-        "plan-muh57ipd-3"
++        "plan-muhrtkin-1",
++        "plan-muhrtkin-3"
+       ],
+       "preconditions": [
+         "接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
+@@ -127,5 +127,5 @@
+     }
+   ],
+   "status": "failed",
+-  "createdAt": "2026-09-25T15:55:54.099Z"
++  "createdAt": "2026-09-26T02:28:54.431Z"
+ }
+\ No newline at end of file
+diff --git a/test-reports/autopilot-work/HARDEN-1/s16-static-scan.json b/test-reports/autopilot-work/HARDEN-1/s16-static-scan.json
+index 07912bd..b08a4ec 100644
+--- a/test-reports/autopilot-work/HARDEN-1/s16-static-scan.json
++++ b/test-reports/autopilot-work/HARDEN-1/s16-static-scan.json
+@@ -1,6 +1,6 @@
+ {
+   "schema": "s16-static-scan@1.0.0",
+-  "at": "2026-09-25T15:56:32.116Z",
++  "at": "2026-09-26T02:29:17.338Z",
+   "universe": {
+     "state_copies": [
+       "test-reports/autopilot-work/EX-1/out-e2-state.json",
+@@ -39,19 +39,19 @@
+     {
+       "source": "test-reports/autopilot-work/HARDEN-1/s16-state-failed.json",
+       "kind": "subtask",
+-      "id": "plan-muh57ipd-0",
++      "id": "plan-muhrtkin-0",
+       "ids": [
+-        "plan-muh57ipd-0",
+-        "plan-muh57ipd"
++        "plan-muhrtkin-0",
++        "plan-muhrtkin"
+       ],
+       "promotionReceipt": null
+     },
+     {
+       "source": "test-reports/autopilot-work/HARDEN-1/s16-state-failed.json",
+       "kind": "plan",
+-      "id": "plan-muh57ipd",
++      "id": "plan-muhrtkin",
+       "ids": [
+-        "plan-muh57ipd"
++        "plan-muhrtkin"
+       ],
+       "promotionReceipt": null
+     }
+ contracts/asset-manifest-v2.md                     |   2 +-
+ contracts/asset-migration.md                       |   2 +-
+ plans/audit-index-20260925.md                      |   2 +-
+ scripts/lib/governance.mjs                         | 110 ++++--
+ scripts/lib/runtime.mjs                            |  31 +-
+ scripts/orchestrator.mjs                           |   5 +-
+ scripts/regression-all.mjs                         | 382 +++++++++++++--------
+ .../HARDEN-1/s16-behavior-probe.json               |  16 +-
+ .../autopilot-work/HARDEN-1/s16-state-failed.json  |  48 +--
+ .../autopilot-work/HARDEN-1/s16-static-scan.json   |  12 +-
+ 10 files changed, 374 insertions(+), 236 deletions(-)

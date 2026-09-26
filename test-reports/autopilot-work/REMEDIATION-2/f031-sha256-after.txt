@@ -1,0 +1,2 @@
+0ccbdd2472daf4318d44b1b01176a7b372b4de6f094a0aa76a3a1b3664a5af2f *contracts/asset-migration.md
+247f3c628ed435c42c7ccbaffb6e44d005a24989506a6954c7041e7bc6f4c380 *contracts/asset-manifest-v2.md

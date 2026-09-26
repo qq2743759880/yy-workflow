@@ -99,4 +99,4 @@ DEPRECATED ──(drop 三条件全过+drop_allowed=true+收口核查)──▶ 
 |---|---|
 | changeRecordId | cr-20260924T090000Z-b1g4te5c（contracts/discrepancies/ 同名 .json） |
 | impactClass | CONTRACT（触及冻结契约规范性内容） |
-| Owner 签收位 | PENDING（approvalEvidence 待 Owner 签发 <指令文件路径>#<SHA256> 回填；签发前本文档为待确认草稿态） |
+| Owner 签收状态 | 本文档不复制品 mutable 签收状态（split-brain 方案 B，第十四审计 F-031）：Owner 签收状态唯一权威 = contracts/discrepancies/cr-20260924T090000Z-b1g4te5c.json（ownerSignOff 字段）；本文档只记录 changeRecordId，不复制 mutable status |

@@ -1,0 +1,39 @@
+{
+ "changeRecordId": "cr-20260926T000000Z-g0v3cons1",
+ "basePlan": "contracts/asset-migration.md + contracts/asset-manifest-v2.md（双冻结正文同触，本单合并登记）",
+ "baseVersion": "contracts/asset-migration.md@ae7455da22d2a60973f5b67d696029c1901162953d20c4128ff10f59c8577d9a（原冻结 sha256）；contracts/asset-manifest-v2.md@变更前 sha256 见 REMEDIATION-2 RESULTS §F-031",
+ "reason": "GOVERNANCE_CONSISTENCY 补充单（第十四审计 F-031，split-brain 方案 B）：两份冻结正文各自内嵌 mutable 的 Owner 签收状态行（asset-migration.md 原'Owner 签收位=PENDING'、asset-manifest-v2.md 原'Owner 签收=…PENDING_OWNER_RECEIPT'），与 change.record（cr-20260924T090000Z-b1g4te5c / cr-20260923T040000Z-av1schema）内的权威 ownerSignOff 字段构成 split-brain——冻结正文一旦落笔即不可随签收流转更新，PENDING 文本会随时间失真。方案 B（最小 diff）：两份正文各只改该一行，替换为指针声明（'Owner 签收状态唯一权威 = contracts/discrepancies/<对应 cr id>.json；本文档只记录 changeRecordId，不复制 mutable status'），其余冻结内容零触碰。类型记 GOVERNANCE_CONSISTENCY（治理一致性补充单）：非契约规范性语义变更（状态机/五元组/三硬门/schema 全文未动），仅消除同一事实双源； Owner PENDING 待签收。",
+ "impactClass": "DOC_ONLY",
+ "owner": "Owner",
+ "sourceEvidence": [
+  "handoffs/v3/REMEDIATION-2-dispatch.md#任务F-031（split-brain 方案 B 处置指令）",
+  "contracts/asset-migration.md#变更单段（原 PENDING 行，现指针声明）",
+  "contracts/asset-manifest-v2.md#Owner签收位段（原 PENDING_OWNER_RECEIPT 行，现指针声明）",
+  "contracts/discrepancies/cr-20260924T090000Z-b1g4te5c.json（asset-migration 签收状态唯一权威）",
+  "contracts/discrepancies/cr-20260923T040000Z-av1schema.json（asset-manifest-v2 schema 签收状态唯一权威）",
+  "test-reports/autopilot-work/REMEDIATION-2/RESULTS.md#F-031（两行修正 diff 与前后 sha256）"
+ ],
+ "invalidatedNodes": [
+  "第十三/十四轮审计对两份冻结正文'Owner 签收位 PENDING'文字面的直接引用（改读指针声明的权威 change.record）"
+ ],
+ "newVersionRef": null,
+ "supersededBy": null,
+ "status": "active",
+ "recordedAt": "2026-09-26T00:00:00.000Z",
+ "recordedBy": "REMEDIATION-2-L1-exec",
+ "idempotencyKey": "g0v3consistency-splitbrain-planb-f031",
+ "approvalId": null,
+ "touchedFiles": [
+  "contracts/asset-migration.md",
+  "contracts/asset-manifest-v2.md"
+ ],
+ "schemaVersion": "governance-consistency@1",
+ "changeType": "GOVERNANCE_CONSISTENCY",
+ "note": "类型说明：change.mjs IMPACT_CLASSES 五类（DOC_ONLY/TASK_GRAPH/CONTRACT/IMPLEMENTATION/SECURITY）未含 GOVERNANCE_CONSISTENCY——本单按第十五审计前惯例以补充单形态登记于 contracts/discrepancies/（B1-GATE 契约文末变更单同目录同格式），impactClass 取最接近的 DOC_ONLY（不改变任何机器可执行语义），changeType 字段显式携带派单要求的 GOVERNANCE_CONSISTENCY 类型名。ownerApprovalReceipt 不适用（DOC_ONLY 非需批准类）；Owner 对本处置的最终裁定走 ownerSignOff 位，PENDING。",
+ "ownerSignOff": {
+  "status": "PENDING",
+  "note": "Owner 裁定位：方案 B（指针声明）系审计者倾向与执行方向一致的最小处置；Owner 可改判方案 A（回填同步）或否决——否决时按 supersede-not-delete 以新单取代本单并回滚两行。",
+  "signedAt": null,
+  "signedBy": null
+ }
+}

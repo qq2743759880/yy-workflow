@@ -228,3 +228,12 @@ R-2 package.json 名义依赖清理；D-3 类 C 历史豁免永久保留；senti
 - 两项证据边界提醒采纳：GW-1 hash "归因零增量"措辞修正（未触输入面+concurrent AS-1 可解释，非 hash-isolation proof）；R-2 package.json 名义依赖真实存在（已移交不另立）
 - **核心教训（审计者原话采信）**：跨层状态机做强治理后，跨层身份关联本身成为主要幻觉点——22/22 全绿不能单独作为收口依据
 - 批 1 closeout 结论降级：REMEDIATION-2 闭环前"PARTIALLY CONFIRMED"维持
+| REMEDIATION-2 | PASS | agent_818de3f1 | orchestrator-L2(S16 三段/selftest/回归 24/manifest hash 亲验) | 2026-09-26T00:30:00Z | scripts/regression-all.mjs（S16 三段重做+废除文本匹配）; scripts/lib/governance.mjs（两键匹配冻结集）; contracts/asset-migration.md:102+asset-manifest-v2.md:77（方案 B 指针声明）; handoffs/v3/amendments/D-3-RESIDUAL-amendment-1.md; plans/audit-index-selftest.mjs（S14b）|
+- 【F-028 闭环】S16 三段全走真实机验器：Runtime plane（transitionPhase failed→done/executing INVALID_TRANSITION + canonical 不变）/ Migration plane（三失败形态→两晋升转移全拒 + 干净记录放行非恒拒）/ Cross-plane（FAILED/UNRESOLVED receipt 阻断 promotion + verified 对照放行 + promotionReceipt 生成处校验）——文本匹配废除，错误关系修正
+- 【F-029 闭环】amendment-1 编排者签发（只覆盖 D-3 部分，明文排除 HARDEN-1 S16）
+- 【F-030 闭环】两键匹配（review 在 stage_7 派单事件不再注 verification——错配校正）；失败码→failure_recovery 组映射表单点显式声明
+- 【F-031 闭环】方案 B 落地（两冻结正文 PENDING 行→指针声明，cr-20260926T000000Z 补充单 Owner PENDING）
+- 【F-032 闭环】A-4 命令修正 + selftest 40 PASS 进 S14b——audit-index 不能 stale
+- V-1/V-3/V-5 偏差裁定：V-1 stage_7 单事件（shadow run 前无发射点，shadow-run 前注入列 backlog）；V-3 DOC_ONLY 形态追认；V-5 Failure Rules 代码化探针承认（仓内无独立 migration 状态机消费点——真实机验器是当前最优可行面）
+- FINAL-E2E 复跑 PASS + manifest c30fee6b 未变（REMEDIATION-2 全部改动对 manifest 零归因）
+- 批 1 closeout 状态：REMEDIATION-2 闭环 → PARTIALLY CONFIRMED 的三个补齐项（H1 真实拒绝/H2 更名/H3 索引 self-test）全部完成——升格 READY-FOR-CLOSE 待 Owner 三项裁定确认

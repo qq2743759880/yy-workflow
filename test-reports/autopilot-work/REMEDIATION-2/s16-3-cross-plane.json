@@ -1,0 +1,32 @@
+{
+  "schema": "s16-cross-plane@1.0.0",
+  "at": "2026-09-26T05:44:48.110Z",
+  "checks": {
+    "failed_receipt_blocks": true,
+    "unresolved_receipt_blocks": true,
+    "verified_receipt_allows": true
+  },
+  "failed_upstream": {
+    "receipt_terminal": "verification_failed",
+    "verified": false,
+    "transition_ok": false,
+    "code": "PHASE_PREREQ_UNMET",
+    "reason": "上游 implementation(s-0) receipt 终态 FAILED 非 behavior_verified——消费证据未达要求类别（§4.1 receipt 证据行）"
+  },
+  "unresolved_upstream": {
+    "receipt_terminal": "unresolved",
+    "verified": false,
+    "transition_ok": false,
+    "code": "PHASE_PREREQ_UNMET",
+    "reason": "上游 implementation(s-0) receipt 终态 UNRESOLVED 非 behavior_verified——消费证据未达要求类别（§4.1 receipt 证据行）"
+  },
+  "verified_upstream": {
+    "receipt_terminal": "behavior_verified",
+    "verified": true,
+    "transition_ok": true,
+    "code": null
+  },
+  "promotion_evidence_gate": {
+    "failed_unresolved_invalid_blocked": true
+  }
+}
