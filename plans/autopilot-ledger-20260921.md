@@ -322,3 +322,13 @@ D-2（reflect-metadata/tslib 删否）、D-3（回归器重写探针 JSON 固有
 - 【编排者补修 D-K1-1】be-validator sidecar install 通道仍写 --no-save（stale，KERNEL-1 因 contracts/ 禁改面登记不改）——编排者从 source 修（--no-save→npm ci 正式依赖）→ manifest 重建 hash b0268798 → audit-index B-6 同步 → selftest 68 复绿 → 回归 24/24
 - 【编排者补修 selftest D-3】B-9 长命令 60s spawnSync 超时假 FAIL → timeout 180s + `exit=null` 具名 TIMEOUT_OR_KILLED（与真 stale 区分）
 - Wave 1 三单全收（ACC-1 + SECMAN-1 + KERNEL-1）；Wave 2 CAP-ING-1 待派
+
+## Batch 3 Wave 2 — W2-0 Ground Truth + Ingress Contract Freeze（2026-09-27，编排者亲验）
+- 交接文档两份（docs/AUDIT-HANDOFF-20260927-WAVE1-TO-CAP-ING / ORCHESTRATOR-WAVE2-CAP-ING-ACTIONS）按 Evidence Boundary 降级 ADVISORY；结论以当前 revision `8ce6394` 实测为准
+- ACCEPT：Wave1 已入库勿重施 / security 已刷 F-019 / spectral 已入声明 / **capability 仍无 planner 生产者（实锤：planner grep=0 + parseArgs 无位 + buildPlan shape 直读）** / 并行 staging 纪律（禁 `git add -A`，L2 按文件归属认责）
+- MODIFY：capability 来源三选项均不取——**选定混合式 D**（受控词表确定性派生 + cluster 交叉校验，保证 capability 非 asset 影子）；五步拆分合并为 W2-0..W2-4 且 W2-1/W2-2 **串行**（写面重叠 orchestrator/runtime）
+- REJECT：Option B 自由文本解析（重引入 v3.4 已禁语义模糊）/ Option C 纯 cluster 派生（伪 capability-native）/ 顺手加多候选·embedding·tie-break
+- **Ingress Mini-Contract v1 已冻结**（plans/W2-0-ground-truth-ingress-contract-20260927.md）：Source 三源 precedence（explicit > derived > legacy）+ CAPABILITY_MAP 唯一词表权威（禁复制 taxonomy）+ subtask 加法字段（capability/capabilitySource/selectedAsset，asset 语义保留）+ 冲突语义九场景全 fail-closed + 旧 state 走 legacy 不迁移改写 + evidence 三字段显式入 state/journey
+- **编排者补充的三项交接文档未提及风险**：①`--exec` 透传 KNOWN 集合须同步（否则旗标静默透传宿主）②派生规则表须与 CLUSTERS keywords 同源校验（防两套关键词漂移）③journey.mjs:665 为唯一投影写点，遗漏则「state 有 UI 无」半链
+- consumer 实测分布（62 处 asset 读）：runtime 24 / activation 23 / composer 15 / orchestrator 21 / governance 3 / journey 1 / planner 1 / matrix 0
+- Gate：无契约不进入 W2-1——本文件即契约，W2-1 可派
