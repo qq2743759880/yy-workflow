@@ -275,3 +275,7 @@ R-2 package.json 名义依赖清理；D-3 类 C 历史豁免永久保留；senti
 - L2 初测误报澄清：我用 Map 形态直调 composeGovernedPlanAssets 得 mode=undefined——agent 的 probe 走其 harness 形态（assets 为 Map+briefInputs）全 PASS；两形态差异属调用侧约定非缺陷，登记说明
 - 五项偏差裁定：E2E 记录侧经生产 dispatch（planner capability 入口=v3.2 边界内）；记忆面宽于指路行（记录侧 best-effort 合理）；多候选保守口径（评分择优未做留 Batch 3）；capability 优先于 asset 同传；插槽与 GW-1 尾节共存
 - 回归 24/preflight 8/selftest 68/manifest c30fee6b 零归因——批 2 第二波全收
+| FINAL-E2E v2 | PASS | orchestrator | orchestrator-L2(composer/dispatch 新链下复跑 verdict=PASS) | 2026-09-26T11:30:00Z | test-reports/autopilot-work/FINAL-E2E/（assert 复跑 exit 0） |
+- Batch 2 第三波第一项：composer/dispatch 新链下 Runtime Boundary E2E 复跑 PASS——批 2 验收口径第一项（production 主链双模式）mech 侧达成
+| Batch2 | 部分收口 | orchestrator | — | 2026-09-26T11:35:00Z | 第一波 PC-1/R-2 + 第二波 CD-1/GV-2 + FINAL-E2E v2 |
+- 待完成：MG-1（Owner key）/E-4-EXEC（llm 行为面，Owner 拍板时机）——两者均 Owner 资源依赖，不阻塞批 2 主体收口；收口报告待拟
