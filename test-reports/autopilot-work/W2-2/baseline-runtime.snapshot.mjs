@@ -1,15 +1,15 @@
-import { createLogger } from './logger.mjs';
-import * as gate from './gate.mjs';
-import { ContractViolationError } from './gate.mjs';
-import { resolveAdapter, PROMPT_ADAPTER } from './adapters/index.mjs';
-import { withRetry, retryAcrossHosts, resolveHosts } from './resilience.mjs';
-import { RetryableError, TimeoutError } from './errors.mjs';
+import { createLogger } from 'file:///D:/.ai-hub/skills/yy/scripts/lib/logger.mjs';
+import * as gate from 'file:///D:/.ai-hub/skills/yy/scripts/lib/gate.mjs';
+import { ContractViolationError } from 'file:///D:/.ai-hub/skills/yy/scripts/lib/gate.mjs';
+import { resolveAdapter, PROMPT_ADAPTER } from 'file:///D:/.ai-hub/skills/yy/scripts/lib/adapters/index.mjs';
+import { withRetry, retryAcrossHosts, resolveHosts } from 'file:///D:/.ai-hub/skills/yy/scripts/lib/resilience.mjs';
+import { RetryableError, TimeoutError } from 'file:///D:/.ai-hub/skills/yy/scripts/lib/errors.mjs';
 // GW-1 治理接线（接线点 B）：失败路径 GOVERNANCE 指路行单点（systematic-debugging）。
 // 只指路不注入正文（防 prompt 爆炸——GW-1 派单裁定）；governance-skills 缺失时
 // governancePointerLine → null，静默跳过（向后兼容）。单点实现见 scripts/lib/governance.mjs。
 // F-030：失败码 → failure_recovery 组冻结事件映射（CAPABILITY_MISSING/INELIGIBLE_* 等 → gate_failed）
 // 单点在 governanceEventForFailureCode（governance.mjs，映射表对应关系见其文件头注释）。
-import { governancePointerLine, governanceEventForFailureCode } from './governance.mjs';
+import { governancePointerLine, governanceEventForFailureCode } from 'file:///D:/.ai-hub/skills/yy/scripts/lib/governance.mjs';
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -141,7 +141,7 @@ export async function dispatch(subtask, ctx, opts = {}) {
   if (subtask.capability !== undefined && subtask.capability !== null && String(subtask.capability).trim()) {
     const capReq = String(subtask.capability).trim();
     try {
-      const { resolveAssetEligibility } = await import('./activation.mjs');
+      const { resolveAssetEligibility } = await import('file:///D:/.ai-hub/skills/yy/scripts/lib/activation.mjs');
       const eligibility = await resolveAssetEligibility(
         { capability: capReq, requirements: opts.eligibilityRequirements, constraints: opts.eligibilityConstraints },
         { manifestPath: opts.manifestPath || DEFAULT_MANIFEST_PATH }
@@ -171,11 +171,6 @@ export async function dispatch(subtask, ctx, opts = {}) {
       return { ok: true, skipped: true, artifactPath: null, error: code };
     }
   }
-  // W2-2（状态/证据传播）透传：capability 模式 selectedAsset 双写（契约 D.3/D.4——resolver 产物
-  // 显式留痕进 state.json；与绑定的 subtask.asset 同值，双写一致性）。仅加法一行：
-  // CD-1/AV-3/EX-1/失败记忆各段语义零改动；legacy 路径（无 capability）capabilityEligibility
-  // 恒为 null → 零新增字段，state.json 字节级兼容（W2-2 自测 4）。
-  if (capabilityEligibility) subtask.selectedAsset = capabilityEligibility.selected_asset;
   // AV-3（v3.5）：Gate-2 manifest hash 绑定 + 资格门——runtime 不得直接拿 asset，必须过 resolver→approved asset
   // （修复 F-007）。manifest 不在场 → 维持旧行为（向后兼容，与 preflight P6 同口径）；
   // 批 1 hash 不一致仅记账 warning 不阻断（AS-2 晋升时升级硬门）；resolver fail-closed（eligible=false）→
@@ -195,7 +190,7 @@ export async function dispatch(subtask, ctx, opts = {}) {
         logger.warn('MANIFEST_SHA256_MISMATCH: manifest_sha256=' + manifestSha256 + ' != 期望 ' + expectedSha
           + '（Gate-2 批 1 记账不阻断；AS-2 晋升时升级硬门）');
       }
-      const { resolveAssetEligibility } = await import('./activation.mjs');
+      const { resolveAssetEligibility } = await import('file:///D:/.ai-hub/skills/yy/scripts/lib/activation.mjs');
       const eligibility = capabilityEligibility || await resolveAssetEligibility(
         { asset: subtask.asset, requirements: opts.eligibilityRequirements, constraints: opts.eligibilityConstraints },
         { manifestPath }
@@ -232,7 +227,7 @@ export async function dispatch(subtask, ctx, opts = {}) {
     if (act.warning) logger.warn(act.warning);
     if (act.mode === 'lib' && !opts.activationPackage) {
       try {
-        const { activationPrepare } = await import('./activation.mjs');
+        const { activationPrepare } = await import('file:///D:/.ai-hub/skills/yy/scripts/lib/activation.mjs');
         const prep = await activationPrepare({
           asset: subtask.asset,
           subtask: { id: subtask.id, task: subtask.task, contract: subtask.contract, preconditions: subtask.preconditions || [] },

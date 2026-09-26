@@ -661,8 +661,12 @@ function computeProjection(ctx) {
         memberStatus = 'pending';
         warnings.push('DISCREPANCY: subtask ' + sub.id + ' state=done 但 receipt 缺失（资产维 UNRESOLVED，C-R3 §7.4 P1；组级取最坏 OQ-R5-8）');
       }
+      // W2-2（D.7）：capability 三字段投影——null 也显式写入（receipt/证据不丢 provenance）；
+      // selectedAsset 缺席（老 state / legacy 子任务）时回落 asset（D.3：legacy 路径 selectedAsset = asset）。
       subtasks.push({
         subtaskId: sub.id, asset: sub.asset ?? null, status: sub.status ?? 'unknown',
+        capability: sub.capability ?? null, capabilitySource: sub.capabilitySource ?? null,
+        selectedAsset: sub.selectedAsset ?? sub.asset ?? null,
         displayStatus: memberDisplay, receipt: rcpt ? rcpt.path : null,
       });
       members.push({ displayStatus: memberDisplay, status: memberStatus, provenance: 'state' });

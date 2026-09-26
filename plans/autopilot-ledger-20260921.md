@@ -336,3 +336,7 @@ D-2（reflect-metadata/tslib 删否）、D-3（回归器重写探针 JSON 固有
 - L2 亲跑：同源 {consistent:true, 10/10}；派生 安全审计→security-audit / OpenAPI 校验→openapi-validation / 无关→null（含中文 matchedKey）；plan 集成 五子任务全带 derived 字段；回归 24/24 + preflight exit 0
 - 偏差 D-W21-1..7：最后一跳（--capability→plan）留 W2-2（串行同写面）；selectedAsset 双写留 W2-2；plan 层 mismatch throw 严于 skip；usage 文案白名单外；CAPABILITY_SOURCE_CONFLICT 单显式来源不可达（非放宽）
 - 停单条件 H.1–H.5 全未触发
+| W2-2 | PASS | agent_7a253d17 | orchestrator-L2(投影三字段直读+回归 24 亲跑) | 2026-09-26T20:00:00Z | scripts/lib/runtime.mjs（selectedAsset 双写 1 行）; scripts/lib/journey.mjs（投影三字段）; test-reports/autopilot-work/W2-2/ |
+- L2 亲验：journey.mjs:668-669 三字段投影（capability/capabilitySource/selectedAsset，null 显式写）；回归 24/24 + preflight exit 0
+- 偏差 6 条：D-W22-2（门跳早退不落 selectedAsset，provenance 由 eligibility 承担）；D-W22-3（matchedKey 未进 state，planner 禁改）；D-W22-6（prompt-composer 写面不在派单，现状读 asset 已正确工作）
+- Wave 2 两单（W2-1+W2-2）全收；W2-3（九场景矩阵）+ W2-4（E2E-v3）待派

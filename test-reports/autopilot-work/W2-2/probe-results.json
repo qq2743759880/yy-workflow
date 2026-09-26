@@ -1,0 +1,183 @@
+{
+  "date": "2026-09-26T18:33:30.057Z",
+  "results": [
+    {
+      "id": "P0",
+      "desc": "security-audit → resolver eligible（真实 manifest）",
+      "pass": true,
+      "detail": {
+        "selected_asset": "security",
+        "eligible": true,
+        "reasonN": 2
+      }
+    },
+    {
+      "id": "P1a",
+      "desc": "派生命中 security-audit（W2-1 生产者）",
+      "pass": true,
+      "detail": {
+        "key": "security-audit",
+        "matchedKey": "安全审计"
+      }
+    },
+    {
+      "id": "P1b",
+      "desc": "plan 期 subtask 仅两字段（capability/capabilitySource），无 selectedAsset（selectedAsset 由 W2-2 runtime 落）",
+      "pass": true,
+      "detail": {
+        "subtaskN": 5
+      }
+    },
+    {
+      "id": "P1c",
+      "desc": "state.json capability 子任务三字段在场且 selectedAsset===asset（D.3 双写一致性）",
+      "pass": true,
+      "detail": {
+        "subtaskN": 5,
+        "sample": {
+          "id": "plan-muiqa1j4-0",
+          "asset": "security",
+          "capability": "security-audit",
+          "capabilitySource": "derived",
+          "selectedAsset": "security"
+        }
+      }
+    },
+    {
+      "id": "P1d",
+      "desc": "state.json eligibility 留痕（D.4 eligibilityReason 面：capability/selected_asset/eligible/reason[]）",
+      "pass": true,
+      "detail": {
+        "first": {
+          "capability": "security-audit",
+          "selected_asset": "security",
+          "eligible": true,
+          "reasonN": 2
+        }
+      }
+    },
+    {
+      "id": "P1e",
+      "desc": "CD-1 透传确认：planner 产 capability/capabilitySource 全链原样保留（对象引用透传零丢失）",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "P2a",
+      "desc": "老 plan 构造：零 capability 字段",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "P2b",
+      "desc": "resume 老 state 新旧 runtime 均不崩溃",
+      "pass": true,
+      "detail": {
+        "crashBase": null,
+        "crashLive": null
+      }
+    },
+    {
+      "id": "P2c",
+      "desc": "resume 不补字段/不重派生（D.5 行8：老 state 走 legacy，capability/selectedAsset 不凭空出现）",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "P2d",
+      "desc": "resume 输出 state.json 新旧 runtime 字节级全等",
+      "pass": true,
+      "detail": {
+        "sha256_base": "5e9241cdf022bdd4ee9677fc9513502907b0d308a28e5f387ed3b976c1b927ea",
+        "sha256_live": "5e9241cdf022bdd4ee9677fc9513502907b0d308a28e5f387ed3b976c1b927ea",
+        "bytes": 2886
+      }
+    },
+    {
+      "id": "P4a",
+      "desc": "5 个无 capability 路由任务（T1-T5 全簇）state.json 新旧 runtime 字节级全等（向后兼容）",
+      "pass": true,
+      "detail": [
+        {
+          "task": "数据库 schema 迁移",
+          "cluster": "T1_DATABASE",
+          "bytes": 3179,
+          "sha256_live": "ca92cbc81c2434c1a8da61d4f4a27b47af8ceee66a770f73ee8ced320921125f",
+          "byteEqual": true
+        },
+        {
+          "task": "登录接口开发",
+          "cluster": "T2_BACKEND",
+          "bytes": 5676,
+          "sha256_live": "a642d2d79a6fc1208e582f883a02490d48f3dae3d4aaa1e006b9f5693d161f69",
+          "byteEqual": true
+        },
+        {
+          "task": "前端页面重构",
+          "cluster": "T4_FRONTEND",
+          "bytes": 4210,
+          "sha256_live": "980e060e900568ca689166f3110a7aa1644f0f60ad38fe99b01b8295356bcaaa",
+          "byteEqual": true
+        },
+        {
+          "task": "运维部署监控",
+          "cluster": "T5_OPS",
+          "bytes": 3773,
+          "sha256_live": "6ba7f6c18737aae28de4832a1d210a9996b0576790c5f7d3576e9331eb4bbf72",
+          "byteEqual": true
+        },
+        {
+          "task": "知识库模型接入",
+          "cluster": "T3_AI_RAG_MCP",
+          "bytes": 2850,
+          "sha256_live": "4e7bec4e55d96c2af2323ca04d9c859c844da91068359044ae752f4b46dd4cfa",
+          "byteEqual": true
+        }
+      ]
+    },
+    {
+      "id": "P4b",
+      "desc": "legacy state 全文 0 处 capability/selectedAsset 字样（零字段变化）",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "P3a",
+      "desc": "journeyRead 投影成功（双 state 行内联，无 ERROR 冲突）",
+      "pass": true,
+      "detail": {
+        "code": null,
+        "displayStatus": "PARTIAL"
+      }
+    },
+    {
+      "id": "P3b",
+      "desc": "journey capability 行三字段在场（值与 state 一致）",
+      "pass": true,
+      "detail": {
+        "capRowN": 5,
+        "sample": {
+          "subtaskId": "plan-muiqa1j4-0",
+          "capability": "security-audit",
+          "capabilitySource": "derived",
+          "selectedAsset": "security"
+        }
+      }
+    },
+    {
+      "id": "P3c",
+      "desc": "journey legacy 行三字段显式在场（capability=null, capabilitySource=null, selectedAsset 回落=asset；D.7 null 也写）",
+      "pass": true,
+      "detail": {
+        "legRowN": 3,
+        "sample": {
+          "subtaskId": "plan-muiqa1k8-0",
+          "capability": null,
+          "capabilitySource": null,
+          "selectedAsset": "implementation",
+          "asset": "implementation"
+        }
+      }
+    }
+  ]
+}

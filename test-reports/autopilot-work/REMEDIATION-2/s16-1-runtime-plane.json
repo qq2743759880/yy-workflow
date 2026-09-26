@@ -1,6 +1,6 @@
 {
   "schema": "s16-runtime-plane@1.0.0",
-  "at": "2026-09-26T18:16:44.458Z",
+  "at": "2026-09-26T18:42:38.546Z",
   "probe": "phase.transition 终态不可追加（真实状态机）",
   "steps": [
     {
@@ -68,5 +68,5 @@
     "allowed": false,
     "reason": "终态不可追加: failed 的合法后继为空（§3.2）；回退/重开只能通过新链（§8.4）"
   },
-  "workspace": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\tt-s16-rt-3HHQco"
+  "workspace": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\tt-s16-rt-u9hAEt"
 }
