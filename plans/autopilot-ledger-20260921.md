@@ -340,3 +340,7 @@ D-2（reflect-metadata/tslib 删否）、D-3（回归器重写探针 JSON 固有
 - L2 亲验：journey.mjs:668-669 三字段投影（capability/capabilitySource/selectedAsset，null 显式写）；回归 24/24 + preflight exit 0
 - 偏差 6 条：D-W22-2（门跳早退不落 selectedAsset，provenance 由 eligibility 承担）；D-W22-3（matchedKey 未进 state，planner 禁改）；D-W22-6（prompt-composer 写面不在派单，现状读 asset 已正确工作）
 - Wave 2 两单（W2-1+W2-2）全收；W2-3（九场景矩阵）+ W2-4（E2E-v3）待派
+
+## Batch 2 收口报告（措辞降级版，2026-09-26 补录；本报告在 Batch 3 Wave1 前已完成实质内容但因 push 代理延迟补录）
+
+主体 CONFIRMED；完全收口 PARTIALLY CONFIRMED（MG-1/E-4-EXEC Owner-resource）
