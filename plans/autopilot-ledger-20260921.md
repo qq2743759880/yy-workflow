@@ -363,3 +363,29 @@ D-2（reflect-metadata/tslib 删否）、D-3（回归器重写探针 JSON 固有
 - 批 3 Wave 2 四单全收：W2-1 planner production / W2-2 状态传播 / W2-3 S17 九场景 / W2-4 E2E-v3 真实 CLI
 - capability ingress 全链：task → planner 派生 → orchestrator --capability → runtime dispatch → resolver → adapter → receipt
 - 【manifest hash b0268798 正当性确认】SECMAN-1（security sidecar F-019 语义）+ D-K1-1（be-validator install 通道 --no-save→npm ci）两次 sidecar 修改后 manifest 合法再生——非篡改，是 capability-narrowing + install-channel 语义更新的正确产物
+
+## 批 3 正式 CLOSEOUT（2026-09-26，措辞降级版）
+
+**结论：批 3 主体 CONFIRMED（capability ingress 全链 + drop 7 + 治理接线 + D.5 amendment + 收口 E2E）；完全收口 PARTIALLY CONFIRMED（MG-1/E-4-EXEC/多候选规则冻结/包依赖清理移交项 Owner-resource 或 backlog）**
+
+### 已验证闭环
+1. **capability ingress 全链**：task → planner 派生（capability-derivation.mjs 10 键同源校验）→ orchestrator --capability 显式输入 + applyCapabilityToPlan 主链接线 → runtime capability dispatch（CAPABILITY_MAP 受控映射）→ resolver 资格判定 → adapter → receipt
+2. **S17 九场景 + 注入反例 3 连**（回归 35/35 全绿）
+3. **drop 7**：注册表 16→9，S15-A1 残留面 17→3（类 C 豁免），S15 六断言全绿
+4. **replace 3 成功**：be-validator→Spectral 6.16.3（package.json 精确锁）、security→semgrep 1.175.0 pip（自研 ruleset）、skill-sentinel→cisco-ai-skill-scanner 2.1.0 pip
+5. **治理层**：3 技能 stage 绑定注入（截断护栏）+ 失败指路，manifest 归因零增量
+6. **review ADAPT**：NO INSTALL 门实战（两候选结构性不可用），review 保留 prompt-backend
+
+### 明确边界
+- controlled capability vocabulary（CAPABILITY_MAP 受控 10 键，禁模糊匹配）
+- capability+conflicting asset = capability 优先重绑定 + 具名留痕（D.5 amendment，禁静默取一）
+- contract routing 支持范围：cluster candidates 内的 capability-asset 映射（跨簇 CAPABILITY_CLUSTER_MISMATCH 拒绝）
+- 无多候选 ranking（规则未冻结，无需求实证）
+- mech/LLM 行为边界（mech=Runtime Boundary E2E；LLM 行为面 = E-4 Owner-resource）
+- MG-1/E-4 resource backlog
+
+### 移交 backlog
+R-2 package.json 名义依赖（reflect-metadata/tslib）；D-3 类 C 历史豁免永久保留；sentinel 多 agent API key；E-4 llm 模式 Owner 拍板时机；多候选规则冻结（无需求不实施）
+
+### 关键提交
+六张 receipt SIGNED（owner-receipt-signoff #6130f3…）；S16 三层真实拒绝路径；migration.mjs 生产 authority；before_final_receipt 生产发射点；audit-index selftest 68/68 进 S14b；D.5 amendment
