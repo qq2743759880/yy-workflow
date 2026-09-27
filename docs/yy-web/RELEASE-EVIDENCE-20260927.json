@@ -1,7 +1,7 @@
 {
   "schema": "yy/web-release-evidence@1",
-  "run_id": "yy-web-m0-m1-final-delivery-20260927T150550Z",
-  "recorded_at": "2026-09-27T15:05:50Z",
+  "run_id": "yy-web-m0-m1-clean-integration-gates-20260927T151055Z",
+  "recorded_at": "2026-09-27T15:10:55Z",
   "scope": {
     "iteration": "YY workflow iteration optimization PRD V0",
     "prd_status": "DRAFT",
@@ -22,10 +22,36 @@
     "main_repo_note": "The original local main working tree remained untouched. Integration is being performed in a separate clean worktree based on origin/main=f88a193299d6939850befda8a21c8248e6285627; the dirty local scripts/make-release.mjs and untracked MYY-X1/CODEX/input-PRD documents are excluded.",
     "implementation_commit_verified": "6a0581b2599880842cf987e89e9b54e405f89550",
     "integration": {
+      "worktree": "C:/Users/Administrator/.codex/worktrees/yy-web-codex-integration",
+      "branch": "codex/yy-web-codex-integration",
       "base": "f88a193299d6939850befda8a21c8248e6285627",
-      "method": "clean integration worktree; fast-forward only; exact release-owned file diff",
+      "tested_head": "9706e7a7ee54db653a08263afae72c4db0ba2c7f",
+      "method": "git merge --ff-only from release branch into a clean worktree based on origin/main",
+      "diff_scope": "44 release-owned files under docs/yy-dev-plan-web-codex-v0.md, docs/yy-plan-review-web-codex-v0.md, docs/yy-web/, integrations/yy-readonly-mcp/, tasks/yy-web-codex/; no existing legacy runtime files or scripts/make-release.mjs changed",
+      "worktree_clean": true,
       "local_main_worktree_touched": false,
-      "target_push": "pending final P0/P1 gates and unchanged origin/main check"
+      "gates": {
+        "six_read_only_tools": "PASS; exact allowlist asserted by suite",
+        "business_write_and_workspace_mutation": "PASS; synthetic workspace fingerprints unchanged for all six tools",
+        "context_completeness_pagination_stale_source": "PASS; suite covers protected critical reads, bounded pages, incomplete flags and STALE_VERSION",
+        "scope": "PASS_LOCAL_SYNTHETIC; two-workspace isolation and unknown workflow fail-closed asserted by suite; production caller ACL remains unavailable",
+        "rf1_and_validation_semantics": "PASS_LOCAL_SYNTHETIC; historical/superseded/current CLOSED and pass/degraded semantics asserted",
+        "closed_workflow": "PASS_LOCAL_SYNTHETIC; TERMINAL/done stays unchanged across open/snapshot/stage; no active stage returns STAGE_UNKNOWN; fingerprint unchanged",
+        "legacy_yy_compatibility": "PASS_LIMITED; valid old orchestration smoke recorded in production_acceptance.legacy_yy_compatibility_smoke",
+        "m2_m3": "PASS; both DEFERRED_BY_PHASE, no write tools registered",
+        "bridge_syntax": "PASS",
+        "git_diff_check": "PASS"
+      },
+      "unit_tests": {
+        "status": "PASS",
+        "passed": 15,
+        "failed": 0,
+        "verified_at": "2026-09-27T15:08:24Z",
+        "runtime": "Python 3.14.6, FastMCP 4.0.5"
+      },
+      "closed_workflow_smoke_at": "2026-09-27T15:09:51Z",
+      "target_remote_main_before_push": "f88a193299d6939850befda8a21c8248e6285627",
+      "target_push": "ready_for_normal_fast_forward; verify remote main is unchanged immediately before push"
     }
   },
   "release_decision": {
@@ -166,7 +192,16 @@
       "backlog_items": 7,
       "severity": "No confirmed P0/P1 finding in inspected M1 path; legacy failures and scan uncertainty remain visible as P2/P3. Repository CI/security are not PASS."
     },
-    "legacy_yy_compatibility_smoke": "PASS_LIMITED; valid task input → legacy orchestrator → generated state/summary → legacy summary-read returned expected schema, planId, and status; prompt backend was degraded (2 done, 3 skipped), so this does not claim real subtask execution."
+    "legacy_yy_compatibility_smoke": "PASS_LIMITED; valid task input → legacy orchestrator → generated state/summary → legacy summary-read returned expected schema, planId, and status; prompt backend was degraded (2 done, 3 skipped), so this does not claim real subtask execution.",
+    "integration_gates": {
+      "worktree_head": "9706e7a7ee54db653a08263afae72c4db0ba2c7f",
+      "unit_tests": "15 passed, 0 failed",
+      "node_check": "PASS",
+      "json_parse": "PASS",
+      "git_diff_check": "PASS",
+      "closed_workflow": "TERMINAL/done retained; STAGE_UNKNOWN; workspace fingerprint unchanged",
+      "legacy_path_diff": "No legacy orchestrator, summary reader, state writer, journey runtime, or adapter files changed in release range"
+    }
   },
   "production_acceptance": {
     "chatgpt_web_tool_discovery_and_call": "NOT_ESTABLISHED",
@@ -225,6 +260,10 @@
         "state_summary_created": true
       },
       "limits": "Prompt backend only; 3 dependency-gated subtasks were skipped and no real code execution is claimed. Confirms valid legacy orchestration input generates state/summary and the legacy summary reader returns it. Full rollback/DR remains untested."
+    },
+    "closed_workflow_read_smoke": {
+      "status": "PASS_LOCAL_SYNTHETIC",
+      "result": "yy_open_workflow and yy_get_snapshot returned terminal/done; yy_get_stage returned STAGE_UNKNOWN because no active stage remains; state and journey stayed done and full workspace fingerprint was unchanged."
     }
   },
   "phase_boundary": {

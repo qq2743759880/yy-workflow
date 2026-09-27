@@ -4,7 +4,7 @@
 
 **M0/M1 engineering: CLOSED on the pushed source branch. Main integration: blocked because the current local main has unexplained dirty files whose writer cannot be identified. Web activation: `WEB_ACTIVATION_ENVIRONMENT_BLOCKED`. M2/M3: `DEFERRED_BY_PHASE`.**
 
-The implementation commit `c75d9154c722e2f5394d7e6e701baaffcf468a35` and evidence follow-up `6a0581b2599880842cf987e89e9b54e405f89550` are pushed to origin, based on `f88a193299d6939850befda8a21c8248e6285627`. Integration uses a separate clean worktree and fast-forward only. The original local main has modified `scripts/make-release.mjs` and untracked CODEX/MYY-X1/PRD documents; those remain untouched and excluded. No production Web caller identity, principal-to-workflow ACL, authorized W binding, or tunnel was established; therefore this is not `WEB READONLY ACTIVE`.
+The implementation commit `c75d9154c722e2f5394d7e6e701baaffcf468a35` and evidence follow-up `6a0581b2599880842cf987e89e9b54e405f89550` are pushed to origin, based on `f88a193299d6939850befda8a21c8248e6285627`. Integration was checked in a separate clean worktree fast-forwarded from `origin/main=f88a193` to release commit `9706e7a`; exact diff contains only release-owned paths. The original local main has modified `scripts/make-release.mjs` and untracked CODEX/MYY-X1/PRD documents; those remain untouched and excluded. Fifteen P1 tests plus the CLOSED workflow read smoke passed. A normal fast-forward push to remote main is ready, subject to one final unchanged-SHA check. No production Web caller identity, principal-to-workflow ACL, authorized W binding, or tunnel was established; therefore this is not `WEB READONLY ACTIVE`.
 
 ## Fast ground truth and local evidence
 
@@ -33,7 +33,7 @@ All seven P2/P3 items are in [`P2-P3-BACKLOG-20260927.md`](P2-P3-BACKLOG-2026092
 ## Release disposition
 
 - **M0/M1 engineering:** CLOSED for this isolated, pushed implementation and its stated scope.
-- **Main integration:** running P1 gates in the clean integration worktree; dirty local main remains untouched.
+- **Main integration:** clean integration worktree gates passed; normal fast-forward push is pending final remote-SHA check. Dirty local main remains untouched.
 - **Web activation:** `WEB_ACTIVATION_ENVIRONMENT_BLOCKED`.
 - **M2/M3:** `NOT STARTED` / `DEFERRED_BY_PHASE`.
 - **P2/P3:** unified backlog recorded (7 items).
