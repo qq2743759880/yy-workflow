@@ -389,3 +389,14 @@ R-2 package.json 名义依赖（reflect-metadata/tslib）；D-3 类 C 历史豁�
 
 ### 关键提交
 六张 receipt SIGNED（owner-receipt-signoff #6130f3…）；S16 三层真实拒绝路径；migration.mjs 生产 authority；before_final_receipt 生产发射点；audit-index selftest 68/68 进 S14b；D.5 amendment
+
+## REOPEN-FIX-1 Formal Re-close（2026-09-27）
+
+- **Reopen 依据 / severity=P1**：Codex takeover 在 `b53e9208cb7dc3639e654b90ac287da65946ea8b` 上独立复现 F-E2E-3。隔离 T2 task 使用 `--capability openapi-validation --contract <valid OpenAPI>`；planning asset 未全为 `be-validator`，runtime 最终将 validator 子任务选择为 `be-validator`，但 freeze 后按 planning-time asset 恢复 contract 的逻辑未命中，实际 validator 收到内部 freeze JSON。Spectral 如实返回 `degraded=true`、`pass=null`，plan 仍为 `done`，形成“已完成但未校验用户 API 契约”的生产影响。
+- **此前 closeout 的修正**：`b53e920 formal closeout` 对 capability + real `--contract` 组合有过度声明。本节 supersede 该组合的 CONFIRMED 结论；不删除旧 commit 或 `test-reports/autopilot-work/E2E-v3/RESULTS.md` 历史证据。
+- **Decision**：选择 C，freeze 后、execute 前按现有 `CAPABILITY_MAP` 恢复用户 OpenAPI。它是 runtime resolver 共用的单一 capability→asset authority，避免复制路由或改 runtime/adapter protocol。唯一生产写面为 `scripts/orchestrator.mjs`；无 capability 时按旧计划 asset 路由；未知 capability fail closed 并保留 freeze contract；`--contract-draft` 不变。回滚风险限于撤销该 orchestrator 路由补丁。
+- **Minimal fix**：仅最终目标为 `be-validator` 的 `--contract` 子任务重新指向用户 OpenAPI。`freezeContract` 仍保存 freeze 内容、source/hash；capability provenance、selectedAsset、state/journey 和 D.5 precedence 保持原路径。
+- **Permanent regression**：新增 `scripts/test-contract-routing.mjs` 并接入 S18。五类真实 CLI 场景使用真实 Spectral/Semgrep，并读取实际 adapter 的 `tool/mode/pass/degraded/scope`：legacy validator、capability-selected validator、security 隔离、非 OpenAPI honest degrade、`--contract-draft`。S18 为 5/5，专项断言 14/14；全量 regression 36 PASS / 0 FAIL。
+- **Superseding E2E**：`test-reports/autopilot-work/E2E-v3-contract-route-20260927T171036/`，命令 `node scripts/test-contract-routing.mjs --evidence-dir test-reports/autopilot-work/E2E-v3-contract-route-20260927T171036`，exit 0。主场景 state/journey 均记录 `capability=openapi-validation`、`selectedAsset=be-validator`、用户 OpenAPI 路径；实际 Spectral 6.16.3 `mode=exec`、`pass=true`、`degraded=false`，scope 指向该 OpenAPI。RESULTS 明确 `F-E2E-3 = CLOSED FOR CURRENT HEAD` 与 `supersedes historical F-E2E-3 evidence`；旧 E2E 未覆盖。
+- **Final gates**：regression 36/0；`node scripts/preflight.mjs --owner reopen-fix1` 8/0；`node scripts/validate-structure.mjs` exit 0、0 warnings；`node plans/audit-index-selftest.mjs` 68/0。Windows 回归与 selftest 使用 Git Bash 优先 PATH；Semgrep 进程设置 `PYTHONUTF8=1`。未单独 rebuild manifest；现有 manifest SHA-256 仍为 `b02687984d6b0d0e95b2b5a4d9e4397a6eccd9fe66ce41da991fb6e261d93c11`。
+- **Final tested production HEAD**：`8c9df8dac6c07f306369ffae6b2d70f5ea0b4063`（生产修复、永久回归及 superseding E2E；随后只增加本节 ledger closeout，无生产代码变化）。backlog 不变；active lock=0，active Codex runs=0。精确提交推送后：`PROJECT CLOSED / STOP AUTO-DISPATCH`。
