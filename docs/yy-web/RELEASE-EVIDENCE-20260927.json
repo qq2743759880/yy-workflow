@@ -1,7 +1,7 @@
 {
   "schema": "yy/web-release-evidence@1",
-  "run_id": "yy-web-m0-m1-clean-integration-gates-20260927T151055Z",
-  "recorded_at": "2026-09-27T15:10:55Z",
+  "run_id": "yy-web-m0-m1-remote-main-integration-20260927T151309Z",
+  "recorded_at": "2026-09-27T15:13:09Z",
   "scope": {
     "iteration": "YY workflow iteration optimization PRD V0",
     "prd_status": "DRAFT",
@@ -51,7 +51,11 @@
       },
       "closed_workflow_smoke_at": "2026-09-27T15:09:51Z",
       "target_remote_main_before_push": "f88a193299d6939850befda8a21c8248e6285627",
-      "target_push": "ready_for_normal_fast_forward; verify remote main is unchanged immediately before push"
+      "target_push": "COMPLETED_NORMAL_FAST_FORWARD; remote main contains the tested release commit",
+      "integrated_head": "db99ad6040c790c4d8b2d9e6a3163caf83c43208",
+      "remote_main_before_push": "f88a193299d6939850befda8a21c8248e6285627",
+      "remote_main_after_push_verified": "db99ad6040c790c4d8b2d9e6a3163caf83c43208",
+      "force_push": false
     }
   },
   "release_decision": {
