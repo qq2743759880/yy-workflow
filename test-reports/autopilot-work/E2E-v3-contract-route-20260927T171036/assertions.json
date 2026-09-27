@@ -1,0 +1,861 @@
+{
+  "createdAt": "2026-09-27T09:11:38.153Z",
+  "openapiFixture": "test-reports/autopilot-work/E2E-v3/s1b-derived-chain/openapi.json",
+  "cases": [
+    {
+      "name": "01-legacy-planned-validator",
+      "command": [
+        "Z:\\node\\node.exe",
+        "scripts/orchestrator.mjs",
+        "--workspace",
+        "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\01-legacy-planned-validator",
+        "--backend",
+        "auto",
+        "--no-tui",
+        "--task",
+        "Legacy planned be-validator contract route",
+        "--plan",
+        "--draft",
+        "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\01-legacy-planned-validator\\legacy-plan.json",
+        "--contract",
+        "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3\\s1b-derived-chain\\openapi.json"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "state": {
+        "id": "plan-mujlm0xv",
+        "cluster": "deconstructed",
+        "status": "done",
+        "subtasks": [
+          {
+            "id": "plan-mujlm0xv-0",
+            "asset": "be-validator",
+            "status": "done",
+            "capability": null,
+            "selectedAsset": null,
+            "contract": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3\\s1b-derived-chain\\openapi.json",
+            "brownfieldDraft": false,
+            "adapter": "be-validator",
+            "artifactPath": "artifacts\\plan-mujlm0xv-0\\contract-result.json"
+          }
+        ]
+      },
+      "journeyProjection": {
+        "ok": true,
+        "code": null,
+        "planRows": [
+          {
+            "planId": "plan-mujlm0xv",
+            "cluster": "deconstructed",
+            "status": "done"
+          },
+          {
+            "planId": "plan-mujlm0xv",
+            "cluster": "deconstructed",
+            "status": "done"
+          }
+        ],
+        "subtaskRows": [
+          {
+            "subtaskId": "plan-mujlm0xv-0",
+            "asset": "be-validator",
+            "status": "done",
+            "capability": null,
+            "capabilitySource": null,
+            "selectedAsset": "be-validator"
+          }
+        ]
+      },
+      "actualAdapterResults": [
+        {
+          "subtaskId": "plan-mujlm0xv-0",
+          "asset": "be-validator",
+          "adapter": "be-validator",
+          "contractPath": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3\\s1b-derived-chain\\openapi.json",
+          "resultPath": "workspaces/01-legacy-planned-validator/artifacts/plan-mujlm0xv-0/contract-result.json",
+          "result": {
+            "pass": true,
+            "diff": null,
+            "checkedAt": "2026-09-27T09:10:37.141Z",
+            "tool": "spectral",
+            "version": "6.16.3",
+            "mode": "exec",
+            "findings_total": 2,
+            "findings_summary": [
+              {
+                "rule": "info-contact",
+                "severity": "warn",
+                "message": "Info object must have \"contact\" object.",
+                "path": "info"
+              },
+              {
+                "rule": "operation-tag-defined",
+                "severity": "warn",
+                "message": "Operation tags must be defined in global tags.",
+                "path": "paths./login.post.tags.0"
+              }
+            ],
+            "scope": "real spectral 6.16.3 lint --ruleset vendor/be-validator/rulesets/spectral-oas.yaml against D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3\\s1b-derived-chain\\openapi.json"
+          }
+        }
+      ],
+      "assertions": [
+        {
+          "name": "legacy CLI run completed",
+          "ok": true,
+          "detail": "exit=0, state=done"
+        },
+        {
+          "name": "legacy plan has no capability override",
+          "ok": true,
+          "detail": "planned asset=be-validator"
+        },
+        {
+          "name": "actual Spectral result scanned user OpenAPI",
+          "ok": true,
+          "detail": "[{\"pass\":true,\"diff\":null,\"checkedAt\":\"2026-09-27T09:10:37.141Z\",\"tool\":\"spectral\",\"version\":\"6.16.3\",\"mode\":\"exec\",\"findings_total\":2,\"findings_summary\":[{\"rule\":\"info-contact\",\"severity\":\"warn\",\"message\":\"Info object must have \\\"contact\\\" object.\",\"path\":\"info\"},{\"rule\":\"operation-tag-defined\",\"severity\":\"warn\",\"message\":\"Operation tags must be defined in global tags.\",\"path\":\"paths./login.post.tags.0\"}],\"scope\":\"real spectral 6.16.3 lint --ruleset vendor/be-validator/rulesets/spectral-oas.yaml against D:\\\\.ai-hub\\\\skills\\\\yy\\\\test-reports\\\\autopilot-work\\\\E2E-v3\\\\s1b-derived-chain\\\\openapi.json\"}]"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "02-capability-openapi-validation",
+      "command": [
+        "Z:\\node\\node.exe",
+        "scripts/orchestrator.mjs",
+        "--workspace",
+        "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\02-capability-openapi-validation",
+        "--backend",
+        "auto",
+        "--no-tui",
+        "--task",
+        "登录接口开发",
+        "--capability",
+        "openapi-validation",
+        "--contract",
+        "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3\\s1b-derived-chain\\openapi.json"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "state": {
+        "id": "plan-mujlm3n9",
+        "cluster": "T2_BACKEND",
+        "status": "done",
+        "subtasks": [
+          {
+            "id": "plan-mujlm3n9-0",
+            "asset": "be-validator",
+            "status": "done",
+            "capability": "openapi-validation",
+            "selectedAsset": "be-validator",
+            "contract": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3\\s1b-derived-chain\\openapi.json",
+            "brownfieldDraft": false,
+            "adapter": "be-validator",
+            "artifactPath": "artifacts\\plan-mujlm3n9-0\\contract-result.json"
+          },
+          {
+            "id": "plan-mujlm3n9-1",
+            "asset": "sdlc",
+            "status": "skipped",
+            "capability": "openapi-validation",
+            "selectedAsset": null,
+            "contract": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3\\s1b-derived-chain\\openapi.json",
+            "brownfieldDraft": false,
+            "adapter": null,
+            "artifactPath": null
+          },
+          {
+            "id": "plan-mujlm3n9-2",
+            "asset": "be-validator",
+            "status": "done",
+            "capability": "openapi-validation",
+            "selectedAsset": "be-validator",
+            "contract": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3\\s1b-derived-chain\\openapi.json",
+            "brownfieldDraft": false,
+            "adapter": "be-validator",
+            "artifactPath": "artifacts\\plan-mujlm3n9-2\\contract-result.json"
+          },
+          {
+            "id": "plan-mujlm3n9-3",
+            "asset": "review",
+            "status": "skipped",
+            "capability": "openapi-validation",
+            "selectedAsset": null,
+            "contract": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3\\s1b-derived-chain\\openapi.json",
+            "brownfieldDraft": false,
+            "adapter": null,
+            "artifactPath": null
+          },
+          {
+            "id": "plan-mujlm3n9-4",
+            "asset": "be-validator",
+            "status": "skipped",
+            "capability": "openapi-validation",
+            "selectedAsset": null,
+            "contract": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3\\s1b-derived-chain\\openapi.json",
+            "brownfieldDraft": false,
+            "adapter": null,
+            "artifactPath": null
+          }
+        ]
+      },
+      "journeyProjection": {
+        "ok": true,
+        "code": null,
+        "planRows": [
+          {
+            "planId": "plan-mujlm3n9",
+            "cluster": "T2_BACKEND",
+            "status": "done"
+          },
+          {
+            "planId": "plan-mujlm3n9",
+            "cluster": "T2_BACKEND",
+            "status": "done"
+          }
+        ],
+        "subtaskRows": [
+          {
+            "subtaskId": "plan-mujlm3n9-0",
+            "asset": "be-validator",
+            "status": "done",
+            "capability": "openapi-validation",
+            "capabilitySource": "explicit",
+            "selectedAsset": "be-validator"
+          },
+          {
+            "subtaskId": "plan-mujlm3n9-1",
+            "asset": "sdlc",
+            "status": "skipped",
+            "capability": "openapi-validation",
+            "capabilitySource": "explicit",
+            "selectedAsset": "sdlc"
+          },
+          {
+            "subtaskId": "plan-mujlm3n9-2",
+            "asset": "be-validator",
+            "status": "done",
+            "capability": "openapi-validation",
+            "capabilitySource": "explicit",
+            "selectedAsset": "be-validator"
+          },
+          {
+            "subtaskId": "plan-mujlm3n9-3",
+            "asset": "review",
+            "status": "skipped",
+            "capability": "openapi-validation",
+            "capabilitySource": "explicit",
+            "selectedAsset": "review"
+          },
+          {
+            "subtaskId": "plan-mujlm3n9-4",
+            "asset": "be-validator",
+            "status": "skipped",
+            "capability": "openapi-validation",
+            "capabilitySource": "explicit",
+            "selectedAsset": "be-validator"
+          }
+        ]
+      },
+      "actualAdapterResults": [
+        {
+          "subtaskId": "plan-mujlm3n9-0",
+          "asset": "be-validator",
+          "adapter": "be-validator",
+          "contractPath": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3\\s1b-derived-chain\\openapi.json",
+          "resultPath": "workspaces/02-capability-openapi-validation/artifacts/plan-mujlm3n9-0/contract-result.json",
+          "result": {
+            "pass": true,
+            "diff": null,
+            "checkedAt": "2026-09-27T09:10:40.659Z",
+            "tool": "spectral",
+            "version": "6.16.3",
+            "mode": "exec",
+            "findings_total": 2,
+            "findings_summary": [
+              {
+                "rule": "info-contact",
+                "severity": "warn",
+                "message": "Info object must have \"contact\" object.",
+                "path": "info"
+              },
+              {
+                "rule": "operation-tag-defined",
+                "severity": "warn",
+                "message": "Operation tags must be defined in global tags.",
+                "path": "paths./login.post.tags.0"
+              }
+            ],
+            "scope": "real spectral 6.16.3 lint --ruleset vendor/be-validator/rulesets/spectral-oas.yaml against D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3\\s1b-derived-chain\\openapi.json"
+          }
+        },
+        {
+          "subtaskId": "plan-mujlm3n9-2",
+          "asset": "be-validator",
+          "adapter": "be-validator",
+          "contractPath": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3\\s1b-derived-chain\\openapi.json",
+          "resultPath": "workspaces/02-capability-openapi-validation/artifacts/plan-mujlm3n9-2/contract-result.json",
+          "result": {
+            "pass": true,
+            "diff": null,
+            "checkedAt": "2026-09-27T09:10:43.872Z",
+            "tool": "spectral",
+            "version": "6.16.3",
+            "mode": "exec",
+            "findings_total": 2,
+            "findings_summary": [
+              {
+                "rule": "info-contact",
+                "severity": "warn",
+                "message": "Info object must have \"contact\" object.",
+                "path": "info"
+              },
+              {
+                "rule": "operation-tag-defined",
+                "severity": "warn",
+                "message": "Operation tags must be defined in global tags.",
+                "path": "paths./login.post.tags.0"
+              }
+            ],
+            "scope": "real spectral 6.16.3 lint --ruleset vendor/be-validator/rulesets/spectral-oas.yaml against D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3\\s1b-derived-chain\\openapi.json"
+          }
+        }
+      ],
+      "assertions": [
+        {
+          "name": "capability CLI run completed",
+          "ok": true,
+          "detail": "exit=0, state=done"
+        },
+        {
+          "name": "capability resolved to final be-validator",
+          "ok": true,
+          "detail": "be-validator subtasks=3"
+        },
+        {
+          "name": "actual Spectral result scanned user OpenAPI",
+          "ok": true,
+          "detail": "[{\"pass\":true,\"diff\":null,\"checkedAt\":\"2026-09-27T09:10:40.659Z\",\"tool\":\"spectral\",\"version\":\"6.16.3\",\"mode\":\"exec\",\"findings_total\":2,\"findings_summary\":[{\"rule\":\"info-contact\",\"severity\":\"warn\",\"message\":\"Info object must have \\\"contact\\\" object.\",\"path\":\"info\"},{\"rule\":\"operation-tag-defined\",\"severity\":\"warn\",\"message\":\"Operation tags must be defined in global tags.\",\"path\":\"paths./login.post.tags.0\"}],\"scope\":\"real spectral 6.16.3 lint --ruleset vendor/be-validator/rulesets/spectral-oas.yaml against D:\\\\.ai-hub\\\\skills\\\\yy\\\\test-reports\\\\autopilot-work\\\\E2E-v3\\\\s1b-derived-chain\\\\openapi.json\"},{\"pass\":true,\"diff\":null,\"checkedAt\":\"2026-09-27T09:10:43.872Z\",\"tool\":\"spectral\",\"version\":\"6.16.3\",\"mode\":\"exec\",\"findings_total\":2,\"findings_summary\":[{\"rule\":\"info-contact\",\"severity\":\"warn\",\"message\":\"Info object must have \\\"contact\\\" object.\",\"path\":\"info\"},{\"rule\":\"operation-tag-defined\",\"severity\":\"warn\",\"message\":\"Operation tags must be defined in global tags.\",\"path\":\"paths./login.post.tags.0\"}],\"scope\":\"real spectral 6.16.3 lint --ruleset vendor/be-validator/rulesets/spectral-oas.yaml against D:\\\\.ai-hub\\\\skills\\\\yy\\\\test-reports\\\\autopilot-work\\\\E2E-v3\\\\s1b-derived-chain\\\\openapi.json\"}]"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "03-security-audit-contract-isolation",
+      "command": [
+        "Z:\\node\\node.exe",
+        "scripts/orchestrator.mjs",
+        "--workspace",
+        "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\03-security-audit-contract-isolation",
+        "--backend",
+        "auto",
+        "--no-tui",
+        "--task",
+        "运维部署监控",
+        "--capability",
+        "security-audit",
+        "--contract",
+        "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3\\s1b-derived-chain\\openapi.json"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "state": {
+        "id": "plan-mujlm905",
+        "cluster": "T5_OPS",
+        "status": "done",
+        "subtasks": [
+          {
+            "id": "plan-mujlm905-0",
+            "asset": "security",
+            "status": "done",
+            "capability": "security-audit",
+            "selectedAsset": "security",
+            "contract": "contracts\\plan-mujlm905.json",
+            "brownfieldDraft": false,
+            "adapter": "security",
+            "artifactPath": "artifacts\\plan-mujlm905-0\\security-result.json"
+          },
+          {
+            "id": "plan-mujlm905-1",
+            "asset": "security",
+            "status": "done",
+            "capability": "security-audit",
+            "selectedAsset": "security",
+            "contract": "contracts\\plan-mujlm905.json",
+            "brownfieldDraft": false,
+            "adapter": "security",
+            "artifactPath": "artifacts\\plan-mujlm905-1\\security-result.json"
+          },
+          {
+            "id": "plan-mujlm905-2",
+            "asset": "security",
+            "status": "done",
+            "capability": "security-audit",
+            "selectedAsset": "security",
+            "contract": "contracts\\plan-mujlm905.json",
+            "brownfieldDraft": false,
+            "adapter": "security",
+            "artifactPath": "artifacts\\plan-mujlm905-2\\security-result.json"
+          },
+          {
+            "id": "plan-mujlm905-3",
+            "asset": "security",
+            "status": "done",
+            "capability": "security-audit",
+            "selectedAsset": "security",
+            "contract": "contracts\\plan-mujlm905.json",
+            "brownfieldDraft": false,
+            "adapter": "security",
+            "artifactPath": "artifacts\\plan-mujlm905-3\\security-result.json"
+          }
+        ]
+      },
+      "journeyProjection": {
+        "ok": true,
+        "code": null,
+        "planRows": [
+          {
+            "planId": "plan-mujlm905",
+            "cluster": "T5_OPS",
+            "status": "done"
+          },
+          {
+            "planId": "plan-mujlm905",
+            "cluster": "T5_OPS",
+            "status": "done"
+          }
+        ],
+        "subtaskRows": [
+          {
+            "subtaskId": "plan-mujlm905-0",
+            "asset": "security",
+            "status": "done",
+            "capability": "security-audit",
+            "capabilitySource": "explicit",
+            "selectedAsset": "security"
+          },
+          {
+            "subtaskId": "plan-mujlm905-1",
+            "asset": "security",
+            "status": "done",
+            "capability": "security-audit",
+            "capabilitySource": "explicit",
+            "selectedAsset": "security"
+          },
+          {
+            "subtaskId": "plan-mujlm905-2",
+            "asset": "security",
+            "status": "done",
+            "capability": "security-audit",
+            "capabilitySource": "explicit",
+            "selectedAsset": "security"
+          },
+          {
+            "subtaskId": "plan-mujlm905-3",
+            "asset": "security",
+            "status": "done",
+            "capability": "security-audit",
+            "capabilitySource": "explicit",
+            "selectedAsset": "security"
+          }
+        ]
+      },
+      "actualAdapterResults": [
+        {
+          "subtaskId": "plan-mujlm905-0",
+          "asset": "security",
+          "adapter": "security",
+          "contractPath": "contracts\\plan-mujlm905.json",
+          "resultPath": "workspaces/03-security-audit-contract-isolation/artifacts/plan-mujlm905-0/security-result.json",
+          "result": {
+            "pass": true,
+            "diff": null,
+            "checkedAt": "2026-09-27T09:10:47.599Z",
+            "tool": "semgrep",
+            "version": "1.175.0",
+            "mode": "exec",
+            "exit_code": 0,
+            "findings_total": 0,
+            "findings_summary": [],
+            "scanTarget": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\03-security-audit-contract-isolation",
+            "ruleset": "D:\\.ai-hub\\skills\\yy\\vendor\\security\\rulesets\\security-local-rules.yaml",
+            "uncovered_languages": [],
+            "scope": "real semgrep 1.175.0 scan --ruleset vendor/security/rulesets/security-local-rules.yaml against D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\03-security-audit-contract-isolation"
+          }
+        },
+        {
+          "subtaskId": "plan-mujlm905-1",
+          "asset": "security",
+          "adapter": "security",
+          "contractPath": "contracts\\plan-mujlm905.json",
+          "resultPath": "workspaces/03-security-audit-contract-isolation/artifacts/plan-mujlm905-1/security-result.json",
+          "result": {
+            "pass": true,
+            "diff": null,
+            "checkedAt": "2026-09-27T09:11:01.500Z",
+            "tool": "semgrep",
+            "version": "1.175.0",
+            "mode": "exec",
+            "exit_code": 0,
+            "findings_total": 0,
+            "findings_summary": [],
+            "scanTarget": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\03-security-audit-contract-isolation",
+            "ruleset": "D:\\.ai-hub\\skills\\yy\\vendor\\security\\rulesets\\security-local-rules.yaml",
+            "uncovered_languages": [],
+            "scope": "real semgrep 1.175.0 scan --ruleset vendor/security/rulesets/security-local-rules.yaml against D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\03-security-audit-contract-isolation"
+          }
+        },
+        {
+          "subtaskId": "plan-mujlm905-2",
+          "asset": "security",
+          "adapter": "security",
+          "contractPath": "contracts\\plan-mujlm905.json",
+          "resultPath": "workspaces/03-security-audit-contract-isolation/artifacts/plan-mujlm905-2/security-result.json",
+          "result": {
+            "pass": true,
+            "diff": null,
+            "checkedAt": "2026-09-27T09:11:13.838Z",
+            "tool": "semgrep",
+            "version": "1.175.0",
+            "mode": "exec",
+            "exit_code": 0,
+            "findings_total": 0,
+            "findings_summary": [],
+            "scanTarget": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\03-security-audit-contract-isolation",
+            "ruleset": "D:\\.ai-hub\\skills\\yy\\vendor\\security\\rulesets\\security-local-rules.yaml",
+            "uncovered_languages": [],
+            "scope": "real semgrep 1.175.0 scan --ruleset vendor/security/rulesets/security-local-rules.yaml against D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\03-security-audit-contract-isolation"
+          }
+        },
+        {
+          "subtaskId": "plan-mujlm905-3",
+          "asset": "security",
+          "adapter": "security",
+          "contractPath": "contracts\\plan-mujlm905.json",
+          "resultPath": "workspaces/03-security-audit-contract-isolation/artifacts/plan-mujlm905-3/security-result.json",
+          "result": {
+            "pass": true,
+            "diff": null,
+            "checkedAt": "2026-09-27T09:11:25.548Z",
+            "tool": "semgrep",
+            "version": "1.175.0",
+            "mode": "exec",
+            "exit_code": 0,
+            "findings_total": 0,
+            "findings_summary": [],
+            "scanTarget": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\03-security-audit-contract-isolation",
+            "ruleset": "D:\\.ai-hub\\skills\\yy\\vendor\\security\\rulesets\\security-local-rules.yaml",
+            "uncovered_languages": [],
+            "scope": "real semgrep 1.175.0 scan --ruleset vendor/security/rulesets/security-local-rules.yaml against D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\03-security-audit-contract-isolation"
+          }
+        }
+      ],
+      "assertions": [
+        {
+          "name": "security CLI run completed",
+          "ok": true,
+          "detail": "exit=0, state=done"
+        },
+        {
+          "name": "OpenAPI is not assigned to security subtasks",
+          "ok": true,
+          "detail": "security subtask contracts=[\"contracts\\\\plan-mujlm905.json\",\"contracts\\\\plan-mujlm905.json\",\"contracts\\\\plan-mujlm905.json\",\"contracts\\\\plan-mujlm905.json\"]"
+        },
+        {
+          "name": "actual Semgrep result does not consume OpenAPI",
+          "ok": true,
+          "detail": "[{\"pass\":true,\"diff\":null,\"checkedAt\":\"2026-09-27T09:10:47.599Z\",\"tool\":\"semgrep\",\"version\":\"1.175.0\",\"mode\":\"exec\",\"exit_code\":0,\"findings_total\":0,\"findings_summary\":[],\"scanTarget\":\"D:\\\\.ai-hub\\\\skills\\\\yy\\\\test-reports\\\\autopilot-work\\\\E2E-v3-contract-route-20260927T171036\\\\workspaces\\\\03-security-audit-contract-isolation\",\"ruleset\":\"D:\\\\.ai-hub\\\\skills\\\\yy\\\\vendor\\\\security\\\\rulesets\\\\security-local-rules.yaml\",\"uncovered_languages\":[],\"scope\":\"real semgrep 1.175.0 scan --ruleset vendor/security/rulesets/security-local-rules.yaml against D:\\\\.ai-hub\\\\skills\\\\yy\\\\test-reports\\\\autopilot-work\\\\E2E-v3-contract-route-20260927T171036\\\\workspaces\\\\03-security-audit-contract-isolation\"},{\"pass\":true,\"diff\":null,\"checkedAt\":\"2026-09-27T09:11:01.500Z\",\"tool\":\"semgrep\",\"version\":\"1.175.0\",\"mode\":\"exec\",\"exit_code\":0,\"findings_total\":0,\"findings_summary\":[],\"scanTarget\":\"D:\\\\.ai-hub\\\\skills\\\\yy\\\\test-reports\\\\autopilot-work\\\\E2E-v3-contract-route-20260927T171036\\\\workspaces\\\\03-security-audit-contract-isolation\",\"ruleset\":\"D:\\\\.ai-hub\\\\skills\\\\yy\\\\vendor\\\\security\\\\rulesets\\\\security-local-rules.yaml\",\"uncovered_languages\":[],\"scope\":\"real semgrep 1.175.0 scan --ruleset vendor/security/rulesets/security-local-rules.yaml against D:\\\\.ai-hub\\\\skills\\\\yy\\\\test-reports\\\\autopilot-work\\\\E2E-v3-contract-route-20260927T171036\\\\workspaces\\\\03-security-audit-contract-isolation\"},{\"pass\":true,\"diff\":null,\"checkedAt\":\"2026-09-27T09:11:13.838Z\",\"tool\":\"semgrep\",\"version\":\"1.175.0\",\"mode\":\"exec\",\"exit_code\":0,\"findings_total\":0,\"findings_summary\":[],\"scanTarget\":\"D:\\\\.ai-hub\\\\skills\\\\yy\\\\test-reports\\\\autopilot-work\\\\E2E-v3-contract-route-20260927T171036\\\\workspaces\\\\03-security-audit-contract-isolation\",\"ruleset\":\"D:\\\\.ai-hub\\\\skills\\\\yy\\\\vendor\\\\security\\\\rulesets\\\\security-local-rules.yaml\",\"uncovered_languages\":[],\"scope\":\"real semgrep 1.175.0 scan --ruleset vendor/security/rulesets/security-local-rules.yaml against D:\\\\.ai-hub\\\\skills\\\\yy\\\\test-reports\\\\autopilot-work\\\\E2E-v3-contract-route-20260927T171036\\\\workspaces\\\\03-security-audit-contract-isolation\"},{\"pass\":true,\"diff\":null,\"checkedAt\":\"2026-09-27T09:11:25.548Z\",\"tool\":\"semgrep\",\"version\":\"1.175.0\",\"mode\":\"exec\",\"exit_code\":0,\"findings_total\":0,\"findings_summary\":[],\"scanTarget\":\"D:\\\\.ai-hub\\\\skills\\\\yy\\\\test-reports\\\\autopilot-work\\\\E2E-v3-contract-route-20260927T171036\\\\workspaces\\\\03-security-audit-contract-isolation\",\"ruleset\":\"D:\\\\.ai-hub\\\\skills\\\\yy\\\\vendor\\\\security\\\\rulesets\\\\security-local-rules.yaml\",\"uncovered_languages\":[],\"scope\":\"real semgrep 1.175.0 scan --ruleset vendor/security/rulesets/security-local-rules.yaml against D:\\\\.ai-hub\\\\skills\\\\yy\\\\test-reports\\\\autopilot-work\\\\E2E-v3-contract-route-20260927T171036\\\\workspaces\\\\03-security-audit-contract-isolation\"}]"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "04-non-openapi-json-degrades",
+      "command": [
+        "Z:\\node\\node.exe",
+        "scripts/orchestrator.mjs",
+        "--workspace",
+        "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\04-non-openapi-json-degrades",
+        "--backend",
+        "auto",
+        "--no-tui",
+        "--task",
+        "登录接口开发",
+        "--capability",
+        "openapi-validation",
+        "--contract",
+        "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\04-non-openapi-json-degrades\\not-openapi.json"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "state": {
+        "id": "plan-mujlnbli",
+        "cluster": "T2_BACKEND",
+        "status": "done",
+        "subtasks": [
+          {
+            "id": "plan-mujlnbli-0",
+            "asset": "be-validator",
+            "status": "done",
+            "capability": "openapi-validation",
+            "selectedAsset": "be-validator",
+            "contract": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\04-non-openapi-json-degrades\\not-openapi.json",
+            "brownfieldDraft": false,
+            "adapter": "be-validator",
+            "artifactPath": "artifacts\\plan-mujlnbli-0\\contract-result.json"
+          },
+          {
+            "id": "plan-mujlnbli-1",
+            "asset": "sdlc",
+            "status": "skipped",
+            "capability": "openapi-validation",
+            "selectedAsset": null,
+            "contract": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\04-non-openapi-json-degrades\\not-openapi.json",
+            "brownfieldDraft": false,
+            "adapter": null,
+            "artifactPath": null
+          },
+          {
+            "id": "plan-mujlnbli-2",
+            "asset": "be-validator",
+            "status": "done",
+            "capability": "openapi-validation",
+            "selectedAsset": "be-validator",
+            "contract": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\04-non-openapi-json-degrades\\not-openapi.json",
+            "brownfieldDraft": false,
+            "adapter": "be-validator",
+            "artifactPath": "artifacts\\plan-mujlnbli-2\\contract-result.json"
+          },
+          {
+            "id": "plan-mujlnbli-3",
+            "asset": "review",
+            "status": "skipped",
+            "capability": "openapi-validation",
+            "selectedAsset": null,
+            "contract": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\04-non-openapi-json-degrades\\not-openapi.json",
+            "brownfieldDraft": false,
+            "adapter": null,
+            "artifactPath": null
+          },
+          {
+            "id": "plan-mujlnbli-4",
+            "asset": "be-validator",
+            "status": "skipped",
+            "capability": "openapi-validation",
+            "selectedAsset": null,
+            "contract": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\04-non-openapi-json-degrades\\not-openapi.json",
+            "brownfieldDraft": false,
+            "adapter": null,
+            "artifactPath": null
+          }
+        ]
+      },
+      "journeyProjection": {
+        "ok": true,
+        "code": null,
+        "planRows": [
+          {
+            "planId": "plan-mujlnbli",
+            "cluster": "T2_BACKEND",
+            "status": "done"
+          },
+          {
+            "planId": "plan-mujlnbli",
+            "cluster": "T2_BACKEND",
+            "status": "done"
+          }
+        ],
+        "subtaskRows": [
+          {
+            "subtaskId": "plan-mujlnbli-0",
+            "asset": "be-validator",
+            "status": "done",
+            "capability": "openapi-validation",
+            "capabilitySource": "explicit",
+            "selectedAsset": "be-validator"
+          },
+          {
+            "subtaskId": "plan-mujlnbli-1",
+            "asset": "sdlc",
+            "status": "skipped",
+            "capability": "openapi-validation",
+            "capabilitySource": "explicit",
+            "selectedAsset": "sdlc"
+          },
+          {
+            "subtaskId": "plan-mujlnbli-2",
+            "asset": "be-validator",
+            "status": "done",
+            "capability": "openapi-validation",
+            "capabilitySource": "explicit",
+            "selectedAsset": "be-validator"
+          },
+          {
+            "subtaskId": "plan-mujlnbli-3",
+            "asset": "review",
+            "status": "skipped",
+            "capability": "openapi-validation",
+            "capabilitySource": "explicit",
+            "selectedAsset": "review"
+          },
+          {
+            "subtaskId": "plan-mujlnbli-4",
+            "asset": "be-validator",
+            "status": "skipped",
+            "capability": "openapi-validation",
+            "capabilitySource": "explicit",
+            "selectedAsset": "be-validator"
+          }
+        ]
+      },
+      "actualAdapterResults": [
+        {
+          "subtaskId": "plan-mujlnbli-0",
+          "asset": "be-validator",
+          "adapter": "be-validator",
+          "contractPath": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\04-non-openapi-json-degrades\\not-openapi.json",
+          "resultPath": "workspaces/04-non-openapi-json-degrades/artifacts/plan-mujlnbli-0/contract-result.json",
+          "result": {
+            "pass": null,
+            "diff": "contract file is JSON but not an OpenAPI spec (missing openapi/swagger field, e.g. a freeze file); real contract validation requires a valid OpenAPI document — recorded but not validated",
+            "checkedAt": "2026-09-27T09:11:37.611Z",
+            "tool": "spectral",
+            "version": "unknown",
+            "degraded": true
+          }
+        },
+        {
+          "subtaskId": "plan-mujlnbli-2",
+          "asset": "be-validator",
+          "adapter": "be-validator",
+          "contractPath": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\04-non-openapi-json-degrades\\not-openapi.json",
+          "resultPath": "workspaces/04-non-openapi-json-degrades/artifacts/plan-mujlnbli-2/contract-result.json",
+          "result": {
+            "pass": null,
+            "diff": "contract file is JSON but not an OpenAPI spec (missing openapi/swagger field, e.g. a freeze file); real contract validation requires a valid OpenAPI document — recorded but not validated",
+            "checkedAt": "2026-09-27T09:11:37.617Z",
+            "tool": "spectral",
+            "version": "unknown",
+            "degraded": true
+          }
+        }
+      ],
+      "assertions": [
+        {
+          "name": "non-OpenAPI CLI run completed",
+          "ok": true,
+          "detail": "exit=0, state=done"
+        },
+        {
+          "name": "adapter preserves honest degraded result",
+          "ok": true,
+          "detail": "[{\"pass\":null,\"diff\":\"contract file is JSON but not an OpenAPI spec (missing openapi/swagger field, e.g. a freeze file); real contract validation requires a valid OpenAPI document — recorded but not validated\",\"checkedAt\":\"2026-09-27T09:11:37.611Z\",\"tool\":\"spectral\",\"version\":\"unknown\",\"degraded\":true},{\"pass\":null,\"diff\":\"contract file is JSON but not an OpenAPI spec (missing openapi/swagger field, e.g. a freeze file); real contract validation requires a valid OpenAPI document — recorded but not validated\",\"checkedAt\":\"2026-09-27T09:11:37.617Z\",\"tool\":\"spectral\",\"version\":\"unknown\",\"degraded\":true}]"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "05-contract-draft-semantics",
+      "command": [
+        "Z:\\node\\node.exe",
+        "scripts/orchestrator.mjs",
+        "--workspace",
+        "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\05-contract-draft-semantics",
+        "--backend",
+        "auto",
+        "--no-tui",
+        "--task",
+        "Brownfield contract draft route",
+        "--plan",
+        "--draft",
+        "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\05-contract-draft-semantics\\draft-plan.json",
+        "--contract-draft",
+        "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\05-contract-draft-semantics\\contract-draft.json"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "state": {
+        "id": "plan-mujlnbx9",
+        "cluster": "deconstructed",
+        "status": "done",
+        "subtasks": [
+          {
+            "id": "plan-mujlnbx9-0",
+            "asset": "be-validator",
+            "status": "done",
+            "capability": null,
+            "selectedAsset": null,
+            "contract": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\05-contract-draft-semantics\\contract-draft.json",
+            "brownfieldDraft": true,
+            "adapter": "be-validator",
+            "artifactPath": "artifacts\\plan-mujlnbx9-0\\contract-result.json"
+          }
+        ]
+      },
+      "journeyProjection": {
+        "ok": true,
+        "code": null,
+        "planRows": [
+          {
+            "planId": "plan-mujlnbx9",
+            "cluster": "deconstructed",
+            "status": "done"
+          },
+          {
+            "planId": "plan-mujlnbx9",
+            "cluster": "deconstructed",
+            "status": "done"
+          }
+        ],
+        "subtaskRows": [
+          {
+            "subtaskId": "plan-mujlnbx9-0",
+            "asset": "be-validator",
+            "status": "done",
+            "capability": null,
+            "capabilitySource": null,
+            "selectedAsset": "be-validator"
+          }
+        ]
+      },
+      "actualAdapterResults": [
+        {
+          "subtaskId": "plan-mujlnbx9-0",
+          "asset": "be-validator",
+          "adapter": "be-validator",
+          "contractPath": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\05-contract-draft-semantics\\contract-draft.json",
+          "resultPath": "workspaces/05-contract-draft-semantics/artifacts/plan-mujlnbx9-0/contract-result.json",
+          "result": {
+            "pass": null,
+            "degraded": true,
+            "diff": "brownfield draft (draft:true) — 未确认契约，不做真校验；待后端确认后以 --contract 升级真校验",
+            "checkedAt": "2026-09-27T09:11:38.029Z",
+            "tool": "spectral",
+            "version": "unknown",
+            "draft": true,
+            "reason": "subtask.brownfieldDraft=true (--contract-draft)"
+          }
+        }
+      ],
+      "assertions": [
+        {
+          "name": "--contract-draft CLI run completed",
+          "ok": true,
+          "detail": "exit=0, state=done"
+        },
+        {
+          "name": "brownfield draft flags and contract path remain intact",
+          "ok": true,
+          "detail": "subtask={\"id\":\"plan-mujlnbx9-0\",\"asset\":\"be-validator\",\"status\":\"done\",\"capability\":null,\"selectedAsset\":null,\"contract\":\"D:\\\\.ai-hub\\\\skills\\\\yy\\\\test-reports\\\\autopilot-work\\\\E2E-v3-contract-route-20260927T171036\\\\workspaces\\\\05-contract-draft-semantics\\\\contract-draft.json\",\"brownfieldDraft\":true,\"adapter\":\"be-validator\",\"artifactPath\":\"artifacts\\\\plan-mujlnbx9-0\\\\contract-result.json\"}"
+        },
+        {
+          "name": "adapter still degrades without real validation",
+          "ok": true,
+          "detail": "{\"pass\":null,\"degraded\":true,\"diff\":\"brownfield draft (draft:true) — 未确认契约，不做真校验；待后端确认后以 --contract 升级真校验\",\"checkedAt\":\"2026-09-27T09:11:38.029Z\",\"tool\":\"spectral\",\"version\":\"unknown\",\"draft\":true,\"reason\":\"subtask.brownfieldDraft=true (--contract-draft)\"}"
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "passed": true
+}

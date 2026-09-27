@@ -64,6 +64,8 @@
  *                                    另：注入反例三连（静默取一/静默执行/静默放行）必须被判定具名 FAIL（探针有牙，
  *                                    防恒真 vacuous）；具名失败码→governance 冻结事件两键匹配。
  *                                    证据落 test-reports/autopilot-work/W2-3/。任一 FAIL → regression FAIL。
+ *   S18 capability-aware OpenAPI routing —— REOPEN-FIX-1：真实 CLI + Spectral/Semgrep 结果验证契约路由，
+ *                                    覆盖 legacy validator、capability validator/security、非 OpenAPI 降级、draft 语义。
  *
  * 注：S4-S6 在临时 workspace 中运行（os.tmpdir），结束后清理，不污染仓库。
  *
@@ -988,6 +990,11 @@ async function main() {
       fs.rmSync(s17Tmp, { recursive: true, force: true });
     }
   }
+
+  // S18 capability-aware OpenAPI contract routing（REOPEN-FIX-1）：真实 CLI 与实际 vendor adapters。
+  const s18 = await run(process.execPath, ['scripts/test-contract-routing.mjs']);
+  const s18Summary = s18.out.split(/\r?\n/).filter((line) => /^(PASS|FAIL) |^RESULT /.test(line)).join(' | ');
+  section('S18 capability-aware OpenAPI contract routing', s18.ok, s18Summary || ('exit=' + s18.code));
 
   console.log('\n结果: ' + pass + ' PASS / ' + fail + ' FAIL' + (skip ? ' / ' + skip + ' SKIP' : ''));
   if (failures.length) { for (const f of failures) console.log('  FAILED: ' + f); process.exitCode = 1; }

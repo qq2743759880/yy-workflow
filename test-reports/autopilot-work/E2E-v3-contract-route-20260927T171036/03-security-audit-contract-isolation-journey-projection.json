@@ -1,0 +1,50 @@
+{
+  "ok": true,
+  "code": null,
+  "planRows": [
+    {
+      "planId": "plan-mujlm905",
+      "cluster": "T5_OPS",
+      "status": "done"
+    },
+    {
+      "planId": "plan-mujlm905",
+      "cluster": "T5_OPS",
+      "status": "done"
+    }
+  ],
+  "subtaskRows": [
+    {
+      "subtaskId": "plan-mujlm905-0",
+      "asset": "security",
+      "status": "done",
+      "capability": "security-audit",
+      "capabilitySource": "explicit",
+      "selectedAsset": "security"
+    },
+    {
+      "subtaskId": "plan-mujlm905-1",
+      "asset": "security",
+      "status": "done",
+      "capability": "security-audit",
+      "capabilitySource": "explicit",
+      "selectedAsset": "security"
+    },
+    {
+      "subtaskId": "plan-mujlm905-2",
+      "asset": "security",
+      "status": "done",
+      "capability": "security-audit",
+      "capabilitySource": "explicit",
+      "selectedAsset": "security"
+    },
+    {
+      "subtaskId": "plan-mujlm905-3",
+      "asset": "security",
+      "status": "done",
+      "capability": "security-audit",
+      "capabilitySource": "explicit",
+      "selectedAsset": "security"
+    }
+  ]
+}

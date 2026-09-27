@@ -1,0 +1,186 @@
+{
+  "name": "04-non-openapi-json-degrades",
+  "command": [
+    "Z:\\node\\node.exe",
+    "scripts/orchestrator.mjs",
+    "--workspace",
+    "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\04-non-openapi-json-degrades",
+    "--backend",
+    "auto",
+    "--no-tui",
+    "--task",
+    "登录接口开发",
+    "--capability",
+    "openapi-validation",
+    "--contract",
+    "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\04-non-openapi-json-degrades\\not-openapi.json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "error": null,
+  "state": {
+    "id": "plan-mujlnbli",
+    "cluster": "T2_BACKEND",
+    "status": "done",
+    "subtasks": [
+      {
+        "id": "plan-mujlnbli-0",
+        "asset": "be-validator",
+        "status": "done",
+        "capability": "openapi-validation",
+        "selectedAsset": "be-validator",
+        "contract": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\04-non-openapi-json-degrades\\not-openapi.json",
+        "brownfieldDraft": false,
+        "adapter": "be-validator",
+        "artifactPath": "artifacts\\plan-mujlnbli-0\\contract-result.json"
+      },
+      {
+        "id": "plan-mujlnbli-1",
+        "asset": "sdlc",
+        "status": "skipped",
+        "capability": "openapi-validation",
+        "selectedAsset": null,
+        "contract": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\04-non-openapi-json-degrades\\not-openapi.json",
+        "brownfieldDraft": false,
+        "adapter": null,
+        "artifactPath": null
+      },
+      {
+        "id": "plan-mujlnbli-2",
+        "asset": "be-validator",
+        "status": "done",
+        "capability": "openapi-validation",
+        "selectedAsset": "be-validator",
+        "contract": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\04-non-openapi-json-degrades\\not-openapi.json",
+        "brownfieldDraft": false,
+        "adapter": "be-validator",
+        "artifactPath": "artifacts\\plan-mujlnbli-2\\contract-result.json"
+      },
+      {
+        "id": "plan-mujlnbli-3",
+        "asset": "review",
+        "status": "skipped",
+        "capability": "openapi-validation",
+        "selectedAsset": null,
+        "contract": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\04-non-openapi-json-degrades\\not-openapi.json",
+        "brownfieldDraft": false,
+        "adapter": null,
+        "artifactPath": null
+      },
+      {
+        "id": "plan-mujlnbli-4",
+        "asset": "be-validator",
+        "status": "skipped",
+        "capability": "openapi-validation",
+        "selectedAsset": null,
+        "contract": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\04-non-openapi-json-degrades\\not-openapi.json",
+        "brownfieldDraft": false,
+        "adapter": null,
+        "artifactPath": null
+      }
+    ]
+  },
+  "journeyProjection": {
+    "ok": true,
+    "code": null,
+    "planRows": [
+      {
+        "planId": "plan-mujlnbli",
+        "cluster": "T2_BACKEND",
+        "status": "done"
+      },
+      {
+        "planId": "plan-mujlnbli",
+        "cluster": "T2_BACKEND",
+        "status": "done"
+      }
+    ],
+    "subtaskRows": [
+      {
+        "subtaskId": "plan-mujlnbli-0",
+        "asset": "be-validator",
+        "status": "done",
+        "capability": "openapi-validation",
+        "capabilitySource": "explicit",
+        "selectedAsset": "be-validator"
+      },
+      {
+        "subtaskId": "plan-mujlnbli-1",
+        "asset": "sdlc",
+        "status": "skipped",
+        "capability": "openapi-validation",
+        "capabilitySource": "explicit",
+        "selectedAsset": "sdlc"
+      },
+      {
+        "subtaskId": "plan-mujlnbli-2",
+        "asset": "be-validator",
+        "status": "done",
+        "capability": "openapi-validation",
+        "capabilitySource": "explicit",
+        "selectedAsset": "be-validator"
+      },
+      {
+        "subtaskId": "plan-mujlnbli-3",
+        "asset": "review",
+        "status": "skipped",
+        "capability": "openapi-validation",
+        "capabilitySource": "explicit",
+        "selectedAsset": "review"
+      },
+      {
+        "subtaskId": "plan-mujlnbli-4",
+        "asset": "be-validator",
+        "status": "skipped",
+        "capability": "openapi-validation",
+        "capabilitySource": "explicit",
+        "selectedAsset": "be-validator"
+      }
+    ]
+  },
+  "actualAdapterResults": [
+    {
+      "subtaskId": "plan-mujlnbli-0",
+      "asset": "be-validator",
+      "adapter": "be-validator",
+      "contractPath": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\04-non-openapi-json-degrades\\not-openapi.json",
+      "resultPath": "workspaces/04-non-openapi-json-degrades/artifacts/plan-mujlnbli-0/contract-result.json",
+      "result": {
+        "pass": null,
+        "diff": "contract file is JSON but not an OpenAPI spec (missing openapi/swagger field, e.g. a freeze file); real contract validation requires a valid OpenAPI document — recorded but not validated",
+        "checkedAt": "2026-09-27T09:11:37.611Z",
+        "tool": "spectral",
+        "version": "unknown",
+        "degraded": true
+      }
+    },
+    {
+      "subtaskId": "plan-mujlnbli-2",
+      "asset": "be-validator",
+      "adapter": "be-validator",
+      "contractPath": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\04-non-openapi-json-degrades\\not-openapi.json",
+      "resultPath": "workspaces/04-non-openapi-json-degrades/artifacts/plan-mujlnbli-2/contract-result.json",
+      "result": {
+        "pass": null,
+        "diff": "contract file is JSON but not an OpenAPI spec (missing openapi/swagger field, e.g. a freeze file); real contract validation requires a valid OpenAPI document — recorded but not validated",
+        "checkedAt": "2026-09-27T09:11:37.617Z",
+        "tool": "spectral",
+        "version": "unknown",
+        "degraded": true
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "name": "non-OpenAPI CLI run completed",
+      "ok": true,
+      "detail": "exit=0, state=done"
+    },
+    {
+      "name": "adapter preserves honest degraded result",
+      "ok": true,
+      "detail": "[{\"pass\":null,\"diff\":\"contract file is JSON but not an OpenAPI spec (missing openapi/swagger field, e.g. a freeze file); real contract validation requires a valid OpenAPI document — recorded but not validated\",\"checkedAt\":\"2026-09-27T09:11:37.611Z\",\"tool\":\"spectral\",\"version\":\"unknown\",\"degraded\":true},{\"pass\":null,\"diff\":\"contract file is JSON but not an OpenAPI spec (missing openapi/swagger field, e.g. a freeze file); real contract validation requires a valid OpenAPI document — recorded but not validated\",\"checkedAt\":\"2026-09-27T09:11:37.617Z\",\"tool\":\"spectral\",\"version\":\"unknown\",\"degraded\":true}]"
+    }
+  ],
+  "passed": true
+}

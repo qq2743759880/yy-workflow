@@ -19,6 +19,7 @@ import { EXIT } from './lib/errors.mjs';
 import { runDeconstructFlow, normalizeDraft, validateDraft, formatErrors } from './lib/deconstruct.mjs';
 import { approveDraft, printApprovalSummary, printDraft } from './lib/approve.mjs';
 import { createTui } from './lib/tui.mjs';
+import { CAPABILITY_MAP } from './lib/activation.mjs';
 import { readJourney, newJourney, ensureSteps, journeyPath, updateJourney, prereqCheck, withJourneyLock } from './tt-journey.mjs';
 // FIX-2：Windows shim 解析单点复用（cli 命令名 → 可 spawn 形态），与 exec-host/adapter 同一实现
 import { resolveCommandShim } from './lib/adapters/util.mjs';
@@ -40,6 +41,13 @@ const parseArgs = libParseArgs;
 const isOpenApiSpec = libIsOpenApiSpec;
 const parseBacklogRows = libParseBacklogRows;
 const backlogIsPending = libBacklogIsPending;
+
+function contractRoutingAsset(subtask) {
+  const capability = subtask && typeof subtask.capability === 'string' ? subtask.capability.trim().toLowerCase() : '';
+  if (!capability) return subtask && subtask.asset;
+  return Object.prototype.hasOwnProperty.call(CAPABILITY_MAP, capability) ? CAPABILITY_MAP[capability] : null;
+}
+
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_DIR = path.resolve(SCRIPT_DIR, '..');
 const VENDOR_DIR = path.join(SKILL_DIR, 'vendor');
@@ -729,8 +737,9 @@ async function main() {
       const contractSource = opts.contract || opts.contractDraft || null;
       const contractPath = await freezeContract(plan, workspace, contractSource);
       for (const subtask of plan.subtasks) { subtask.contract = contractPath; subtask.contractMode = 'frozen'; }
-      // 冻结后重写 be-validator 契约：契约本体以用户 OpenAPI 文件为准（冻结文件仍写入，含 contractSource 记录；gate hash 比对该 OpenAPI 本体，防执行期篡改）
-      if (opts.contract) for (const subtask of plan.subtasks) if (subtask.asset === 'be-validator') subtask.contract = opts.contract;
+      // 冻结后按最终 capability 路由恢复 OpenAPI：CAPABILITY_MAP 与 runtime resolver 共用唯一映射；
+      // 无 capability 的旧计划继续按原 asset。未知 capability 不猜，保持冻结契约。
+      if (opts.contract) for (const subtask of plan.subtasks) if (contractRoutingAsset(subtask) === 'be-validator') subtask.contract = opts.contract;
       // 棕地草案：be-validator 与前端子任务契约指向草案文件（非真 OpenAPI，be-validator 将诚实降级不跑真校验；前端可凭草案开工）
       if (opts.contractDraft) for (const subtask of plan.subtasks) if (subtask.brownfieldDraft) subtask.contract = opts.contractDraft;
       // FR-3 前端按契约实现（契约硬前置）：绿地需真实冻结契约；棕地草案放行（brownfieldDraft 标记），缺失真实契约且非棕地 → CONTRACT_NOT_FROZEN skip。

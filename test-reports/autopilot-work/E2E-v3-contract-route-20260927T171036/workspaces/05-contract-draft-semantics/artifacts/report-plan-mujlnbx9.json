@@ -1,0 +1,46 @@
+{
+  "generatedAt": "2026-09-27T09:11:38.034Z",
+  "planId": "plan-mujlnbx9",
+  "task": "Brownfield contract draft route",
+  "cluster": "deconstructed",
+  "status": "done",
+  "degraded": false,
+  "modes": {
+    "planned-only": 1
+  },
+  "warnings": [
+    "1 个子任务为 planned-only 降级（外部 CLI 缺失）"
+  ],
+  "subtasks": [
+    {
+      "id": "plan-mujlnbx9-0",
+      "planId": "plan-mujlnbx9",
+      "asset": "be-validator",
+      "contract": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3-contract-route-20260927T171036\\workspaces\\05-contract-draft-semantics\\contract-draft.json",
+      "status": "done",
+      "artifactPath": "artifacts\\plan-mujlnbx9-0\\contract-result.json",
+      "attempts": 1,
+      "phase": 0,
+      "dependsOn": [],
+      "desc": "Record the unconfirmed brownfield contract draft",
+      "estimate": "S",
+      "lane": "validation",
+      "approved": true,
+      "task": "Brownfield contract draft route",
+      "brownfieldDraft": true,
+      "contractMode": "frozen",
+      "eligibility": {
+        "eligible": true,
+        "reason": [
+          "无正向依据：未提供 requirements/constraints 提示——如实标注，不否决（无负向命中）"
+        ]
+      },
+      "mode": "planned-only",
+      "adapter": "be-validator"
+    }
+  ],
+  "context": {
+    "manifest_sha256": "b02687984d6b0d0e95b2b5a4d9e4397a6eccd9fe66ce41da991fb6e261d93c11",
+    "artifact:plan-mujlnbx9-0": "artifacts\\plan-mujlnbx9-0\\contract-result.json"
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "generatedAt": "2026-09-27T09:11:37.587Z",
+  "entries": [
+    {
+      "name": "be-validator",
+      "type": "agent",
+      "path": "vendor/be-validator",
+      "version": null,
+      "description": "--- name: be-validator mode: subagent description: Zod schemas, OpenAPI generation, RFC 9457 error responses, input sanitization ---  # Backend Validator Agent ",
+      "keywords": [
+        "-",
+        " --- ",
+        ": ",
+        " ",
+        ", ",
+        " ---  # "
+      ]
+    },
+    {
+      "name": "dev-planner",
+      "type": "agent",
+      "path": "vendor/dev-planner",
+      "version": null,
+      "description": "--- name: dev-planner mode: subagent description: \"Analyzes feature requirements, breaks them into frontend/backend tasks, defines acceptance criteria in Given/When/Then format, writes handoff specs. Challenges premises before decomposing (gstack office-hours pattern). Use at the start of any new feature development. Triggers: plan feature, feature breakdown, requirements analysis, 기능 기획, 요구사항 분석.\" ---  # dev-planner ",
+      "keywords": [
+        "-",
+        " --- ",
+        ": ",
+        " ",
+        ": \"",
+        ", ",
+        "/",
+        ". ",
+        " (",
+        "). ",
+        ", 기능 기획, 요구사항 분석.\" ---  # "
+      ]
+    },
+    {
+      "name": "frontend-design",
+      "type": "skill",
+      "path": "vendor/frontend-design",
+      "version": "2.0.0",
+      "description": "Unified frontend design cluster covering generation, taste, design data, component selection, and prototyping",
+      "keywords": [
+        "-",
+        " ",
+        ", "
+      ]
+    },
+    {
+      "name": "implementation",
+      "type": "agent",
+      "path": "vendor/implementation",
+      "version": null,
+      "description": "# implementation  Unified implementation agent: turn requirements and frozen contracts into runnable backend code and land it in the repository.  ## Responsibilities Combine requirement-to-code generation with implementation and integration.  ## Input and output",
+      "keywords": [
+        " # ",
+        "  ",
+        " ",
+        ": ",
+        ".  ## ",
+        "-"
+      ]
+    },
+    {
+      "name": "planning",
+      "type": "skill",
+      "path": "vendor/planning",
+      "version": "1.0.0",
+      "description": "Unified PRD and planning cluster for formal PRDs and Vibe Coding PRDs",
+      "keywords": [
+        " "
+      ]
+    },
+    {
+      "name": "review",
+      "type": "skill",
+      "path": "vendor/review",
+      "version": "1.0.0",
+      "description": "Unified review cluster for critique, automated verification, and polish",
+      "keywords": [
+        " ",
+        ", "
+      ]
+    },
+    {
+      "name": "sdlc",
+      "type": "skill",
+      "path": "vendor/sdlc",
+      "version": "2.1.0",
+      "description": "BMAD-METHOD phase orchestration with cline plan and exec execution",
+      "keywords": [
+        " ",
+        "-"
+      ]
+    },
+    {
+      "name": "security",
+      "type": "skill",
+      "path": "vendor/security",
+      "version": "1.0.0",
+      "description": "Unified security cluster for audit, hardening, and backend security verification",
+      "keywords": [
+        " ",
+        ", "
+      ]
+    },
+    {
+      "name": "skill-sentinel",
+      "type": "skill",
+      "path": "vendor/skill-sentinel",
+      "version": "1.0.0",
+      "description": "Agent Skill 包安全扫描器。扫描 SKILL.md 中的恶意模式、凭据泄露、C2 基础设施，用于插件市场/社区资产上线前安全审查。触发：安装第三方 skill 前、社区资产审查、插件市场安全扫描。",
+      "keywords": [
+        "-",
+        " ",
+        "。",
+        ".",
+        "、",
+        "，",
+        "/",
+        "："
+      ]
+    }
+  ],
+  "warnings": [
+    "unrecognized asset: deep-research"
+  ]
+}

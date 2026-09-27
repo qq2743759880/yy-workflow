@@ -1,0 +1,1 @@
+{"task":"Brownfield contract draft route","draft":true,"phases":[{"name":"validation","tasks":[{"id":"validator","desc":"Record the unconfirmed brownfield contract draft","asset":"be-validator","estimate":"S","lane":"validation","dependsOn":[]}]}]}

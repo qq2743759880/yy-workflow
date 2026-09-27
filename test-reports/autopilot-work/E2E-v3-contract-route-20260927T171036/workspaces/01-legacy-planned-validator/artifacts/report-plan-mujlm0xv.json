@@ -1,0 +1,43 @@
+{
+  "generatedAt": "2026-09-27T09:10:40.257Z",
+  "planId": "plan-mujlm0xv",
+  "task": "Legacy planned be-validator contract route",
+  "cluster": "deconstructed",
+  "status": "done",
+  "degraded": false,
+  "modes": {
+    "exec": 1
+  },
+  "warnings": [],
+  "subtasks": [
+    {
+      "id": "plan-mujlm0xv-0",
+      "planId": "plan-mujlm0xv",
+      "asset": "be-validator",
+      "contract": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3\\s1b-derived-chain\\openapi.json",
+      "status": "done",
+      "artifactPath": "artifacts\\plan-mujlm0xv-0\\contract-result.json",
+      "attempts": 1,
+      "phase": 0,
+      "dependsOn": [],
+      "desc": "Validate the supplied OpenAPI contract with Spectral",
+      "estimate": "S",
+      "lane": "validation",
+      "approved": true,
+      "task": "Legacy planned be-validator contract route",
+      "contractMode": "frozen",
+      "eligibility": {
+        "eligible": true,
+        "reason": [
+          "无正向依据：未提供 requirements/constraints 提示——如实标注，不否决（无负向命中）"
+        ]
+      },
+      "mode": "exec",
+      "adapter": "be-validator"
+    }
+  ],
+  "context": {
+    "manifest_sha256": "b02687984d6b0d0e95b2b5a4d9e4397a6eccd9fe66ce41da991fb6e261d93c11",
+    "artifact:plan-mujlm0xv-0": "artifacts\\plan-mujlm0xv-0\\contract-result.json"
+  }
+}

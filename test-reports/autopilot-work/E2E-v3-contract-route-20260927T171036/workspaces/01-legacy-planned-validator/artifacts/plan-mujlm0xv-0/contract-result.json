@@ -1,0 +1,24 @@
+{
+  "pass": true,
+  "diff": null,
+  "checkedAt": "2026-09-27T09:10:37.141Z",
+  "tool": "spectral",
+  "version": "6.16.3",
+  "mode": "exec",
+  "findings_total": 2,
+  "findings_summary": [
+    {
+      "rule": "info-contact",
+      "severity": "warn",
+      "message": "Info object must have \"contact\" object.",
+      "path": "info"
+    },
+    {
+      "rule": "operation-tag-defined",
+      "severity": "warn",
+      "message": "Operation tags must be defined in global tags.",
+      "path": "paths./login.post.tags.0"
+    }
+  ],
+  "scope": "real spectral 6.16.3 lint --ruleset vendor/be-validator/rulesets/spectral-oas.yaml against D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3\\s1b-derived-chain\\openapi.json"
+}

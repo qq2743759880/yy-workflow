@@ -1,0 +1,151 @@
+{
+  "generatedAt": "2026-09-27T09:11:37.152Z",
+  "planId": "plan-mujlm905",
+  "task": "运维部署监控",
+  "cluster": "T5_OPS",
+  "status": "done",
+  "degraded": false,
+  "modes": {
+    "exec": 4
+  },
+  "warnings": [],
+  "subtasks": [
+    {
+      "id": "plan-mujlm905-0",
+      "planId": "plan-mujlm905",
+      "asset": "security",
+      "contract": "contracts\\plan-mujlm905.json",
+      "status": "done",
+      "artifactPath": "artifacts\\plan-mujlm905-0\\security-result.json",
+      "attempts": 1,
+      "phase": 0,
+      "dependsOn": [],
+      "preconditions": [
+        "加固/扫描产物（security/skill-sentinel）须先于验收子任务（be-validator/review）",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1 机验）"
+      ],
+      "capability": "security-audit",
+      "capabilitySource": "explicit",
+      "task": "运维部署监控",
+      "contractMode": "frozen",
+      "eligibility": {
+        "capability": "security-audit",
+        "selected_asset": "security",
+        "eligible": true,
+        "reason": [
+          "capability match: 请求「security-audit」→ CAPABILITY_MAP 命中 manifest id「security」（受控映射，无语义扩展）",
+          "无正向依据：未提供 requirements/constraints 提示——如实标注，不否决（无负向命中）"
+        ]
+      },
+      "selectedAsset": "security",
+      "mode": "exec",
+      "adapter": "security"
+    },
+    {
+      "id": "plan-mujlm905-1",
+      "planId": "plan-mujlm905",
+      "asset": "security",
+      "contract": "contracts\\plan-mujlm905.json",
+      "status": "done",
+      "artifactPath": "artifacts\\plan-mujlm905-1\\security-result.json",
+      "attempts": 1,
+      "phase": 0,
+      "dependsOn": [],
+      "preconditions": [
+        "加固/扫描产物（security/skill-sentinel）须先于验收子任务（be-validator/review）",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1 机验）"
+      ],
+      "capability": "security-audit",
+      "capabilitySource": "explicit",
+      "task": "运维部署监控",
+      "contractMode": "frozen",
+      "eligibility": {
+        "capability": "security-audit",
+        "selected_asset": "security",
+        "eligible": true,
+        "reason": [
+          "capability match: 请求「security-audit」→ CAPABILITY_MAP 命中 manifest id「security」（受控映射，无语义扩展）",
+          "无正向依据：未提供 requirements/constraints 提示——如实标注，不否决（无负向命中）"
+        ]
+      },
+      "selectedAsset": "security",
+      "mode": "exec",
+      "adapter": "security"
+    },
+    {
+      "id": "plan-mujlm905-2",
+      "planId": "plan-mujlm905",
+      "asset": "security",
+      "contract": "contracts\\plan-mujlm905.json",
+      "status": "done",
+      "artifactPath": "artifacts\\plan-mujlm905-2\\security-result.json",
+      "attempts": 1,
+      "phase": 1,
+      "dependsOn": [
+        "plan-mujlm905-0",
+        "plan-mujlm905-1"
+      ],
+      "preconditions": [
+        "加固/扫描产物（security/skill-sentinel）须先于验收子任务（be-validator/review）",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1 机验）"
+      ],
+      "capability": "security-audit",
+      "capabilitySource": "explicit",
+      "task": "运维部署监控",
+      "contractMode": "frozen",
+      "eligibility": {
+        "capability": "security-audit",
+        "selected_asset": "security",
+        "eligible": true,
+        "reason": [
+          "capability match: 请求「security-audit」→ CAPABILITY_MAP 命中 manifest id「security」（受控映射，无语义扩展）",
+          "无正向依据：未提供 requirements/constraints 提示——如实标注，不否决（无负向命中）"
+        ]
+      },
+      "selectedAsset": "security",
+      "mode": "exec",
+      "adapter": "security"
+    },
+    {
+      "id": "plan-mujlm905-3",
+      "planId": "plan-mujlm905",
+      "asset": "security",
+      "contract": "contracts\\plan-mujlm905.json",
+      "status": "done",
+      "artifactPath": "artifacts\\plan-mujlm905-3\\security-result.json",
+      "attempts": 1,
+      "phase": 1,
+      "dependsOn": [
+        "plan-mujlm905-0",
+        "plan-mujlm905-1"
+      ],
+      "preconditions": [
+        "加固/扫描产物（security/skill-sentinel）须先于验收子任务（be-validator/review）",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1 机验）"
+      ],
+      "capability": "security-audit",
+      "capabilitySource": "explicit",
+      "task": "运维部署监控",
+      "contractMode": "frozen",
+      "eligibility": {
+        "capability": "security-audit",
+        "selected_asset": "security",
+        "eligible": true,
+        "reason": [
+          "capability match: 请求「security-audit」→ CAPABILITY_MAP 命中 manifest id「security」（受控映射，无语义扩展）",
+          "无正向依据：未提供 requirements/constraints 提示——如实标注，不否决（无负向命中）"
+        ]
+      },
+      "selectedAsset": "security",
+      "mode": "exec",
+      "adapter": "security"
+    }
+  ],
+  "context": {
+    "manifest_sha256": "b02687984d6b0d0e95b2b5a4d9e4397a6eccd9fe66ce41da991fb6e261d93c11",
+    "artifact:plan-mujlm905-0": "artifacts\\plan-mujlm905-0\\security-result.json",
+    "artifact:plan-mujlm905-1": "artifacts\\plan-mujlm905-1\\security-result.json",
+    "artifact:plan-mujlm905-2": "artifacts\\plan-mujlm905-2\\security-result.json",
+    "artifact:plan-mujlm905-3": "artifacts\\plan-mujlm905-3\\security-result.json"
+  }
+}

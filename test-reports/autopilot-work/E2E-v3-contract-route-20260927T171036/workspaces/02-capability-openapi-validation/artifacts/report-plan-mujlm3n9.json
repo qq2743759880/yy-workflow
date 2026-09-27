@@ -1,0 +1,161 @@
+{
+  "generatedAt": "2026-09-27T09:10:47.188Z",
+  "planId": "plan-mujlm3n9",
+  "task": "登录接口开发",
+  "cluster": "T2_BACKEND",
+  "status": "done",
+  "degraded": false,
+  "modes": {
+    "exec": 2,
+    "skipped": 3
+  },
+  "warnings": [
+    "3 个子任务因上游未满足资产消费前置被跳过（DEP_PRECONDITION）——上游须真实执行并产出资产消费证据后再 --resume 续跑下游"
+  ],
+  "subtasks": [
+    {
+      "id": "plan-mujlm3n9-0",
+      "planId": "plan-mujlm3n9",
+      "asset": "be-validator",
+      "contract": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3\\s1b-derived-chain\\openapi.json",
+      "status": "done",
+      "artifactPath": "artifacts\\plan-mujlm3n9-0\\contract-result.json",
+      "attempts": 1,
+      "phase": 0,
+      "dependsOn": [],
+      "preconditions": [
+        "接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
+        "实现类子任务须经 --exec 宿主真实执行，禁纯 prompt 兜底（requireExec）",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1）；上游 done 且 assetConsumed=true 后下游才派单"
+      ],
+      "capability": "openapi-validation",
+      "capabilitySource": "explicit",
+      "task": "登录接口开发",
+      "contractMode": "frozen",
+      "eligibility": {
+        "capability": "openapi-validation",
+        "selected_asset": "be-validator",
+        "eligible": true,
+        "reason": [
+          "capability match: 请求「openapi-validation」→ CAPABILITY_MAP 命中 manifest id「be-validator」（受控映射，无语义扩展）",
+          "无正向依据：未提供 requirements/constraints 提示——如实标注，不否决（无负向命中）"
+        ]
+      },
+      "selectedAsset": "be-validator",
+      "mode": "exec",
+      "adapter": "be-validator"
+    },
+    {
+      "id": "plan-mujlm3n9-1",
+      "planId": "plan-mujlm3n9",
+      "asset": "sdlc",
+      "contract": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3\\s1b-derived-chain\\openapi.json",
+      "status": "skipped",
+      "artifactPath": null,
+      "attempts": 0,
+      "phase": 1,
+      "dependsOn": [
+        "plan-mujlm3n9-0",
+        "plan-mujlm3n9-2"
+      ],
+      "preconditions": [
+        "接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
+        "实现类子任务须经 --exec 宿主真实执行，禁纯 prompt 兜底（requireExec）",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1）；上游 done 且 assetConsumed=true 后下游才派单"
+      ],
+      "capability": "openapi-validation",
+      "capabilitySource": "explicit",
+      "task": "登录接口开发",
+      "contractMode": "frozen",
+      "mode": "skipped",
+      "error": "DEP_PRECONDITION"
+    },
+    {
+      "id": "plan-mujlm3n9-2",
+      "planId": "plan-mujlm3n9",
+      "asset": "be-validator",
+      "contract": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3\\s1b-derived-chain\\openapi.json",
+      "status": "done",
+      "artifactPath": "artifacts\\plan-mujlm3n9-2\\contract-result.json",
+      "attempts": 1,
+      "phase": 0,
+      "dependsOn": [],
+      "preconditions": [
+        "接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
+        "实现类子任务须经 --exec 宿主真实执行，禁纯 prompt 兜底（requireExec）",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1）；上游 done 且 assetConsumed=true 后下游才派单"
+      ],
+      "capability": "openapi-validation",
+      "capabilitySource": "explicit",
+      "task": "登录接口开发",
+      "contractMode": "frozen",
+      "eligibility": {
+        "capability": "openapi-validation",
+        "selected_asset": "be-validator",
+        "eligible": true,
+        "reason": [
+          "capability match: 请求「openapi-validation」→ CAPABILITY_MAP 命中 manifest id「be-validator」（受控映射，无语义扩展）",
+          "无正向依据：未提供 requirements/constraints 提示——如实标注，不否决（无负向命中）"
+        ]
+      },
+      "selectedAsset": "be-validator",
+      "mode": "exec",
+      "adapter": "be-validator"
+    },
+    {
+      "id": "plan-mujlm3n9-3",
+      "planId": "plan-mujlm3n9",
+      "asset": "review",
+      "contract": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3\\s1b-derived-chain\\openapi.json",
+      "status": "skipped",
+      "artifactPath": null,
+      "attempts": 0,
+      "phase": 1,
+      "dependsOn": [
+        "plan-mujlm3n9-0",
+        "plan-mujlm3n9-2"
+      ],
+      "preconditions": [
+        "接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
+        "实现类子任务须经 --exec 宿主真实执行，禁纯 prompt 兜底（requireExec）",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1）；上游 done 且 assetConsumed=true 后下游才派单"
+      ],
+      "capability": "openapi-validation",
+      "capabilitySource": "explicit",
+      "task": "登录接口开发",
+      "contractMode": "frozen",
+      "mode": "skipped",
+      "error": "DEP_PRECONDITION"
+    },
+    {
+      "id": "plan-mujlm3n9-4",
+      "planId": "plan-mujlm3n9",
+      "asset": "be-validator",
+      "contract": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3\\s1b-derived-chain\\openapi.json",
+      "status": "skipped",
+      "artifactPath": null,
+      "attempts": 0,
+      "phase": 2,
+      "dependsOn": [
+        "plan-mujlm3n9-1",
+        "plan-mujlm3n9-3"
+      ],
+      "preconditions": [
+        "接口/错误契约产物须先冻结（contracts/<planId>.json 或 --contract OpenAPI），下游才放行",
+        "实现类子任务须经 --exec 宿主真实执行，禁纯 prompt 兜底（requireExec）",
+        "每子任务产物须含资产消费锚点 + ≥1 内核词（D-1）；上游 done 且 assetConsumed=true 后下游才派单"
+      ],
+      "capability": "openapi-validation",
+      "capabilitySource": "explicit",
+      "task": "登录接口开发",
+      "contractMode": "frozen",
+      "mode": "skipped",
+      "error": "DEP_PRECONDITION"
+    }
+  ],
+  "context": {
+    "manifest_sha256": "b02687984d6b0d0e95b2b5a4d9e4397a6eccd9fe66ce41da991fb6e261d93c11",
+    "artifact:plan-mujlm3n9-0": "artifacts\\plan-mujlm3n9-0\\contract-result.json",
+    "artifact:plan-mujlm3n9-2": "artifacts\\plan-mujlm3n9-2\\contract-result.json"
+  }
+}

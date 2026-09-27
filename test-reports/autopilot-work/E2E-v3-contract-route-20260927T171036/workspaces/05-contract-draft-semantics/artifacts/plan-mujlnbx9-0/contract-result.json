@@ -1,0 +1,10 @@
+{
+  "pass": null,
+  "degraded": true,
+  "diff": "brownfield draft (draft:true) — 未确认契约，不做真校验；待后端确认后以 --contract 升级真校验",
+  "checkedAt": "2026-09-27T09:11:38.029Z",
+  "tool": "spectral",
+  "version": "unknown",
+  "draft": true,
+  "reason": "subtask.brownfieldDraft=true (--contract-draft)"
+}

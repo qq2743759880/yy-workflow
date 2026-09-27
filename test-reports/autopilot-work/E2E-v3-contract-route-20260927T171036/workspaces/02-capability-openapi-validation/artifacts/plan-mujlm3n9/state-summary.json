@@ -1,0 +1,53 @@
+{
+  "schema": "tt/state-summary@1",
+  "planId": "plan-mujlm3n9",
+  "task": "登录接口开发",
+  "cluster": "T2_BACKEND",
+  "status": "done",
+  "degraded": false,
+  "generatedAt": "2026-09-27T09:10:47.194Z",
+  "modes": {
+    "exec": 2,
+    "skipped": 3
+  },
+  "summary": {
+    "total": 5,
+    "done": 2,
+    "failed": 0,
+    "skipped": 3,
+    "assetConsumed": 0,
+    "assetCallRate": "0.0%",
+    "requireExecViolation": 0,
+    "depPrecondition": 3,
+    "domainDeclaredMissing": 0,
+    "blockedSubtasks": [
+      "sdlc",
+      "review",
+      "be-validator"
+    ],
+    "contractFrozen": "contracts/plan-mujlm3n9.json",
+    "recovery": []
+  },
+  "critiqueBacklog": {
+    "open": 5,
+    "nextItems": [
+      "C-28 每份指引加「30 秒自测三问」（答案指针化防双源）；1 次 owner 试读留痕 docs/history/owner-review-trial.md；readability-baseline.mjs 句长/术语密度基线回归",
+      "C-29 SKILL.md 0a 升级对齐 agentskills 规范 L1 元数据块（≤120 token）；validate-structure 断言目录扫描覆盖 5/5，缺行 FAIL",
+      "C-32 修复批次 B0(止血+量尺)→B1(C-27 P0)→B2(C-25 linkcheck)→B3(C-26 drift-check)→B4(C-30 瘦身+C-29 L1+C-34 断言)→B5(C-31 模板字段)→B6(C-28)，排期与验收见 M2-R2-优化修改方案.md §3",
+      "C-33 修复 4 处损坏引用（B0-①）；linkcheck 增补 tab 前缀损坏模式用例（B2）",
+      "C-34 随 B4 批次落地四断言：SKILL.md ≤60 行、指针表覆盖 6/6、六模板「阶段机验」字段、templates//vendor/ 字面引用 Test-Path 全通过（缺一 FAIL 具名）"
+    ]
+  },
+  "files": {
+    "state": ".tt-state/state.json",
+    "memorySnapshot": "artifacts/plan-mujlm3n9/memory-snapshot.md",
+    "executionFeedback": "artifacts/plan-mujlm3n9/execution-feedback.md",
+    "report": "artifacts/report-plan-mujlm3n9.md"
+  },
+  "stageVerification": {
+    "verified": false,
+    "reason": "阶段 7 未完成（pending），步骤 8 不得开工",
+    "timestamp": "2026-09-27T09:10:47.199Z",
+    "tool": "tt-journey.mjs --prereq-check --step 8 (auto by orchestrator)"
+  }
+}
