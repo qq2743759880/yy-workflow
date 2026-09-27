@@ -1,7 +1,7 @@
 {
   "schema": "yy/web-release-evidence@1",
-  "run_id": "yy-web-m0-m1-closeout-20260927T135440Z",
-  "recorded_at": "2026-09-27T13:54:40Z",
+  "run_id": "yy-web-m0-m1-final-activation-verify-20260927T142930Z",
+  "recorded_at": "2026-09-27T14:29:30Z",
   "scope": {
     "iteration": "YY workflow iteration optimization PRD V0",
     "prd_status": "DRAFT",
@@ -17,12 +17,13 @@
     "worktree": "C:/Users/Administrator/.codex/worktrees/yy-web-codex-planning/yy",
     "branch": "codex/yy-web-codex-planning",
     "base_head": "f88a193299d6939850befda8a21c8248e6285627",
-    "head_at_recording": "f88a193299d6939850befda8a21c8248e6285627",
+    "head_at_recording": "c75d9154c722e2f5394d7e6e701baaffcf468a35",
     "main_repo_used_for_implementation": false,
-    "main_repo_note": "Implementation was confined to the planning worktree. Final inspection found unrelated dirty paths in the main repository; they were left untouched."
+    "main_repo_note": "Implementation was confined to the planning worktree. Local main is at f88a193299d6939850befda8a21c8248e6285627 with modified scripts/make-release.mjs and unrelated untracked MYY-X1/CODEX/input-PRD documents; writer ownership is not identifiable from Git state. All were left untouched.",
+    "implementation_commit_verified": "c75d9154c722e2f5394d7e6e701baaffcf468a35"
   },
   "release_decision": {
-    "status": "M0_M1_ENGINEERING_CLOSED_WEB_ACTIVATION_ENVIRONMENT_BLOCKED",
+    "status": "M0_M1_ENGINEERING_CLOSED_MAIN_INTEGRATION_BLOCKED_BY_CONCURRENT_WRITER_WEB_ACTIVATION_ENVIRONMENT_BLOCKED",
     "local_m0_m1_slice": "ENGINEERING_CLOSED_AND_LOCALLY_VERIFIED",
     "owner_api_contract_freeze": "NOT_ESTABLISHED; production Web activation remains blocked until Owner freeze and host binding",
     "production_m1_release": "WEB_ACTIVATION_ENVIRONMENT_BLOCKED",
@@ -32,7 +33,8 @@
       "NO_CURRENT_CHATGPT_WEB_TOOL_CALL_OR_TWO_WORKSPACE_ISOLATION_RUN",
       "PAIRED_EVALUATION_A_B_C_D_NOT_ESTABLISHED_P2",
       "LEGACY_CI_AND_REPOSITORY_SECURITY_FINDINGS_TRIAGED_TO_P2_P3_BACKLOG",
-      "FULL_STOP_AND_OLD_CLI_ROLLBACK_DRILL_NOT_ESTABLISHED_P2"
+      "FULL_STOP_AND_OLD_CLI_ROLLBACK_DRILL_NOT_ESTABLISHED_P2",
+      "LOCAL_MAIN_HAS_UNOWNED_DIRTY_FILES; NO_MAIN_MERGE_PERFORMED"
     ],
     "p2_p3_backlog": {
       "file": "docs/yy-web/P2-P3-BACKLOG-20260927.md",
@@ -75,7 +77,7 @@
       "passed": 15,
       "failed": 0,
       "command": "python -B -m unittest discover -s integrations/yy-readonly-mcp/tests -v",
-      "verified_at": "2026-09-27T13:54:40Z",
+      "verified_at": "2026-09-27T14:28:18Z",
       "runtime": "Python 3.14.6, FastMCP 4.0.5",
       "coverage_notes": [
         "real FastMCP stdio handshake",
@@ -89,9 +91,10 @@
         "oversized and forged catalog/asset cursor rejection",
         "kill switch fails closed",
         "M1 reader displays historical/current RF1 report copies through yy_open_workflow and yy_read_evidence in synthetic W; asserts F-E2E-3 superseded and OpenAPI/non-OpenAPI/contract-draft pass/degraded semantics. Not production W or Web evidence."
-      ]
+      ],
+      "verification_run": "Re-run during final closeout against implementation commit c75d9154c722e2f5394d7e6e701baaffcf468a35; 15/15 passed."
     },
-    "node_syntax_check": "PASS",
+    "node_syntax_check": "PASS on final closeout verification at implementation commit c75d9154c722e2f5394d7e6e701baaffcf468a35",
     "python_compile_check": "PASS",
     "payload_measurement": {
       "status": "PASS_LOCAL_SYNTHETIC",
@@ -165,7 +168,7 @@
     "authenticated_principal_and_workflow_acl": "NOT_ESTABLISHED",
     "production_workspace_binding": "NOT_ESTABLISHED",
     "skill_import_or_host_cache_refresh": "NOT_ESTABLISHED",
-    "full_service_stop_and_old_cli_rollback_drill": "NOT_ESTABLISHED",
+    "full_service_stop_and_old_cli_rollback_drill": "NOT_ESTABLISHED; local legacy summary-read command exited 0 but printed no state-summary.json for this worktree, so compatibility smoke is inconclusive",
     "AT_30_to_35": "DEFERRED_BY_PHASE for new execution; M1 may only read historical evidence",
     "AT_36_supersedes_read_on_new_M1_surface": "PARTIAL_LOCAL_SYNTHETIC_PASS; old/current RF1 report copies were read via actual MCP implementation and semantics asserted; production W/Web interpretation NOT_ESTABLISHED",
     "AT_37_to_39_42_45_48": "NOT_ESTABLISHED",
@@ -191,7 +194,7 @@
       "D": "NOT_ESTABLISHED_P2"
     },
     "activation_status": "WEB_ACTIVATION_ENVIRONMENT_BLOCKED",
-    "environment_evidence": "No authenticated Web principal, principal-to-workflow ACL, authorized production W binding, or tunnel was established. Browser inventory failed to load. Environment variable names were checked without inspecting values; this does not prove no credentials exist elsewhere."
+    "environment_evidence": "No authenticated Web principal, principal-to-workflow ACL, authorized production W binding, or tunnel was established in the prior environment audit. Browser inventory failed to load. Environment variable names were checked without inspecting values; this does not prove no credentials exist elsewhere."
   },
   "phase_boundary": {
     "m2": "DEFERRED_BY_PHASE",
