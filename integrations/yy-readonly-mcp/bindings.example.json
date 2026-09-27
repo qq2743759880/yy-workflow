@@ -1,0 +1,17 @@
+{
+  "schema": "yy/read-bindings@1",
+  "workspaces": [
+    {
+      "workflow_id": "local-fixture-a",
+      "workspace_root": "ABSOLUTE_PATH_TO_FIXTURE_A",
+      "session": null,
+      "enabled": true
+    },
+    {
+      "workflow_id": "local-fixture-b",
+      "workspace_root": "ABSOLUTE_PATH_TO_FIXTURE_B",
+      "session": null,
+      "enabled": true
+    }
+  ]
+}

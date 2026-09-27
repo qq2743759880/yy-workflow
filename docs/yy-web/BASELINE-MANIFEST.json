@@ -1,0 +1,49 @@
+{
+  "schema": "yy/web-m0-baseline@1",
+  "captured_on": "2026-09-27",
+  "yy_core": {
+    "repository": "yy",
+    "branch": "codex/yy-web-codex-planning",
+    "head": "f88a193299d6939850befda8a21c8248e6285627",
+    "implementation_base": "f88a193299d6939850befda8a21c8248e6285627",
+    "prd_path": "docs/YY工作流迭代优化PRD-V0.md",
+    "prd_sha256": "C54F24888756691C1F1190DCFD75F4956A27B30CD3EEC017430BFAF7DB299C21",
+    "journey_projection_sha256": "BC793A4D9BBBE65571EC70CBF32232F7A4822F6C51B742672BF33DDE4E5CCDA4",
+    "phase_authority_sha256": "CDCE095EEFC637364C5A0710A170382E96567453FD5756A882FF5EA1EE93B49D",
+    "asset_manifest_sha256": "624261B45B728EA1C29AE2064A1F50329CA72DCF004EFF28DAF0FCA6926FEA4D"
+  },
+  "runtime": {
+    "node": "24.18.0",
+    "python": "3.14.6",
+    "fastmcp": "4.0.5",
+    "mcp_transport_for_isolated_surface": "stdio",
+    "tokenizer": {
+      "status": "UNAVAILABLE",
+      "measurement": "exact UTF-8 byte counts; token_count null until a pinned compatible tokenizer is installed",
+      "heuristic_char_div_4": false
+    }
+  },
+  "local_mcp": {
+    "git_revision": null,
+    "identity_manifest": "docs/yy-web/local-mcp-source-manifest.json",
+    "source_bundle_sha256": "77ada5b81e58cdcbfc8b06fcd65c464663b2d4b7ece3f683669dfdc528058bb8",
+    "runtime_configuration": "excluded from repository because it contains per-machine scopes/credentials",
+    "existing_entrypoint": "server.py, Streamable HTTP /mcp, loopback port 8168",
+    "registered_tools": 14,
+    "configured_projects": 12,
+    "configured_projects_with_write_enabled": 12
+  },
+  "m1": {
+    "schema": "yy/web-readonly@1",
+    "tools": [
+      "yy_open_workflow",
+      "yy_get_snapshot",
+      "yy_get_stage",
+      "yy_list_assets",
+      "yy_read_asset",
+      "yy_read_evidence"
+    ],
+    "business_writes": false,
+    "m2_m3": "DEFERRED_BY_PHASE"
+  }
+}

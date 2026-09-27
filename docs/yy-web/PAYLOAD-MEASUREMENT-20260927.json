@@ -1,0 +1,59 @@
+{
+  "schema": "yy/web-payload-measurement@1",
+  "measured_at": "2026-09-27T13:09:09.872270+00:00",
+  "fixture": "synthetic local workspace; no production data",
+  "runtime": {
+    "python": "3.14.6",
+    "fastmcp": "4.0.5",
+    "node": "v24.18.0"
+  },
+  "tool_count": 6,
+  "tool_names": [
+    "yy_open_workflow",
+    "yy_get_snapshot",
+    "yy_get_stage",
+    "yy_list_assets",
+    "yy_read_asset",
+    "yy_read_evidence"
+  ],
+  "serialized_tool_definitions": {
+    "utf8_bytes": 3571,
+    "token_count": null,
+    "tokenizer_status": "UNAVAILABLE"
+  },
+  "serialized_samples": {
+    "snapshot_tool_result": {
+      "utf8_bytes": 12509,
+      "token_count": null,
+      "tokenizer_status": "UNAVAILABLE"
+    },
+    "asset_catalog_page_tool_result": {
+      "utf8_bytes": 2628,
+      "token_count": null,
+      "tokenizer_status": "UNAVAILABLE"
+    },
+    "asset_toc_tool_result": {
+      "utf8_bytes": 2820,
+      "token_count": null,
+      "tokenizer_status": "UNAVAILABLE"
+    }
+  },
+  "repeated_snapshot_wrappers": {
+    "1": {
+      "utf8_bytes": 12527,
+      "token_count": null,
+      "tokenizer_status": "UNAVAILABLE"
+    },
+    "2": {
+      "utf8_bytes": 25037,
+      "token_count": null,
+      "tokenizer_status": "UNAVAILABLE"
+    },
+    "4": {
+      "utf8_bytes": 50057,
+      "token_count": null,
+      "tokenizer_status": "UNAVAILABLE"
+    }
+  },
+  "accounting_note": "UTF-8 byte counts measure these local serialized objects only. They do not measure ChatGPT hidden context, server wrappers, or target-model tokens."
+}
