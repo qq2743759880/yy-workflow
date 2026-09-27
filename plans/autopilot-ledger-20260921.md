@@ -362,3 +362,4 @@ D-2（reflect-metadata/tslib 删否）、D-3（回归器重写探针 JSON 固有
 - 批 2：主体 CONFIRMED，MG-1/E-4-EXEC Owner-resource
 - 批 3 Wave 2 四单全收：W2-1 planner production / W2-2 状态传播 / W2-3 S17 九场景 / W2-4 E2E-v3 真实 CLI
 - capability ingress 全链：task → planner 派生 → orchestrator --capability → runtime dispatch → resolver → adapter → receipt
+- 【manifest hash b0268798 正当性确认】SECMAN-1（security sidecar F-019 语义）+ D-K1-1（be-validator install 通道 --no-save→npm ci）两次 sidecar 修改后 manifest 合法再生——非篡改，是 capability-narrowing + install-channel 语义更新的正确产物

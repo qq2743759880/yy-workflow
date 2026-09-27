@@ -86,7 +86,7 @@ subtask.selectedAsset     // resolver 结果（选择了什么）；legacy 路�
 | capability only | 解析 → asset；成功则执行；未知 → `INELIGIBLE_CAPABILITY_UNKNOWN` skip |
 | asset only（legacy） | 现行为零改动 |
 | capability + matching asset | 允许；双写 `selectedAsset`；provenance 记 `explicit+asset-agree` |
-| capability + conflicting asset | **`CAPABILITY_ASSET_CONFLICT` skip**（不静默取一） |
+| capability + conflicting asset | capability 优先：重绑定 asset + 具名留痕（eligibility reason + dispatch override 日志）——v3.6 amendment（2026-09-26）：capability 是更具体请求，asset hint 是兼容性提示；静默取一仍禁（必须具名），原 CAPABILITY_ASSET_CONFLICT skip 规则废止 |
 | unknown capability | `INELIGIBLE_CAPABILITY_UNKNOWN` skip（既有语义） |
 | ineligible selected asset | 走既有资格门 `INELIGIBLE_*` skip |
 | dropped selected asset | 走既有 drop 检查（`CATALOG_IDS`/manifest 行缺失 → skip） |
@@ -147,3 +147,12 @@ W2-0（本文件，已完成）
 1. **`--exec` 透传 KNOWN 集合**：新增 `--capability` 必须同步该集合，否则旗标会被静默透传给宿主（实测 `lib/orchestrator.mjs` KNOWN 无 capability）。
 2. **CN/EN 混合关键词派生**：`CLUSTERS[].keywords` 混含中文（`render-core` 类），派生规则表须与其**同源校验**（防两套关键词漂移）——这是 D.2 禁复制 taxonomy 的具体落地。
 3. **`journey.mjs:665` 是唯一投影写点**：若 W2-2 遗漏此点，capability provenance 在驾驶舱不可见（而 state.json 有）——"state 有 UI 无"是典型半链。
+
+
+---
+
+## Amendment 1（2026-09-26，Owner "全部按推荐" 指令授权）
+
+**D.5 capability+conflicting asset 语义修正**：原 skip 规则废止，改为 capability 优先重绑定 + 具名留痕。
+理由：capability 是用户/编排者的更具体请求，asset hint 是路由兼容性提示；前者优先是 capability-native 的核心语义。
+影响：S17-4 判定与 runtime 行为已对齐（具名留痕即 PASS）；原 CAPABILITY_ASSET_CONFLICT 码不再使用。
