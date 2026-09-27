@@ -4,7 +4,7 @@
 
 **M0/M1 engineering: CLOSED on the pushed source branch. Main integration: blocked because the current local main has unexplained dirty files whose writer cannot be identified. Web activation: `WEB_ACTIVATION_ENVIRONMENT_BLOCKED`. M2/M3: `DEFERRED_BY_PHASE`.**
 
-The implementation commit verified in the isolated worktree is `c75d9154c722e2f5394d7e6e701baaffcf468a35`, based on `f88a193299d6939850befda8a21c8248e6285627`; it is pushed to origin. It exposes six stdio-only read tools and no writer tools. The local main repository has modified `scripts/make-release.mjs` plus untracked CODEX/MYY-X1/PRD documents. Git state does not identify their writer, so they remain untouched and no main integration was attempted. No production Web caller identity, principal-to-workflow ACL, authorized W binding, or tunnel was established; therefore this is not `WEB READONLY ACTIVE`.
+The implementation commit `c75d9154c722e2f5394d7e6e701baaffcf468a35` and evidence follow-up `6a0581b2599880842cf987e89e9b54e405f89550` are pushed to origin, based on `f88a193299d6939850befda8a21c8248e6285627`. Integration uses a separate clean worktree and fast-forward only. The original local main has modified `scripts/make-release.mjs` and untracked CODEX/MYY-X1/PRD documents; those remain untouched and excluded. No production Web caller identity, principal-to-workflow ACL, authorized W binding, or tunnel was established; therefore this is not `WEB READONLY ACTIVE`.
 
 ## Fast ground truth and local evidence
 
@@ -13,7 +13,7 @@ The implementation commit verified in the isolated worktree is `c75d9154c722e2f5
 - The 15-test local suite imports/calls the actual server and bridge. Workspaces and RF1 report files are synthetic fixtures; these tests do not establish production W authorization or ChatGPT Web execution.
 - The tested read path applies bounded reads, fails closed on oversized protected content, reports incompleteness/cursors explicitly, and binds pagination cursors to source/version state. No contradictory `file.truncated=true` plus complete response was found. `INCOMPLETE`/`STALE_CURSOR` are not literal wire error codes; actual partial/stale behavior is explicit (`complete=false`/omissions and `STALE_VERSION`). This contract vocabulary mismatch is P2.
 - RF1 Spectral was not rerun. A new local test reads copies of the historical and superseding report via `yy_open_workflow` and `yy_read_evidence`. It asserts F-E2E-3 is historical/superseded, current status is CLOSED, valid OpenAPI is `pass=true`/`degraded=false`, and non-OpenAPI plus contract-draft remain `pass=null`/`degraded=true`. Production W/Web interpretation remains NOT ESTABLISHED.
-- Kill-switch smoke: with `YY_READONLY_ENABLED=false`, the new server refused startup (exit 2). The old `summary-read` command exited 0 in the worktree but found no `state-summary.json`, so old-path compatibility is inconclusive. This does not establish stopping a deployed service or a full rollback/DR drill.
+- Old YY compatibility smoke: in a temporary workspace, the legacy orchestrator accepted the known backend task example, generated `.tt-state/state.json` and `artifacts/<planId>/state-summary.json`, and legacy `summary-read --latest` returned the expected schema, plan ID, and status. The prompt backend was degraded (2 done, 3 skipped); this proves entry/summary compatibility only, not real subtask execution. Separately, with `YY_READONLY_ENABLED=false`, the new server refused startup (exit 2); full deployed stop/rollback/DR remains untested.
 - Token count remains unavailable (`null`). Minimal local navigation smoke is recorded; full A/B/C/D paired evaluation is NOT ESTABLISHED and remains P2.
 - M2/M3 writes, proposal persistence, reviews, jobs, workers, and state transitions remain disabled/deferred.
 
@@ -33,7 +33,7 @@ All seven P2/P3 items are in [`P2-P3-BACKLOG-20260927.md`](P2-P3-BACKLOG-2026092
 ## Release disposition
 
 - **M0/M1 engineering:** CLOSED for this isolated, pushed implementation and its stated scope.
-- **Main integration:** `BLOCKED_BY_UNOWNED_LOCAL_MAIN_DIRTY_STATE`; no safe owner attribution is available.
+- **Main integration:** running P1 gates in the clean integration worktree; dirty local main remains untouched.
 - **Web activation:** `WEB_ACTIVATION_ENVIRONMENT_BLOCKED`.
 - **M2/M3:** `NOT STARTED` / `DEFERRED_BY_PHASE`.
 - **P2/P3:** unified backlog recorded (7 items).

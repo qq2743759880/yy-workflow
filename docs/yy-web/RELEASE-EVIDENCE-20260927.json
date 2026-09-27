@@ -1,7 +1,7 @@
 {
   "schema": "yy/web-release-evidence@1",
-  "run_id": "yy-web-m0-m1-final-activation-verify-20260927T142930Z",
-  "recorded_at": "2026-09-27T14:29:30Z",
+  "run_id": "yy-web-m0-m1-final-delivery-20260927T150550Z",
+  "recorded_at": "2026-09-27T15:05:50Z",
   "scope": {
     "iteration": "YY workflow iteration optimization PRD V0",
     "prd_status": "DRAFT",
@@ -17,13 +17,19 @@
     "worktree": "C:/Users/Administrator/.codex/worktrees/yy-web-codex-planning/yy",
     "branch": "codex/yy-web-codex-planning",
     "base_head": "f88a193299d6939850befda8a21c8248e6285627",
-    "head_at_recording": "c75d9154c722e2f5394d7e6e701baaffcf468a35",
+    "head_at_recording": "6a0581b2599880842cf987e89e9b54e405f89550",
     "main_repo_used_for_implementation": false,
-    "main_repo_note": "Implementation was confined to the planning worktree. Local main is at f88a193299d6939850befda8a21c8248e6285627 with modified scripts/make-release.mjs and unrelated untracked MYY-X1/CODEX/input-PRD documents; writer ownership is not identifiable from Git state. All were left untouched.",
-    "implementation_commit_verified": "c75d9154c722e2f5394d7e6e701baaffcf468a35"
+    "main_repo_note": "The original local main working tree remained untouched. Integration is being performed in a separate clean worktree based on origin/main=f88a193299d6939850befda8a21c8248e6285627; the dirty local scripts/make-release.mjs and untracked MYY-X1/CODEX/input-PRD documents are excluded.",
+    "implementation_commit_verified": "6a0581b2599880842cf987e89e9b54e405f89550",
+    "integration": {
+      "base": "f88a193299d6939850befda8a21c8248e6285627",
+      "method": "clean integration worktree; fast-forward only; exact release-owned file diff",
+      "local_main_worktree_touched": false,
+      "target_push": "pending final P0/P1 gates and unchanged origin/main check"
+    }
   },
   "release_decision": {
-    "status": "M0_M1_ENGINEERING_CLOSED_MAIN_INTEGRATION_BLOCKED_BY_CONCURRENT_WRITER_WEB_ACTIVATION_ENVIRONMENT_BLOCKED",
+    "status": "M0_M1_RELEASE_CLOSED_WEB_ACTIVATION_ENVIRONMENT_BLOCKED",
     "local_m0_m1_slice": "ENGINEERING_CLOSED_AND_LOCALLY_VERIFIED",
     "owner_api_contract_freeze": "NOT_ESTABLISHED; production Web activation remains blocked until Owner freeze and host binding",
     "production_m1_release": "WEB_ACTIVATION_ENVIRONMENT_BLOCKED",
@@ -33,8 +39,7 @@
       "NO_CURRENT_CHATGPT_WEB_TOOL_CALL_OR_TWO_WORKSPACE_ISOLATION_RUN",
       "PAIRED_EVALUATION_A_B_C_D_NOT_ESTABLISHED_P2",
       "LEGACY_CI_AND_REPOSITORY_SECURITY_FINDINGS_TRIAGED_TO_P2_P3_BACKLOG",
-      "FULL_STOP_AND_OLD_CLI_ROLLBACK_DRILL_NOT_ESTABLISHED_P2",
-      "LOCAL_MAIN_HAS_UNOWNED_DIRTY_FILES; NO_MAIN_MERGE_PERFORMED"
+      "FULL_STOP_AND_OLD_CLI_ROLLBACK_DRILL_NOT_ESTABLISHED_P2"
     ],
     "p2_p3_backlog": {
       "file": "docs/yy-web/P2-P3-BACKLOG-20260927.md",
@@ -160,7 +165,8 @@
       "backlog_file": "docs/yy-web/P2-P3-BACKLOG-20260927.md",
       "backlog_items": 7,
       "severity": "No confirmed P0/P1 finding in inspected M1 path; legacy failures and scan uncertainty remain visible as P2/P3. Repository CI/security are not PASS."
-    }
+    },
+    "legacy_yy_compatibility_smoke": "PASS_LIMITED; valid task input → legacy orchestrator → generated state/summary → legacy summary-read returned expected schema, planId, and status; prompt backend was degraded (2 done, 3 skipped), so this does not claim real subtask execution."
   },
   "production_acceptance": {
     "chatgpt_web_tool_discovery_and_call": "NOT_ESTABLISHED",
@@ -168,7 +174,7 @@
     "authenticated_principal_and_workflow_acl": "NOT_ESTABLISHED",
     "production_workspace_binding": "NOT_ESTABLISHED",
     "skill_import_or_host_cache_refresh": "NOT_ESTABLISHED",
-    "full_service_stop_and_old_cli_rollback_drill": "NOT_ESTABLISHED; local legacy summary-read command exited 0 but printed no state-summary.json for this worktree, so compatibility smoke is inconclusive",
+    "full_service_stop_and_old_cli_rollback_drill": "NOT_ESTABLISHED; full deployed stop/rollback/DR remains untested",
     "AT_30_to_35": "DEFERRED_BY_PHASE for new execution; M1 may only read historical evidence",
     "AT_36_supersedes_read_on_new_M1_surface": "PARTIAL_LOCAL_SYNTHETIC_PASS; old/current RF1 report copies were read via actual MCP implementation and semantics asserted; production W/Web interpretation NOT_ESTABLISHED",
     "AT_37_to_39_42_45_48": "NOT_ESTABLISHED",
@@ -194,7 +200,32 @@
       "D": "NOT_ESTABLISHED_P2"
     },
     "activation_status": "WEB_ACTIVATION_ENVIRONMENT_BLOCKED",
-    "environment_evidence": "No authenticated Web principal, principal-to-workflow ACL, authorized production W binding, or tunnel was established in the prior environment audit. Browser inventory failed to load. Environment variable names were checked without inspecting values; this does not prove no credentials exist elsewhere."
+    "environment_evidence": "No authenticated Web principal, principal-to-workflow ACL, authorized production W binding, or tunnel was established in the prior environment audit. Browser inventory failed to load. Environment variable names were checked without inspecting values; this does not prove no credentials exist elsewhere.",
+    "legacy_yy_compatibility_smoke": {
+      "status": "PASS_LIMITED_LEGACY_ENTRY_AND_SUMMARY_READ",
+      "run_at": "2026-09-27T15:03:50Z",
+      "workspace": "%TEMP%/yy-legacy-compat-smoke-3c67db099d554a04a5876b78bfa40d09",
+      "task": "实现后端登录模块",
+      "command": "node scripts/orchestrator.mjs --task \"实现后端登录模块\" --backend prompt --workspace <temp-workspace> --no-tui --max-retries 0; then node scripts/summary-read.mjs --workspace <temp-workspace> --latest",
+      "orchestrator_exit": 0,
+      "summary_read_exit": 0,
+      "observed": {
+        "schema": "tt/state-summary@1",
+        "planId": "plan-mujy892e",
+        "cluster": "T2_BACKEND",
+        "status": "done",
+        "degraded": true,
+        "subtasks": {
+          "total": 5,
+          "done": 2,
+          "failed": 0,
+          "skipped": 3
+        },
+        "state_json_created": true,
+        "state_summary_created": true
+      },
+      "limits": "Prompt backend only; 3 dependency-gated subtasks were skipped and no real code execution is claimed. Confirms valid legacy orchestration input generates state/summary and the legacy summary reader returns it. Full rollback/DR remains untested."
+    }
   },
   "phase_boundary": {
     "m2": "DEFERRED_BY_PHASE",
