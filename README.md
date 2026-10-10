@@ -6,9 +6,11 @@
 
 YY 是由 Owner 驾驶的 AI 开发编排工作流。你决定目标、边界与是否接受结果；Decision Core 检查当前能否进入下一步、该用哪些能力，宿主 Agent 消费任务与方法后执行。它适合需要持续规划、交接、返工和恢复的软件任务，帮助你把“Agent 说做完了”转化为可核查的产物与证据。
 
+**本地开发用 Skill，远程决策用 MCP，也可以配合使用。** Skill 让有文件与执行权限的宿主按流程开展开发；MCP 让 ChatGPT 等客户端查询准入、选择方法、读取有界资料并核对证据。
+
 ## 本页导航
 
-[七入口流程](#七入口流程) · [九项按需能力](#九项按需能力) · [关键设计](#关键设计) · [系统架构](#系统架构) · [真实界面](#真实界面) · [安装与配置](#安装与配置) · [快速开始](#快速开始) · [交接验收与恢复](#交接验收与恢复) · [已知边界](#已知边界) · [许可与致谢](#许可与致谢)
+[七入口流程](#七入口流程) · [Skill 与 MCP 怎么选](#skill-与-mcp-怎么选) · [MCP 能做什么](#mcp-能做什么) · [九项按需能力](#九项按需能力) · [关键设计](#关键设计) · [系统架构](#系统架构) · [真实界面](#真实界面) · [安装与配置](#安装与配置) · [快速开始](#快速开始) · [交接验收与恢复](#交接验收与恢复) · [已知边界](#已知边界) · [许可与致谢](#许可与致谢)
 
 ## 七入口流程
 
@@ -28,37 +30,59 @@ YY 是由 Owner 驾驶的 AI 开发编排工作流。你决定目标、边界与
 
 [可选交互流程图](assets/yy-workflow.html)
 
+## Skill 与 MCP 怎么选
+
+| 你想做的事 | 选择什么 | 实际由谁完成 |
+|---|---|---|
+| 在本地项目澄清需求、拆任务、开发、验收和恢复 | Core 包作为 Skill | 有文件访问、Node.js 调用及相应执行权限的宿主 Agent |
+| 在 ChatGPT 查询阶段、选择资产、取得方法资料 | MCP 包的 V2 服务 | Python MCP 转发到 Decision Core，以只读工具回包返回 |
+| 云端讨论方案，本地完成开发 | 两者配合 | ChatGPT 取得决策；本地宿主重新核验准入、执行并保存证据 |
+
+Skill 是宿主加载的工作方法；MCP 是客户端调用的工具接口。两者共用决策语义。安装 MCP 不要求 ChatGPT 读取本机 SKILL.md，安装 Skill 也不要求启动公网服务。远程查询不会自动变成本机执行权限。
+
+## MCP 能做什么
+
+新连接使用 **`/mcp-v2`**。三个工具分别解决三个具体问题：
+
+- **`yy_stage_decision`：现在能进入哪一步？** 输入 `workflow_id` 与内部 `step`，返回阶段准入、执行相位、阻断原因与 Owner 下一步。缺规格、状态或证据时告诉你先修什么，不替你推进阶段。
+- **`yy_task_decision`：这项任务该用什么方法？** `select` 返回路由及主/支持资产；`brief` 在符合准入时装配方法简报，返回来源与内容身份。用 `source_catalog` 与 `source_read` 分页读取一个批准来源，不开放任意文件路径。
+- **`yy_validate_consumption`：执行者消费过这份方法吗？** 核对原任务选择/加载的结构证据，并返回可用的执行与行为 checker 观察。缺链报告 `HOST_INTEGRATION_BYPASS`，不能因为回答好听就认证方法论已落实。
+
+云端对话可以取得**真实状态支撑的决策、按任务加载的方法、带身份的资料及可复核证据**，无需每次把九资产全部贴进提示词。工具响应包含 `ok / code / data / evidence / warnings`：`ok=true` 说明查询成功，是否可执行还要看阶段及执行相位。保留原始阻断与错误码，不用模型总结代替回包。
+
+旧 `/mcp` 保留六个兼容读取工具：`yy_open_workflow`、`yy_get_snapshot`、`yy_get_stage`、`yy_list_assets`、`yy_read_asset`、`yy_read_evidence`。它需要额外部署固定的历史源，安装包不自动提供旧工作树；它不是当前阶段权威。新项目使用 V2，不把六加三理解为九资产都在远程执行。
+
+YY MCP 不提供代码写入、命令执行或任意代码文件读取。项目代码由你另行授权的文件工具或 Local MCP 提供；YY 不继承它们的写入权限。多个 workflow 可分别绑定 workspace/session，但 YY × Local 全项目自动授权尚未交付。
+
+
 ## 九项按需能力
 
-![九资产能力图谱：规划、实施、质量验证与显式授权的可选治理](assets/yy-assets.png)
+![九资产按任务选择：规划、实施、质量验证及可选治理](assets/yy-assets.png)
 
-九项资产提供方法与工具。Decision Core 按任务选择主资产和支持资产；支持资产保留本阶段职责，**不会默认启动九个 Agent，也不会要求每项任务依次使用全部资产**。
+YY 将方法文档、条件资源和可执行工具分开管理。Decision Core 先选择适用资产，再按 `METHODOLOGY.json` 解析固定原件和依赖，交给宿主消费。九个资产会按需组合；它们不代表每次同时启动九个 Agent。通过 MCP 取得执行简报也不意味着代码或扫描已执行。
 
-### 规划
+### 规划：从讨论到可以派发的任务
 
-**planning｜需求成文与方向确认**：适合需求仍含糊、需要签收规格的任务。使用 Matt 的 `to-spec`；有未决问题时才加载 `grilling`，输出规格及确认记录。
+- **planning · 需求澄清与规格形成。** 用 [Matt Pocock 的 grilling / to-spec](https://github.com/mattpocock/skills/commit/24fe0ef7737efae15c87225755e9f6f5965e4888) 整理现有讨论、代码事实和约束；有未决问题才追加 grilling。YY 补充 Owner 确认和本地产物交付，规格写入 `artifacts/specs/`。适合“这个需求究竟要做什么、怎样算完成”；任务分解随后交给 dev-planner。
+- **dev-planner · 任务拆解与依赖规划。** 组合同一固定版本的 **to-tickets**，缺规格时补 to-spec，有未决问题时补 grilling。按 tracer-bullet 方法拆出可独立验收的任务，并明确谁阻塞谁，输出到 `artifacts/tickets/`。需要时运行 YY 的 plan-review 检查。远端 issue 发布需要另外授权。
 
-**dev-planner｜拆成可交付任务**：适合已有规格、需要拆任务和梳理依赖的工作。先挑战不必要的前提，再通过 `to-tickets` 组织任务与阻塞关系；缺规格时先补规格。
+### 实施：把方法和任务交给真正的执行宿主
 
-### 实施
+- **implementation · 受控代码实现。** 采用 Matt 的 **implement → tdd + code-review**，TDD 进一步引用 **codebase-design** 的模块设计方法。YY 将唯一子任务、父任务背景、冻结契约、原件引用与验收标准组装为执行包，默认由当前宿主执行；OpenCode/Cline 等外部 Provider 需要显式选择。有真实产物和消费证据才记录执行，缺执行器则返回 `BRIEF_ONLY`。
+- **frontend-design · 分级前端设计。** 结合 [Taste Skill](https://github.com/Leonxlnx/taste-skill) 的 Design Read、设计差异/动效/密度三拨盘，以及源自 [UI/UX Pro Max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) 并保留出处的本地设计资料目录。通过 `search.py` 查询真实配色、字体、风格与 UX 资料，通过 `frontend-quality-gate.mjs` 检查静态代码约束。小修、标准页面和全设计分别使用 L1/L2/L3；无界面产物不加载。当前派单方仍须声明分级，Core 尚未自动强制全部裁剪规则。shadcn/ui 是可选组件底座，Bolt 是显式原型任务的可选工具，均不因引用就自动运行。
 
-**implementation｜把批准任务做成代码**：消费当前有界任务，使用 `implement`、TDD 与变更审查完成实现和运行证据。必须有实际宿主执行绑定；仅返回简报不能算已执行。
+### 质量验证：报告必须说明检查了什么
 
-**frontend-design｜按界面规模做设计**：界面任务按级别加载：L1 机检，L2 Design Read、设计拨盘与主题数据，L3 完整设计及按需原型。纯后端不触发；当前 Core 尚未强制全部分级策略。
+- **be-validator · 后端接口契约校验。** 实际 adapter 调用 [Stoplight Spectral](https://github.com/stoplightio/spectral)（锁定 CLI 6.16.3），用随包 OAS 规则检查 OpenAPI JSON/YAML，生成 `contract-result.json` 的规则、严重度及路径结果。资产另有 Zod 与 RFC 9457 的接口设计指导。文字说明、非 OpenAPI JSON 和未确认草案不能充当已校验契约；OpenAPI lint 也不等于接口功能测试。
+- **security · 代码安全核查。** 当前主 adapter 调用 [Semgrep](https://github.com/semgrep/semgrep)，使用 YY 的六条 Python 规则检查硬编码密钥/密码、SQL 字符串拼接、MD5、eval 和 shell 子进程等风险，返回 `security-result.json`。显式非 Python 目标被拒绝；混合目录保留未覆盖语言，不能宣称整体通过。主 adapter 当前不运行 gitleaks，也没有全语言安全保证；审计、修复和后端专项核查说明是进一步的方法指导。
+- **skill-sentinel · 第三方 Skill 安全扫描。** 当前实际引擎是 [Cisco Skill Scanner](https://github.com/cisco-ai-defense/skill-scanner)（评估固定版本 2.1.0；安装包名 `cisco-ai-skill-scanner`）。adapter 执行扫描、保留 JSON、分析器和 policy 指纹；必需的静态分析器缺失或任何分析器失败时，结果为失败/`UNVERIFIED`。适用于导入第三方 Skill 和社区资产前审查。旧正文提及的 `python -m skill_sentinel` 和 SkillSpector 不是当前可运行主引擎；空发现也不是无风险保证。
+- **review · 证据锚定评审。** 变更评审用 Matt 的 **Standards / Spec 双轴 code-review**，必须提供固定 base；存量代码审计使用 YY 补充方法，必须提供范围和版本。结果以七要素发现组织，可按需补后端行为证据。缺锚点会拒绝准备评审，缺实际独立 Reviewer 记录不能把自检写成独立验收。
 
-### 质量验证
+### 可选治理：只为确实需要的发布和迁移启用
 
-**be-validator｜校验接口与输入边界**：适合 API 契约和输入规则检查。当前实际适配器调用 Spectral，输出契约检查结果；静态通过不代表真实 API 联调成功。
+- **sdlc · 发布与迁移治理。** 保留 [BMAD Method](https://github.com/bmad-code-org/BMAD-METHOD) 相关的阶段输入/输出参考和 YY 的阶段记录、角色放行、回滚决策。默认关闭；必须同时有 `explicit_assets=sdlc`、授权引用和受支持的发布/大型迁移/多阶段治理范围。默认仍由宿主消费，[Cline](https://github.com/cline/cline) 仅是显式选用的外部 Provider。模板和角色文档不等于已运行多个 Agent，也不构成另一套 Journey 或 DAG。
 
-**security｜检查明确范围内的安全问题**：当前实际适配器使用 Semgrep 的本地 Python 六规则。适用于该范围内的代码检查；不能把未覆盖语言或规则宣称为已安全认证。
-
-**skill-sentinel｜检查第三方 Skill**：使用 Cisco Skill Scanner 检查第三方技能包。只有必需分析完整、无 MEDIUM 及以上威胁才能通过；分析器失败或缺失会拒绝或标记未验证。
-
-**review｜分别核对规范与需求**：固定比较基点后审查变更，也可按明确范围与版本审计存量代码。分别回答“是否符合规范”和“是否实现需求”，输出包含定位、影响与证据的发现。
-
-### 可选治理
-
-**sdlc｜重型发布与迁移治理**：仅适用于显式批准的大迁移、发布或多阶段治理。需要资产授权、授权引用与批准范围；普通开发默认关闭，外部 Provider 也不会因为安装在机器上就自动启用。
+Matt 原件固定在上述 commit 并保留 `MIT` 许可证；方法与依赖按声明解析，不在运行时自动追随上游更新。其他上游项目链接说明真实工具来源或方法参考，YY 当前能力以随包 adapter 和固定资料为准。方法投递可验证，完整方法应用认证（C5）仍待交付。
 
 ## 关键设计
 
@@ -92,11 +116,9 @@ Core 的核心运行与 CLI 使用 **Node.js / ES modules**，Journey、计划�
 
 ## 安装与配置
 
-当前正式发行版本为 **v0.3.0**。下载 [Core 包](https://github.com/SHlTbro/YY-workflow/releases/download/v0.3.0/yy-core.zip) 或 [MCP 包](https://github.com/SHlTbro/YY-workflow/releases/download/v0.3.0/yy-mcp.zip)，解压到独立目录。发行页同时提供 SHA256SUMS 与身份清单，可重新核验下载字节。Core 适合本地文件型宿主；MCP 包额外包含 Python 服务。不要把两个同名 YY 同时放入宿主自动发现目录。
+正式版 **v0.3.0**：[Core 包](https://github.com/SHlTbro/YY-workflow/releases/download/v0.3.0/yy-core.zip) · [MCP 包](https://github.com/SHlTbro/YY-workflow/releases/download/v0.3.0/yy-mcp.zip)。MCP 包包含 Core 并额外提供 Python 接入。发行页提供 SHA256SUMS 与构建身份。
 
-保留包内 `SKILL.md`、`commands/`、`scripts/`、`contracts/`、`reference/`、`vendor/` 等原相对路径。GitHub 图片和交互展示不是 Agent 执行依赖。对支持文件读取的宿主，让它加载解压目录内的确切 `SKILL.md`；各宿主的自动发现路径不同，不应假设一个安装路径通用。
-
-准备 Node.js；本批实际安装测试使用 Node.js 24。在解压目录执行：
+先准备 Node.js（实测 24），下列命令在解压后的 `yy/` 根目录运行：
 
 ```sh
 npm ci --ignore-scripts
@@ -104,15 +126,106 @@ node scripts/validate-structure.mjs
 node scripts/build-decision-authority.mjs --check
 ```
 
-预期：结构与 Decision 身份检查成功。**只有 MCP 包**额外运行：
+预期结构与 Decision 身份检查通过。只有 MCP 包额外执行 `node scripts/build-decision-transport.mjs --check`；Core 没有 Python transport 源文件，不能重算该身份。Windows 带空格路径已实测，其他平台未实测。
 
-```sh
-node scripts/build-decision-transport.mjs --check
+### A. 本地 Skill：让宿主加载 YY
+
+1. 解压 Core 包，保持 `SKILL.md`、`commands/`、`scripts/`、`contracts/`、`reference/`、`vendor/` 的相对路径。不能只复制一张 SKILL.md。
+2. 使用能读取文件和调用 Node.js 的宿主，如本地 Codex。将整个 `yy/` 放入该宿主支持的 Skill 发现目录，或直接要求读取入口。自动发现目录依宿主而定。
+3. 替换以下两处绝对路径，在宿主对话中发送：
+
+```text
+请读取 <YY解压目录>/SKILL.md 并按 YY 工作流工作。
+业务项目是 <项目绝对路径>，不要把 YY 安装目录当作业务工作区。
+/yy 0
+我要给现有后端增加健康检查端点。
+先盘点边界与可复用资产，展示 Decision Packet 和下一步。
+需求与验收条件确认前，不修改业务代码。
 ```
 
-Core 包保留 Transport 身份作为来源信息，但没有 Python MCP 文件，不能重算完整 Transport 身份。Python MCP、Semgrep 和 Cisco Scanner 按各自声明单独安装；缺少必要工具时保留拒绝或未验证结果，不能把依赖缺失当成通过。本批搬迁安装实测为 Windows 带空格路径，其他操作系统未实测。
+第一次应得到立项判断与下一步，然后用 `/yy 1` 澄清需求。有执行权限的宿主才负责后续实现。命令文件是宿主指引，不保证每个客户端都把 `/yy` 注册成原生按钮；不识别时明确读取入口。
 
-MCP 使用随包 lifecycle 和启动说明，认证值只放环境变量或受控本机配置。V2 连接 `/mcp-v2`，M1 连接 `/mcp`；真实服务还需要可信 workflow 绑定和认证，不能直接套用别人的公网地址。
+不要同时安装两个同名 YY。根 npm 安装不会装齐 Semgrep、Cisco Scanner 的 Python 依赖；工具按具体任务的声明安装，依赖缺失不能当通过。
+
+### B. MCP：部署一次，客户端按工具调用
+
+下载 MCP 包。下面是**本机只读 smoke**，只创建空的合成工作区，不打开真实项目。先安装 Python 3.12 并确认 `python --version`，然后从 `yy/` 根目录在 PowerShell 7 执行（UTF-8 无 BOM）：
+
+```powershell
+Set-Location integrations/yy-web-mcp
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+
+$demoRoot = Join-Path $PWD 'demo-workspace'
+New-Item -ItemType Directory -Path $demoRoot -ErrorAction Stop | Out-Null
+@{
+  schema = 'yy/read-bindings@1'
+  workspaces = @(@{
+    workflow_id = 'yy-demo'
+    workspace_root = $demoRoot
+    session = $null
+    scope = 'synthetic'
+    enabled = $true
+  })
+} | ConvertTo-Json -Depth 5 | Set-Content -Encoding utf8 bindings-demo.local.json
+
+$env:YY_DECISION_ENABLED = 'true'
+$env:YY_READONLY_ENABLED = 'false'
+$env:YY_READONLY_BINDINGS = (Resolve-Path bindings-demo.local.json).Path
+$env:YY_DECISION_ROOT = (Resolve-Path ../..).Path
+$env:YY_AUTH_MODE = 'none'
+.\.venv\Scripts\python.exe server.py --port 18200 --auth-mode none
+```
+
+选择空闲端口，避开 Local 的 8168。服务保持前台运行，V2 URL 为 `http://127.0.0.1:18200/mcp-v2`。用 MCP Inspector 或支持 Streamable HTTP 的本机客户端连接，应能 initialize 并看到三个工具。关闭该前台进程即可结束；重复演示先选择新的空目录，不覆盖已有项目。
+
+`workflow_id → workspace_root/session` 由服务端登记，客户端不能提交任意磁盘路径。synthetic 只用于批准的合成数据；真实项目用 production 与 OAuth，不能把私人项目改名为 synthetic。
+
+#### 在 ChatGPT 中连接
+
+ChatGPT 网页端需要它能访问的远程 HTTPS URL，不能连接你电脑的 127.0.0.1。部署者须保持 YY 服务与 HTTPS 隧道运行，URL 指向 `/mcp-v2`；隧道只解决网络连接。
+
+按 [OpenAI 当前自定义 MCP 说明](https://developers.openai.com/api/docs/guides/custom-mcp-server)，打开 ChatGPT Plugins/自定义连接页面，新增自定义 MCP 服务，填名称 `YY-V2` 与自己的 Server URL，配置认证后创建并安装；在输入框键入 `@` 选择 YY-V2。账号/工作区权限与界面名称以官方页面为准。
+
+- 只有批准的公开合成测试才可选择 No Authentication，部署者必须保证绑定与资料范围隔离。本版不附带本机临时 NoAuth profile，不能把本机演示当作通用匿名上线保证。
+- 真实项目复用已有 OAuth：配置 `YY_AUTH_MODE=oauth`、`YY_AUTH_SECRET`、`YY_AUTH_PASSWORD_HASH`、`YY_AUTH_ISSUER`，客户端选 OAuth。签名密钥至少 32 字符；密码是 `auth.hash_password` 编码；issuer 等于服务 HTTPS 源地址。值只存在受控本机环境，不写源码或聊天。
+
+配置好可信绑定与认证环境后，在 integration 目录可用现有 Windows lifecycle：`./start-yy-mcp.ps1 start -Port <空闲YY端口> -BindingsPath <本机绑定JSON绝对路径> -AuthMode oauth -NoTunnel`。它启动本地服务；公网 HTTPS 按自己的隧道配置部署，不自动选择域名、注册项目或安装依赖。
+
+### MCP 第一次实际调用
+
+在 ChatGPT 选择已安装的 `@YY-V2` 后输入：
+
+```text
+调用 yy_stage_decision：workflow_id="yy-demo"，step=0。
+展示原始准入、阻断原因和下一步，不执行代码。
+再调用 yy_task_decision：workflow_id="yy-demo"，
+task_text="Implement a small backend health endpoint"，
+mode="select"，capability="code-implementation"。
+说明主资产与支持资产职责，不声称已经实现。
+```
+
+空工作区的 step 0 返回立项判断；第二个查询返回实施任务路由。不会创建计划或写代码，也不会加载全部九资产。yy-demo 必须是当前服务端实际登记的 ID，不能直接拿到另一个部署使用。
+
+已有项目进度后，先查阶段，允许时再用相同内部 step 和 `mode="brief"` 取得方法简报。七命令对应 `0、1、1.5、3、5、7、8`；例如 `/yy 2` 是 `step=3`，不是数字 2。查询不会替你推进 Journey。
+
+读取方法原文时，从 brief 的 source catalog 取逻辑 ID、来源哈希和快照，按工具 schema 填 `source_read` 的 `workflow_id / asset_id / source_id / expected_source_sha256 / snapshot_ref / cursor / max_bytes`。后续页使用返回 cursor，保持外层任务及 step 相同。身份变化或拒绝时停止，不编造 source ID 或反复重放第一页。
+
+执行后才用真实 subtask_id 调用 yy_validate_consumption。空项目没有 receipt，被拒绝是正常结果。开发动作由本地 Skill/宿主执行；远程 MCP 查询本身不会启动编程。
+
+### 从 ChatGPT 交给本地宿主
+
+把实际返回的 Decision Packet 和 brief 交给已加载 YY Skill 的本地宿主，可使用这段话：
+
+```text
+这是同一任务的远程决策包与方法简报：<粘贴实际回包>。
+本地业务项目：<项目绝对路径>。
+请先重新核对当前阶段、项目与 session 绑定及决策身份。
+若执行准入不允许，展示阻断和恢复下一步；允许后再按简报执行。
+保留产物与证据，返回验收，不把远程查询当作完成证明。
+```
+
+这是显式人工交接，不是 ChatGPT 自动远程执行本地代码。另一个 Local MCP 的代码读取需要单独认证与项目授权，YY 的 workflow 绑定不会继承它的写入或执行权限。
 
 ## 快速开始
 
@@ -173,3 +286,5 @@ YY 根许可为 [`MIT`](LICENSE)。运行资产保留各自的上游许可、原
 感谢 Matt 方法资产及其他上游项目。原版权、工具与展示材料归属见 [第三方声明](THIRD_PARTY_NOTICES.md)；本页不把历史执行内核名称作为当前产品功能。
 
 可编辑视觉源：[主视觉 SVG](assets/yy-hero.svg) · [能力图 SVG](assets/yy-assets.svg)。
+
+已公开的[发行进度记录](docs/progress/2026-10-10.md)保留历史展示；当前使用方式以上述指南为准。
