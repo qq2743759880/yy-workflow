@@ -1,0 +1,246 @@
+{
+  "schema": "yy/methodology-bindings@1",
+  "asset": "frontend-design",
+  "methodology_type": "LOCAL_COMPOSE",
+  "wrapper_policy": "YY_ROUTED",
+  "wrapper_source": {
+    "path": "SKILL.md",
+    "scope": "asset",
+    "sha256": "226517732f7b44ec9a718160da4b0b5b1a487a4c62dc86a7f220d19817a17a36"
+  },
+  "licenses": [
+    {
+      "path": "LICENSE",
+      "scope": "package",
+      "sha256": "39ad33402a909bc27000cde7ec17024209243db571dd7af7aed67a7f28a19883"
+    }
+  ],
+  "primary": "taste",
+  "skills": {
+    "taste": {
+      "path": "reference/taste-skill.md",
+      "scope": "asset",
+      "sha256": "824db600494faa1159dddaf13583202bcc48deca5c92cf7198224755564df697",
+      "invocation_policy": "YY_ROUTED",
+      "dependencies": [
+        "frontend-levels"
+      ],
+      "resources": [
+        {
+          "path": "reference/color-and-contrast.md",
+          "scope": "asset",
+          "sha256": "be502ad08270cd60cabb6769a6e1ed517ecaeeb7d40f6e610f1802689ee78ddc",
+          "when": {
+            "topics": "color-and-contrast"
+          },
+          "tag": "topic"
+        },
+        {
+          "path": "reference/interaction-design.md",
+          "scope": "asset",
+          "sha256": "997d5e66ae54fcf8e59a0fcf0a2db49982ffe7b9b6cc091bcf64a3b3e0828ed7",
+          "when": {
+            "topics": "interaction-design"
+          },
+          "tag": "topic"
+        },
+        {
+          "path": "reference/motion-design.md",
+          "scope": "asset",
+          "sha256": "c35a59b5f795721c914cfccf9b470e89a5010c563cd85ab46a67031531678f3f",
+          "when": {
+            "topics": "motion-design"
+          },
+          "tag": "topic"
+        },
+        {
+          "path": "reference/responsive-design.md",
+          "scope": "asset",
+          "sha256": "5add44195a42cf7fa82aecadaad79b8875446b930e06d087d73f3722533fd95a",
+          "when": {
+            "topics": "responsive-design"
+          },
+          "tag": "topic"
+        },
+        {
+          "path": "reference/spatial-design.md",
+          "scope": "asset",
+          "sha256": "10c743ee8245fc1be9e8af2b79dd08b0dae19fcde33d46c9730c000d7e13b7cd",
+          "when": {
+            "topics": "spatial-design"
+          },
+          "tag": "topic"
+        },
+        {
+          "path": "reference/typography.md",
+          "scope": "asset",
+          "sha256": "71c2e62adf8dff3e3a6f57c37c72e5ca6c1e2902b906915c74d3cc04ab72c3c1",
+          "when": {
+            "topics": "typography"
+          },
+          "tag": "topic"
+        },
+        {
+          "path": "reference/ux-writing.md",
+          "scope": "asset",
+          "sha256": "0cd5e958d92be6e2331cb199d6ed5d98597aa20ec4922d4c3df56e7753cfc00c",
+          "when": {
+            "topics": "ux-writing"
+          },
+          "tag": "topic"
+        },
+        {
+          "path": "templates/design-read-template.md",
+          "scope": "asset",
+          "sha256": "fb3121e9ef8bc3ef8c053265ec962289816b4fcd8e70f89284c562ddf8e12647"
+        },
+        {
+          "path": "reference/integration-checklist.md",
+          "scope": "asset",
+          "sha256": "43800e4ce96373ead7c5b42bfef98c28497c684e6c683c0db8c69a007d015c82"
+        },
+        {
+          "path": "reference/design-data/usage.md",
+          "scope": "asset",
+          "sha256": "15fc34247f68dec1ee88bea0221327fc571bf5e5fbad5354f955a6249e545366",
+          "when": {
+            "design_data": true
+          }
+        },
+        {
+          "path": "reference/component-selection.md",
+          "scope": "asset",
+          "sha256": "299369908b359f2c5b8e90e3b7609fdec361d63e6e60617ebe2a1cc3defca3eb",
+          "when": {
+            "component_selection": true
+          }
+        },
+        {
+          "path": "reference/prototyping.md",
+          "scope": "asset",
+          "sha256": "b2137551c95662666266ee394ca237e0f6ee83fac1750d2fe4c25ece73ff6a64",
+          "when": {
+            "frontend_level": "L3",
+            "prototype": true
+          }
+        },
+        {
+          "path": "reference/PICKER.md",
+          "scope": "asset",
+          "sha256": "31a55eec94715cc79942e91e172e539e3031dcd5e2e5ee7c1446cf2caee960a6",
+          "when": {
+            "frontend_level": "L3",
+            "prototype": true
+          }
+        },
+        {
+          "path": "vendor/review/reference/critique.md",
+          "scope": "package",
+          "sha256": "bccdb516a2f12342e508b61feb48ef732da1d765061cbed358e5e68f3aedd804",
+          "when": {
+            "ux_review": true
+          }
+        },
+        {
+          "path": "reference/taste-blocks/cta/centered-cta.md",
+          "scope": "asset",
+          "sha256": "a59b0836c9a565683be6a3d1d51cf50600c6ef3a631d49d1107e5d93594a6564",
+          "when": {
+            "blocks": "cta"
+          }
+        },
+        {
+          "path": "reference/taste-blocks/feature/bento-grid.md",
+          "scope": "asset",
+          "sha256": "5bcad4a4a78a620bfe71b423d11172b4f3be11882fd3a8e8c31632cb8940de97",
+          "when": {
+            "blocks": "feature"
+          }
+        },
+        {
+          "path": "reference/taste-blocks/footer/multi-column-footer.md",
+          "scope": "asset",
+          "sha256": "5a8f17eee6b813ad62fac7112c7651c7554fbe06fd89c6449087fbac6040d627",
+          "when": {
+            "blocks": "footer"
+          }
+        },
+        {
+          "path": "reference/taste-blocks/hero/asymmetric-split.md",
+          "scope": "asset",
+          "sha256": "43bbc32e0268acf7d0b18c93be58c745ca80880ddab0c4e760ff7c207d810d5f",
+          "when": {
+            "blocks": "hero"
+          }
+        },
+        {
+          "path": "reference/taste-blocks/navigation/sticky-nav.md",
+          "scope": "asset",
+          "sha256": "683459b2bd3ed607dd169cc3a34c5f20483996c6fe707dd6e18fa9a2ce7a5ccd",
+          "when": {
+            "blocks": "navigation"
+          }
+        },
+        {
+          "path": "reference/taste-blocks/portfolio/project-gallery.md",
+          "scope": "asset",
+          "sha256": "af396e56096df73b3738df1b2b5f074be614267323bfe880f0ae922ff42c5fd6",
+          "when": {
+            "blocks": "portfolio"
+          }
+        },
+        {
+          "path": "reference/taste-blocks/pricing/tiered-pricing.md",
+          "scope": "asset",
+          "sha256": "331e3cf04d1925439381e33202015bd1db9d4ddcba428a6cb4cb2cce7999dc50",
+          "when": {
+            "blocks": "pricing"
+          }
+        },
+        {
+          "path": "reference/taste-blocks/social-proof/testimonial-wall.md",
+          "scope": "asset",
+          "sha256": "5d3e27d78fe838751bd2f60a8904bf7f80a22e7e832e79f1759505e4d3203e38",
+          "when": {
+            "blocks": "social-proof"
+          }
+        },
+        {
+          "path": "reference/taste-blocks/transition/sticky-scroll-stack.md",
+          "scope": "asset",
+          "sha256": "1446131a349ae11cd0e8ab9792616cc42687a1bbc6b83cd383a01edbab61aa14",
+          "when": {
+            "blocks": "transition"
+          }
+        }
+      ]
+    },
+    "frontend-levels": {
+      "path": "SKILL.md",
+      "scope": "asset",
+      "sha256": "226517732f7b44ec9a718160da4b0b5b1a487a4c62dc86a7f220d19817a17a36",
+      "invocation_policy": "YY_ROUTED",
+      "dependencies": [],
+      "resources": []
+    }
+  },
+  "mode_selector": "frontend_level",
+  "default_mode": "L2",
+  "modes": {
+    "L0": {
+      "primary": "frontend-levels"
+    },
+    "L1": {
+      "primary": "frontend-levels"
+    },
+    "L2": {
+      "primary": "taste"
+    },
+    "L3": {
+      "primary": "taste"
+    }
+  },
+  "resource_limits": {
+    "topic": 3
+  }
+}

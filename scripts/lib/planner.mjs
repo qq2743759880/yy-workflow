@@ -1,3 +1,4 @@
+import {profileAllowed} from './methodology.mjs';
 import { CLUSTERS } from './matrix.mjs';
 // W2-1 capability ingress（Ingress Mini-Contract D.1/D.2）：受控派生 + CAPABILITY_MAP 单点解析。
 import { deriveCapability, resolveCapabilityAsset, CapabilityIngressError } from './capability-derivation.mjs';
@@ -15,16 +16,29 @@ export function isFrontendImplementation(subtask, plan) {
 function normalize(text) { 
   if (text === undefined) text = ''; 
   if (text === null) text = ''; 
-  return String(text).toLowerCase(); 
+  // Preserve controlled words in CamelCase/acronym compounds before case-folding.
+  return String(text)
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+    .toLowerCase();
 } 
+function matchesRouteKeyword(text, englishTokens, keyword) {
+  const normalized = normalize(keyword);
+  // ASCII words require a complete token; separators and controlled CamelCase
+  // compounds remain usable. Chinese intent keywords retain substring matching.
+  return /^[a-z0-9]+$/.test(normalized)
+    ? englishTokens.has(normalized)
+    : text.includes(normalized);
+}
 export function route(taskText, manifest) { 
   const text = normalize(taskText); 
   if (!text.trim()) throw new NoMatchError(); 
+  const englishTokens = new Set(text.match(/[a-z0-9]+/g) || []);
   let best = null; 
   let bestScore = 0; 
   for (const cluster of CLUSTERS) { 
     let score = 0; 
-    for (const keyword of cluster.keywords) if (text.includes(normalize(keyword))) score += 1; 
+    for (const keyword of cluster.keywords) if (matchesRouteKeyword(text, englishTokens, keyword)) score += 1;
     if (score > bestScore) { best = cluster; bestScore = score; } 
   } 
   if (!best) throw new NoMatchError(); 
@@ -51,8 +65,10 @@ export function buildPlan(taskText, manifest, options = undefined) {
   let entries = []; 
   if (manifest && manifest.entries) entries = manifest.entries; 
   const available = new Set(entries.map(function(entry) { return entry.name; })); 
-  const candidates = cluster.candidates.filter(function(name) { return available.has(name); }); 
+  const candidates = cluster.candidates.filter(function(name) { return available.has(name)&&profileAllowed(entries.find(e=>e.name===name)?.optional_profile,options?.ownerIntent,options?.methodologyContext); }); 
   if (!candidates.length) throw new NoMatchError('no matching asset for ' + cluster.id); 
+  const primaryAsset = capability ? resolveCapabilityAsset(capability) : candidates[0];
+  if (!candidates.includes(primaryAsset)) throw new NoMatchError('primary capability asset unavailable: ' + primaryAsset);
   const planId = 'plan-' + Date.now().toString(36);
   // DAG：phases 二维分组（同一 phase 内可并行，跨 phase 串行）。未定义 phases → 每候选独立 phase（完全串行，向后兼容）。
   const phases = Array.isArray(cluster.phases) ? cluster.phases : cluster.candidates.map(function(name) { return [name]; }); 
@@ -61,10 +77,12 @@ export function buildPlan(taskText, manifest, options = undefined) {
   // 保持 subtasks 数组顺序 = candidates 原序（G1 向后兼容）；phase/dependsOn 作为附加字段。
   const preconditions = Array.isArray(cluster.preconditions) ? cluster.preconditions.slice() : [];
   const subtasks = candidates.map(function(asset, index) { 
-    const subtask = { id: planId + '-' + index, planId, asset, contract: cluster.contract, status: 'idle', artifactPath: null, attempts: 0, phase: phaseOf.get(asset) === undefined ? index : phaseOf.get(asset), dependsOn: [], desc: undefined, estimate: undefined, lane: undefined, approved: undefined, preconditions: preconditions.length ? preconditions.slice() : undefined }; 
-    // W2-1 加法字段（D.3）：仅 capability 在场时附加，asset 原语义零改动；
-    // 无 capability 任务零字段变化（向后兼容字节级，自测 4）。
-    if (capabilitySource) { subtask.capability = capability; subtask.capabilitySource = capabilitySource; } 
+    const primary = asset === primaryAsset;
+    const phase = phaseOf.get(asset) === undefined ? index : phaseOf.get(asset);
+    const subtask = { id: planId + '-' + index, planId, asset, role: primary ? 'primary' : 'support', parentTask: taskText, contract: cluster.contract, status: 'idle', artifactPath: null, attempts: 0, phase, dependsOn: [], desc: primary ? taskText : '执行 ' + asset + ' 在既有计划 phase ' + phase + ' 的职责；父任务仅提供目标上下文，使用上游产物并交付本项独立产物。', estimate: undefined, lane: undefined, approved: undefined, preconditions: preconditions.length ? preconditions.slice() : undefined }; 
+    // Deterministic role/desc preserve the existing asset and phase duties.
+    // Capability ingress fields belong only to their owner; absent capability adds neither field.
+    if (capabilitySource && primary) { subtask.capability = capability; subtask.capabilitySource = capabilitySource; } 
     return subtask; 
   }); 
   // dependsOn = 前一个 phase 的所有 subtask.id（第一 phase 空数组）；逐 phase 填充保证引用已存在 id。

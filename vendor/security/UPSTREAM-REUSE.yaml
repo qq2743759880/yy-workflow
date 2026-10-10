@@ -1,0 +1,32 @@
+schema: yy/upstream-reuse@1
+asset: security
+decision: COMPOSE
+matt_checked:
+  commit: 24fe0ef7737efae15c87225755e9f6f5965e4888
+  evidence: Owner function-freeze scope and the pinned upstream inventory
+approved_mature_checked:
+  evidence: Current production sources and real adapters inspected before migration
+rejected_lower_modes:
+  DIRECT_VENDOR: YY admission/artifact/owner boundaries are absent upstream
+  THIN_WRAPPER: Existing distinct resources/tool discipline are composed; no equivalent Matt frontend or deterministic tool engine.
+gap:
+  status: REAL_GAP
+  evidence: YY-specific admission, local artifact sink, evidence and declared owner governance; no replacement of upstream methods
+wrapper_responsibilities:
+- decision_bridge
+- activation_pointer
+- dependency_resolution
+- artifact_bridge
+- evidence_bridge
+- portable_execution
+no_runtime_auto_update: true
+source_refs:
+- path: vendor/security/SKILL.md
+  sha256: 4c767995b3a604b74fcaf9b9ee83e7b8bfe29550dab6cff3861bca4f1647b486
+- path: LICENSE
+  sha256: 39ad33402a909bc27000cde7ec17024209243db571dd7af7aed67a7f28a19883
+primary_upstream:
+  kind: APPROVED_MATURE
+  license: preserved in declared license sources
+  paths:
+  - SKILL.md

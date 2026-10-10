@@ -1,6 +1,0 @@
-WRITTEN D:\.ai-hub\skills\yy\test-reports\autopilot-work\CR-1\converted-tasks\critique-convert-01-task.md
-WRITTEN D:\.ai-hub\skills\yy\test-reports\autopilot-work\CR-1\converted-tasks\critique-convert-02-task.md
-WRITTEN D:\.ai-hub\skills\yy\test-reports\autopilot-work\CR-1\converted-tasks\critique-convert-03-task.md
-
-[OK] 批判转化落盘 3 份（七字段断言全过，verify_command 在场: node scripts/review-gate.mjs --self-test && node scripts/review-…）
-EXIT=0

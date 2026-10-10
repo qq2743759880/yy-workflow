@@ -1,0 +1,16 @@
+{
+  "repository": "mattpocock/skills",
+  "commit": "24fe0ef7737efae15c87225755e9f6f5965e4888",
+  "source_path": "skills/productivity/grilling",
+  "license": "MIT",
+  "license_ref": "../LICENSE",
+  "source_sha256": "10ff989e7498b23b5acb49d5048f11dcd906757d2f79c5cdf8a00001381296f2",
+  "vendored_sha256": "10ff989e7498b23b5acb49d5048f11dcd906757d2f79c5cdf8a00001381296f2",
+  "files": {
+    "SKILL.md": "10ff989e7498b23b5acb49d5048f11dcd906757d2f79c5cdf8a00001381296f2",
+    "agents/openai.yaml": "1411d7df7d99b7e621a1ff8283c8133cc2464be63d064e52d8ce169c6800ee9b"
+  },
+  "fetched_at": "2026-10-05",
+  "reuse_mode": "COMPOSE_UPSTREAM",
+  "byte_verification": "every vendored file sha256 in files map == tar member at pin"
+}

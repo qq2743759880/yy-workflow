@@ -1,0 +1,62 @@
+schema: yy/receipt-evolution@1
+version: 1.0.0
+description: Receipt v2 evolution. v1 reader retained. v2 new tasks write only.
+v1_schema: yy/receipt@1
+v2_schema: yy/receipt@2
+v2_positive_path:
+- step: T1
+  state: DISCOVERED
+- step: T2
+  state: ELIGIBLE
+- step: T3
+  state: SELECTED
+- step: T4
+  state: LOADED
+- step: T5
+  state: EXECUTED
+- step: T6
+  state: APPLIED
+  constraint: MUST be after T5
+- step: T7
+  state: VERIFIED
+t6_required_evidence:
+- asset_id
+- asset_version
+- contract_hash
+- assertion_results
+- verifier_types
+- artifact_ref
+- artifact_sha256
+- evidence_refs
+- critical_assertion_status
+- pass_policy_evaluation
+verifier_taxonomy:
+- deterministic
+- structural
+- semantic
+- hybrid
+- human
+pass_policy:
+  critical: all_must_pass
+  optional_minimum: 0
+  n_m_masking_critical_forbidden: true
+hidden_suite_boundary:
+  worker:
+  - repo
+  - public_fixtures
+  evaluator:
+  - repo
+  - public_fixtures
+  - hidden_evaluator_store
+  enforcement: filesystem_process_level
+  prompt_level_insufficient: true
+updates_required:
+- transition_legality
+- required_evidence
+- completeness_predicates
+- anti_echo_checks
+- behavior_verification
+- phase_gate
+- migration_reader_v1_to_v2
+- regression_fixtures
+- v1_compatibility_reader

@@ -1,0 +1,267 @@
+# YY VNext — MCP-FIRST Host Integration · C1 Decision Contract v1
+# 冻结链：C1 Ground Truth (2026-10-02) → R1 六项修正 → R2 五项残留关闭 → 本文件落档。
+# 本文件是 C1 Decision Contract 的唯一 canonical 载体；plans/project-handoff.md 仅按 path+SHA256 引用，
+# 禁止在别处复制第二份语义真值。
+# 实施边界：本契约只冻结语义与边界；Decision Core（C2）/ MCP V2（C3）/ Codex 命令改造（C4）不在本契约内实现。
+schema: yy/decision-contract@1
+version: 1.0.1
+status: FROZEN
+frozen_at: "2026-10-02"
+freeze_chain:
+  - "C1 Ground Truth 2026-10-02（HOST/MCP path 审计 + HIG-001..013 + 可复用 core 盘点）"
+  - "R1 六项修正（准入/相位分离、MCP 输入边界、exact-six、六桶选择、authority block、错误模型）"
+  - "R2 五项残留关闭（session 移出外签名、跨面不一致降数据、decision_authority_digest、primary/supporting、唯一新 envelope 码裁定）"
+  - "C2-R1-5 erratum v1.0.1：C2 executable surface exposed existing receipt error codes omitted from C1 V2 allowlist（追加 RECEIPT_INVALID / RECEIPT_HASH_MISMATCH，origin=reuse；唯一新码不变）"
+non_goals:
+  - 不实现 Decision Core（C2）
+  - 不实现 MCP V2 服务（C3）
+  - 不修改 Codex commands / SKILL.md（C4）
+  - 不改动 M1 exact-six 表面与 exact-six 测试
+
+authority_model:
+  faces:
+    journey_admission:
+      authority: scripts/tt-journey.mjs
+      vocabulary: [STEPS, STEP_IDS, GATE_VOCAB, PREREQ_MAP]
+      state: ".tt-state/journey.json (yy/journey@1)"
+    execution_phase:
+      authority: scripts/lib/phase.mjs
+      semantics: "A 面 plan 7 态（idle/planning/executing/frozen/reviewing/done/failed）+ B 面 STEP_GATE 投影；整数 step 0..8 专属"
+    routing:
+      authority: "scripts/lib/planner.mjs buildPlan + scripts/lib/capability-derivation.mjs + CAPABILITY_MAP + CLUSTERS"
+      manifest: contracts/asset-manifest-v2.json
+    eligibility:
+      authority: "scripts/lib/activation.mjs resolveAssetEligibility (AV-3/CD-1)"
+    activation:
+      authority: "scripts/lib/activation.mjs activationPrepare"
+    brief:
+      authority: "scripts/lib/activation.mjs renderBrief / extractPayloadFromBrief"
+    validation:
+      authority: "artifacts/<subtaskId>/receipt.json 事件链重放 + payloadSha256 复验"
+    plain_language:
+      authority: "确定性投影表（数据文件 + drift check 入 CI）；禁止模型自由文案"
+  identity_block:
+    fields:
+      - authority_mode
+      - release_id
+      - identity_verified
+      - git_commit
+      - git_tree
+      - source_bundle_digest
+      - payload_digest
+      - snapshot_id
+      - decision_authority_digest
+      - decision_authority_components
+    rules:
+      - "authority_revision 仅为兼容元数据，不充当权威身份"
+      - "source_bundle_digest = Foundation 发布 provenance（发布 bundle 排除 contracts/**），不单独标识决策语义，亦不被 decision_authority_digest 替代"
+      - "authority_mode ∈ {source-candidate, deployed}；deployed 模式以 release_id / payload_digest / identity_verified 为权威发布证据；source-candidate 模式以 source_bundle_digest 为字节身份"
+      - "外部 V2 MCP 面：identity_verified=false ⇒ fail-closed（沿 bridge 请求前后双核验语义）；本地 CLI source-candidate 模式可产出，但 packet 必须如实戳记 unverified"
+
+journey_vs_phase:
+  journey_admission:
+    primary: true
+    owns: "/yy 里程碑准入"
+    supports: ["step 0..8", "step 1.5 研究门 + research-done gate"]
+  execution_phase:
+    primary: false
+    owns: "执行相位补充检查（派单就绪等执行型工作流）"
+    constraint: "仅整数 step；不得重定义旅程准入；phase.mjs 零修改（禁止为容纳 1.5 改造该文件）"
+  disagreement_rule:
+    stage_authority: journey-admission
+    execution_phase_consistency:
+      values: [CONSISTENT, MISMATCH]
+      channel: "data 字段 + warnings[] 项"
+      envelope_error: false
+    projection_conflict_reserved_for: "同维度 journey 投影权威值不可调和（lib/journey.mjs 原语义）；跨面不一致禁用该码"
+
+mcp_input_security:
+  layers:
+    external_mcp:
+      accepts:
+        - workflow_id
+        - "逻辑 id（step / task_text / capability / subtask_id）"
+        - "有界 ref（artifact_ref / evidence_ref，pattern 校验字符串，服务端对绑定 workspace 解析）"
+      forbidden_params: [session, workspace, workspace_root, root, path, file_path, artifact_path, "absolute filesystem path 形参"]
+      static_negative_acceptance: "任何 V2 MCP 签名暴露禁参表字段或任何路径型参数 = FAIL（C3 CI 静态检查）"
+    internal_core_cli:
+      may_receive: "服务端已解析的受信 workspace/session（来源：绑定解析或本地宿主 adapter）；永不经 MCP 外露"
+  binding_resolution:
+    chain: "workflow_id → 服务端授权绑定 {workspace_root, session, scope} → workspace（bridge.mjs 既有机制，绑定注册表 yy/read-bindings@1）"
+
+routing_semantics:
+  epoch: >-
+    compatibility epoch——生产语义权威 = CAPABILITY_MAP + CLUSTERS + contracts/asset-manifest-v2.json；
+    contracts/v3/*.contract-v3.yaml 仅候选元数据（lifecycle 字段如实投影；零 ACCEPTED 前不得充任生产权威）
+  buckets: [cluster, capability, capability_source, matched_keyword, cluster_candidates, capability_owner, eligible_assets, ineligible_assets, primary_assets, supporting_assets, not_selected_assets]
+  capability_mode:
+    precondition: "owner ∈ cluster_candidates 且资格通过；违者 fail-closed（CAPABILITY_CLUSTER_MISMATCH / INELIGIBLE_*，不回退其它行）"
+    primary_assets: "= [capability_owner]"
+    supporting_assets: "其余 eligible 簇候选，保持既有 CLUSTERS phases 顺序——是按相位计划的支持资产，不得标记为 not selected"
+    not_selected_assets: "仅真实被排除/不合格候选（镜像 ineligible 桶，逐个带因：INELIGIBLE_* / ASSET_NOT_FOUND / CANDIDATE_INVALID）"
+  legacy_mode:
+    rule: >-
+      无 capability ⇒ 无 primary 指称：primary_assets=[]；
+      supporting_assets = eligible_assets（簇 phases 序）≡ buildPlan G1 subtask 集同集合同序（簇计划行为显式保留、零改动）；
+      not_selected_assets = ineligible 候选
+  constraints:
+    - "Routing Contract 约束保留：capability owner 必须属于簇（fail-closed）"
+    - "禁止拷贝 runtime.mjs capability 覆写 subtask.asset 行为：Decision Core 零写、subtask 字段不动，capability_owner 与 primary/supporting 并列留痕"
+    - "buildPlan 产出 cluster candidates → subtask 骨架（非 selected/rejected）；七桶投影是 Decision 层新投影（语义决断 SD-1，V1 对 legacy 行为零兼容影响）"
+
+decision_packet:
+  schema: yy/decision@1
+  sections:
+    authority:
+      fields: [authority_mode, release_id, identity_verified, git_commit, git_tree, source_bundle_digest, payload_digest, snapshot_id, decision_authority_digest, decision_authority_components]
+    workflow:
+      fields: [workflow_id, journey_state_digest, journey_status]
+    stage:
+      authority: journey-admission
+      fields: [current_step, current_name, requested_step, allowed, prerequisites, blockers, required_owner_action, execution_phase]
+      execution_phase:
+        role: supplemental
+        fields: [plan_status, allowed, blockers, consistency]
+    routing:
+      buckets_ref: routing_semantics.buckets
+    assets:
+      items: [id, version, lifecycle, source_hash, payload_sha256, activation_level, loaded_sections, token_estimate]
+      note: "brief 模式产出；token_estimate 仅回归量尺（cjk-weighted-regression-ruler），禁止表述为实测 token"
+    brief:
+      fields: [text, brief_sha256, activation_level, budget_result]
+    receipt_context:
+      fields: [subtask_id, plan_id, asset_id, asset_version, contract_hash, source_hash, payload_sha256, brief_sha256]
+      consumer: "C5（execution_observed / methodology_applied / behavior_verified）"
+    validation:
+      fields: [t3_selected, t4_loaded, bypass_flag, deferred]
+      deferred_states:
+        - { state: "T5|T6|T7", status: DEFERRED_TO_C5 }
+    owner:
+      fields: [plain_summary, owner_decisions]
+      projection: "投影表生成；五问固定序（现在在哪一步 / 为何能或不能继续 / YY 刚才做了什么 / 选了哪些资产为什么 / 我只需决定什么）"
+    evidence:
+      fields: [refs, observed_at, freshness]
+  hash_chain: "source_hash → payload_sha256（投递段规范形）→ brief_sha256（渲染文本）；任一断裂 ⇒ PAYLOAD_HASH_MISMATCH"
+  views: "三视图 = 同一 packet 的投影（machine=去 plain 段；expert=全量+契约引用；owner=固定五问段）；不是三份数据"
+  input_echo_rule: "外部视角回显只含 workflow_id 与逻辑 id；session/workspace 解析中间量不得外露"
+
+tools:
+  count: 3
+  invariant: "选择真值（簇/capability/资格/primary/supporting/not_selected）只在 Core 内计算；宿主只收投影，任何工具或宿主不得重建选择"
+  signatures:
+    yy_stage_decision:
+      params:
+        workflow_id: "string，必填"
+        step: "number，必填，∈ STEP_IDS（含 1.5）"
+      primary_authority: journey-admission
+      error_codes: [STAGE_UNKNOWN, INPUT_INVALID, JOURNEY_NOT_FOUND, JOURNEY_STALE, JOURNEY_INVALID, PROJECTION_SOURCE_INVALID, PROJECTION_CONFLICT]
+    yy_task_decision:
+      params:
+        workflow_id: "string，必填"
+        task_text: "string，必填"
+        capability: "string，可选，∈ CAPABILITY_MAP 受控键"
+        step: "number，可选"
+        subtask_id: "string，可选"
+        mode: "select | brief，必填"
+        activation_level: "metadata | body | resource，可选；brief 缺省 body；select 强制 metadata"
+        requested_resources: "string[]，可选，仅 resource 级"
+        budget: "{limit}，可选；超限 block fail-closed，不 truncate"
+      select_semantics: "七桶 + reason 链，零正文加载（token 轻量）"
+      brief_semantics: "select ∪ activation 记录 + rendered brief + brief_sha256 + receipt_context"
+    yy_validate_consumption:
+      params:
+        workflow_id: "string，必填"
+        subtask_id: "string，必填"
+        artifact_ref: "string，可选，有界 pattern ref，服务端解析"
+        evidence_ref: "string，可选，有界 pattern ref，服务端解析"
+      bypass_semantics: "NO_RECEIPT_CHAIN ⇒ bypass_flag = HOST_INTEGRATION_BYPASS"
+
+error_vocabulary:
+  v2_allowlist_additions:
+    count: 14
+    reused_existing: 13
+    new_decision_layer: 1
+    entries:
+      - { code: ASSET_BODY_MISSING, origin: reuse }
+      - { code: RESOURCE_NOT_FOUND, origin: reuse }
+      - { code: ACTIVATION_BUDGET_EXCEEDED, origin: reuse }
+      - { code: ACTIVATION_MODE_UNSUPPORTED, origin: reuse }
+      - { code: CAPABILITY_UNKNOWN, origin: reuse }
+      - { code: CAPABILITY_CLUSTER_MISMATCH, origin: reuse }
+      - { code: ROUTING_NO_MATCH, origin: new, semantics: "task_text 无可路由簇（planner route() 抛 NoMatchError 场景）——唯一新 envelope 码" }
+      - { code: JOURNEY_NOT_FOUND, origin: reuse }
+      - { code: JOURNEY_STALE, origin: reuse }
+      - { code: JOURNEY_INVALID, origin: reuse }
+      - { code: PROJECTION_SOURCE_INVALID, origin: reuse }
+      - { code: PROJECTION_CONFLICT, origin: reuse, note: "仅同维度 journey 投影冲突（见 journey_vs_phase.disagreement_rule）" }
+      - { code: RECEIPT_INVALID, origin: reuse, note: "C2-R1-5 erratum：validateConsumption 经 receipt.verifyReceiptFile 传播既有 P1 码" }
+      - { code: RECEIPT_HASH_MISMATCH, origin: reuse, note: "C2-R1-5 erratum：T4 sourceHashEcho 谓词 (a) 失败时的既有链一致性码；RECEIPT_INCOMPLETE 不外需——缺链映射为 NO_RECEIPT_CHAIN/HOST_INTEGRATION_BYPASS data 态" }
+  shared_with_m1_note: >-
+    M1 既有 allowlist 共享码（STAGE_UNKNOWN / INPUT_INVALID / INVALID_STEP / WORKSPACE_NOT_AUTHORIZED /
+    MCP_DISABLED / OPERATION_NOT_ALLOWED / CONFIGURATION_ERROR / BRIDGE_* / STALE_VERSION 等）不重复计入上述 12 条增量
+  data_state_vocabulary:
+    - { state: NO_RECEIPT_CHAIN, channel: data }
+    - { state: PAYLOAD_HASH_MISMATCH, channel: data }
+    - { state: DEFERRED_TO_C5, channel: data }
+    - { state: CONSISTENT, channel: data }
+    - { state: MISMATCH, channel: data }
+    - { state: HOST_INTEGRATION_BYPASS, channel: data }
+  fail_closed:
+    - "前置证据缺失 = 不通过（沿 phase.mjs §4.2 语义；缺失与不满足同归不通过）"
+    - "capability 未知/簇冲突不猜；owner INELIGIBLE 不回退第二行"
+    - "预算超限 block 不 truncate；body 缺失不注占位继续"
+    - "journey 未初始化 ⇒ 仅 step0 allowed=true，owner_decisions 指引初始化；决策操作零写（不自动建基线）"
+
+decision_authority_digest:
+  algorithm: >-
+    sha256( sorted( relative_path + " " + file_sha256 ) )——每个组件渲染为一行
+    "<relative_path> <file_sha256>"，按 relative_path 字典序排序，行间以 "\n" 连接，
+    UTF-8 编码后取 sha256 hex
+  responsibility:
+    c1_freezes: "算法与责任（本节）"
+    c2_freezes: "精确组件清单（输入集 manifest）——至少覆盖 Decision Core 消费的每个语义输入文件（routing/eligibility/activation/journey/phase/receipt 相关 lib + contracts/asset-manifest-v2.json + contracts/routing-contract.yaml + v3 lifecycle 投影源；最终清单以 C2 冻结为准）"
+  invariants:
+    - "任何已声明组件的字节变化必须改变 digest（C2 tamper fixture 机验）"
+    - "不是平行发布身份：不携带部署门语义，仅作作用域证据"
+    - "Foundation source_bundle_digest 保持原样为发布 provenance，不被替代、不改语义"
+
+m1_v2_compatibility:
+  m1:
+    mount: /mcp
+    surface: "exact six 既有工具，字节不动"
+    forbidden_edits: ["integrations/yy-web-mcp/tools.py", "exact-six 测试（test_bridge_client_candidate.py 等）"]
+  v2:
+    preferred_first_experiment:
+      mount: /mcp-v2
+      surface: "exact three Decision 工具"
+      deployment: "同进程隔离挂载——两个 mount 的 tools/list 契约互不可见（M1 列表恒六工具，V2 列表恒三工具）"
+    split_process_rule: "仅当 FastMCP 当前架构无法实现隔离挂载时才允许独立 V2 进程；必须先记录不可行证据，裁决与证据记入迁移契约（C3.3）"
+    no_second_tunnel: true
+    no_second_process_frozen: true
+  migration:
+    - "ChatGPT Web 继续用 M1 读面；Codex 本地 adapter 直调内部 core（不依赖 MCP）；新宿主接 V2"
+    - "M1 合并/退役仅经显式签署契约变更（同步更新 exact-six 测试与 W4/W9 验收），本轮不发生"
+    - "9 工具形态不得自称 M1"
+    - "bridge get_stage 与 core stage_decision 共用 journey/phase 两 lib，drift check 断言语义等价（反第二权威）"
+
+no_write_guarantee:
+  mcp_tools: "三工具全部只读决策：可返回 brief 文本但不落盘、不追加 receipt、不写 journey/vendor/artifacts"
+  local_cli_opt_in:
+    emit_brief: "--emit-brief（默认关）写 artifacts/<subtaskId>/brief.md"
+    record: "--record（默认关）经既有 receipt.append 追加 T3/T4 事件"
+  receipt_events: "receipt 事件仅由本地 core 侧 opt-in 产生；MCP 面永远只读"
+
+receipt_evolution_boundary:
+  this_round_real_evidence: [T3_SELECTED, T4_LOADED]
+  deferred: [T5_EXECUTED, T6_APPLIED, T7_VERIFIED]
+  basis: "contracts/receipt-v2-contract.yaml（T1-T7 冻结设计）；本轮 receipt_context 已预埋 subtask/asset/contract_hash/source_hash/payload_sha256/brief_sha256，C5 消费"
+
+c2_requirements:
+  - "冻结 decision_authority 组件清单并实现 digest 计算与 packet 注入"
+  - "双层准入实现：journeyAdmission()（tt-journey 语义，含 1.5）为主 + supplementalPhase() 包装（phase.mjs 仅整数，零修改）"
+  - "七桶投影：primary/supporting/not_selected 语义按本契约 routing_semantics；supporting 顺序断言 = CLUSTERS phases"
+  - "NoMatchError 映射为 envelope 新码（见 error_vocabulary.v2_allowlist_additions 唯一 origin:new 条目）"
+  - "白话投影表（码→固定 zh-CN 句式，槽位填充）+ drift check 入 CI；三视图同包投影"
+  - "复用既有 lib（planner/capability-derivation/activation/matrix/journey/phase/receipt + asset-manifest-v2），禁新建第二 routing/asset/receipt 权威；零 LLM"
+  - "fixtures：positive（planning 流）/ negative（prereq 未过、CAPABILITY_UNKNOWN、簇冲突、owner INELIGIBLE 不回退、body 缺失、预算超限、journey 五码、无簇命中→新码、digest 篡改）/ bypass（NO_RECEIPT_CHAIN + bypass_flag）"
+  - "host/MCP/UI 无关（纯 lib + CLI）；默认 flags 零写盘；integrations/ 与 worktree 零 diff"

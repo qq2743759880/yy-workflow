@@ -1,0 +1,199 @@
+# yy/asset-contract@3 — skill-sentinel（A-P0-03-REWORK1 批次资产 3/3）
+# 方法论真相来源（三方矛盾已解决）：vendor/skill-sentinel/SKILL.md（用途/P2 诚实标注：自带工具
+# analyze-skill.sh 与 python -m skill_sentinel 未实际部署，SkillSpector 未发布——声明层）+
+# contracts/manifest-sources/skill-sentinel.yaml（AS-2-sentinel 晋升 cr-20260925T150000Z SIGNED：
+# 主路径=专用 adapter spawn skill-scanner scan --format json；official_source=github:cisco-ai-defense/
+# skill-scanner；install=pip install cisco-ai-skill-scanner；PyPI skill-scanner 0.3.3 MIT 为同名撞车
+# 假目标禁装）+ scripts/lib/adapters/skill-scanner.mjs（pass 映射/陈旧报告防回放/analyzers 记账）。
+# 结论：PRIMARY 执行内核 = cisco-ai-skill-scanner 2.1.0；vendor 自带工具仅声明层引用（probe 门前
+# 不得产出任何 PASS）；SkillSpector 为迁移目标非现状。
+schema: yy/asset-contract@3
+id: skill-sentinel
+version: 3.1.0
+kind: security
+purpose:
+  plain_language: 第三方 skill/插件包上线前的安全安检——扫描 SKILL.md 与包内容中的恶意模式（prompt injection、凭据泄露、C2 基础设施），有威胁不上线；扫描器不可用时明确报"未扫描"，绝不假报通过
+routing:
+  capability_keys:
+  - skill-security-scan
+  clusters:
+  - T5_OPS
+  exclusions:
+  - 非 skill 包目标（普通代码库/服务端安全扫描走 security 资产）
+  - 扫描器未部署时宣称已扫描（仅声明层引用）
+io:
+  required_inputs:
+  - name: scan_target
+    type: skill_package
+    description: skill 包目录（位参）或单文件（--skill-file）；目标须为 skill 包形态
+  required_outputs:
+  - name: sentinel_result
+    type: json_artifact
+    description: artifacts/<subtaskId>/sentinel-result.json，含 pass/diff/checkedAt/tool/version/exit_code/is_safe/max_severity/findings_total/threats/low_findings/info_notes/analyzers_used/analyzers_failed/policy 指纹
+  - name: scanner_report
+    type: json_artifact
+    description: artifacts/<subtaskId>/skill-scanner-report.json（引擎原生报告，每次扫描先删旧报告防回放）
+methodology:
+  source: vendor/skill-sentinel/SKILL.md
+  required_sections:
+  - 用途
+  - 使用
+  - Execution kernel
+  - 集成
+application:
+  assertions:
+  - id: ss-A1
+    critical: true
+    verifier: deterministic
+    description: 选定的 PRIMARY provider 是真的——skill-scanner --version 探测可用并记版本（期望 2.1.0；pip 通道 cisco-ai-skill-scanner；PyPI 同名 skill-scanner 0.3.3 为撞车假目标禁装）
+    evidence_requirements:
+    - sentinel-result.json 记录 tool=skill-scanner + version
+    - provider identity 三件套留痕（official_source/install 通道/runtime_test）
+    failure_semantics: 探测失败 → SKILLSCANNER_NOT_AVAILABLE，禁止产出 PASS；旧 prompt 路径仅 EXPLICIT_COMPAT_MODE 显式旗标后可达且留痕
+  - id: ss-A2
+    critical: true
+    verifier: structural
+    description: 真实 skill 包被检验——scanTarget 存在且被引擎消费，analyzers_used 非空，policy 指纹（policy_fingerprint_sha256）逐次入账，旧报告先删防陈旧回放
+    evidence_requirements:
+    - skill-scanner-report.json 本次新生成（非上次残留）
+    - analyzers_used/analyzers_failed 记账完整
+    failure_semantics: 消费陈旧报告或 analyzers 全失败仍报扫描完成 → 断言失败（输出完整性违背）
+  - id: ss-A3
+    critical: true
+    verifier: structural
+    description: 恶意模式结论证据支撑——每条 finding 带 rule_id/severity/category/file:line；pass 映射：is_safe==false 或存在 severity>=MEDIUM → pass=false；LOW 留痕不阻断；INFO 提示不阻断
+    evidence_requirements:
+    - findings_total/threats/low_findings/info_notes 与引擎报告一致
+    - diff 列出威胁清单（rule@path:line）
+    failure_semantics: 存在 MEDIUM+ 威胁或 is_safe==false 却报 pass=true → 断言失败；无证据的"看起来安全"结论 = forbidden claim
+  - id: ss-A4
+    critical: true
+    verifier: deterministic
+    description: 不可用扫描器不能产出 PASS——探测失败显式报错；vendor 自带工具（analyze-skill.sh / python -m skill_sentinel）未部署，仅声明层引用，probe 门前不得充当已执行证据；SkillSpector 未发布不得当已可用
+    evidence_requirements:
+    - 未执行时输出"扫描未执行（工具未部署）"类显式标注
+    - 任何 PASS 必须对应本次真实引擎执行留痕
+    failure_semantics: 用声明层工具、prompt 复述或 SkillSpector 迁移目标冒充已扫描并 PASS → forbidden claim，断言失败
+  - id: ss-A5
+    critical: true
+    verifier: structural
+    description: 输出完整性硬校验——rc=0 但 JSON 不可解析 → SKILLSCANNER_OUTPUT_INVALID（invalid_output=true）；rc!=0 且不可解析 = 引擎故障；异常输出不静默吞
+    evidence_requirements:
+    - 报告 JSON parseable 且 findings 为数组
+    - exit_code 留痕
+    failure_semantics: 输出异常被静默当 pass 或 crash 被吞 → 断言失败（forbidden: crash/invalid_exit_code）
+  - id: ss-A6
+    critical: false
+    verifier: semantic
+    description: 迁移追踪面——SARIF 标准化输出与 SkillSpector（68 类漏洞模式）对标升级候选记入账目，不阻断当前判定
+    evidence_requirements:
+    - lifecycle/迁移偏差登记中保留 SARIF/SkillSpector 追踪项
+    failure_semantics: 缺失不阻断；宣称 SkillSpector 已可用则转 critical 违规
+  pass_policy:
+    critical: all
+    optional_minimum: 0
+execution:
+  primary:
+    adapter: skill-scanner
+    entry: scripts/lib/adapters/skill-scanner.mjs
+    probe: skill-scanner --version
+    version_pin: 2.1.0
+    detection_config: 引擎默认 policy 预设（balanced，指纹 policy_fingerprint_sha256 入账，零自造规则零 registry 依赖）
+  compatibility:
+  - rollback_adapter prompt-backend（LLM brief，无确定性检出承诺），仅 EXPLICIT_COMPAT_MODE 显式旗标后可达并每次留痕
+  - vendor 自带工具 analyze-skill.sh / python -m skill_sentinel：声明层引用（P2 诚实标注未部署），probe 通过前不得执行宣称
+  - SkillSpector：迁移对标目标，未发布，不构成执行证据
+  degradation:
+    SKILLSCANNER_NOT_AVAILABLE: 扫描未执行（工具未部署/缺失），显式标注，禁止 PASS；Gate-1 旗标后才可回滚 prompt 路径
+    SKILLSCANNER_OUTPUT_INVALID: rc=0 报告不可解析或 rc!=0 无可解析报告 → invalid_output receipt failure
+    stale_report_guard: 每次扫描先删旧报告——引擎未写报告不得静默消费上次残留
+  supported_languages:
+  - skill-package（多语言多分析器引擎，语言守门不适用）
+  unsupported_scopes:
+  - 非 skill 包目标（普通代码库/服务端 → security 资产）
+  - 扫描器不可用时的任何"已扫描/PASS"宣称
+evidence:
+  required:
+  - sentinel_result_json
+  - scanner_report_json
+  - skill_scanner_version_record
+  - analyzers_account
+  - policy_fingerprint
+  forbidden_claims:
+  - 扫描器未部署却报"已扫描/通过"
+  - 用 PyPI 撞名假包（skill-scanner 0.3.3）安装或宣称
+  - prompt 复述或 SKILL.md 文本阅读冒充引擎扫描结论
+  - 消费陈旧报告回放当本次结果
+  - 宣称 SkillSpector 已发布/已可用
+critique:
+  claims_to_challenge:
+  - 20+ 检测模式 的覆盖是真的规则面，还是 vendor 宣传语？
+  - 结论是引擎逐条 finding 支撑，还是模型通读后的安全感？
+  - analyzers 是否真的跑过，还是 analyzers_failed 被忽略？
+  failure_patterns:
+  - surface grep 等价宣称（把关键词匹配说成威胁情报库扫描）
+  - vendor 自带工具未部署被当成已部署
+  - PyPI 同名撞车假目标（skill-scanner 0.3.3 MIT）误装
+  - INFO 级打包提示被当威胁夸大，或 MEDIUM+ 威胁被降级放过
+  - SkillSpector 迁移目标被宣称为现役能力
+  independent_evidence:
+  - artifacts/<id>/sentinel-result.json（is_safe/threats/analyzers_used/policy 指纹）
+  - artifacts/<id>/skill-scanner-report.json（引擎原生报告，本次新生成）
+  - skill-scanner --version 实测输出
+  harms_to_strong_model:
+  - 强模型通读 SKILL.md 文本后倾向给出"未发现明显恶意内容"式结论，绕过引擎
+  - 强模型把声明层工具（未部署）写进执行记录充数
+  - 强模型对 INFO 级提示过度反应或对威胁清单视而不见
+  when_not_to_use:
+  - 普通代码库/服务端的安全扫描（走 security）
+  - 扫描器 probe 失败且未获显式回滚旗标时（只能报未扫描）
+blind_tests:
+  hidden_suite_id: skill-sentinel-hidden-v1
+  hidden_suite_hash: BLIND_STORE_NOT_PROVISIONED
+  case_count: 6
+  cases:
+  - id: ss-P1
+    kind: positive
+    description: 含 prompt injection 样本的 skill 包 → 检出 MEDIUM+ 威胁，pass=false 且 diff 列 rule@path:line
+    coverage_category: threat_detected
+  - id: ss-P2
+    kind: positive
+    description: 良性 skill 包 → is_safe=true 且无 MEDIUM+ 威胁，pass=true（benign_false_positive 语义保留）
+    coverage_category: benign_pass
+  - id: ss-P3
+    kind: positive
+    description: 仅 INFO 级提示（如缺 LICENSE）→ pass=true 且 info_notes 留痕不阻断
+    coverage_category: info_note_nonblocking
+  - id: ss-N1
+    kind: negative
+    description: 扫描器未部署/probe 失败 → SKILLSCANNER_NOT_AVAILABLE，禁止任何 PASS
+    coverage_category: scanner_unavailable_no_pass
+  - id: ss-N2
+    kind: negative
+    description: 目标为普通代码库而非 skill 包 → 不适用拒绝，不得静默扫完报通过
+    coverage_category: out_of_scope_target
+  - id: ss-X1
+    kind: adversarial
+    description: rc=0 但报告 JSON 不可解析或陈旧报告回放 → SKILLSCANNER_OUTPUT_INVALID fail-closed
+    coverage_category: output_integrity
+  coverage_categories:
+  - threat_detected
+  - benign_pass
+  - info_note_nonblocking
+  - scanner_unavailable_no_pass
+  - out_of_scope_target
+  - output_integrity
+  required_pass_policy:
+    critical: all
+    optional_minimum: 0
+owner_view:
+  one_liner: 安装任何第三方 skill/插件前，先做一次恶意行为安检，有威胁就不上线。
+  what_it_does: 对 skill 包做安全扫描，专查三类恶意行为——劫持 AI 的提示注入、偷密钥的凭据泄露、对外联络的 C2 后门。扫描器装好了就出逐条证据清单；扫描器不在就明说"没扫"，绝不盖"安全"章。
+  why_it_matters: 社区市场和第三方 skill 是最大的供应链入口，一个恶意 skill 就能操纵 AI 拿走你的密钥和数据。它把这个风险从事后追责变成上线前拦截，而且结论都有证据可查。
+  what_owner_decides: 市场/社区资产是否强制安检后才能安装；检出威胁的资产是直接拒绝还是人工复核后放行；是否容忍扫描器缺位时先上线（建议不容忍）。
+lifecycle:
+  status: POPULATED_PENDING_ACCEPTANCE
+  authority: NON_CANONICAL
+  completeness: POPULATED_ASSERTIONS_METHODOLOGY_OWNER_VIEW_CRITIQUE_BLIND_METADATA
+  blind_store: BLIND_STORE_NOT_PROVISIONED
+  note: A-P0-03-REWORK1 批次资产。hidden case bodies 不落在 Worker 可读仓库内，评估者特权存储未建成前不推进 ACCEPTED/PRIMARY；独立审计通过后方可晋升。

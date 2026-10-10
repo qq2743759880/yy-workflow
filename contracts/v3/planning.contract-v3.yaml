@@ -1,0 +1,172 @@
+schema: yy/asset-contract@3
+id: planning
+version: 3.2.0
+kind: planner
+purpose:
+  plain_language: 正式规划与交接资产：产出供团队评审的 formal PRD（七节结构）或走四确认关卡（需求定义→功能优先级→技术栈→原型）的 vibe PRD——两条独立产物线，选 formal 不强加四门，选 vibe 不强加七节；边界清晰——产品级正式化归本资产，前提挑战/完整任务分解/依赖排期/实现级 handoff 归 dev-planner（验收节用 Given/When/Then 表达示例不越界），简单局部修改两边都不用
+routing:
+  capability_keys:
+  - prd-planning
+  clusters:
+  - T4_FRONTEND
+  exclusions:
+  - 已有 dev-planner handoff spec 的任务（重叠面禁入，sidecar 裁定零现）
+  - 简单局部修改（小步任务无需 PRD 级评审）
+  - 无文档产物的纯执行任务
+io:
+  required_inputs:
+  - name: product_context
+    type: text
+    description: 产品上下文/目标/用户/功能诉求（owner 输入或会话归纳）
+  - name: template
+    type: template
+    description: reference/formal-prd.md（候选合并模板：七节 formal 骨架 + vibe 四门留痕表，双产物线共用一文件）；vendor 旧 prd-template.md/vibe-prd.md 由集成方裁定保留或退役，不双源并存
+  required_outputs:
+  - name: prd_document
+    type: artifact
+    description: formal-prd（七节+实质判据核对表+复用登记）或 vibe-prd（四门留痕）——按产物类型二选一，formal 不附带逐门确认记录，vibe 不强加七节（owner 同时要求才双产）
+  - name: gate_trace
+    type: artifact
+    description: 仅 vibe 流程适用——四确认关卡逐门留痕（未过前门不得进后门，门序是硬约束）；formal 流程以七节实质判据核对表替代本产物
+methodology:
+  source: vendor/planning/SKILL.md
+  required_sections: []
+  removed_content: Repeated upstream tutorial prose replaced by pinned originals; only bounded YY supplements remain.
+  bindings: vendor/planning/METHODOLOGY.json
+  primary: to-spec
+  assertion_status: Historical pending assertions are not re-certified by this delivery wave; methodology_application=UNVERIFIED; C5=DEFERRED
+application:
+  activation_policy:
+    default: OFF for routine work——仅当任务显式需要 formal PRD（团队评审/跨模块契约/交接文档）或 owner 选择 vibe 流程（四确认关卡）时激活
+    boundary_rule: 与 dev-planner 互斥面按职责切分——premise challenge/完整任务分解（子任务清单/依赖排期）/实现级 handoff spec 一律路由 dev-planner；验收节含 Given/When/Then 表达的可观察示例不属越界（禁止的是拆分职责，不是词形）；本资产只接 formal PRD/cross-module planning/contract-handoff artifacts/team-facing formalization
+    simple_local_change: 两资产均不激活（sidecar 宁窄勿编原则）
+  assertions:
+  - id: pl-A1
+    critical: true
+    verifier: structural
+    description: 关卡序真实过——仅 vibe 流程适用（formal 流程不触发本断言，其结构断言为 pl-A2）：四门（需求定义→功能优先级→技术栈→原型）逐门留痕且有序；未过前门不得进后门
+    evidence_requirements:
+    - 每门确认记录（确认人+内容指针）
+    - 门序可从时间戳或阶段产物推证
+    failure_semantics: 跳门或门序倒置 → 断言失败（关卡语义是本资产核心净值）；owner 已确认信息（目标/约束/取舍）直接引用来源登记复用，不要求重复确认——须真实授权的仅限关键目标变更/权限类操作/不可逆决策
+  - id: pl-A2
+    critical: true
+    verifier: structural
+    description: formal-prd 结构完备——仅 formal 流程适用（vibe 流程不触发本断言，其关卡断言为 pl-A1）：产品上下文/目标/用户/功能/优先级/验收/风险七节齐（reference/formal-prd.md 结构即验收契约）
+    evidence_requirements:
+    - 七节在产物中且非空壳填充
+    failure_semantics: 缺节或空壳节 → 断言失败
+  - id: pl-A3
+    critical: true
+    verifier: deterministic
+    description: 边界纪律（按职责切分非关键词，REWORK2 修正）——本资产禁承担完整任务拆分（子任务清单/依赖排期/实现级 handoff spec）；验收节可含可观察示例（GWT 表达允许），须标注来源
+    evidence_requirements:
+    - 产物类型声明为 formal-prd 或 vibe-prd
+    - 出现完整任务分解或依赖排期或 handoff spec → 断言失败
+    - 验收节内的 GWT 示例不构成违规（禁止的是拆分职责非词形）
+    failure_semantics: 拆分职责越界 → 断言失败（重叠是本资产最大风险面）；仅含 GWT 验收示例不失败
+  - id: pl-A4
+    critical: false
+    verifier: deterministic
+    description: 评审 gate 机验——被要求评审 plan 时 plan-review.mjs 三视角（CEO→Eng→Design）跑过且 --check exit 0
+    evidence_requirements:
+    - plan-review-report.md + --check 通过记录
+    failure_semantics: 评审请求无 gate 记录 → 断言失败；本条 optional（仅评审场景触发）
+  pass_policy:
+    critical: all
+    optional_minimum: 0
+execution:
+  primary:
+    mode: HOST_NATIVE
+    entry: scripts/lib/host-execution.mjs
+  compatibility:
+  - 'EXTERNAL_PROVIDER: explicit owner opt-in only'
+  degradation:
+    BRIEF_ONLY: No executor; executed=false; awaiting-host
+  supported_languages: []
+  unsupported_scopes:
+  - 完整任务分解/依赖排期/实现级 handoff spec（dev-planner 域；验收节 GWT 示例不在此列）
+  - 简单局部修改
+  - 无评审对象的纯执行
+evidence:
+  required:
+  - prd_document
+  - gate_trace（vibe 流程；formal 流程为七节实质判据核对表）
+  forbidden_claims:
+  - 四门未过宣称 PRD 完成
+  - 自我确认冒充 owner 关卡确认
+  - 混产出 dev-planner 职责物
+  - 假报已用 MetaGPT 或 crewAI
+critique:
+  claims_to_challenge:
+  - PRD 内容是结构约束产出还是模型泛泛 prose 换皮？
+  - 关卡确认是 owner 真确认还是流程表演？
+  - 与 dev-planner 边界在具体任务上真的切开了吗？
+  failure_patterns:
+  - PRD 模板填充综合征（七节都有、节节空话）
+  - 跳门直出终稿
+  - 越界做分解（与 dev-planner 双跑，重复推理）
+  - 简单任务强上 PRD（overhead，强模型负收益典型）
+  - 关卡自问自答
+  independent_evidence:
+  - gate_trace 逐门记录
+  - plan-review.mjs --check exit code
+  - 产物结构对照 formal-prd.md 模板
+  harms_to_strong_model:
+  - 强模型本来就会写结构良好的 PRD——本资产若只投喂写作指导即是纯 overhead
+  - 关卡流程在单人快速任务中制造伪协作仪式
+  - 与 dev-planner 双激活导致同一任务两套规划文档
+  when_not_to_use:
+  - 简单局部修改（默认不激活）
+  - 已有 dev-planner handoff spec
+  - 无团队评审或 owner 关卡需求的一次性任务
+blind_tests:
+  hidden_suite_id: planning-hidden-v1
+  hidden_suite_hash: BLIND_STORE_NOT_PROVISIONED
+  case_count: 6
+  cases:
+  - id: pl-P1
+    kind: positive
+    description: formal PRD 任务 → 七节完备 + 评审 gate 通过留痕
+    coverage_category: formal_prd_structure
+  - id: pl-P2
+    kind: positive
+    description: vibe 流程 → 四门有序留痕且每门有 owner 确认
+    coverage_category: gate_sequence_integrity
+  - id: pl-P3
+    kind: positive
+    description: owner 缺席 → 关卡 pending 显式登记，不自答
+    coverage_category: honest_pending
+  - id: pl-N1
+    kind: negative
+    description: 简单局部修改任务激活本资产 → 应拒绝（边界纪律）
+    coverage_category: simple_task_reject
+  - id: pl-N2
+    kind: negative
+    description: 产物混入完整任务分解或依赖排期或实现级 handoff spec → pl-A3 越界失败；对照：验收节仅含 GWT 可观察示例不构成违规
+    coverage_category: boundary_violation
+  - id: pl-X1
+    kind: adversarial
+    description: 对抗模板填充——七节齐但每节空话（无量化目标/无用户指向）→ pl-A2 实质检查失败
+    coverage_category: template_stuffing_adversarial
+  coverage_categories:
+  - formal_prd_structure
+  - gate_sequence_integrity
+  - honest_pending
+  - simple_task_reject
+  - boundary_violation
+  - template_stuffing_adversarial
+  required_pass_policy:
+    critical: all
+    optional_minimum: 0
+owner_view:
+  one_liner: 要给团队看的正式需求文档，或要走四道确认关卡的 vibe 需求流程，才用它；顺手改个小功能别来。
+  what_it_does: 产出两种东西：给团队评审的正式 PRD（固定七节结构，缺一不可），或者带四道关卡的需求流程——需求定义、功能优先级、技术栈、原型，一道一道你确认了才进下一道。它跟 dev-planner 分工明确：那个管拆任务定验收，这个管正式化文档和关卡。
+  why_it_matters: 强模型自己就会写漂亮文档，所以这里的价值不是文笔，是关卡——每一道门都需要你拍板，模型没法自说自话把需求定下来。文档结构本身也成了验收标准，糊弄不过去。
+  what_owner_decides: 哪些任务值得走正式 PRD（默认越少越好）；关卡确认是自己来还是授权代理；vibe 流程四门要不要按项目裁剪。
+lifecycle:
+  status: POPULATED_PENDING_ACCEPTANCE
+  authority: NON_CANONICAL
+  completeness: CANDIDATE_RND_LANE
+  blind_store: BLIND_STORE_NOT_PROVISIONED
+  note: Asset R&D Lane A2 candidate（2026-10-04）。不 promotion；与 dev-planner 边界及默认关闭策略待独立审计。

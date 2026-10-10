@@ -1,0 +1,16 @@
+{
+  "repository": "mattpocock/skills",
+  "commit": "24fe0ef7737efae15c87225755e9f6f5965e4888",
+  "source_path": "skills/engineering/to-spec",
+  "license": "MIT",
+  "license_ref": "../LICENSE",
+  "source_sha256": "43ad9cf318e5e7d3d1fa360253a37021796dc87a0c2e595ad262661a10f85088",
+  "vendored_sha256": "43ad9cf318e5e7d3d1fa360253a37021796dc87a0c2e595ad262661a10f85088",
+  "files": {
+    "SKILL.md": "43ad9cf318e5e7d3d1fa360253a37021796dc87a0c2e595ad262661a10f85088",
+    "agents/openai.yaml": "1c5b4d1e3d8e52287ef19cc2742fdbbfae1914ac75d33af3e4c8174f08cc55bb"
+  },
+  "fetched_at": "2026-10-05",
+  "reuse_mode": "COMPOSE_UPSTREAM",
+  "byte_verification": "every vendored file sha256 in files map == tar member at pin"
+}

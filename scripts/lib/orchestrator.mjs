@@ -44,6 +44,7 @@ export function parseArgs(args) {
   const out = { task: '', workspace: '.', dryRun: false, verbose: false, help: false, resume: false, validate: false, plan: false, draft: null, backend: 'auto', maxRetries: undefined, exec: null, execTimeoutMs: undefined, parallel: undefined, contract: null, contractDraft: null, tui: false, noTui: false, hosts: null, configHosts: null, argError: null, session: undefined, capability: null };
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i];
+    if (arg === '--provider' || arg === '--execution-mode') { const value=args[++i];if(!value||value.startsWith('--'))out.argError=arg+' requires a value';else out[arg==='--provider'?'provider':'executionMode']=value;continue; }
     if (arg === '--help' || arg === '-h') out.help = true;
     else if (arg === '--dry-run') out.dryRun = true;
     else if (arg === '--verbose') out.verbose = true;
@@ -60,7 +61,7 @@ export function parseArgs(args) {
     else if (arg === '--hosts') { const v = args[i + 1]; if (v === undefined || v.startsWith('--')) out.argError = '--hosts 需要一个值 (逗号分隔的备选宿主命令，如 "node host1.mjs,node host2.mjs --model gpt-5.6-luna")'; else { out.hosts = v; i += 1; } }
     else if (arg === '--contract') { const v = args[i + 1]; if (v === undefined || v.startsWith('--')) out.argError = '--contract 需要一个值 (OpenAPI JSON 文件路径)'; else { out.contract = v; i += 1; } }
     else if (arg === '--contract-draft') { const v = args[i + 1]; if (v === undefined || v.startsWith('--')) out.argError = '--contract-draft 需要一个值 (棕地契约草案 JSON 路径)'; else { out.contractDraft = v; i += 1; } }
-    else if (arg === '--exec') { const collected = []; const KNOWN = new Set(['--task', '--workspace', '--backend', '--max-retries', '--exec-timeout', '--parallel', '--contract', '--contract-draft', '--hosts', '--dry-run', '--verbose', '--resume', '--validate', '--plan', '--draft', '--tui', '--no-tui', '--help', '-h', '--capability']); while (i + 1 < args.length && !KNOWN.has(args[i + 1])) { collected.push(args[i + 1]); i += 1; } out.exec = collected.length ? collected : null; }
+    else if (arg === '--exec') { const collected = []; const KNOWN = new Set(['--task', '--workspace', '--backend', '--max-retries', '--exec-timeout', '--parallel', '--contract', '--contract-draft', '--hosts', '--dry-run', '--verbose', '--resume', '--validate', '--plan', '--draft', '--tui', '--no-tui', '--help', '-h', '--capability','--provider','--execution-mode']); while (i + 1 < args.length && !KNOWN.has(args[i + 1])) { collected.push(args[i + 1]); i += 1; } out.exec = collected.length ? collected : null; }
     // W2-1：--capability 显式输入（D.1 rule 1，最高优先级，override 派生）；值合法性由 validateOpts 按 CAPABILITY_MAP 校验。
     else if (arg === '--capability') { const v = args[i + 1]; if (v === undefined || v.startsWith('--')) out.argError = '--capability 需要一个值 (CAPABILITY_MAP 受控键，如 security-audit)'; else { out.capability = v; i += 1; } }
     else if (arg === '--task') { out.task = args[i + 1]; if (out.task === undefined) out.task = ''; i += 1; }
@@ -85,6 +86,8 @@ const EXIT_APPROVAL_ABORTED = 6;
 export function validateOpts(opts) {
   if (opts.help) return { ok: true, help: true, error: null, exitCode: EXIT.OK };
   if (opts.argError) return { ok: false, error: opts.argError, exitCode: EXIT.ARGS };
+  if (opts.executionMode&&!['HOST_NATIVE','EXTERNAL_PROVIDER','BRIEF_ONLY'].includes(opts.executionMode)) return {ok:false,error:'Unknown execution mode',exitCode:EXIT.ARGS};
+  if (opts.provider&&!/^[a-z0-9][a-z0-9_.-]*$/i.test(opts.provider)) return {ok:false,error:'Invalid provider id',exitCode:EXIT.ARGS};
   if (opts.resume && opts.dryRun) return { ok: false, error: '--resume 不能与 --dry-run 同时使用', exitCode: EXIT.ARGS };
   if (opts.plan && opts.resume) return { ok: false, error: '--plan 不能与 --resume 同时使用', exitCode: EXIT.ARGS };
   if (!['auto', 'prompt', 'cli'].includes(opts.backend)) return { ok: false, error: '--backend 仅支持 auto|prompt|cli', exitCode: EXIT.ARGS };
@@ -299,13 +302,14 @@ export async function planDryRun(argv, ctx) {
 // ---------------------------------------------------------------------------
 
 /**
- * 将显式 CLI --capability 应用到 buildPlan 产物（D.1 precedence：显式 1 > 派生 2）。
- * - 无显式输入 → plan 原样返回（派生字段已由 buildPlan 附加；legacy 任务零字段）。
- * - 有显式输入 → 覆盖全部 subtask 的 capability/capabilitySource:'explicit'（override 派生）；
+ * 将显式 CLI --capability 应用到已选资产的 plan（D.1 precedence：显式 1 > 派生 2）。
+ * - 无显式输入 → plan 原样返回（派生字段已由 buildPlan 附加）。
+ * - 有显式输入 → 仅同资产 primary owner 的 capability/capabilitySource:'explicit'（override 派生）；
  *   解析 asset（CAPABILITY_MAP 单点）不在 plan.cluster 的 candidates → CAPABILITY_CLUSTER_MISMATCH
- *   fail-closed 抛错（不静默取一，与 buildPlan 同款守卫）。
- * 纯函数：原地覆盖 subtask 加法字段并返回同一 plan 引用；不触碰 asset 及其余字段。
- * @param {object} plan - buildPlan 产物
+ *   fail-closed 抛错（不静默取一，与 buildPlan 同款守卫）。exact deconstructed 以既有已选资产为边界，
+ *   仍要求非 support owner；legacy owner 缺 role 时登记 primary，不新建或重绑定子任务。
+ * 纯函数：原地覆盖 subtask 加法字段并返回同一 plan 引用；不触碰 asset 或既有角色。
+ * @param {object} plan - buildPlan 或 normalizeDraft 产物
  * @param {object} opts - parseArgs 输出（读 opts.capability）
  * @returns {object} 同一 plan 引用
  */
@@ -317,13 +321,24 @@ export function applyCapabilityToPlan(plan, opts) {
   const mapped = Object.prototype.hasOwnProperty.call(CAPABILITY_MAP, explicit) ? CAPABILITY_MAP[explicit] : null;
   if (!mapped) throw new CapabilityIngressError('CAPABILITY_UNKNOWN', 'CAPABILITY_UNKNOWN: capability「' + explicit + '」不在 CAPABILITY_MAP 受控映射（fail-closed 不猜）');
   const cluster = getCluster(plan.cluster);
-  const candidates = cluster ? cluster.candidates : [];
+  const deconstructed = plan.cluster === 'deconstructed';
+  const candidates = deconstructed ? plan.subtasks.map(subtask => subtask.asset) : cluster ? cluster.candidates : [];
   if (!candidates.includes(mapped)) {
     throw new CapabilityIngressError('CAPABILITY_CLUSTER_MISMATCH', 'CAPABILITY_CLUSTER_MISMATCH: capability「' + explicit + '」解析 asset「' + mapped + '」不在 plan 簇 ' + plan.cluster + ' candidates ' + JSON.stringify(candidates) + '（fail-closed，不静默取一）');
   }
+  const owners = plan.subtasks.filter(subtask => subtask.asset === mapped && subtask.role !== 'support');
+  if (!owners.length) throw new CapabilityIngressError('CAPABILITY_CLUSTER_MISMATCH', 'CAPABILITY_CLUSTER_MISMATCH: capability owner「' + mapped + '」不在本计划 primary 子任务中（保留 support 角色，不静默重绑定）');
   for (const subtask of plan.subtasks) {
-    subtask.capability = explicit;
-    subtask.capabilitySource = 'explicit';
+    if (owners.includes(subtask)) {
+      if (deconstructed && !subtask.role) subtask.role = 'primary';
+      subtask.capability = explicit;
+      subtask.capabilitySource = 'explicit';
+    } else if (subtask.capability && Object.prototype.hasOwnProperty.call(CAPABILITY_MAP, subtask.capability)
+      && CAPABILITY_MAP[subtask.capability] !== subtask.asset) {
+      // Repair an old broadcast only; each support asset keeps its own valid capability.
+      delete subtask.capability;
+      delete subtask.capabilitySource;
+    }
   }
   return plan;
 }

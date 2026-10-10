@@ -1,0 +1,262 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "YY 如何把任务接到真实交付",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "visual_preset": "signal-flow",
+    "output": "yy-architecture.html"
+  },
+  "components": [
+    {
+      "id": "entry",
+      "type": "frontend",
+      "label": "七个用户入口",
+      "sublabel": "立项 · 需求 · 研究 · 拆分",
+      "pos": [
+        40,
+        50
+      ],
+      "size": [
+        230,
+        84
+      ],
+      "tag": "冻结契约 · 执行 · 验收"
+    },
+    {
+      "id": "decision",
+      "type": "security",
+      "label": "C4 宿主入口 + Decision Core",
+      "sublabel": "核准阶段、路由与资产资格",
+      "pos": [
+        355,
+        50
+      ],
+      "size": [
+        260,
+        84
+      ],
+      "tag": "先展示，再复核"
+    },
+    {
+      "id": "assets",
+      "type": "database",
+      "label": "九项方法资产，按需装配",
+      "sublabel": "不是九个同时运行的 Agent",
+      "pos": [
+        40,
+        235
+      ],
+      "size": [
+        260,
+        90
+      ],
+      "tag": "规划 / 实现 / 审查与安全"
+    },
+    {
+      "id": "execution",
+      "type": "backend",
+      "label": "当前宿主执行",
+      "sublabel": "原生执行为默认方式",
+      "pos": [
+        355,
+        235
+      ],
+      "size": [
+        260,
+        90
+      ],
+      "tag": "Provider 显式选用 / 人工交接"
+    },
+    {
+      "id": "results",
+      "type": "database",
+      "label": "结果与证据",
+      "sublabel": "真实产物、退出码、哈希",
+      "pos": [
+        355,
+        415
+      ],
+      "size": [
+        260,
+        82
+      ]
+    },
+    {
+      "id": "verification",
+      "type": "security",
+      "label": "独立复验 + 确定性 checker",
+      "sublabel": "需要独立验收时真实复现",
+      "pos": [
+        40,
+        415
+      ],
+      "size": [
+        260,
+        82
+      ],
+      "tag": "任务证据不等于方法论已应用"
+    },
+    {
+      "id": "settlement",
+      "type": "backend",
+      "label": "接受 · 返工 · 恢复",
+      "sublabel": "重核已接受产物与证据",
+      "pos": [
+        40,
+        600
+      ],
+      "size": [
+        260,
+        82
+      ]
+    },
+    {
+      "id": "transport",
+      "type": "external",
+      "label": "可选 MCP 接法",
+      "sublabel": "V2 三工具调用同一 Decision",
+      "pos": [
+        695,
+        50
+      ],
+      "size": [
+        240,
+        84
+      ],
+      "tag": "M1 六工具仅兼容旧读取"
+    },
+    {
+      "id": "c5",
+      "type": "external",
+      "label": "后续能力边界",
+      "sublabel": "C5 方法论写入尚未交付",
+      "pos": [
+        695,
+        235
+      ],
+      "size": [
+        240,
+        90
+      ],
+      "tag": "原生绑定缺失不冒充已执行"
+    }
+  ],
+  "connections": [
+    {
+      "id": "request-decision",
+      "from": "entry",
+      "to": "decision",
+      "label": "请求"
+    },
+    {
+      "id": "decision-assets",
+      "from": "decision",
+      "to": "assets",
+      "label": "按资格选择",
+      "fromSide": "left",
+      "toSide": "top"
+    },
+    {
+      "id": "assets-execution",
+      "from": "assets",
+      "to": "execution",
+      "label": "交付方法包"
+    },
+    {
+      "id": "decision-execution",
+      "from": "decision",
+      "to": "execution",
+      "label": "允许后执行",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "execute-results",
+      "from": "execution",
+      "to": "results",
+      "label": "留下实证"
+    },
+    {
+      "id": "results-checks",
+      "from": "results",
+      "to": "verification",
+      "label": "复验"
+    },
+    {
+      "id": "checks-settle",
+      "from": "verification",
+      "to": "settlement",
+      "label": "证据通过"
+    },
+    {
+      "id": "settle-rework",
+      "from": "settlement",
+      "to": "decision",
+      "label": "返工 / 恢复时重新准入",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "via": [
+        [
+          170,
+          725
+        ],
+        [
+          10,
+          725
+        ],
+        [
+          10,
+          20
+        ],
+        [
+          485,
+          20
+        ]
+      ],
+      "labelSegment": 1
+    },
+    {
+      "id": "transport-decision",
+      "from": "transport",
+      "to": "decision",
+      "label": "只读决策",
+      "variant": "dashed"
+    },
+    {
+      "id": "gate-c5",
+      "from": "execution",
+      "to": "c5",
+      "label": "后续门槛",
+      "variant": "dashed"
+    },
+    {
+      "id": "checker-failure",
+      "from": "verification",
+      "to": "decision",
+      "label": "未通过：返工并重新准入",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "按变化来源分组",
+      "items": [
+        "规划：dev-planner、planning。可选治理：sdlc（显式授权 heavy profile）。",
+        "实现：implementation、frontend-design。",
+        "审查与安全：review、be-validator、security、skill-sentinel。"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "这是模块架构",
+      "items": [
+        "图中方法资产与 Decision 模块不是独立部署服务。",
+        "运行边界见可选 C4 编辑资料；M1 / V2 是外围 transport。",
+        "方法包按条件装配；无 brief 的原生工作仍须执行前复核。"
+      ]
+    }
+  ]
+}

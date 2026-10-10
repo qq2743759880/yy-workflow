@@ -1,0 +1,200 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "从一个想法，到可复验的交付",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "visual_preset": "signal-flow",
+    "output": "yy-workflow.html"
+  },
+  "lanes": [
+    {
+      "id": "understand",
+      "label": "先弄清楚要做什么"
+    },
+    {
+      "id": "deliver",
+      "label": "再把它做成并验收"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "init",
+      "lane": "understand",
+      "col": 0,
+      "type": "backend",
+      "label": "立项 · /yy 0",
+      "sublabel": "边界与已有资产",
+      "tag": "产物：项目资料",
+      "width": 172,
+      "height": 90
+    },
+    {
+      "id": "requirements",
+      "lane": "understand",
+      "col": 1,
+      "type": "backend",
+      "label": "需求 · /yy 1",
+      "sublabel": "澄清目标，确认概念",
+      "tag": "产物：PRD 草案",
+      "width": 172,
+      "height": 90
+    },
+    {
+      "id": "research",
+      "lane": "understand",
+      "col": 2,
+      "type": "backend",
+      "label": "研究 · /yy research",
+      "sublabel": "查现成方案与竞品",
+      "tag": "产物：来源与差距",
+      "width": 172,
+      "height": 90
+    },
+    {
+      "id": "tasks",
+      "lane": "understand",
+      "col": 3,
+      "type": "backend",
+      "label": "拆任务 · /yy 2",
+      "sublabel": "挑战前提，列验收标准",
+      "tag": "产物：任务总纲",
+      "width": 172,
+      "height": 90
+    },
+    {
+      "id": "contract",
+      "lane": "deliver",
+      "col": 0,
+      "type": "backend",
+      "label": "冻结契约 · /yy 3",
+      "sublabel": "审接口、错误码与顺序",
+      "tag": "产物：冻结契约",
+      "width": 172,
+      "height": 90
+    },
+    {
+      "id": "execute",
+      "lane": "deliver",
+      "col": 2,
+      "type": "backend",
+      "label": "派单执行 · /yy 4",
+      "sublabel": "宿主执行有界任务",
+      "tag": "产物：代码与实跑证据",
+      "width": 172,
+      "height": 90
+    },
+    {
+      "id": "accept",
+      "lane": "deliver",
+      "col": 3,
+      "type": "backend",
+      "label": "验收反哺 · /yy 5",
+      "sublabel": "独立复验，登记改进",
+      "tag": "产物：验收与改进清单",
+      "width": 172,
+      "height": 90
+    },
+    {
+      "id": "admission",
+      "lane": "deliver",
+      "col": 1,
+      "type": "security",
+      "label": "Decision 准入",
+      "sublabel": "展示原包，执行前复核",
+      "tag": "契约通过才开工",
+      "width": 172,
+      "height": 90
+    }
+  ],
+  "edges": [
+    {
+      "id": "initial-goals",
+      "from": "init",
+      "to": "requirements",
+      "role": "main"
+    },
+    {
+      "id": "signed-concept",
+      "from": "requirements",
+      "to": "research",
+      "label": "概念签收",
+      "role": "main"
+    },
+    {
+      "id": "research-proof",
+      "from": "research",
+      "to": "tasks",
+      "label": "真实来源",
+      "role": "main"
+    },
+    {
+      "id": "task-contract",
+      "from": "tasks",
+      "to": "contract",
+      "role": "main"
+    },
+    {
+      "id": "contract-admission",
+      "from": "contract",
+      "to": "admission",
+      "role": "main"
+    },
+    {
+      "id": "permit-execute",
+      "from": "admission",
+      "to": "execute",
+      "label": "允许",
+      "role": "main",
+      "variant": "emphasis"
+    },
+    {
+      "id": "execution-evidence",
+      "from": "execute",
+      "to": "accept",
+      "label": "复验",
+      "role": "main"
+    },
+    {
+      "id": "denied-repair",
+      "from": "admission",
+      "to": "contract",
+      "label": "拒绝：补前置",
+      "role": "error",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "bottom",
+      "route": "bottom-channel"
+    },
+    {
+      "id": "acceptance-rework",
+      "from": "accept",
+      "to": "execute",
+      "label": "未通过：返工后重验",
+      "role": "return",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "bottom",
+      "route": "bottom-channel"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "七个入口，按顺序推进",
+      "items": [
+        "每次入口都先消费 Decision；状态记录不能代替许可。",
+        "内部步骤映射：0 → 1 → 1.5 → 3 → 5 → 7 → 8。"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "发现问题，可以回跳",
+      "items": [
+        "内部 2 / 4 / 6 是回跳层，分别承接需求、拆分与契约修正。",
+        "它们不是 /yy 命令编号；改动后复核受影响的前置与证据。"
+      ]
+    }
+  ]
+}

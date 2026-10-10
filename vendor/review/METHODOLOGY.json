@@ -1,0 +1,81 @@
+{
+  "schema": "yy/methodology-bindings@1",
+  "asset": "review",
+  "methodology_type": "MATT_COMPOSE",
+  "wrapper_policy": "YY_ROUTED",
+  "wrapper_source": {
+    "path": "SKILL.md",
+    "scope": "asset",
+    "sha256": "282fd1ded4b07a51d076f7abe8caa2205d3d33b10f44957c7d16ad56738ef966"
+  },
+  "licenses": [
+    {
+      "path": "LICENSE",
+      "scope": "package",
+      "sha256": "39ad33402a909bc27000cde7ec17024209243db571dd7af7aed67a7f28a19883"
+    },
+    {
+      "path": "vendor/implementation/reference/matt/LICENSE",
+      "scope": "package",
+      "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
+    }
+  ],
+  "primary": "code-review",
+  "skills": {
+    "code-review": {
+      "path": "vendor/implementation/reference/matt/engineering_code-review/SKILL.md",
+      "scope": "package",
+      "sha256": "47f4e52c21694def9c7c11cbfbf891ca35eac7a93e395797515be3c8a409ae50",
+      "invocation_policy": "MODEL_ELIGIBLE",
+      "dependencies": [
+        "finding-format"
+      ],
+      "resources": []
+    },
+    "finding-format": {
+      "path": "templates/finding-template.md",
+      "scope": "asset",
+      "sha256": "61d74c676baa2b9b2a0145f2203721f707f8b25cbdd047a00517f05f1c898644",
+      "invocation_policy": "YY_ROUTED",
+      "dependencies": [],
+      "resources": [
+        {
+          "path": "agents/be-tester.md",
+          "scope": "asset",
+          "sha256": "7f95dc51eaf09a9cd569373249269eb078292389837456b2c0d92674d9e968f5",
+          "when": {
+            "backend_evidence": true
+          }
+        }
+      ]
+    },
+    "existing-code-audit": {
+      "path": "reference/existing-code-audit.md",
+      "scope": "asset",
+      "sha256": "d4517cbfeb4d8e9d88ae4073217dadb69de37151eabeab48cd5881d148398353",
+      "invocation_policy": "YY_ROUTED",
+      "dependencies": [
+        "finding-format"
+      ],
+      "resources": []
+    }
+  },
+  "upstream_commit": "24fe0ef7737efae15c87225755e9f6f5965e4888",
+  "mode_selector": "review_mode",
+  "default_mode": "change_review",
+  "modes": {
+    "change_review": {
+      "primary": "code-review",
+      "required_context": [
+        "base"
+      ]
+    },
+    "existing_code_audit": {
+      "primary": "existing-code-audit",
+      "required_context": [
+        "scope",
+        "version"
+      ]
+    }
+  }
+}

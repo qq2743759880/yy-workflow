@@ -1,0 +1,420 @@
+schema: yy/asset-files@1
+asset: frontend-design
+iteration_protocol: reference/asset-iteration.md
+files:
+- match: .openclaw/source-origin.json
+  state: PROVENANCE
+  consumer: distribution
+- match: ASSET-FILES.yaml
+  state: PROVENANCE
+  consumer: distribution
+- match: LICENSES.md
+  state: PROVENANCE
+  consumer: distribution
+- match: SKILL.md
+  state: ACTIVE_ENTRY
+  consumer: activation
+  load: entry
+- match: reference/PICKER.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/SKILL.md
+  load: matching L2+ topic; prototype resources only L3 plus explicit request
+- match: reference/color-and-contrast.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/SKILL.md
+  load: matching L2+ topic; prototype resources only L3 plus explicit request
+- match: reference/component-selection.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/SKILL.md
+  load: matching L2+ topic; prototype resources only L3 plus explicit request
+- match: reference/design-data/data/app-interface.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/catalog-summary.json
+  state: PROVENANCE
+  consumer: distribution
+- match: reference/design-data/data/charts.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/colors.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/data-provenance.json
+  state: PROVENANCE
+  consumer: distribution
+- match: reference/design-data/data/google-font-licenses.json
+  state: PROVENANCE
+  consumer: distribution
+- match: reference/design-data/data/google-fonts.csv
+  state: PROVENANCE
+  consumer: distribution
+- match: reference/design-data/data/icons.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/landing.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/motion.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/phosphor-icons-upstream.json
+  state: PROVENANCE
+  consumer: distribution
+- match: reference/design-data/data/products.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/react-performance.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/stacks/angular.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/stacks/astro.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/stacks/avalonia.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/stacks/flutter.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/stacks/html-tailwind.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/stacks/javafx.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/stacks/jetpack-compose.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/stacks/laravel.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/stacks/nextjs.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/stacks/nuxt-ui.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/stacks/nuxtjs.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/stacks/react-native.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/stacks/react.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/stacks/shadcn.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/stacks/svelte.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/stacks/swiftui.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/stacks/threejs.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/stacks/uno.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/stacks/uwp.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/stacks/vue.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/stacks/winui.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/stacks/wpf.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/styles.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/typography.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/ui-reasoning.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/data/ux-guidelines.csv
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/core.py
+  load: query domain or stack selected by search.py
+- match: reference/design-data/references/pro-rules.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/reference/design-data/usage.md
+  load: matching UX topic; pro-rules only for native/mobile
+- match: reference/design-data/references/quick-reference.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/reference/design-data/usage.md
+  load: matching UX topic; pro-rules only for native/mobile
+- match: reference/design-data/scripts/core.py
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/search.py
+  load: query selected domain or validate changed catalog
+- match: reference/design-data/scripts/design_system.py
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/search.py
+  load: query selected domain or validate changed catalog
+- match: reference/design-data/scripts/reasoning_contract.py
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/scripts/design_system.py
+  load: query selected domain or validate changed catalog
+- match: reference/design-data/scripts/search.py
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/usage.md
+  load: query selected domain or validate changed catalog
+- match: reference/design-data/scripts/validate_data.py
+  state: EXECUTABLE
+  consumer: vendor/frontend-design/reference/design-data/usage.md
+  load: query selected domain or validate changed catalog
+- match: reference/design-data/usage.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/SKILL.md
+  load: L2+ data query or catalog maintenance
+- match: reference/integration-checklist.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/SKILL.md
+  load: matching L2+ topic; prototype resources only L3 plus explicit request
+- match: reference/interaction-design.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/SKILL.md
+  load: matching L2+ topic; prototype resources only L3 plus explicit request
+- match: reference/motion-design.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/SKILL.md
+  load: matching L2+ topic; prototype resources only L3 plus explicit request
+- match: reference/prototyping.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/SKILL.md
+  load: matching L2+ topic; prototype resources only L3 plus explicit request
+- match: reference/responsive-design.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/SKILL.md
+  load: matching L2+ topic; prototype resources only L3 plus explicit request
+- match: reference/spatial-design.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/SKILL.md
+  load: matching L2+ topic; prototype resources only L3 plus explicit request
+- match: reference/taste-blocks/cta/centered-cta.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/SKILL.md
+  load: L3 or matching L2 page block only
+- match: reference/taste-blocks/feature/bento-grid.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/SKILL.md
+  load: L3 or matching L2 page block only
+- match: reference/taste-blocks/footer/multi-column-footer.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/SKILL.md
+  load: L3 or matching L2 page block only
+- match: reference/taste-blocks/hero/asymmetric-split.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/SKILL.md
+  load: L3 or matching L2 page block only
+- match: reference/taste-blocks/navigation/sticky-nav.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/SKILL.md
+  load: L3 or matching L2 page block only
+- match: reference/taste-blocks/portfolio/project-gallery.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/SKILL.md
+  load: L3 or matching L2 page block only
+- match: reference/taste-blocks/pricing/tiered-pricing.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/SKILL.md
+  load: L3 or matching L2 page block only
+- match: reference/taste-blocks/social-proof/testimonial-wall.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/SKILL.md
+  load: L3 or matching L2 page block only
+- match: reference/taste-blocks/transition/sticky-scroll-stack.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/SKILL.md
+  load: L3 or matching L2 page block only
+- match: reference/taste-skill.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/SKILL.md
+  load: matching L2+ topic; prototype resources only L3 plus explicit request
+- match: reference/typography.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/SKILL.md
+  load: matching L2+ topic; prototype resources only L3 plus explicit request
+- match: reference/ux-writing.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/SKILL.md
+  load: matching L2+ topic; prototype resources only L3 plus explicit request
+- match: templates/design-read-template.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/SKILL.md
+  load: matching L2+ topic; prototype resources only L3 plus explicit request
+- match: METHODOLOGY.json
+  state: ACTIVE_RESOURCE
+  consumer: scripts/lib/methodology.mjs
+  load: selected asset declaration
+- match: UPSTREAM-REUSE.yaml
+  state: PROVENANCE
+  consumer: distribution
+retired:
+- path: reference/activation-levels.md
+  superseded_by: SKILL.md
+  reason: Tier definitions are already in SKILL and V3; no live resource pointer
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/__pycache__/core.cpython-310.pyc
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/__pycache__/core.cpython-314.pyc
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/__pycache__/design_system.cpython-310.pyc
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/__pycache__/design_system.cpython-314.pyc
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/__pycache__/reasoning_contract.cpython-310.pyc
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/__pycache__/reasoning_contract.cpython-314.pyc
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/tests/fixtures/catalogs/google-api.json
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/tests/fixtures/catalogs/google-catalog.json
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/tests/fixtures/catalogs/google-existing.csv
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/tests/fixtures/catalogs/google-metadata.json
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/tests/fixtures/catalogs/google-overrides.json
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/tests/fixtures/catalogs/icons-curated.csv
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/tests/fixtures/catalogs/phosphor-core.json
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/tests/fixtures/catalogs/phosphor-package.json
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/tests/fixtures/catalogs/phosphor-react-exports.json
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/tests/fixtures/catalogs/phosphor-react-package.json
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/tests/fixtures/relevance-baseline.json
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/tests/fixtures/relevance-cases.json
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/tests/fixtures/relevance-thresholds.json
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/tests/test_catalog_refresh.py
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/tests/test_core.py
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/tests/test_core_data_quality.py
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/tests/test_data_contracts.py
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/tests/test_design_system_mode.py
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/tests/test_native_desktop_stack_freshness.py
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/tests/test_relevance_evaluator.py
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/tests/test_style_taxonomy.py
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/tests/test_text_layout_resilience.py
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/scripts/tests/test_web_stack_freshness.py
+  superseded_by: reference/design-data/scripts/search.py
+  reason: Cache or upstream test fixture; not read by search/core/design-system runtime
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/design-data/SKILL.md
+  superseded_by: reference/design-data/usage.md
+  reason: Nested platform Skill wrapper replaced with a portable on-demand data guide
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json

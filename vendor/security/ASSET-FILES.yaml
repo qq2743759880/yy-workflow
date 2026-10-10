@@ -1,0 +1,41 @@
+schema: yy/asset-files@1
+asset: security
+iteration_protocol: reference/asset-iteration.md
+files:
+- match: .openclaw/source-origin.json
+  state: PROVENANCE
+  consumer: distribution
+- match: ASSET-FILES.yaml
+  state: PROVENANCE
+  consumer: distribution
+- match: LICENSES.md
+  state: PROVENANCE
+  consumer: distribution
+- match: SKILL.md
+  state: ACTIVE_ENTRY
+  consumer: activation
+  load: entry
+- match: agents/be-security.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/security/SKILL.md
+  load: matching asset section/task requires the resource
+- match: reference/audit.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/security/SKILL.md
+  load: matching asset section/task requires the resource
+- match: reference/harden.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/security/SKILL.md
+  load: matching asset section/task requires the resource
+- match: rulesets/security-local-rules.yaml
+  state: EXECUTABLE
+  consumer: scripts/lib/adapters/security-semgrep.mjs
+  load: security adapter real scan
+- match: METHODOLOGY.json
+  state: ACTIVE_RESOURCE
+  consumer: scripts/lib/methodology.mjs
+  load: selected asset declaration
+- match: UPSTREAM-REUSE.yaml
+  state: PROVENANCE
+  consumer: distribution
+retired: []

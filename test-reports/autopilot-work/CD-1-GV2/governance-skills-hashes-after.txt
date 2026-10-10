@@ -1,3 +1,0 @@
-808fc5717aa88ad65efff312b11c186294d3e6ee301afb584e2f86599b137787 *governance-skills/systematic-debugging/SKILL.md
-64b03fce4aee5a97a93160cea8111f3ba13a17b7c001db4bd5836d67fd10705d *governance-skills/test-driven-development/SKILL.md
-2befe7fc55bcadaa3d97dd9e8efeb633d2561c0ebe74c5a8b17c4d9e7e4520b3 *governance-skills/verification-before-completion/SKILL.md

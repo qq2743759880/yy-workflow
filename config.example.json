@@ -1,24 +1,24 @@
 {
-  "aihubRoot": "~/.ai-hub",
   "projectRoot": "<YOUR_PROJECT_ROOT>",
-  "platforms": [
-    { "name": "opencode", "role": "orchestrator", "domain": null },
-    { "name": "trae", "role": "worker", "domain": "backend" },
-    { "name": "traework", "role": "worker", "domain": "frontend" }
-  ],
+  "platforms": [],
   "model": {
-    "fast": { "baseUrl": "<YOUR_FAST_BASE_URL>", "model": "<YOUR_FAST_MODEL>" },
-    "strong": { "baseUrl": "<YOUR_STRONG_BASE_URL>", "model": "<YOUR_STRONG_MODEL>" },
+    "fast": {
+      "baseUrl": "<YOUR_FAST_BASE_URL>",
+      "model": "<YOUR_FAST_MODEL>"
+    },
+    "strong": {
+      "baseUrl": "<YOUR_STRONG_BASE_URL>",
+      "model": "<YOUR_STRONG_MODEL>"
+    },
     "note": "key 请放入环境变量或本机 .env，勿提交仓库"
   },
   "executor": {
-    "command": ["node", "<TT目录>/scripts/exec-host-a6api.mjs"],
+    "command": [],
     "timeoutMs": 600000,
-    "hosts": [
-      ["node", "<TT目录>/scripts/exec-host-openclaw.mjs"],
-      ["node", "<TT目录>/scripts/exec-host-a6api.mjs", "--model", "gpt-5.6-luna"]
-    ],
-    "note": "可选：宿主执行命令数组（如 [\"opencode\",\"run\"]），brief 路径会作为最后一个参数追加；timeoutMs 为宿主调用超时；空数组 = prompt 后端仅产出指令包。a6api 参考宿主示例：[\"node\",\"<TT目录>/scripts/exec-host-a6api.mjs\"]（须用绝对路径，因宿主以 --workspace 为 cwd 运行）会调 a6api 真机 LLM 读 brief 写 plan.md 到其目录；使用前需设环境变量 A6API_KEY（例：PowerShell $env:A6API_KEY=\"sk-...\"），key 只放环境变量/本机 .env，勿写进仓库或本文件。Outside Voice 跨模型批判：宿主支持 --model <id> 指定第二模型（如 [\"node\",\"<TT目录>/scripts/exec-host-a6api.mjs\",\"--model\",\"gpt-5.6-luna\"]），与默认 DeepSeek-V4-Flash-0731 各审同一任务对比分歧；命令行用法 node scripts/orchestrator.mjs --task \"...\" --exec node \"<TT目录>/scripts/exec-host-a6api.mjs\" --model gpt-5.6-luna。openclaw 真机宿主示例：[\"node\",\"<TT目录>/scripts/exec-host-openclaw.mjs\"] 会写临时 message 文件并 spawn 本机 `openclaw agent --agent main --json`（cwd 继承，超时 180s，临时文件用后即删）；模型由 openclaw 本机 agent 配置决定（本机已配 deepseek-v4-flash），无需注入任何 key。hosts（可选，失败自动恢复）：备选宿主数组，每项为 command 数组；主宿主（command）失败/超时/空输出时自动按序换宿主重试，每项可带 --model 后缀作换视角重试（如上面第二项）；全部宿主失败 → 诚实降级 degraded + warning（requireExec 资产保持强制）。优先级低于命令行 --hosts。"
+    "hosts": [],
+    "note": "HOST_NATIVE is the portable default. Embedded hosts bind host.execute; standalone CLI without an executor returns BRIEF_ONLY. Explicit --exec/command selects the generic external bridge; provider explicitly selects an optional registered adapter. No provider is selected by installed presence.",
+    "executionMode": "HOST_NATIVE",
+    "provider": null
   },
   "enhancedAssets": {
     "frontend-design": false,

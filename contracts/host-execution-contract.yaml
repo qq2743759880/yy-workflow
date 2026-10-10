@@ -1,0 +1,28 @@
+schema: yy/host-execution-contract@1
+modes:
+- HOST_NATIVE
+- EXTERNAL_PROVIDER
+- BRIEF_ONLY
+default_mode: HOST_NATIVE
+input:
+  task: required
+  parent_task: required
+  methodology_payload: required
+  requested_resources: required
+  acceptance_criteria: required
+  contract: required
+  upstream_artifacts: required
+output:
+  status: required
+  artifacts: required
+  evidence: required
+  provider: required
+  executed: required
+invocation_policies:
+- USER_EXPLICIT
+- MODEL_ELIGIBLE
+- YY_ROUTED
+brief_only:
+  executed: false
+  execution_success: false
+methodology_applied: DEFERRED_TO_C5

@@ -1,6 +1,0 @@
-presence 档（仅存在性 + 非交互形态登记；存在 ≠ 可用，可用性看 --probe roundtrip）
-
-claude    PRESENCE_YES  stdin 形态 ["-p"]
-          located: C:\Users\Administrator\AppData\Roaming\npm\claude  [PATH]
-
-注意：本档结论只回答"在不在/有没有非交互形态"，不回答"认证/配额/模型是否可用"。

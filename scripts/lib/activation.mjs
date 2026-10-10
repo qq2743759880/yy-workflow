@@ -27,6 +27,7 @@
  *   在 bounded 模式下即 defect——本实现按 §2.1 改为显式 ASSET_BODY_MISSING）。
  */
 
+import {profileAllowed} from './methodology.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -344,6 +345,8 @@ export async function resolveAssetEligibility(input, opts = {}) {
     };
   }
 
+  if(!profileAllowed(row.optional_profile,input.constraints?.owner_intent,input.constraints?.methodology)) return {selected_asset:asset,eligible:false,reason:['INELIGIBLE_OPTIONAL_PROFILE: requires explicit owner authorization and governance scope']};
+
   // 提示收集：requirements 字符串 + constraints 标量值（均为可选提示，v3.2/v3.5 边界）
   const hints = [];
   for (const r of (Array.isArray(input.requirements) ? input.requirements : [])) {
@@ -407,16 +410,19 @@ function hintTokens(hint) {
 }
 
 // ---------------------------------------------------------------------------
-// brief 框架（§5.2：字段名与现状 brief 逐字兼容，prompt.mjs:34-59 同构）
+// Shared host brief frame; methodology payload heading/tail remain receipt-compatible.
 // ---------------------------------------------------------------------------
 
 /**
  * renderBrief：把 activationPackage.briefFrame 渲染为 brief.md 文本。
- * 框架字段与 prompt.mjs:34-59 现状逐字兼容（§5.2 逐行对照表）；唯一契约内变化 =
+ * Shared host frame: one child task, parent context, separate acceptance constraints.
+ * Methodology heading and payload/tail boundary stay unchanged for receipt extraction.
  * 「方法论正文」段内从资产全文替换为有界 payload（OQ-R3-10=A：标题原文保留）。
  * metadata 级该段为占位行（未激活正文）（§5.2）。
  */
 export function renderBrief(frame) {
+  const description = frame.description || frame.task || frame.contract || '(无)';
+  const parent = frame.parentTask || frame.task || '(无)';
   const prior = Array.isArray(frame.upstreamRefs) && frame.upstreamRefs.length
     ? frame.upstreamRefs.map((r) => '- ' + r).join('\n')
     : '(无上游产物)';
@@ -426,14 +432,21 @@ export function renderBrief(frame) {
   return [
     '# 子任务执行指令包 ' + frame.subtaskId,
     '',
-    '## 任务（父任务）',
-    frame.task || '(无)',
+    '## 父任务上下文（不执行）',
+    parent === description ? '总目标与本任务相同，参见「执行任务（唯一）」；此处不另派任务。' : parent,
     '',
     '## 本子任务',
     '- asset: ' + frame.asset,
     '- 资产根目录: ' + (frame.assetRoot || '(未知，见方法论正文的相对引用)'),
-    '- 说明: ' + (frame.description || frame.task || '(无)'),
-    '- contract: ' + (frame.contract || '(无)'),
+    '- role: ' + (frame.role || '(未登记)'),
+    '',
+    '## 执行任务（唯一）',
+    description,
+    '',
+    '## 验收约束',
+    '- contract: ' + (frame.contract === description ? '参见「执行任务（唯一）」；此值不另派任务。' : (frame.contract || '(无)')),
+    ...(Array.isArray(frame.acceptanceCriteria) ? frame.acceptanceCriteria.map(c =>
+      '- ' + (c === description ? '核验「执行任务（唯一）」的实际产物和独立证据。' : c)) : []),
     '',
     '## 上游产物引用',
     prior,
@@ -744,10 +757,13 @@ export async function activationPrepare(input) {
     },
     briefFrame: {
       subtaskId: subtask.id ?? (typeof input.plan === 'object' && input.plan && input.plan.id ? input.plan.id + '-sub' : 'subtask'),
-      task: (typeof input.plan === 'object' && input.plan && input.plan.task) || subtask.task || null,
+      task: (typeof input.plan === 'object' && input.plan && input.plan.task) || subtask.parentTask || subtask.task || null,
+      parentTask: subtask.parentTask || (typeof input.plan === 'object' && input.plan && input.plan.task) || null,
       asset: input.asset,
       assetRoot: assetRootAbs,
-      description: subtask.task || subtask.contract || null,
+      description: subtask.desc || subtask.task || subtask.contract || null,
+      role: subtask.role || null,
+      acceptanceCriteria: Array.isArray(subtask.acceptanceCriteria) ? subtask.acceptanceCriteria.slice() : [],
       contract: subtask.contract || null,
       upstreamRefs: Array.isArray(subtask.upstreamRefs) ? subtask.upstreamRefs : [],
       preconditions: Array.isArray(subtask.preconditions) ? subtask.preconditions : [],

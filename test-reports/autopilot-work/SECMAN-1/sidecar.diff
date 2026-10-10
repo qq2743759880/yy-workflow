@@ -1,5 +1,0 @@
---- a/contracts/manifest-sources/security.yaml
-+++ b/contracts/manifest-sources/security.yaml
-@@ when_not_to_use 末条 @@
--  - 非 Python 目标（晋升 ruleset 现为 Python-only；gitleaks/多语言暂缺——能力收缩登记，扩规前 adapter 以 SCOPE_LANGUAGE_UNSUPPORTED 拒绝）——F-011 后守门为文件级：显式非 Python 文件目标拒绝，目录目标放行（目录内 .py 生效；0 findings 属真实扫描结果如实记录，REMEDIATION-1）
-+  - 非 Python 目标（晋升 ruleset 现为 Python-only；gitleaks/多语言暂缺——能力收缩登记）——F-019 后守门为文件级 + 目录能力发现：显式非 Python 文件目标拒绝（SCOPE_LANGUAGE_UNSUPPORTED）；纯非 Python 源码目录拒绝（SCOPE_LANGUAGE_UNSUPPORTED，Python-only ruleset 无可检对象）；混合目录照扫但 pass=false 且 uncovered_languages 显式列出未覆盖语言——"真的扫了"≠"能力覆盖了目标"，不能认证 ≠ 通过

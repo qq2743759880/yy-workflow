@@ -7,7 +7,9 @@ export async function run(subtask, ctx, options = {}) {
   if (!workspace) workspace = '.';
   let input = subtask.task;
   if (!input) input = subtask.contract;
-  const opencodeCmd = resolveCommandShim('opencode');
+  const opencodeCmd = options.providerCommand?.length
+    ? {command:options.providerCommand[0],prefix:options.providerCommand.slice(1)}
+    : resolveCommandShim('opencode');
   // 先探测工具存在（不臆造版本行为，仅探可用性）——与 bmad-cline / portman 一致
   const probe = await runCommand(opencodeCmd.command, opencodeCmd.prefix.concat(['--version']), { workspace, timeoutMs: 30000, timeoutCode: 'TIMEOUT', notAvailableCode: 'OPENCODE_NOT_AVAILABLE', subtask });
   if (!probe.ok) return probe;

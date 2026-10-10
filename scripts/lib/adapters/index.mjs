@@ -5,13 +5,13 @@ import prompt from './prompt.mjs';
 import securitySemgrep from './security-semgrep.mjs';
 import skillScanner from './skill-scanner.mjs';
 export const ADAPTERS = new Map(); 
-// 专用 adapter 注册表：每个 adapter 是「能力探测验证支持 write_files/run_cmd 的执行内核胶水」。
-// opencode adapter 是回归渠道之一（非主路径唯一执行内核）：主路径 = prompt 后端 + --exec 宿主注入；
-// 专用 CLI adapter 仅在 presence 探测命中且能力握手通过时作为备选执行渠道。
-ADAPTERS.set('implementation', opencode); 
-ADAPTERS.set('dev-backend', opencode); 
-ADAPTERS.set('be-implementer', opencode); 
-ADAPTERS.set('sdlc', bmad); 
+// Deterministic capability adapters remain separate from optional execution providers.
+// Implementation methodology is portable. External providers are opt-in.
+export const EXTERNAL_PROVIDERS = new Map([
+  ['cline', {provider_id:'cline',class:'OPTIONAL_EXTERNAL_PROVIDER',adapter:bmad}],
+  ['opencode', {provider_id:'opencode', class:'OPTIONAL_EXTERNAL_PROVIDER', adapter:opencode}],
+]);
+
 ADAPTERS.set('be-validator', portman);
 ADAPTERS.set('portman', portman);
 // AS-2-security 迁移（contracts/asset-migration.md）：security 专用 adapter = semgrep 驱动
@@ -25,11 +25,14 @@ export const PROMPT_ADAPTER = prompt;
 /** 
  * 解析子任务资产对应的执行后端。 
  * backend 模式： 
- *   auto（默认）——有专用 CLI adapter 用专用（能力探测验证其支持 write_files/run_cmd 后）；否则回落内置 prompt 后端（16 资产全部可达）。 
+ *   auto（默认）——implementation 用 portable prompt/host 路径；具体工具 capability 保留既有 adapter。安装存在性不选择外部 provider。 
  *   prompt——一律用内置 prompt 后端（纯本地，零外部依赖）。 
  *   cli——只用专用 CLI adapter；无专用 adapter 的资产返回 null（保持旧行为：skipped）。 
  */ 
-export function resolveAdapter(name, backend = 'auto') { 
+export function resolveAdapter(name, backend = 'auto', options = {}) { 
+  if (ADAPTERS.has(name) && options.executionMode!=='BRIEF_ONLY') return ADAPTERS.get(name);
+  if (options.provider) return (options.providers || EXTERNAL_PROVIDERS).has(options.provider)?PROMPT_ADAPTER:null;
+  if (options.executionMode === 'HOST_NATIVE' || options.executionMode === 'BRIEF_ONLY') return PROMPT_ADAPTER;
   const adapter = ADAPTERS.get(name); 
   if (backend === 'prompt') return PROMPT_ADAPTER; 
   if (backend === 'cli') return adapter || null; 

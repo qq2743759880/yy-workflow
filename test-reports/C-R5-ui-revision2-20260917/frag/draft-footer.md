@@ -1,2 +1,0 @@
-
-> 本文件 = `contracts/drafts/C-R5-ui.draft.md`（`C-R5-ui = DRAFT`，2026-09-16 起草；**v2 修订 2026-09-17**，吸收 `cr-20260917T035212Z-c2026fdf`，re-freeze 后取代冻结件 `421ecfc4…`）。配套清单：`contracts/drafts/C-R5-ui-review-checklist.md`（Owner 场景审查逐行，Owner 确认列留空）。**drafts 不解锁任务**：R5b READY 仍需按冻结序列（`C-R5-ui` → data states → interaction states → design tokens → Gate A → PARITY → Gate B）落牌，且 `R5a == DONE && UI-GA == APPROVED`。`route41Rerun.required=false`（零路由改动）。`acceptancePerformedByExecutor=false`（本草案不做验收，执行器不自验）。16 vendor 根只读：未修改。

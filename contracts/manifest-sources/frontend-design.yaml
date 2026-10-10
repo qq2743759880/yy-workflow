@@ -1,13 +1,13 @@
-# sidecar：frontend-design（AV-2 批 1）——三字段方法论内容我方署责任，vendor 文件一字不改。
-# 内容依据：vendor/frontend-design/SKILL.md 头部结构化区（两步必做纪律）+ EA-1 BASELINE.md 消费语义。
+# sidecar：frontend-design（AV-2 批 1；2026-10-04 r1 语义同步）——三字段方法论内容我方署责任。
+# 内容依据：vendor/frontend-design/SKILL.md v3.1.0 r1 正文（L0-L3 分级语义）；与契约/正文同步更新。
 id: frontend-design
 when_to_use:
-  - 前端界面生成与设计决策：Design Read→三拨盘（DESIGN_VARIANCE/MOTION_INTENSITY/VISUAL_DENSITY）→Pre-Flight Check 的 taste 工作流
-  - 需要真查设计数据再定风格/配色/字体/组件/动效（search.py 查 ux/style/color/typography/gsap/chart 目录）与组件选型、原型化
+  - 有界面产物的前端任务按 L0-L3 分级加载：L1 既有样式微调只跑 frontend-quality-gate 机检门；L2 标准页面/组件走 Design Read+三拨盘+按主题引用 reference（≤3 篇）+相关域数据查询；L3 全设计任务进完整 taste 工作流与显式请求的 PICKER 原型
+  - 需要真查设计数据再定风格/配色/字体/组件/动效（search.py 查 ux/style/color/typography/gsap/chart 目录）与组件选型
 when_not_to_use:
-  - 无前端/界面产物的任务（纯后端、脚本、文档）
-  - 无法走两步必做纪律的场合（vendor 原文：每个设计任务写码前 MUST 跑 taste 工作流 + search.py 真查，禁跳过）
-verification: 产物体现两步必做证据：taste-skill 工作流产出（Design Read 一行+三拨盘取值）+ search.py 真实查询行（python 缺失时读 CSV 或显式声明跳过，禁伪造查询结果）；Pre-Flight 50+ 项矩阵过检；S3 marker（shadcn/bolt.new）+消费锚点机验
+  - L0 无界面产物任务（纯后端、脚本、文档）——不加载本资产
+  - 纯数据表格/仪表盘类产品 UI（taste 上游明示不适用域）；分级未接入运行时前由派单方声明级别（缺省 L2，候选政策见契约 tier_policy_status）
+verification: 分级语义下产物证据按级别适用：L1=仅机检门输出（frontend-quality-gate exit code+警告清单，主观项如实 N/A 不计 PASS）；L2+=Design Read 一行+三拨盘取值理由+search.py 真实查询行（python 缺失读 CSV 或显式声明跳过，禁伪造）+机检门；机检门只证代码静态项，不证审美/真实交互/可访问性全量/响应式实测；S3 marker（shadcn/bolt.new）+消费锚点机验
 source: vendor/frontend-design/SKILL.md#L1-L5
 drop_pending: false
 drop_allowed: false

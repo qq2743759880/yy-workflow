@@ -1,3 +1,0 @@
-legacy.bytes=7260
-vendorBody.bytes=7260
-byteEqual=true

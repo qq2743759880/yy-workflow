@@ -1,7 +1,0 @@
-# KERNEL-1 S15-A2 等价探针（bootstrap-only 恢复副本，非 npm ci 路径）
-生成: 2026-09-26T15:57:10Z
-副本: /tmp/kernel1-neg-AmSYdn（起点 node_modules ABSENT → 只跑 bootstrap-kernels.mjs 恢复）
-探针: s15a2-probe.mjs（复刻 regression-all.mjs S15-A2 夹具与断言，os.tmpdir 跑完即删）
-
-PASS S15-A2 等价探针  be-validator/spectral: 真扫 6 findings pass=false | security/semgrep: 真扫 1 findings pass=false | skill-sentinel/skill-scanner: 真扫 is_safe=true threats=0
-exit=0

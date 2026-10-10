@@ -1,0 +1,198 @@
+# yy/asset-contract@3 — be-validator（A-P0-03-REWORK1 批次资产 1/3）
+# 方法论真相来源：vendor/be-validator/be-validator.md（Zod schema/OpenAPI 3.1/RFC 9457/输入消毒
+# + L201-213 执行内核段）+ contracts/manifest-sources/be-validator.yaml（AS-2-first 迁移：
+# PRIMARY=Spectral，portman 保留为 EXPLICIT_COMPAT_MODE 回滚）+ scripts/lib/adapters/portman.mjs
+# （Spectral 驱动实现）。矛盾已解决：vendor 正文写 portman/contracteer 可用即可，签约 sidecar
+# 已把 PRIMARY 晋升为 Spectral（ruleset 固化 spectral-oas.yaml），portman 仅旗标后回滚——本契约
+# 按已解决后的运行时真相声明。
+schema: yy/asset-contract@3
+id: be-validator
+version: 3.1.0
+kind: validator
+purpose:
+  plain_language: 后端接口契约把关：真实执行 OpenAPI 规则校验（Spectral + 固化 ruleset），把"说好的接口契约"变成机器验证的 pass/diff 留痕；方法论覆盖请求/响应 schema 设计、OpenAPI 3.1 规格生成、RFC 9457 错误格式统一、输入消毒
+routing:
+  capability_keys:
+  - openapi-validation
+  - backend-validation
+  clusters:
+  - T1_DATABASE
+  - T2_BACKEND
+  - T3_AI_RAG_MCP
+  - T5_OPS
+  exclusions:
+  - 无后端接口面的纯静态页面/文档任务
+  - 接口契约尚未冻结（契约先行冻结，再做校验落地）
+io:
+  required_inputs:
+  - name: subtask_contract
+    type: openapi_file
+    description: SubTask.contract 指向真实 OpenAPI JSON/YAML 文件；描述性文本契约不校验（degraded 留痕 pass=null）
+  - name: ruleset
+    type: ruleset_file
+    description: vendor/be-validator/rulesets/spectral-oas.yaml（固化，extends spectral:oas）
+  required_outputs:
+  - name: contract_result
+    type: json_artifact
+    description: artifacts/<subtaskId>/contract-result.json，含 pass/diff/checkedAt/tool/version/mode/findings_total/findings_summary/scope
+methodology:
+  source: vendor/be-validator/be-validator.md
+  required_sections:
+  - Zod Schema Patterns
+  - RFC 9457 Problem Details Schema
+  - OpenAPI Generation
+  - Input Sanitization Rules
+  - Quality Checklist
+  - Execution kernel
+application:
+  assertions:
+  - id: bev-A1
+    critical: true
+    verifier: deterministic
+    description: 契约真的被检验——subtask.contract 必须解析为真实 OpenAPI 文档（openapi/swagger 字段在），descriptor/描述性文本一律 recorded-not-validated
+    evidence_requirements:
+    - contract-result.json 记录 contract 文件路径与 tool=spectral
+    - 非文件/非 OpenAPI 契约 → pass=null + degraded=true（不得 pass=true）
+    failure_semantics: 契约文件缺失、不可读、或 JSON 但缺 openapi/swagger 字段 → 留痕 degraded，禁止当作已校验通过上报
+  - id: bev-A2
+    critical: true
+    verifier: deterministic
+    description: OpenAPI/Spectral 规则真实执行——spectral --version 探测可用并留版本，规则集固化为 spectral-oas.yaml，输出 findings JSON 可解析
+    evidence_requirements:
+    - spectral --version 输出记入 contract-result.json version 字段
+    - lint 命令携带 --ruleset vendor/be-validator/rulesets/spectral-oas.yaml
+    - findings JSON parseable
+    failure_semantics: spectral 不可达 → SPECTRAL_NOT_AVAILABLE；旧 portman 路径仅在 EXPLICIT_COMPAT_MODE 显式旗标后可达且每次调用留痕 compat 字段，无旗标拒绝
+  - id: bev-A3
+    critical: true
+    verifier: structural
+    description: 结果与目标契约结构对应——findings_summary 逐条映射 rule/severity/message/path，pass 与 error 级 findings 双射，exit code 语义硬校验
+    evidence_requirements:
+    - findings_total 与 findings_summary 一致
+    - exit 0 无 error 级 或 exit 1 有 error 级（矛盾即 invalid）
+    failure_semantics: 输出不可解析或 exit code 与 findings 矛盾 → SPECTRAL_OUTPUT_INVALID receipt failure（invalid_output=true），不静默吞
+  - id: bev-A4
+    critical: true
+    verifier: hybrid
+    description: 目标栈无 TypeScript/Zod-only 假设——交付产物的 schema 层使用目标技术栈原生生态（Python 目标用 pydantic 等而非 Zod），接口规格仍为 OpenAPI 3.1
+    evidence_requirements:
+    - contract-result.json scope 字段声明目标栈
+    - 交付物中 schema 库与目标语言一致（Python 目标不得出现 Zod 依赖）
+    failure_semantics: 对 Python/Go 等 non-TS 目标硬套 Zod 示例或要求安装 Zod → 断言失败（方法论错配，不是风格问题）
+  - id: bev-A5
+    critical: false
+    verifier: structural
+    description: 方法论清单面——RFC 9457 错误格式统一、输入消毒（trim/长度上限/payload 限制）、类型由 schema 推导不手写重复
+    evidence_requirements:
+    - 交付物含 RFC 9457 problem detail 结构或等价统一错误面
+    - 数组 schema 有 max、分页有 limit cap
+    failure_semantics: 清单项缺失逐条记入 diff；本条为 optional，不阻断 critical 判定
+  pass_policy:
+    critical: all
+    optional_minimum: 0
+execution:
+  primary:
+    adapter: spectral
+    entry: scripts/lib/adapters/portman.mjs
+    probe: spectral --version
+    version_pin: 6.16.3
+    ruleset: vendor/be-validator/rulesets/spectral-oas.yaml
+  compatibility:
+  - rollback_adapter portman（vendor 正文认可 portman/contracteer），仅 EXPLICIT_COMPAT_MODE 显式旗标后可达，每次调用留痕 compat/compat_via/rollback_adapter
+  - contracteer 为 vendor 声明层可选项，无 adapter 实现，不得宣称已执行
+  degradation:
+    SPECTRAL_NOT_AVAILABLE: Gate-1 回滚决策点——无旗标拒绝，显式旗标回滚旧 portman 路径并留痕
+    CONTRACT_TOOL_NOT_AVAILABLE: 无工具时回落 BE-06/BE-13 本地快照 hash 比对，不中断 gate 且不假报通过
+    descriptive_contract: pass=null + degraded=true（recorded but not validated）
+    brownfield_draft: pass=null + draft=true（未确认契约不做真校验）
+  supported_languages:
+  - typescript
+  - javascript
+  - python
+  - language-agnostic-via-openapi
+  unsupported_scopes:
+  - 非 OpenAPI 的描述性文本契约（只留痕不校验）
+  - 无后端接口面的任务
+evidence:
+  required:
+  - contract_result_json
+  - spectral_version_record
+  - ruleset_path_recorded
+  - findings_summary
+  forbidden_claims:
+  - 描述性契约被宣称"已校验"
+  - 无 spectral 真实执行却报 pass=true
+  - 手写 OpenAPI 宣称由 schema 自动生成
+  - exit code 与 findings 矛盾被静默吞掉
+critique:
+  claims_to_challenge:
+  - OpenAPI 规格真的由 schema 推导生成，还是模型手写蒙混？
+  - findings 与目标契约是否一一对应，还是规则集跑偏？
+  - 非 TS 目标是否被套用了 Zod-only 模式？
+  failure_patterns:
+  - spec-code drift——规格与实现脱节且无再校验
+  - 对 Python 目标硬套 Zod/TS 示例
+  - descriptive 契约留痕被当作 PASS 汇报
+  - 不带固化 ruleset 跑 spectral（静默退化为泛化规则）
+  - 手写重复类型定义绕过 z.infer 单一事实源
+  independent_evidence:
+  - artifacts/<id>/contract-result.json（tool/version/findings_summary/scope）
+  - spectral --version 实测输出
+  - ruleset 文件 sha256
+  harms_to_strong_model:
+  - 强模型倾向手写一份"看起来完整"的 OpenAPI 冒充自动生成
+  - 强模型把 degraded 留痕复述成"验证通过"
+  - 对多栈项目默认复制 TS 模板而不检查目标语言
+  when_not_to_use:
+  - 无后端接口面的纯静态/文档任务
+  - 契约未冻结（先冻结再校验）
+blind_tests:
+  hidden_suite_id: be-validator-hidden-v1
+  hidden_suite_hash: BLIND_STORE_NOT_PROVISIONED
+  case_count: 6
+  cases:
+  - id: bev-P1
+    kind: positive
+    description: 合法 OpenAPI 3.1 文档 → spectral lint 通过，pass=true 且 tool/version/findings 留痕
+    coverage_category: valid_spec_pass
+  - id: bev-P2
+    kind: positive
+    description: 含 error 级违规的文档 → pass=false 且 findings_summary 逐条对应违规规则
+    coverage_category: violation_detected
+  - id: bev-P3
+    kind: positive
+    description: Python 目标交付（pydantic+OpenAPI 3.1+RFC 9457）→ 结构断言通过且无 Zod 错配
+    coverage_category: cross_language_target
+  - id: bev-N1
+    kind: negative
+    description: 描述性文本契约 → pass=null + degraded=true，禁止 pass=true
+    coverage_category: descriptive_degraded
+  - id: bev-N2
+    kind: negative
+    description: JSON 但非 OpenAPI（如 freeze 文件）→ recorded-not-validated，禁止 pass=true
+    coverage_category: non_openapi_reject
+  - id: bev-X1
+    kind: adversarial
+    description: exit 0 但 findings 含 severity 0（矛盾输出）→ SPECTRAL_OUTPUT_INVALID fail-closed
+    coverage_category: exit_semantics_contradiction
+  coverage_categories:
+  - valid_spec_pass
+  - violation_detected
+  - cross_language_target
+  - descriptive_degraded
+  - non_openapi_reject
+  - exit_semantics_contradiction
+  required_pass_policy:
+    critical: all
+    optional_minimum: 0
+owner_view:
+  one_liner: 接口上线前，把"说好的接口契约"真正自动验一遍，而不是靠人眼看。
+  what_it_does: 检查后端接口是否守约——请求和响应的格式、统一的错误格式、参数消毒；同时自动生成并校验 OpenAPI 接口文档。契约没写清楚或没冻结时它会明确说"没验"，不会假装通过。
+  why_it_matters: 前后端联调最大的返工来源是接口不一致。它把"人眼看一遍、上线再改"变成机器把关，接口文档不再是事后补的手写摆设。
+  what_owner_decides: 哪些接口任务必须过契约校验；契约未冻结时是否允许先开工；发现违规后是修完再上线还是带病上线。
+lifecycle:
+  status: POPULATED_PENDING_ACCEPTANCE
+  authority: NON_CANONICAL
+  completeness: POPULATED_ASSERTIONS_METHODOLOGY_OWNER_VIEW_CRITIQUE_BLIND_METADATA
+  blind_store: BLIND_STORE_NOT_PROVISIONED
+  note: A-P0-03-REWORK1 批次资产。hidden case bodies 不落在 Worker 可读仓库内，评估者特权存储未建成前不推进 ACCEPTED/PRIMARY；独立审计通过后方可晋升。

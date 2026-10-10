@@ -21,7 +21,7 @@
 | `contracts/drafts/C-R2-review-checklist.md` | `f36405a3` | Owner 场景审查清单格式惯例 |
 | `docs/yy-dev-plan-skill-loading-v3.md` | `d2e8e5b4` | 操作名（`:302` `activation.prepare`、`:303` `receipt.append`）、response shell、错误码、R3 冻结顺序、共同验收字段（`:80`） |
 | `test-reports/C6-design-20260912/DESIGN.md` | `06f73bc6` | C6 探针设计、边界 case 表、trivial copier 定义 |
-| `D:/.ai-hub/tmp/c6-exec-20260913/probe.mjs` | `7ff20222` | C6 探针本体（执行报告 verdict `REPRODUCED`，两次运行 results 一致） |
+| `<historical-evidence-root>/c6-exec-20260913/probe.mjs` | `7ff20222` | C6 探针本体（执行报告 verdict `REPRODUCED`，两次运行 results 一致） |
 | `test-reports/C6-execution-20260913/REPORT.md` | `b54ab390` | C6 执行证据：7 case 逐例观测值、runStability `IDENTICAL`、verdict `REPRODUCED` |
 | `test-reports/R1-baseline-20260911/`（REPORT + normalized-baseline.json） | schemaHash `8db3278d` | bodyBytes/resourceBytes/overfetch/read-count 实测；token 显式 `[待补充]` |
 | `docs/tasks/yy-skill-loading-v3/R3-activation-receipts.md` | —（计划输入） | R3 冻结顺序 5 步、GWT-R3-01…05 词汇 |

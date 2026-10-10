@@ -1,7 +1,7 @@
-# 附 A6：多级并行派单与验收（来源：SKILL.md §5.0~§5.6，自包含可读）
+# 附 A6：派单与验收（来源：SKILL.md §5.0~§5.6）
 
-> 本文件是 YY 派单执行与验收（闭环第 7 步）的权威说明（原 SKILL.md §5 迁移至此）。阶段 4（派单执行）与验收时读取。
-> 内容大，拆读：派单前读 §5.0~§5.1；验收时读 §5.2~§5.4；收尾读 §5.5~§5.6。
+> 先消费/复核 Decision，草案不授权；V1 marker 不等于 V2 APPLIED/VERIFIED。见 `decision-interface.md`。
+> 拆读：派单 §5.0~§5.1；验收 §5.2~§5.4；收尾 §5.5~§5.6。
 
 ## 5.0 架构与并行度分级（N 自适应）
 
@@ -41,7 +41,7 @@
 - **gate 分层**：L0 合并检查点 → L1 契约 CDC → L2 集成测试 → L3 关键 E2E → L4 全量回归（仅里程碑）。
 - **契约冻结机器校验**：`gate.mjs` 对契约文件做 hash 比对——被篡改 → `ContractViolationError` → **exit 4**。
 - **契约级 cascade（C-1）**：契约缺失 → `CONTRACT_NOT_FROZEN` skip；下游 cascade skip（`DEP_CONTRACT_NOT_FROZEN`），计划 `failed`（exit 5）。
-- **棕地契约模式**：`scripts/contract-reverse.mjs` 反推草案 → `--contract-draft`（前端凭草案开工）→ 后端确认后 `--contract` 升级；差异用 `scripts/contract-discrepancy.mjs` 上浮。
+- **棕地契约模式**：`scripts/contract-reverse.mjs` 反推草案 → `--contract-draft`（兼容草案；仍须 packet 许可）→ 后端确认后 `--contract` 升级；差异用 `scripts/contract-discrepancy.mjs` 上浮。
 - **一键回归/CI**：`node scripts/regression-all.mjs` 全量回归；`node scripts/ci.mjs` = validate + review-gate + plan-review + regression-all。
 - **资产消费证据强化（D-1）**：带 `## Execution kernel` 的资产，产物须含**锚点 且 ≥1 内核词**（culori/semgrep 等）才计 `assetConsumed=true`；`regression-all` S8 断言。
 - **可验证边界**：所有判定给可机验客观边界（依赖图边 / git diff 交集 / 退出码 / 契约 hash），禁止仅凭主观。

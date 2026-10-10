@@ -1,0 +1,462 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yy.local/schemas/runtime-config.schema.json",
+  "title": "YY Web MCP runtime configuration",
+  "description": "Tunnel-neutral YY-only runtime model. This schema does not select a public endpoint.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "runtimeRoot",
+    "paths",
+    "server",
+    "tunnel"
+  ],
+  "properties": {
+    "schema": {
+      "const": "yy/runtime-config@1"
+    },
+    "runtimeRoot": {
+      "const": "integrations/yy-web-mcp/runtime"
+    },
+    "paths": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "config",
+        "serverPid",
+        "tunnelPid",
+        "serverLog",
+        "tunnelLog"
+      ],
+      "properties": {
+        "config": {
+          "const": "config.json"
+        },
+        "serverPid": {
+          "const": "server.pid"
+        },
+        "tunnelPid": {
+          "const": "tunnel.pid"
+        },
+        "serverLog": {
+          "const": "logs/server.log"
+        },
+        "tunnelLog": {
+          "const": "logs/tunnel.log"
+        }
+      }
+    },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "portSelectionState",
+        "bindHost",
+        "port",
+        "executablePath",
+        "health"
+      ],
+      "properties": {
+        "portSelectionState": {
+          "enum": [
+            "UNSELECTED",
+            "SELECTED_AFTER_FREE_PORT_CHECK"
+          ]
+        },
+        "bindHost": {
+          "const": "127.0.0.1"
+        },
+        "port": {
+          "$ref": "#/$defs/yyPortOrNull"
+        },
+        "executablePath": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "minLength": 1,
+              "description": "Canonical executable path observed for this YY instance; never inferred from process name."
+            }
+          ]
+        },
+        "health": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "host",
+            "timeoutSeconds"
+          ],
+          "properties": {
+            "mode": {
+              "const": "tcp_loopback"
+            },
+            "host": {
+              "const": "127.0.0.1"
+            },
+            "timeoutSeconds": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "portSelectionState": {
+                "const": "UNSELECTED"
+              }
+            },
+            "required": [
+              "portSelectionState"
+            ]
+          },
+          "then": {
+            "properties": {
+              "port": {
+                "type": "null"
+              },
+              "executablePath": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "portSelectionState": {
+                "const": "SELECTED_AFTER_FREE_PORT_CHECK"
+              }
+            },
+            "required": [
+              "portSelectionState"
+            ]
+          },
+          "then": {
+            "properties": {
+              "port": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 65535,
+                "not": {
+                  "const": 8168
+                }
+              },
+              "executablePath": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "tunnel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "selectionState",
+        "provider",
+        "executablePath",
+        "endpointIdentity",
+        "targetHost",
+        "targetPort"
+      ],
+      "properties": {
+        "selectionState": {
+          "enum": [
+            "UNSELECTED_W2_P1",
+            "SELECTED_AFTER_W2_PASS"
+          ]
+        },
+        "provider": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "enum": [
+                "ngrok",
+                "cloudflare",
+                "secure_mcp_tunnel"
+              ]
+            }
+          ]
+        },
+        "executablePath": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "minLength": 1
+            }
+          ]
+        },
+        "endpointIdentity": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/tunnelEndpointIdentity"
+            }
+          ]
+        },
+        "targetHost": {
+          "const": "127.0.0.1"
+        },
+        "targetPort": {
+          "$ref": "#/$defs/yyPortOrNull"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "selectionState": {
+                "const": "UNSELECTED_W2_P1"
+              }
+            },
+            "required": [
+              "selectionState"
+            ]
+          },
+          "then": {
+            "properties": {
+              "provider": {
+                "type": "null"
+              },
+              "executablePath": {
+                "type": "null"
+              },
+              "endpointIdentity": {
+                "type": "null"
+              },
+              "targetPort": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "selectionState": {
+                "const": "SELECTED_AFTER_W2_PASS"
+              }
+            },
+            "required": [
+              "selectionState"
+            ]
+          },
+          "then": {
+            "properties": {
+              "provider": {
+                "enum": [
+                  "ngrok",
+                  "cloudflare",
+                  "secure_mcp_tunnel"
+                ]
+              },
+              "executablePath": {
+                "type": "string",
+                "minLength": 1
+              },
+              "endpointIdentity": {
+                "$ref": "#/$defs/tunnelEndpointIdentity"
+              },
+              "targetPort": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 65535,
+                "not": {
+                  "const": 8168
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "yyPortOrNull": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "not": {
+            "const": 8168
+          }
+        }
+      ]
+    },
+    "tunnelEndpointIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "providerEndpointId",
+        "publicHost"
+      ],
+      "properties": {
+        "providerEndpointId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "publicHost": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Endpoint host only; never store access tokens or credentials here."
+        }
+      }
+    },
+    "processRecordCommon": {
+      "type": "object",
+      "required": [
+        "schema",
+        "role",
+        "pid",
+        "executablePath",
+        "workingDirectory",
+        "commandLineSha256",
+        "instanceId",
+        "processStartedAtUtc",
+        "configSha256"
+      ],
+      "properties": {
+        "schema": {
+          "const": "yy/runtime-process-record@1"
+        },
+        "role": {
+          "enum": [
+            "server",
+            "tunnel"
+          ]
+        },
+        "pid": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "executablePath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "workingDirectory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "commandLineSha256": {
+          "type": "string",
+          "pattern": "^[A-Fa-f0-9]{64}$"
+        },
+        "instanceId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "processStartedAtUtc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "configSha256": {
+          "type": "string",
+          "pattern": "^[A-Fa-f0-9]{64}$"
+        }
+      }
+    },
+    "serverProcessRecord": {
+      "unevaluatedProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/processRecordCommon"
+        },
+        {
+          "type": "object",
+          "required": [
+            "role",
+            "bindHost",
+            "port"
+          ],
+          "properties": {
+            "role": {
+              "const": "server"
+            },
+            "bindHost": {
+              "const": "127.0.0.1"
+            },
+            "port": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535,
+              "not": {
+                "const": 8168
+              }
+            }
+          }
+        }
+      ]
+    },
+    "tunnelProcessRecord": {
+      "unevaluatedProperties": false,
+      "allOf": [
+        {
+          "$ref": "#/$defs/processRecordCommon"
+        },
+        {
+          "type": "object",
+          "required": [
+            "role",
+            "provider",
+            "providerEndpointId",
+            "targetHost",
+            "targetPort"
+          ],
+          "properties": {
+            "role": {
+              "const": "tunnel"
+            },
+            "provider": {
+              "enum": [
+                "ngrok",
+                "cloudflare",
+                "secure_mcp_tunnel"
+              ]
+            },
+            "providerEndpointId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "targetHost": {
+              "const": "127.0.0.1"
+            },
+            "targetPort": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535,
+              "not": {
+                "const": 8168
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "description": "The configured server port and any selected tunnel target must be the same YY port; implementation must enforce this relation at load time."
+    }
+  ]
+}

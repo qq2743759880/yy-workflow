@@ -1,1 +1,0 @@
-{"task":"Legacy planned be-validator contract route","draft":true,"phases":[{"name":"validation","tasks":[{"id":"validator","desc":"Validate the supplied OpenAPI contract with Spectral","asset":"be-validator","estimate":"S","lane":"validation","dependsOn":[]}]}]}

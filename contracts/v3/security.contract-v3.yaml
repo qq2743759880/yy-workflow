@@ -1,0 +1,204 @@
+# yy/asset-contract@3 — security（A-P0-03-REWORK1 批次资产 2/3，R1 版缺陷重做）
+# 方法论真相来源：vendor/security/SKILL.md（audit→harden→backend specialist 三阶段；semgrep 多语言
+# SAST + gitleaks 密钥扫描执行内核）+ contracts/manifest-sources/security.yaml（AS-2-security 迁移：
+# PRIMARY=semgrep 1.x pip；npm semgrep 为 ISC 假包禁用；晋升 ruleset 现为 Python-only——能力收缩登记；
+# F-011/F-019 文件级+目录能力发现守门）+ scripts/lib/adapters/security-semgrep.mjs。
+# R1 版已修正的谎言：supported_languages=[python]+unsupported_scopes=[multi-language] 的引擎级
+# Python-only 声明与 vendor 多语言 SAST 引擎矛盾——引擎多语言、晋升 ruleset Python-only 是两件事，
+# 契约按收缩登记语义声明（未覆盖语言显式 surfaced，0 findings 不假绿）。
+schema: yy/asset-contract@3
+id: security
+version: 3.1.0
+kind: security
+purpose:
+  plain_language: 代码上线前的真实安全检查（不是口头保证）——audit 扫描发现与定级 → harden 加固（错误处理/i18n/溢出/边界/降级）→ backend specialist 专项核查（auth、注入、敏感数据、密钥、依赖、CORS、CSRF、SSRF）
+routing:
+  capability_keys:
+  - security-audit
+  clusters:
+  - T2_BACKEND
+  - T4_FRONTEND
+  - T5_OPS
+  exclusions:
+  - 无代码产物的纯调研/规划任务
+  - 作为功能实现主链路（横切审查资产，不承担常规功能实现）
+io:
+  required_inputs:
+  - name: scan_target
+    type: path
+    description: 目标文件或目录（文件级语言守门 + 目录级能力发现；缺省目标=workspace）
+  - name: ruleset
+    type: ruleset_file
+    description: vendor/security/rulesets/security-local-rules.yaml（自研六规则，languages=[python]，零 registry 依赖）
+  required_outputs:
+  - name: security_result
+    type: json_artifact
+    description: artifacts/<subtaskId>/security-result.json，含 pass/diff/checkedAt/tool/version/exit_code/findings_total/findings_summary/scanTarget/ruleset/uncovered_languages
+methodology:
+  source: vendor/security/SKILL.md
+  required_sections:
+  - Audit
+  - Harden
+  - Backend specialist
+  - Execution kernel
+application:
+  assertions:
+  - id: sec-A1
+    critical: true
+    verifier: deterministic
+    description: 扫描以真实 provider 执行——semgrep --version 探测可用并记版本（pip 1.x；npm semgrep 为 ISC 假包禁装），lint 命令携带固化 ruleset 与目标路径
+    evidence_requirements:
+    - security-result.json 记录 tool=semgrep + version + ruleset 路径 + scanTarget
+    - 版本来源为 pip 通道实测（npm 假包教训入账）
+    failure_semantics: semgrep 不可达 → SEMGREP_NOT_AVAILABLE（扫描未执行）；旧 prompt 路径仅 EXPLICIT_COMPAT_MODE 显式旗标后可达且留痕，无旗标拒绝
+  - id: sec-A2
+    critical: true
+    verifier: deterministic
+    description: 宣称的覆盖面与 ruleset 实际能力一致——晋升 ruleset 为 Python-only 六规则，契约与产物不得宣称引擎未认证的多语言覆盖
+    evidence_requirements:
+    - ruleset 文件路径 + languages 范围留痕
+    - 宣称覆盖 ⊆ ruleset 实际能力
+    failure_semantics: 对 Python-only ruleset 宣称多语言生产覆盖 → 断言失败（能力收缩必须显式登记，不得静默夸大）
+  - id: sec-A3
+    critical: true
+    verifier: deterministic
+    description: 目标语言受支持或显式 surfaced——显式非 Python 文件目标拒绝（SCOPE_LANGUAGE_UNSUPPORTED）；纯非 Python 源码目录拒绝；混合目录照扫但 pass=false 且 uncovered_languages 逐项列出
+    evidence_requirements:
+    - 文件级守门记录（F-011）
+    - 目录能力发现记录 uncovered_languages（F-019）
+    failure_semantics: 未覆盖语言目标上 0 findings 被报为 pass=true → 假绿，断言失败（"真的扫了"≠"能力覆盖了目标"）
+  - id: sec-A4
+    critical: true
+    verifier: structural
+    description: findings 与扫描结构对应——输出 JSON 可解析，findings_summary 逐条映射 rule/severity/message/line/path，exit code 语义硬校验
+    evidence_requirements:
+    - findings_total 与 findings_summary 一致
+    - check_id 归一化（剥配置路径前缀取 security.<rule>）
+    failure_semantics: 输出不可解析 → SEMGREP_OUTPUT_INVALID receipt failure（invalid_output=true），不静默吞
+  - id: sec-A5
+    critical: true
+    verifier: hybrid
+    description: 禁止"扫了=安全"——pass=true 当且仅当扫描真实执行 且 error 级 findings=0 且 uncovered_languages=空；工具缺失/降级一律 pass=null/false
+    evidence_requirements:
+    - pass 判定三条件齐备留痕
+    - 未执行扫描不得产出"无高危"结论
+    failure_semantics: 任何"扫描未执行但无高危"的结论 = forbidden claim，断言失败
+  - id: sec-A6
+    critical: false
+    verifier: deterministic
+    description: 密钥扫描面——gitleaks（scripts/security-scan.mjs 汇总入口）可用时执行密钥扫描；缺失时诚实标注"密钥扫描未执行（工具缺失）"
+    evidence_requirements:
+    - gitleaks --version 探测留痕或显式未执行标注
+    failure_semantics: 密钥扫描缺失被报为"已覆盖密钥风险" → 断言失败；本条 optional，不阻断 critical 判定
+  pass_policy:
+    critical: all
+    optional_minimum: 0
+execution:
+  primary:
+    adapter: semgrep
+    entry: scripts/lib/adapters/security-semgrep.mjs
+    probe: semgrep --version
+    version_pin: 1.x（pip 实测通道）
+    ruleset: vendor/security/rulesets/security-local-rules.yaml
+    engine_capability: semgrep 多语言 SAST 引擎 + gitleaks 密钥扫描（scripts/security-scan.mjs 汇总入口）
+  compatibility:
+  - rollback_adapter prompt-backend（LLM 发现层 brief，无确定性检出承诺），仅 EXPLICIT_COMPAT_MODE 显式旗标后可达并每次留痕
+  degradation:
+    SEMGREP_NOT_AVAILABLE: 扫描未执行（工具缺失），显式标注，不假报"无高危"；Gate-1 旗标后才可回滚 prompt 路径
+    SCOPE_LANGUAGE_UNSUPPORTED: 显式非 Python 文件 / 纯非 Python 源码目录 → 拒绝扫描（0 findings 假绿防护）
+    NO_SCAN_TARGET: 无任何可用扫描目标 → 不扫描不记 done
+    SEMGREP_OUTPUT_INVALID: 输出不可解析 → invalid_output receipt failure
+    mixed_dir_uncovered: 混合目录照扫但 pass=false + uncovered_languages 显式列出（能力收缩登记）
+  supported_languages:
+  - python
+  unsupported_scopes:
+  - 显式非 Python 文件目标（文件级守门拒绝）
+  - 纯非 Python 源码目录（能力发现拒绝）
+  - 非 Python-only ruleset 认证范围的多语言覆盖宣称（扩规前不认证）
+  - 非代码目标与纯调研/规划任务
+evidence:
+  required:
+  - security_result_json
+  - semgrep_version_record
+  - ruleset_path_recorded
+  - findings_summary
+  - uncovered_languages_record
+  forbidden_claims:
+  - 扫描未执行却宣称"无高危"
+  - Python-only ruleset 宣称多语言生产覆盖
+  - 混合目录 0 findings 报 pass=true
+  - npm semgrep 假包安装/宣称
+  - exit code 与 findings 矛盾被静默吞掉
+critique:
+  claims_to_challenge:
+  - ruleset 覆盖面是否与宣称一致，还是六规则撑起"全面扫描"的话术？
+  - 扫描目标是真被认证覆盖，还是只被路过？
+  - 未覆盖语言是否真的 surfaced，还是被 0 findings 掩盖？
+  failure_patterns:
+  - 扫了=安全 式结论（扫描执行 ≠ 无风险判定）
+  - npm semgrep 假包安装（ISC 撞名）
+  - 对非 Python 目标 0 findings 假绿
+  - 混合目录漏报 uncovered_languages
+  - 把 INFO 级发现当高危夸大，或把 error 级降级为提示
+  independent_evidence:
+  - artifacts/<id>/security-result.json（tool/version/exit_code/findings_summary/uncovered_languages）
+  - semgrep --version 实测输出（pip 通道）
+  - ruleset 文件 sha256 + languages 声明
+  harms_to_strong_model:
+  - 强模型倾向把"扫描命令成功"复述为"系统安全"
+  - 强模型对混合语言目录默认报"无发现"而忽略能力边界
+  - 强模型用通用安全话术替代 ruleset 实际规则逐条对应
+  when_not_to_use:
+  - 无代码产物的纯调研/规划任务
+  - 作为功能实现主链路
+  - 非 Python 目标需要确定性认证时（显式登记能力收缩，先扩规再承诺）
+blind_tests:
+  hidden_suite_id: security-hidden-v1
+  hidden_suite_hash: BLIND_STORE_NOT_PROVISIONED
+  case_count: 6
+  cases:
+  - id: sec-P1
+    kind: positive
+    description: 纯 Python 目录含真实违规 → pass=false 且 findings_summary 逐条对应规则
+    coverage_category: python_findings_detected
+  - id: sec-P2
+    kind: positive
+    description: 纯 Python 干净目录 → pass=true 且 uncovered_languages=空、exit_code 留痕
+    coverage_category: clean_pass_semantics
+  - id: sec-P3
+    kind: positive
+    description: 显式 Python 文件目标 → 文件级扫描正常执行并留痕
+    coverage_category: provider_identity
+  - id: sec-N1
+    kind: negative
+    description: 显式非 Python 文件目标 → SCOPE_LANGUAGE_UNSUPPORTED 拒绝，禁止 pass=true
+    coverage_category: language_gate_reject
+  - id: sec-N2
+    kind: negative
+    description: semgrep 缺失 → SEMGREP_NOT_AVAILABLE，禁止"扫描未执行但无高危"结论
+    coverage_category: tool_missing_degradation
+  - id: sec-X1
+    kind: adversarial
+    description: 混合语言目录且 Python 部分 0 findings → pass=false + uncovered_languages 显式列出（对抗假绿）
+    coverage_category: mixed_dir_uncovered_surfacing
+  coverage_categories:
+  - python_findings_detected
+  - clean_pass_semantics
+  - provider_identity
+  - language_gate_reject
+  - tool_missing_degradation
+  - mixed_dir_uncovered_surfacing
+  required_pass_policy:
+    critical: all
+    optional_minimum: 0
+owner_view:
+  one_liner: 代码上线前做一次真实的安全扫描，而不是口头保证"没问题"。
+  what_it_does: 三步走——先自动扫描找问题并定级，再动手加固（错误处理、边界、降级），最后专项核查登录认证、注入、密钥泄漏这些高危面。目前的自研规则只认 Python 代码；其他语言的目标它会明确告诉你"这块没扫、不认证"，不会假装安全。
+  why_it_matters: 安全事故的代价远大于上线前修一次的成本。更关键的是它不说谎——没扫就是没扫，能力不够就明说，避免"扫过了所以安全"的错觉给你虚假的放心。
+  what_owner_decides: 哪些任务必须过安全门才能上线；发现高危问题后是延期修复还是接受风险带病上线；是否投入扩大规则覆盖面（当前只有 Python 规则）。
+lifecycle:
+  status: POPULATED_PENDING_ACCEPTANCE
+  authority: NON_CANONICAL
+  completeness: POPULATED_ASSERTIONS_METHODOLOGY_OWNER_VIEW_CRITIQUE_BLIND_METADATA
+  blind_store: BLIND_STORE_NOT_PROVISIONED
+  note: A-P0-03-REWORK1 批次资产（R1 版断言机械化/OwnerView 英文样板/引擎级 Python-only 谬误已重做）。hidden case bodies 不落在 Worker 可读仓库内，评估者特权存储未建成前不推进 ACCEPTED/PRIMARY。

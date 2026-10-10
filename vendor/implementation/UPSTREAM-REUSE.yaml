@@ -1,0 +1,39 @@
+schema: yy/upstream-reuse@1
+asset: implementation
+decision: THIN_WRAPPER
+matt_checked:
+  commit: 24fe0ef7737efae15c87225755e9f6f5965e4888
+  evidence: Owner function-freeze scope and the pinned upstream inventory
+approved_mature_checked:
+  evidence: Current production sources and real adapters inspected before migration
+rejected_lower_modes:
+  DIRECT_VENDOR: YY admission/artifact/owner boundaries are absent upstream
+gap:
+  status: REAL_GAP
+  evidence: YY-specific admission, local artifact sink, evidence and declared owner governance; no replacement of upstream methods
+wrapper_responsibilities:
+- decision_bridge
+- activation_pointer
+- dependency_resolution
+- artifact_bridge
+- evidence_bridge
+- portable_execution
+no_runtime_auto_update: true
+source_refs:
+- path: vendor/implementation/implementation.md
+  sha256: 22c3cd1fcd61a5300f0ffba37c2593aaac54d8b127b4651dd28c9ab81e279cc7
+- path: LICENSE
+  sha256: 39ad33402a909bc27000cde7ec17024209243db571dd7af7aed67a7f28a19883
+- path: vendor/implementation/reference/matt/LICENSE
+  sha256: 0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5
+primary_upstream:
+  kind: MATT
+  repository: mattpocock/skills
+  commit: 24fe0ef7737efae15c87225755e9f6f5965e4888
+  license: MIT
+  paths:
+  - vendor/implementation/reference/matt/engineering_implement/SKILL.md
+  - vendor/implementation/reference/matt/engineering_tdd/SKILL.md
+  - vendor/implementation/reference/matt/engineering_code-review/SKILL.md
+  - vendor/implementation/reference/matt/engineering_codebase-design/SKILL.md
+  - vendor/implementation/reference/matt/productivity_grilling/SKILL.md

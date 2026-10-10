@@ -6,111 +6,107 @@ export const GUIDE_CONTENT = {
       "journeyStep": 0,
       "name": "立项 / 资产整合",
       "goal": "一句话定边界，盘点资产与平台，只做需求澄清 + 概念版，不拆任务不写代码。",
-      "summary": "阶段 0 立项/资产整合。触发词「/yy 0」「注入阶段 0 prompt」「立项」「资产整合」。 首行指令：先跑 `node scripts/tt-journey.mjs --workspace \"$PROJECT_ROOT\" --prereq-check --step 0`（或读 `$PROJECT_ROOT/.tt-state/journey.json`）机验前置。本阶段无前置（step 0 起点，天然放行），",
+      "summary": "阶段 0 立项/资产整合。触发词「/yy 0」「注入阶段 0 prompt」「立项」「资产整合」。 首行指令：先跑 `node \"$SKILL_DIR/scripts/host-adapter.mjs\" prepare --workspace \"$PROJECT_ROOT\" --session <session> --intent \"/yy 0\" --subtask-id <id> --save` 展示包，仅 `ok",
       "assets": [],
       "discipline": [
-        "只做第 N 步",
-        "允许反驳",
-        "契约先冻结 / HTML 原型 APPROVED / 每轮验收竞品批判"
+        "读取 commands/yy-0-init.md 的边界、产物与方法指针；宿主准入以其首行指令为准。"
       ],
-      "kickPrompt": "按阶段 0 纪律执行：「只做第 N 步」「允许反驳」",
-      "redoPrompt": "重新走阶段 0：/yy 0（起点阶段，无前置 gate）"
+      "kickPrompt": "请读取 commands/yy-0-init.md；先按其首行 host-adapter.mjs 指令展示并消费 Decision Packet，再按本阶段目标工作。",
+      "redoPrompt": "重新走 /yy 0：读取 commands/yy-0-init.md，重新按其首行 host-adapter.mjs 指令准备并复核 Decision Packet。"
     },
     {
       "step": 1,
       "journeyStep": 1,
       "name": "需求挖掘",
       "goal": "你当唯一事实源，按 forcing-questions 逐轮追问（每次 ≤2 题），产出概念版并签收后才进下一步。",
-      "summary": "阶段 1 需求挖掘。触发词「/yy 1」「注入阶段 1 prompt」「需求挖掘」「挖掘需求」。 首行指令：先跑 `node scripts/tt-journey.mjs --workspace \"$PROJECT_ROOT\" --prereq-check --step 1` 机验前置。前置 step 0 未 done 时 exit 1 输出原因并阻断注入，先回阶段 0。",
+      "summary": "阶段 1 需求挖掘。触发词「/yy 1」「注入阶段 1 prompt」「需求挖掘」「挖掘需求」。 首行指令：先跑 `node \"$SKILL_DIR/scripts/host-adapter.mjs\" prepare --workspace \"$PROJECT_ROOT\" --session <session> --intent \"/yy 1\" --subtask-id <id> --save` 展示包，仅 `ok",
       "assets": [],
       "discipline": [
-        "先别产文档",
-        "逐轮问我 ≤2 题",
-        "回源核验",
-        "查不到标 [待补充] 禁止编造"
+        "读取 commands/yy-1-requirement.md 的边界、产物与方法指针；宿主准入以其首行指令为准。"
       ],
-      "kickPrompt": "按阶段 1 纪律执行：「先别产文档」「逐轮问我 ≤2 题」",
-      "redoPrompt": "重新走阶段 1：/yy 1（前提：step0 全部满足后再注入）"
+      "kickPrompt": "请读取 commands/yy-1-requirement.md；先按其首行 host-adapter.mjs 指令展示并消费 Decision Packet，再按本阶段目标工作。",
+      "redoPrompt": "重新走 /yy 1：读取 commands/yy-1-requirement.md，重新按其首行 host-adapter.mjs 指令准备并复核 Decision Packet。"
+    },
+    {
+      "step": "research",
+      "journeyStep": 1.5,
+      "name": "需求签收后的研究门",
+      "goal": "用真实来源查已有方案和竞品差距。产物 `docs/prior-art.md`、`docs/market.md` 格式按 verifyPriorArt/verifyMarket，禁止编造 URL/引文。",
+      "summary": "需求签收后的研究门。触发词「/yy research」「研究门」「竞品研究」。 首行指令：先跑 `node \"$SKILL_DIR/scripts/host-adapter.mjs\" prepare --workspace \"$PROJECT_ROOT\" --session <session> --intent \"/yy research\" --subtask-id <id> --save` 展示",
+      "assets": [],
+      "discipline": [
+        "读取 commands/yy-research.md 的边界、产物与方法指针；宿主准入以其首行指令为准。"
+      ],
+      "kickPrompt": "请读取 commands/yy-research.md；先按其首行 host-adapter.mjs 指令展示并消费 Decision Packet，再按本阶段目标工作。",
+      "redoPrompt": "重新走 /yy research：读取 commands/yy-research.md，重新按其首行 host-adapter.mjs 指令准备并复核 Decision Packet。"
     },
     {
       "step": 2,
       "journeyStep": 3,
       "name": "拆任务（前提挑战）",
       "goal": "拆任务前先走 dev-planner Step0 前提挑战（≤6 条前提 + 4 问结论），逐条确认后拆成带 GWT 验收 + 前后置 + 契约冻结顺序 + 选型依据的 task。",
-      "summary": "阶段 3 拆任务。触发词「/yy 2」「注入阶段 2 prompt」「拆任务」「任务拆解」。 首行指令：先跑 `node scripts/tt-journey.mjs --workspace \"$PROJECT_ROOT\" --prereq-check --step 3` 机验前置。前置 step 1 未 done 或 gate concept-signed 未过时 exit 1 输出原因并阻断注入，先回阶段 ",
+      "summary": "阶段 3 拆任务。触发词「/yy 2」「注入阶段 2 prompt」「拆任务」「任务拆解」。 首行指令：先跑 `node \"$SKILL_DIR/scripts/host-adapter.mjs\" prepare --workspace \"$PROJECT_ROOT\" --session <session> --intent \"/yy 2\" --task-text \"<本次有界拆分任务>\" --subtask-",
       "assets": [
         {
           "name": "dev-planner",
-          "desc": "Analyzes feature requirements, breaks them into frontend/backend tasks, defines"
+          "desc": "Thin Decision asset bridge to pinned grilling, to-spec and to-tickets. Deliver s"
         }
       ],
       "discipline": [
-        "前提挑战",
-        "GWT 验收",
-        "前后置依赖",
-        "契约冻结顺序",
-        "选型依据",
-        "HTML 原型 gate",
-        "review-gate --plan 自检三视角"
+        "读取 commands/yy-2-planning.md 的边界、产物与方法指针；宿主准入以其首行指令为准。"
       ],
-      "kickPrompt": "按阶段 2 纪律执行：「前提挑战」「GWT 验收」；agent 未调用配套资产时点名要求：读取并应用 vendor/dev-planner",
-      "redoPrompt": "重新走阶段 2：/yy 2（前提：step1、concept-signed 全部满足后再注入）"
+      "kickPrompt": "请读取 commands/yy-2-planning.md；先按其首行 host-adapter.mjs 指令展示并消费 Decision Packet，再按本阶段目标工作。",
+      "redoPrompt": "重新走 /yy 2：读取 commands/yy-2-planning.md，重新按其首行 host-adapter.mjs 指令准备并复核 Decision Packet。"
     },
     {
       "step": 3,
       "journeyStep": 5,
       "name": "规划 + 契约冻结",
-      "goal": "任务×agent×skill×workflow×MCP 矩阵 + 执行排序 + 契约冻结时序 + 开工 prompt；契约冻结前列接口清单/schema/错误码/响应壳，逐条审完才冻结。",
-      "summary": "阶段 5 规划+契约冻结。触发词「/yy 3」「注入阶段 3 prompt」「契约冻结」「冻结契约」。 首行指令：先跑 `node scripts/tt-journey.mjs --workspace \"$PROJECT_ROOT\" --prereq-check --step 5` 机验前置。前置 step 3 未 done 时 exit 1 输出原因并阻断注入，先回阶段 3。",
-      "assets": [],
-      "discipline": [
-        "契约先冻结",
-        "冻结后执行期禁止改契约",
-        "要改走变更单 + 重验收",
-        "前端缺契约就停下不要臆造接口"
+      "goal": "执行矩阵与排序、契约冻结时序；接口/schema/错误码逐条审完才冻结。",
+      "summary": "阶段 5 规划+契约冻结。触发词「/yy 3」「注入阶段 3 prompt」「契约冻结」「冻结契约」。 首行指令：先跑 `node \"$SKILL_DIR/scripts/host-adapter.mjs\" prepare --workspace \"$PROJECT_ROOT\" --session <session> --intent \"/yy 3\" --subtask-id <id> --save` 展示包，仅 `ok",
+      "assets": [
+        {
+          "name": "planning",
+          "desc": "Compose pinned grilling and to-spec; YY adds only formal/vibe owner governance a"
+        }
       ],
-      "kickPrompt": "按阶段 3 纪律执行：「契约先冻结」「冻结后执行期禁止改契约」",
-      "redoPrompt": "重新走阶段 3：/yy 3（前提：step3 全部满足后再注入）"
+      "discipline": [
+        "读取 commands/yy-3-contract.md 的边界、产物与方法指针；宿主准入以其首行指令为准。"
+      ],
+      "kickPrompt": "请读取 commands/yy-3-contract.md；先按其首行 host-adapter.mjs 指令展示并消费 Decision Packet，再按本阶段目标工作。",
+      "redoPrompt": "重新走 /yy 3：读取 commands/yy-3-contract.md，重新按其首行 host-adapter.mjs 指令准备并复核 Decision Packet。"
     },
     {
       "step": 4,
       "journeyStep": 7,
       "name": "派单执行",
-      "goal": "按 C-01 派独立子 agent 执行（task/claude/codex/openclaw），你不得自写自验；每任务完工 = 你独立实证验收，不采信完工报告。",
-      "summary": "阶段 7 派单执行。触发词「/yy 4」「注入阶段 4 prompt」「派单执行」「并行派单」。 首行指令：先跑 `node scripts/tt-journey.mjs --workspace \"$PROJECT_ROOT\" --prereq-check --step 7` 机验前置。前置 step 5 未 done 或 gate contract-frozen 未过时 exit 1 输出原因并阻断注入，先回阶段",
+      "goal": "由当前宿主原生执行已准入子任务；实现与独立实证验收分开，不采信完工报告。缺执行或独立验收能力时明确返回未执行/未验证，不假报完成。",
+      "summary": "阶段 7 派单执行。触发词「/yy 4」「注入阶段 4 prompt」「派单执行」「并行派单」。 首行指令：先跑 `node \"$SKILL_DIR/scripts/host-adapter.mjs\" prepare --workspace \"$PROJECT_ROOT\" --session <session> --intent \"/yy 4\" --task-text \"<本次有界子任务>\" --subtask-i",
       "assets": [],
       "discipline": [
-        "独立子 agent",
-        "独立实证验收",
-        "不采信完工报告",
-        "HTML 原型先 APPROVED 才准写框架",
-        "验收断言逐个复现"
+        "读取 commands/yy-4-execute.md 的边界、产物与方法指针；宿主准入以其首行指令为准。"
       ],
-      "kickPrompt": "按阶段 4 纪律执行：「独立子 agent」「独立实证验收」",
-      "redoPrompt": "重新走阶段 4：/yy 4（前提：step5、contract-frozen 全部满足后再注入）"
+      "kickPrompt": "请读取 commands/yy-4-execute.md；先按其首行 host-adapter.mjs 指令展示并消费 Decision Packet，再按本阶段目标工作。",
+      "redoPrompt": "重新走 /yy 4：读取 commands/yy-4-execute.md，重新按其首行 host-adapter.mjs 指令准备并复核 Decision Packet。"
     },
     {
       "step": 5,
       "journeyStep": 8,
       "name": "验收批判（反哺）",
-      "goal": "每轮验收后强制技术批判——真实搜索竞品对标（GitHub stars/官方文档/近 1-2 年 benchmark），URL 可达性机验（--verify-urls），不足 3 条有效批判按硬闸门拒绝；批判要毒舌，结论反哺下一轮。",
-      "summary": "阶段 8 批判反哺。触发词「/yy 5」「注入阶段 5 prompt」「验收批判」「强制技术批判」。 首行指令：先跑 `node scripts/tt-journey.mjs --workspace \"$PROJECT_ROOT\" --prereq-check --step 8` 机验前置。前置 step 7 需 in_progress 或 done，否则 exit 1 输出原因并阻断注入，先回阶段 7。",
+      "goal": "验收后用真实竞品/官方文档/benchmark 对标；`--verify-urls` 验可达性，不足 3 条有效批判拒绝，结论反哺下一轮。",
+      "summary": "阶段 8 批判反哺。触发词「/yy 5」「注入阶段 5 prompt」「验收批判」「强制技术批判」。 首行指令：先跑 `node \"$SKILL_DIR/scripts/host-adapter.mjs\" prepare --workspace \"$PROJECT_ROOT\" --session <session> --intent \"/yy 5\" --subtask-id <id> --save` 展示包，仅 `ok",
       "assets": [],
       "discipline": [
-        "真实竞品对标",
-        "--verify-urls",
-        "不足 3 条有效批判按硬闸门拒绝",
-        "毒舌不许客气",
-        "登记 tracker 生成后续任务"
+        "读取 commands/yy-5-critique.md 的边界、产物与方法指针；宿主准入以其首行指令为准。"
       ],
-      "kickPrompt": "按阶段 5 纪律执行：「真实竞品对标」「--verify-urls」",
-      "redoPrompt": "重新走阶段 5：/yy 5（前提：step7 全部满足后再注入）"
+      "kickPrompt": "请读取 commands/yy-5-critique.md；先按其首行 host-adapter.mjs 指令展示并消费 Decision Packet，再按本阶段目标工作。",
+      "redoPrompt": "重新走 /yy 5：读取 commands/yy-5-critique.md，重新按其首行 host-adapter.mjs 指令准备并复核 Decision Packet。"
     }
   ],
   "assets": [
     {
       "name": "implementation",
-      "description": "Unified implementation agent: turn requirements and frozen contracts into runnab",
+      "description": "Thin implementation wrapper for an admitted task, spec or tickets; host-native e",
       "cluster": "T1_DATABASE/T2_BACKEND/T3_AI_RAG_MCP",
       "stages": []
     },
@@ -122,7 +118,7 @@ export const GUIDE_CONTENT = {
     },
     {
       "name": "sdlc",
-      "description": "BMAD-METHOD phase orchestration with cline plan and exec execution",
+      "description": "LEGACY_HEAVY_PROFILE for explicit release, large-migration or multi-stage govern",
       "cluster": "T1_DATABASE/T2_BACKEND",
       "stages": []
     },
@@ -134,13 +130,13 @@ export const GUIDE_CONTENT = {
     },
     {
       "name": "review",
-      "description": "Unified review cluster for critique, automated verification, and polish",
+      "description": "Matt change review plus YY existing-code audit, seven-element findings and backe",
       "cluster": "T2_BACKEND/T4_FRONTEND/T5_OPS",
       "stages": []
     },
     {
       "name": "dev-planner",
-      "description": "Analyzes feature requirements, breaks them into frontend/backend tasks, defines",
+      "description": "Thin Decision asset bridge to pinned grilling, to-spec and to-tickets. Deliver s",
       "cluster": "T3_AI_RAG_MCP",
       "stages": [
         2
@@ -148,15 +144,17 @@ export const GUIDE_CONTENT = {
     },
     {
       "name": "frontend-design",
-      "description": "Unified frontend design cluster covering generation, taste, design data, compone",
+      "description": "分级前端设计资产（L0-L3）。有界面产物时按复杂度加载：小修只过机检门，标准页面走 Design Read+三拨盘+按主题查设计数据，全设计任务才进完整 ta",
       "cluster": "T4_FRONTEND",
       "stages": []
     },
     {
       "name": "planning",
-      "description": "Unified PRD and planning cluster for formal PRDs and Vibe Coding PRDs",
+      "description": "Compose pinned grilling and to-spec; YY adds only formal/vibe owner governance a",
       "cluster": "T4_FRONTEND",
-      "stages": []
+      "stages": [
+        3
+      ]
     },
     {
       "name": "skill-sentinel",

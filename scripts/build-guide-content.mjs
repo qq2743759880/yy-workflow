@@ -4,7 +4,7 @@
  * 用法：node scripts/build-guide-content.mjs [--out webview/journey/content.js]
  *
  * 从三个唯一事实源提取「随行导航手册」B/C 段静态内容：
- *   1. commands/yy-*.md     —— 6 阶段数据（阶段号/名/目标、注入内容摘要、配套资产、催办话术、重走 Prompt）
+ *   1. commands/yy-*.md     —— 7 入口数据（含 research；命令/名/目标、摘要、配套资产、复制话术）
  *   2. vendor 下 9 资产 SKILL.md 等 —— 9 资产卡片（name / description / cluster / 阶段关联；AS-1 drop 7 后口径）
  *   3. scripts/lib/matrix.mjs CLUSTERS —— 资产域簇反查（不手抄第二份）
  *
@@ -12,7 +12,8 @@
  * JSON.stringify 可序列化、UTF-8、中文保留原样。
  *
  * fail-closed：任一源文件缺失 / frontmatter 解析失败 / 字段缺失即报错退出（exit 1），
- * 绝不静默缺页；写出前做完整性自检（6 阶段全在 + 9 资产全在 + 每卡片三字段非空）。
+ * 绝不静默缺页；写出前做完整性自检（7 入口全在 + 9 资产全在 + 每卡片三字段非空）。
+ * 此生成器只投影 command 内容，不从 frontmatter 前置条件计算阶段准入。
  *
  * 零 npm：仅 node: 内置模块。风格无关（纯数据层）。
  */
@@ -109,6 +110,7 @@ function truncate(s, max) {
 const COMMAND_FILES = [
   'commands/yy-0-init.md',
   'commands/yy-1-requirement.md',
+  'commands/yy-research.md',
   'commands/yy-2-planning.md',
   'commands/yy-3-contract.md',
   'commands/yy-4-execute.md',
@@ -117,14 +119,17 @@ const COMMAND_FILES = [
 
 /** 提取「**目标**：」行内容。 */
 function extractGoal(body, rel) {
-  const m = body.match(/\*\*目标\*\*[：:]\s*(.+)/);
+  const m = body.match(/(?:\*\*目标\*\*|^目标)[：:]\s*(.+)/m);
   if (!m) fail('目标行解析失败（无「**目标**：」）：' + rel);
   return m[1].trim();
 }
 
 /** 提取「## 阶段 N · 名」标题。 */
-function extractPhaseTitle(body, rel) {
+function extractPhaseTitle(body, rel, meta) {
   const m = body.match(/^##\s*阶段\s*(\d+)\s*[·•]\s*(.+)$/m);
+  if (!m && meta.name === 'yy-research') {
+    return { num: Number(meta['journey-step']), title: String(meta.description).split('。')[0] };
+  }
   if (!m) fail('阶段标题解析失败（无「## 阶段 N · 名」）：' + rel);
   return { num: Number(m[1]), title: m[2].trim() };
 }
@@ -132,19 +137,10 @@ function extractPhaseTitle(body, rel) {
 /** 提取「**纪律钥匙词**：」行内全部反引号关键词。 */
 function extractDiscipline(body, rel) {
   const m = body.match(/\*\*纪律钥匙词\*\*[：:]\s*(.+)/);
-  if (!m) fail('纪律钥匙词行解析失败：' + rel);
+  if (!m) return ['读取 ' + rel + ' 的边界、产物与方法指针；宿主准入以其首行指令为准。'];
   const kws = [...m[1].matchAll(/`([^`]+)`/g)].map((x) => x[1]);
   if (kws.length === 0) fail('纪律钥匙词为空：' + rel);
   return kws;
-}
-
-/** 提取 frontmatter 的 prereq-gates（[step0, concept-signed] 形式）。 */
-function extractPrereqs(meta, rel) {
-  const raw = meta['prereq-gates'];
-  if (raw === undefined) fail('prereq-gates 缺失：' + rel);
-  const inner = String(raw).replace(/^\[/, '').replace(/\]$/, '').trim();
-  if (inner === '') return [];
-  return inner.split(',').map((s) => s.trim()).filter(Boolean);
 }
 
 /** 注入内容摘要 = frontmatter description + 正文首段（> 引导块或首个非空段落）。 */
@@ -155,6 +151,7 @@ function extractSummary(desc, body, rel) {
     if (t) { firstPara = t; break; }
   }
   if (!firstPara) fail('正文首段为空：' + rel);
+  if (!firstPara.includes('host-adapter.mjs')) fail('当前宿主指令缺失：' + rel);
   return truncate(String(desc).replace(/\s+/g, ' ').trim(), 120) + ' ' + truncate(firstPara, 160);
 }
 
@@ -215,28 +212,27 @@ const clusters = await loadClusters();
 const assetNames = assetNamesFromClusters(clusters);
 if (assetNames.length !== 9) fail('CLUSTERS candidates 并集应为 9 资产（AS-1 drop 7 后），实际 ' + assetNames.length + '：' + assetNames.join('、'));
 
-// ---- B 段：6 阶段数据 ----
-const phases = COMMAND_FILES.map((rel, idx) => {
+// ---- B 段：7 command 入口的只读投影 ----
+const phases = COMMAND_FILES.map((rel) => {
   const text = readSource(rel);
   const { meta, body } = parseFrontmatter(text, rel);
-  const { num, title } = extractPhaseTitle(body, rel);
+  const { title } = extractPhaseTitle(body, rel, meta);
   const goal = extractGoal(body, rel);
   const discipline = extractDiscipline(body, rel);
-  const prereqs = extractPrereqs(meta, rel);
   if (!meta.description) fail('frontmatter description 缺失：' + rel);
+  const surface = String(meta.description).match(/「\/yy (research|[0-5])」/);
+  if (!surface) fail('command 触发词缺失：' + rel);
+  const commandStep = surface[1] === 'research' ? 'research' : Number(surface[1]);
 
   // 配套资产：命令文件内点名的资产（全部 9 资产逐一独立词匹配）
   const assets = assetNames.filter((n) => assetRegex(n).test(body));
 
-  // 催办话术模板：按阶段纪律钥匙词生成模板句（FE-2 渲染可复制按钮）
-  const kick = '按阶段 ' + idx + ' 纪律执行：「' + discipline.slice(0, 2).join('」「') + '」' +
-    (assets.length ? '；agent 未调用配套资产时点名要求：' + assets.map((a) => '读取并应用 vendor/' + a).join('、') : '');
-  // 重走等效 Prompt 模板：/yy N + 该阶段前提
-  const redo = '重新走阶段 ' + idx + '：/yy ' + idx +
-    (prereqs.length ? '（前提：' + prereqs.join('、') + ' 全部满足后再注入）' : '（起点阶段，无前置 gate）');
+  // 复制话术返回唯一 command 来源；展示层不重新判断 prerequisites 或授权。
+  const kick = '请读取 ' + rel + '；先按其首行 host-adapter.mjs 指令展示并消费 Decision Packet，再按本阶段目标工作。';
+  const redo = '重新走 /yy ' + commandStep + '：读取 ' + rel + '，重新按其首行 host-adapter.mjs 指令准备并复核 Decision Packet。';
 
   return {
-    step: idx,                    // 页面阶段序号 0-5
+    step: commandStep,            // command surface 0-5 或 research，不按数组位置编号
     journeyStep: Number(meta['journey-step']), // journey 机验节点号
     name: title,
     goal: truncate(goal, 200),
@@ -277,7 +273,7 @@ for (const p of phases) for (const a of p.assets) {
 }
 
 // ---- 完整性自检（写出前 fail-closed）----
-if (phases.length !== 6) fail('完整性自检失败：应为 6 阶段，实际 ' + phases.length);
+if (phases.length !== COMMAND_FILES.length) fail('完整性自检失败：应为 7 入口，实际 ' + phases.length);
 for (const p of phases) {
   if (!p.name || !p.goal || !p.summary || !p.kickPrompt || !p.redoPrompt || !p.discipline.length) {
     fail('完整性自检失败：阶段 ' + p.step + ' 字段缺失/为空');
@@ -293,4 +289,4 @@ const GUIDE_CONTENT = { generatedBy: 'scripts/build-guide-content.mjs', phases: 
 const outAbs = path.join(ROOT, out);
 fs.mkdirSync(path.dirname(outAbs), { recursive: true });
 fs.writeFileSync(outAbs, 'export const GUIDE_CONTENT = ' + JSON.stringify(GUIDE_CONTENT, null, 2) + ';\n', 'utf8');
-process.stdout.write('[build-guide-content] OK: ' + out + '（6 阶段 + 9 资产卡片，完整性自检通过）\n');
+process.stdout.write('[build-guide-content] OK: ' + out + '（7 入口 + 9 资产卡片，完整性自检通过）\n');

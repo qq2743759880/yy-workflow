@@ -14,7 +14,14 @@ const args = process.argv.slice(2);
 const SKILL = args.find((a) => !a.startsWith("--")) || path.join(__dirname, "..", "SKILL.md");
 const VERBOSE = args.includes("--verbose");
 
-const errors = [];
+import {checkMethodologyClosure,matrixBytes} from './asset-upstream-reuse.mjs';
+import {checkAssetFiles} from './asset-file-hygiene.mjs';
+const hygiene = checkAssetFiles(path.resolve(__dirname, '..'));
+const closure=checkMethodologyClosure(path.resolve(__dirname,'..'));
+if(closure.ok) {
+ try {if(fs.readFileSync(path.resolve(__dirname,'../contracts/generated/asset-invocation-matrix.json'),'utf8')!==matrixBytes(closure.rows)) closure.errors.push({code:'INVOCATION_MATRIX_DRIFT',path:'contracts/generated/asset-invocation-matrix.json',reason:'Regenerate from current declarations'});} catch(e){closure.errors.push({code:'INVOCATION_MATRIX_MISSING',reason:e.message});}
+}
+const errors = [...closure.errors,...hygiene.errors].map(e => `${e.code}: ${e.path}: ${e.reason}`);
 const warnings = [];
 
 // ① frontmatter
@@ -177,15 +184,15 @@ for (const f of SCRIPT_FILES) {
 }
 if (mojibakeFiles.length) errors.push(`编码损坏 (U+FFFD): ${mojibakeFiles.join(", ")}`);
 
-// ⑨ 防跳阶段调用行（M1 批判 C1 补）：commands/*.md 正文必须含 --prereq-check 调用行字样，
-// 防「机验入口存在但 0 处被引用」回归（首扫时 6 文件 0 处含，已补齐）。
+// ⑨ C4 防跳阶段接线：commands 必须调用唯一 host adapter 的 prepare/check。
+// 旧 --prereq-check 独立准入已由 Decision Core/V2 取代。
 const COMMANDS_DIR = path.join(__dirname, "..", "commands");
 const cmdFiles = listMd(COMMANDS_DIR).filter((f) => !f.endsWith(".gitkeep"));
 let prereqMissing = 0;
 for (const f of cmdFiles) {
   const text = fs.readFileSync(f, "utf8").replace(/\r\n/g, "\n");
   const body = text.replace(/^---\n[\s\S]*?\n---/, "");
-  if (!/--prereq-check/.test(body)) { errors.push(`阶段命令缺少 --prereq-check 调用行: ${path.relative(path.join(__dirname, ".."), f).replace(/\\/g, "/")}`); prereqMissing++; }
+  if (!/host-adapter\.mjs["'`]?\s+prepare/.test(body)||!/host-adapter\.mjs["'`]?\s+(check|execute)/.test(body)||!/--save/.test(body)) { errors.push(`阶段命令缺少 C4 prepare --save / check|execute 调用行: ${path.relative(path.join(__dirname, ".."), f).replace(/\\/g, "/")}`); prereqMissing++; }
 }
 
 // ============================================================
@@ -280,8 +287,8 @@ const stripFm = (t) => t.replace(/^---\r?\n[\s\S]*?\r?\n---/, "");
 
 // ── 断言 H3：Gate 接线（防 C-31 复发——祈使句必须变为接线）──
 {
-  // H3-1 commands/*.md 正文含字面量 --prereq-check（复用 ⑨ 的扫描结果）
-  assertHard("H3a commands/*.md 含 --prereq-check 字面量", prereqMissing === 0, `${cmdFiles.length - prereqMissing}/${cmdFiles.length} 命中`);
+  // H3-1 指引必须接入 C4 门禁；实际语义由 test-host-adapter 验证。
+  assertHard("H3a commands/*.md 接入 C4 prepare --save / check|execute", prereqMissing === 0, `${cmdFiles.length - prereqMissing}/${cmdFiles.length} 命中`);
   // H3-2 tt-journey.mjs --update 路径必须含 prereqCheck 调用（grep 源码）
   const journeySrc = fs.readFileSync(path.join(ROOT, "scripts", "tt-journey.mjs"), "utf8");
   const hasUpdate = /has\(['"]update['"]\)/.test(journeySrc) || /'--update'|"--update"/.test(journeySrc);
@@ -349,7 +356,7 @@ const stripFm = (t) => t.replace(/^---\r?\n[\s\S]*?\r?\n---/, "");
   let refOrphan = [];
   try {
     for (const n of fs.readdirSync(REF_DIR)) {
-      if (n.endsWith(".md") && !expectedRefs.includes(n)) refOrphan.push(n);
+      if (n.endsWith(".md") && !expectedRefs.includes(n) && !hygiene.references?.includes(`reference/${n}`)) refOrphan.push(n);
     }
   } catch (e) { /* reference 目录缺失由 H6a FAIL 覆盖 */ }
   assertHard("H6a-1 reference/ 无未登记孤儿文件（新增须先登记指针）", refOrphan.length === 0, refOrphan.length ? `孤儿: ${refOrphan.join(", ")}` : "零孤儿");
@@ -430,7 +437,7 @@ console.log(`  随包 vendor 资产: ${EXPECTED_VENDOR.length - vendorMissing}/$
 console.log(`  接口漂移(vendor frontmatter): ${drift === 0 ? "无" : drift + " 处"}`);
 console.log(`  可移植性泄露: ${leak === 0 ? "无" : leak + " 处 (含 vendor)"}`);
 console.log(`  编码损坏(U+FFFD): ${mojibakeFiles.length === 0 ? "无" : mojibakeFiles.length + " 个文件"}`);
-console.log(`  阶段命令防跳调用行(--prereq-check): ${cmdFiles.length - prereqMissing}/${cmdFiles.length} 命中`);
+console.log(`  阶段命令 C4 接线(prepare/check): ${cmdFiles.length - prereqMissing}/${cmdFiles.length} 命中`);
 if (VERBOSE) {
   for (const w of warnings) console.log(`  [WARN] ${w}`);
   for (const e of errors) console.log(`  [ERR]  ${e}`);

@@ -54,7 +54,9 @@ export async function buildManifest(options) {
         throw agentError; 
       } 
     } 
-    entries.push({ name, type, path: path.relative(path.dirname(vendorDir), root).replace(/\\/g, '/'), version, description, keywords: keywords(name + ' ' + description) }); 
+    let optional_profile=null;
+    try {optional_profile=JSON.parse(await fs.readFile(path.join(root,'METHODOLOGY.json'),'utf8')).optional_profile||null;} catch(e) {if(e.code!=='ENOENT') throw e;}
+    entries.push({ optional_profile, name, type, path: path.relative(path.dirname(vendorDir), root).replace(/\\/g, '/'), version, description, keywords: keywords(name + ' ' + description) }); 
   } 
   return { generatedAt: new Date().toISOString(), entries, warnings }; 
 } 
@@ -64,9 +66,7 @@ export async function loadManifest(options) {
   if (options.refresh) refresh = true;
   const stateDir = options.stateDir || path.join(path.dirname(vendorDir), '.tt-state');
   const cache = path.join(stateDir, 'manifest.json');
-  if (!refresh) { 
-    try { return JSON.parse(await fs.readFile(cache, 'utf8')); } catch (error) { if (error.code !== 'ENOENT') throw error; } 
-  } 
+  // Rebuild bounded catalog: declaration policy cannot come from a stale discovery cache.
   const manifest = await buildManifest({ vendorDir }); 
   await fs.mkdir(stateDir, { recursive: true }); 
   await fs.writeFile(cache, JSON.stringify(manifest, null, 2)); 

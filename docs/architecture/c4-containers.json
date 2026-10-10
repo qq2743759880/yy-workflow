@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "YY 执行系统 · C4 Container",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "visual_preset": "signal-flow",
+    "output": "c4-containers.html"
+  },
+  "components": [
+    {
+      "id": "owner",
+      "type": "external",
+      "label": "Owner · 人",
+      "sublabel": "通过当前宿主提出任务",
+      "pos": [
+        40,
+        60
+      ],
+      "size": [
+        210,
+        82
+      ]
+    },
+    {
+      "id": "host",
+      "type": "external",
+      "label": "当前 Agent 宿主 · 外部系统",
+      "sublabel": "实际执行与展示",
+      "pos": [
+        355,
+        60
+      ],
+      "size": [
+        250,
+        82
+      ]
+    },
+    {
+      "id": "cli",
+      "type": "backend",
+      "label": "YY CLI · 进程",
+      "sublabel": "Node.js / 本地准入与执行",
+      "pos": [
+        355,
+        240
+      ],
+      "size": [
+        250,
+        82
+      ]
+    },
+    {
+      "id": "mcp",
+      "type": "backend",
+      "label": "可选 MCP 服务 · 进程",
+      "sublabel": "Node.js / V2 与 M1 双挂载",
+      "pos": [
+        40,
+        240
+      ],
+      "size": [
+        210,
+        82
+      ]
+    },
+    {
+      "id": "files",
+      "type": "database",
+      "label": "项目文件 · 文件存储",
+      "sublabel": "契约、checkpoint、产物与证据",
+      "pos": [
+        355,
+        420
+      ],
+      "size": [
+        250,
+        82
+      ]
+    },
+    {
+      "id": "provider",
+      "type": "external",
+      "label": "Provider / 人工交接 · 外部系统",
+      "sublabel": "仅显式批准的任务",
+      "pos": [
+        40,
+        420
+      ],
+      "size": [
+        210,
+        82
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "owner-host",
+      "from": "owner",
+      "to": "host",
+      "label": "提出任务"
+    },
+    {
+      "id": "host-cli",
+      "from": "host",
+      "to": "cli",
+      "label": "调用本地命令"
+    },
+    {
+      "id": "host-mcp",
+      "from": "host",
+      "to": "mcp",
+      "label": "请求 Decision / MCP"
+    },
+    {
+      "id": "cli-files",
+      "from": "cli",
+      "to": "files",
+      "label": "读写任务与证据 / 文件"
+    },
+    {
+      "id": "cli-provider",
+      "from": "cli",
+      "to": "provider",
+      "label": "显式交接 / 有界文件包"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "真正的运行边界",
+      "items": [
+        "CLI 与 MCP 是可运行 Node.js 入口；Decision Core 是它们调用的模块。",
+        "方法资产是文件，不是容器；MCP 只读，执行由宿主负责。"
+      ]
+    }
+  ]
+}

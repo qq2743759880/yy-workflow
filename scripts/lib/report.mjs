@@ -11,7 +11,7 @@ export async function writeReport(result, workspace = '.') {
   const stem = 'report-' + report.planId;
   await fs.writeFile(path.join(dir, stem + '.json'), JSON.stringify(report, null, 2));
   const lines = ['# TT Execution Report', '', '- plan: ' + report.planId, '- task: ' + report.task, '- cluster: ' + report.cluster, '- status: ' + report.status];
-  if (report.degraded) lines.push('- degraded: true ⚠ 全部子任务 skipped（外部执行工具不可用，仅产出路由与状态记录）');
+  if (report.degraded) lines.push('- degraded: true ⚠ 存在未执行或降级子任务；查看 executionMode 与证据');
   const m = report.modes;
   lines.push('- 执行摘要: ' + (m.exec || 0) + ' exec(宿主执行) / ' + (m.cli || 0) + ' cli 执行 / ' + (m.prompt || 0) + ' prompt 兜底(指令包) / ' + (m['planned-only'] || 0) + ' planned-only 降级 / ' + (m.skipped || 0) + ' skipped');
   for (const w of report.warnings) lines.push('- ⚠ ' + w);

@@ -1,0 +1,198 @@
+# yy/asset-contract@3 — frontend-design（Asset R&D Lane A1 candidate，条件化引用+视觉约束资产）
+# 方法论真相：vendor/frontend-design/SKILL.md v2.0.0（两步必做纪律：taste 工作流 + search.py 真查；
+# 3.8MB design-data 带出处目录：119 UX 准则/79 风格/192 配色/74 字体对/gsap/chart/stacks）+
+# sidecar（EA-1 消费语义）+ scripts/frontend-quality-gate.mjs（YY 侧真实机验工具）。
+# 强模型裁定：本资产价值不在设计常识（GPT-6.1 原生），在①模型外数据目录（真名真值带出处）
+# ②反默认约束词表（三拨盘/Design Read/AI Slop 红线）③机验质量门。按 L0-L3 条件激活，整包正文禁默认加载。
+schema: yy/asset-contract@3
+id: frontend-design
+version: 3.1.0
+kind: design
+purpose:
+  plain_language: 前端界面设计与生成的条件化引用资产：只在真有界面产物时按复杂度分级加载；核心价值是带出处的真实设计数据目录（配色/字体/风格/UX 准则）+ 反模板约束（三拨盘/Pre-Flight/AI Slop 红线）+ 机验质量门，不是通用 UI 教程
+routing:
+  capability_keys:
+  - frontend-design
+  clusters:
+  - T4_FRONTEND
+  exclusions:
+  - 无前端界面产物的任务（纯后端/脚本/文档，L0 不加载）
+  - 纯数据表格/仪表盘类产品 UI（taste 上游明示不适用，走组件选型+可用性约束即可）
+io:
+  required_inputs:
+  - name: design_brief
+    type: text
+    description: 任务简报（页面类型/受众/vibe 词/参考信号/既有品牌资产/静默约束——taste-skill §0.A 六类信号）
+  - name: design_data_catalog
+    type: data_catalog
+    description: vendor/frontend-design/reference/design-data（search.py + CSV，带出处；模型外信息锚点）
+  required_outputs:
+  - name: design_read_line
+    type: text
+    description: 一行 Design Read（Reading this as 页面类型 for 受众，with vibe，leaning 方向）——生成前必产
+  - name: artifact_with_dial_values
+    type: artifact
+    description: 前端产物 + 三拨盘取值（DESIGN_VARIANCE/MOTION_INTENSITY/VISUAL_DENSITY，基线 8/6/4 按简报推断）+ 数据查询留痕
+methodology:
+  source: vendor/frontend-design/SKILL.md
+  required_sections:
+  - 分级入口
+  - 两步必做
+  - 设计数据查询
+  - 机检门
+  - Execution kernel
+  conditional_reference_policy: reference 七篇领域文（color/interaction/motion/responsive/spatial/typography/ux-writing）为强模型原生常识——禁默认全量加载，按 L2+ 触发主题精确引用（token 纪律）；taste-skill.md 与 taste-blocks 为工作流与约束编码，L2+ 必读；分级（L0-L3）优先于继承的 taste 工作流条款——级别决定加载多少继承工作流，超出级别的继承步骤（Pre-Flight 全量/原型/taste-blocks 全集）不在该级加载，仅 L3 进完整工作流
+application:
+  activation_policy:
+    L0_no_visual_artifact: 不加载（纯后端/脚本/文档任务）
+    L1_trivial_visual_tweak: 不加载 skill 正文；仅对 diff 跑 frontend-quality-gate.mjs 机检（文案微调/既有样式小修）
+    L2_standard_page_or_component: Design Read + 三拨盘 + 按主题精确引用 reference（≤3 篇）+ 相关域数据查询；不进原型
+    L3_full_design_task: 完整 taste 工作流（含 Pre-Flight 50+ 项）+ 多域数据查询 + taste-blocks 复用 + 显式请求时 PICKER 原型流程
+    default_level: L2（有界面产物但未分级时；L1/L3 由任务特征或显式请求决定）
+    tier_policy_status: CANDIDATE（Core 无 level 消费点——CCR-1；本政策是候选纪律非运行时事实，接入前由派单方人工声明级别，L2 缺省安全降级）
+  assertions:
+  - id: fd-A1
+    critical: true
+    verifier: deterministic
+    description: 真实设计数据被查询（仅 L2+——L1 微调不引入新选型，无查询留痕不判失败；L0 不加载）——风格/配色/字体/图标/栈选型前 search.py 真实执行且查询行留痕；python 缺失时读 CSV 或显式声明跳过，禁伪造查询结果
+    evidence_requirements:
+    - 产物含 search.py 查询行（域+查询词）或 CSV 直读记录或显式跳过声明
+    - 选型值与返回行对应（真名真值，非手挥）
+    failure_semantics: 无查询留痕却给出具体配色/字体/风格值 → 断言失败（数据锚点是本资产存在理由）
+  - id: fd-A2
+    critical: true
+    verifier: structural
+    description: 反默认约束链在场（仅 L2+；L1 只过机检门，不索要 Design Read/拨盘/资料查询——分级不得把 L1 逼成完整设计流程）——Design Read 一行先于生成；三拨盘取值显式；AI Slop 红线（AI 紫渐变/居中 hero 暗网格/三等宽特性卡/满屏玻璃拟态/Inter+slate-900 默认组合）不被默认采用
+    evidence_requirements:
+    - Design Read 行 + 拨盘三元组在产物或过程记录中
+    - 违反红线且无简报依据 → 断言失败
+    failure_semantics: 缺 Design Read 或拨盘 → 生成前纪律缺失，断言失败
+  - id: fd-A3
+    critical: true
+    verifier: deterministic
+    description: 机验质量门真实执行（L1+ 全级别——L1 的唯一加载项就是本门；L0 不加载）——frontend-quality-gate.mjs 对产物跑过且 exit code 与警告清单留痕（hardcoded-hex/generic-fonts/pure-black-white/elastic-easing/layout-animation 五类机检 + AI Slop 红线）
+    evidence_requirements:
+    - gate 输出（警告数/例外标记）入证据
+    - 主观项如实 N/A——N/A 不算失败也不算通过（如实未评估，不计 PASS 不计 FAIL），不伪造 PASS
+    - gate 证明边界声明在场：机检门只证代码静态项，不证审美、真实交互行为、可访问性全量与响应式实际表现（REWORK2 诚实边界；机检通过不等于审美或业务联调通过；此四类另走 Design Read+人工评审、联调材料、专项工具、多视口实测）
+    failure_semantics: L1+ 产物无 gate 记录 → 断言失败；gate FAIL 未返工 → 断言失败
+  - id: fd-A4
+    critical: false
+    verifier: structural
+    description: 条件化加载纪律——L1 不加载正文只跑 gate；L2 引用 reference ≤3 篇且与主题对应；整包正文加载（如全文拼接进上下文）视为违反 token 纪律
+    evidence_requirements:
+    - 激活级别声明 + 实际引用文件清单
+    failure_semantics: 级别错配（L1 加载全文/L0 仍加载）→ 断言失败；本条 optional 不阻断 critical
+  - id: fd-A5
+    critical: false
+    verifier: structural
+    description: 组件复用优先——命中 taste-blocks 九块（cta/feature/footer/hero/navigation/portfolio/pricing/social-proof/transition）时复用其编码规则；组件库引入前过 component-selection.md 判据（基线 shadcn-ui）
+    evidence_requirements:
+    - 命中块名或选型判据记录
+    failure_semantics: 未命中不强制；命中而绕过自造 → 记 diff
+  pass_policy:
+    critical: all
+    optional_minimum: 0
+execution:
+  primary:
+    mode: reference-probe
+    reference_kernel: shadcn-ui/ui 组件底座 + stackblitz-labs/bolt.new 原型生成（vendor 声明层内核，probe npm 可用性后采用）
+    machine_gate: scripts/frontend-quality-gate.mjs
+    data_query: vendor/frontend-design/reference/design-data/scripts/search.py
+  compatibility: []
+  degradation:
+    python_missing: 读 CSV 直查或显式声明跳过，禁伪造查询结果
+    external_base_missing: 用 design-data + taste-blocks 内置流程，不假报已用外部内核
+    prototyping_not_requested: 跳过 PICKER 流程（仅显式请求时进入）
+  supported_languages:
+  - html-css-js
+  - react-ts
+  - framework-via-stacks-catalog
+  unsupported_scopes:
+  - 无界面产物任务（L0）
+  - 纯数据表格/仪表盘/多步产品 UI（taste 上游明示不适用域）
+evidence:
+  required:
+  - 证据按级别适用（L0=无；L1=仅 quality_gate_output；L2+=search_query_trail、design_read_line、dial_values、quality_gate_output 全四项；L3 另加变体与晋级记录）
+  - search_query_trail（L2+）
+  - design_read_line（L2+）
+  - dial_values（L2+）
+  - quality_gate_output（L1+）
+  forbidden_claims:
+  - 无 search.py 或 CSV 查询留痕却宣称数据驱动选型
+  - 未跑 quality-gate 宣称过 Pre-Flight
+  - 把教程式引用量当设计质量证据
+  - 原型未做宣称已验证变体
+critique:
+  claims_to_challenge:
+  - 选型值是目录返回行还是模型审美幻觉？
+  - 拨盘是推断的还是默认值抄写？
+  - gate 警告被例外标记滥用了吗（例外须有简报依据）？
+  failure_patterns:
+  - 跳过两步必做直接生成（vendor 明示 load-bearing path）
+  - 整包正文默认加载（token 浪费+方法论干扰，强模型反受伤）
+  - 把 N/A 主观项标 PASS
+  - 教程文全量拼接进上下文冒充引用
+  - 原型阶段触碰生产代码（vendor 明令禁止）
+  independent_evidence:
+  - search.py 查询行或 CSV 直读记录
+  - frontend-quality-gate.mjs exit code + 警告清单
+  - Design Read 行 + 拨盘三元组
+  harms_to_strong_model:
+  - 通用设计 prose 全量注入挤占上下文且诱导模板化复述
+  - 强模型审美被红线清单过度约束（红线应为简报让位——上下文约束优先级高于审美偏好）
+  - 无分级时小修任务也被迫走全工作流（overhead）
+  when_not_to_use:
+  - L0/L1 任务（见 activation_policy）
+  - 数据密集型产品 UI（上游明示不适用）
+  - 品牌系统已冻结且简报指定精确值时（数据目录仅作核对）
+blind_tests:
+  hidden_suite_id: frontend-design-hidden-v1
+  hidden_suite_hash: BLIND_STORE_NOT_PROVISIONED
+  case_count: 6
+  cases:
+  - id: fd-P1
+    kind: positive
+    description: L3 landing 任务 → Design Read+拨盘+多域查询+块复用+gate PASS 全链留痕
+    coverage_category: full_workflow_evidence
+  - id: fd-P2
+    kind: positive
+    description: L2 组件任务 → 按主题引用 ≤3 篇 reference + 相关域查询 + gate 记录
+    coverage_category: conditional_reference_discipline
+  - id: fd-P3
+    kind: positive
+    description: python 缺失 → CSV 直读或显式跳过声明，选型不伪造
+    coverage_category: honest_degradation
+  - id: fd-N1
+    kind: negative
+    description: L0 纯后端任务加载本资产 → 违反激活纪律，应拒绝
+    coverage_category: activation_level_gate
+  - id: fd-N2
+    kind: negative
+    description: 无查询留痕给出具体配色或字体值 → fd-A1 失败
+    coverage_category: data_anchor_required
+  - id: fd-X1
+    kind: adversarial
+    description: 对抗默认审美——简报含 Linear-style 暗色科技风，产物却落 AI 紫渐变默认 → fd-A2 失败
+    coverage_category: anti_default_adversarial
+  coverage_categories:
+  - full_workflow_evidence
+  - conditional_reference_discipline
+  - honest_degradation
+  - activation_level_gate
+  - data_anchor_required
+  - anti_default_adversarial
+  required_pass_policy:
+    critical: all
+    optional_minimum: 0
+owner_view:
+  one_liner: 界面活儿分级上工具：小修只过机检，正经设计先查真实设计数据库再动手，专治 AI 千篇一律的模板脸。
+  what_it_does: 自带一套带出处的设计资料库（几百套配色、字体搭配、风格和 UX 准则），做界面前先查库定方向，再用一套反模板检查（三拨盘+50 项交付前清单+机器可查的红线）管住 AI 审美惯性。小改动只跑机器检查，不折腾全流程。
+  why_it_matters: 强模型啥都会画，但默认画出来都长一个样（紫渐变、居中大图、三张等宽卡片）。这份资产的价值不是教它设计，是用真实数据和一个不懂人情的检查器逼它每次都查证、都偏离默认。
+  what_owner_decides: 哪些任务算 L3 要走全流程；红线例外什么时候允许；资料库要不要扩域（目前不含图标深查）。
+lifecycle:
+  status: POPULATED_PENDING_ACCEPTANCE
+  authority: NON_CANONICAL
+  completeness: CANDIDATE_RND_LANE
+  blind_store: BLIND_STORE_NOT_PROVISIONED
+  note: Asset R&D Lane A1 candidate（2026-10-04）。不 promotion；激活策略与断言待独立审计+A/B 实证后再议默认启用。

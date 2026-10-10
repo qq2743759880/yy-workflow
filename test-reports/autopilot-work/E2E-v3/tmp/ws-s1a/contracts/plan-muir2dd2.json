@@ -1,7 +1,0 @@
-{
-  "planId": "plan-muir2dd2",
-  "cluster": "T2_BACKEND",
-  "contract": "backend interface and error contract",
-  "task": "对 OpenAPI 契约做安全校验",
-  "frozenAt": "2026-09-26T18:55:31.623Z"
-}

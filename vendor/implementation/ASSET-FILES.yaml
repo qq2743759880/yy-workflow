@@ -1,0 +1,133 @@
+schema: yy/asset-files@1
+asset: implementation
+iteration_protocol: reference/asset-iteration.md
+files:
+- match: ASSET-FILES.yaml
+  state: PROVENANCE
+  consumer: distribution
+- match: implementation.md
+  state: ACTIVE_ENTRY
+  consumer: activation
+  load: entry
+- match: reference/opencode-usage.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/implementation/implementation.md
+  load: only when the deployment explicitly selects this optional provider
+- match: METHODOLOGY.json
+  state: ACTIVE_RESOURCE
+  consumer: scripts/lib/methodology.mjs
+  load: selected asset declaration
+- match: reference/matt/engineering_code-review/agents/openai.yaml
+  state: PROVENANCE
+  consumer: distribution
+- match: reference/matt/engineering_code-review/SKILL.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/implementation/METHODOLOGY.json
+  load: dependency closure selected by METHODOLOGY.json; auxiliary logical skills
+    only when requested
+- match: reference/matt/engineering_code-review/UPSTREAM.json
+  state: PROVENANCE
+  consumer: distribution
+- match: reference/matt/engineering_codebase-design/agents/openai.yaml
+  state: PROVENANCE
+  consumer: distribution
+- match: reference/matt/engineering_codebase-design/DEEPENING.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/implementation/METHODOLOGY.json
+  load: dependency closure selected by METHODOLOGY.json; auxiliary logical skills
+    only when requested
+- match: reference/matt/engineering_codebase-design/DESIGN-IT-TWICE.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/implementation/METHODOLOGY.json
+  load: dependency closure selected by METHODOLOGY.json; auxiliary logical skills
+    only when requested
+- match: reference/matt/engineering_codebase-design/SKILL.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/implementation/METHODOLOGY.json
+  load: dependency closure selected by METHODOLOGY.json; auxiliary logical skills
+    only when requested
+- match: reference/matt/engineering_codebase-design/UPSTREAM.json
+  state: PROVENANCE
+  consumer: distribution
+- match: reference/matt/engineering_implement/agents/openai.yaml
+  state: PROVENANCE
+  consumer: distribution
+- match: reference/matt/engineering_implement/SKILL.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/implementation/METHODOLOGY.json
+  load: dependency closure selected by METHODOLOGY.json; auxiliary logical skills
+    only when requested
+- match: reference/matt/engineering_implement/UPSTREAM.json
+  state: PROVENANCE
+  consumer: distribution
+- match: reference/matt/engineering_tdd/agents/openai.yaml
+  state: PROVENANCE
+  consumer: distribution
+- match: reference/matt/engineering_tdd/mocking.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/implementation/METHODOLOGY.json
+  load: dependency closure selected by METHODOLOGY.json; auxiliary logical skills
+    only when requested
+- match: reference/matt/engineering_tdd/SKILL.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/implementation/METHODOLOGY.json
+  load: dependency closure selected by METHODOLOGY.json; auxiliary logical skills
+    only when requested
+- match: reference/matt/engineering_tdd/tests.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/implementation/METHODOLOGY.json
+  load: dependency closure selected by METHODOLOGY.json; auxiliary logical skills
+    only when requested
+- match: reference/matt/engineering_tdd/UPSTREAM.json
+  state: PROVENANCE
+  consumer: distribution
+- match: reference/matt/LICENSE
+  state: PROVENANCE
+  consumer: distribution
+- match: reference/matt/productivity_grilling/agents/openai.yaml
+  state: PROVENANCE
+  consumer: distribution
+- match: reference/matt/productivity_grilling/SKILL.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/implementation/METHODOLOGY.json
+  load: dependency closure selected by METHODOLOGY.json; auxiliary logical skills
+    only when requested
+- match: reference/matt/productivity_grilling/UPSTREAM.json
+  state: PROVENANCE
+  consumer: distribution
+- match: UPSTREAM-REUSE.yaml
+  state: PROVENANCE
+  consumer: distribution
+- match: reference/matt/engineering_to-spec/agents/openai.yaml
+  state: PROVENANCE
+  consumer: distribution
+- match: reference/matt/engineering_to-spec/SKILL.md
+  state: ACTIVE_RESOURCE
+  consumer:
+  - vendor/planning/METHODOLOGY.json
+  - vendor/dev-planner/METHODOLOGY.json
+  load: logical dependency selected by unified methodology resolver
+- match: reference/matt/engineering_to-spec/UPSTREAM.json
+  state: PROVENANCE
+  consumer: distribution
+- match: reference/matt/engineering_to-tickets/agents/openai.yaml
+  state: PROVENANCE
+  consumer: distribution
+- match: reference/matt/engineering_to-tickets/SKILL.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/dev-planner/METHODOLOGY.json
+  load: logical dependency selected by unified methodology resolver
+- match: reference/matt/engineering_to-tickets/UPSTREAM.json
+  state: PROVENANCE
+  consumer: distribution
+retired:
+- path: reference/dev-backend.md
+  superseded_by: implementation.md
+  reason: Production implementation.md and opencode adapter have no consumer of old
+    implementation bodies
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/be-implementer.md
+  superseded_by: implementation.md
+  reason: Production implementation.md and opencode adapter have no consumer of old
+    implementation bodies
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json

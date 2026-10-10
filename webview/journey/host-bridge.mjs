@@ -14,9 +14,9 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '..', '..');
 
-function runJourneyCli(args) {
+function runJourneyCli(args,script='tt-journey.mjs') {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [path.join(REPO_ROOT, 'scripts', 'tt-journey.mjs'), ...args], {
+    const child = spawn(process.execPath, [path.join(REPO_ROOT, 'scripts', script), ...args], {
       cwd: REPO_ROOT,
       stdio: ['ignore', 'pipe', 'pipe'],
     });
@@ -41,10 +41,14 @@ export async function buildInjectionPayload({ workspace = '.', sessionId = null,
   const readArgs = ['--read', '--workspace', workspace, '--mode', mode];
   const projectArgs = ['--project', '--workspace', workspace, '--mode', mode];
   if (sessionId != null) { readArgs.push('--session', String(sessionId)); projectArgs.push('--session', String(sessionId)); }
-  const [read, project] = await Promise.all([runJourneyCli(readArgs), runJourneyCli(projectArgs)]);
+  const delegationArgs=['--delegation','--workspace',workspace];
+  if(sessionId!=null)delegationArgs.push('--session',String(sessionId));
+  const [read, project, delegation] = await Promise.all([runJourneyCli(readArgs), runJourneyCli(projectArgs),
+    runJourneyCli(delegationArgs,'summary-read.mjs').catch(()=>({ok:false,code:'DELEGATION_READ_UNAVAILABLE',data:{},evidence:{},warnings:[]}))]);
   return {
     read,
     project,
+    delegation,
     injectedAt: new Date().toISOString(),
     sessionId: sessionId != null ? String(sessionId) : null,
   };
@@ -68,8 +72,22 @@ export async function buildPageHtml({ workspace = '.', sessionId = null, mode = 
 
 /** Optional dev static server with injection on every request (manual refresh / host push re-request => re-inject). */
 export async function servePage({ workspace = '.', sessionId = null, mode = 'summary', port = 0 } = {}) {
+  const staticFiles=new Map([
+    ['/render-core.mjs',{file:path.join(HERE,'render-core.mjs'),type:'text/javascript'}],
+    ['/content.js',{file:path.join(HERE,'content.js'),type:'text/javascript'}],
+    ['/styles.css',{file:path.join(HERE,'styles.css'),type:'text/css'}],
+    ['/scripts/lib/delegation-contract.mjs',{file:path.join(REPO_ROOT,'scripts/lib/delegation-contract.mjs'),type:'text/javascript'}],
+    ['/contracts/generated/delegation-schema.mjs',{file:path.join(REPO_ROOT,'contracts/generated/delegation-schema.mjs'),type:'text/javascript'}],
+  ]);
   const server = http.createServer(async (req, res) => {
     try {
+      const route=new URL(req.url,'http://127.0.0.1').pathname;
+      if(!['GET','HEAD'].includes(req.method)){res.writeHead(405);res.end();return;}
+      if(staticFiles.has(route)) {
+        const entry=staticFiles.get(route),body=await fs.readFile(entry.file);
+        res.writeHead(200,{'content-type':entry.type+'; charset=utf-8','cache-control':'no-store'});res.end(req.method==='HEAD'?undefined:body);return;
+      }
+      if(!['/','/index.html'].includes(route)){res.writeHead(404,{'content-type':'text/plain; charset=utf-8'});res.end('Not found');return;}
       const body = await buildPageHtml({ workspace, sessionId, mode });
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
       res.end(body);

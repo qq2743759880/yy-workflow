@@ -34,11 +34,13 @@ const FORWARD_LINE = [0, 1, 1.5, 3, 5, 7, 8];
 // 防跳阶段前置机验（task04 + RG-1）：step n → 依赖步（+ 需通过的 gate）。step0 无前置；
 // step8 允许依赖步 in_progress 或 done。未列出的 step（2/4/6 回跳层）视为无强制前置。
 // RG-1：step 1.5 研究门前置 = step 1 done + gate concept-signed。
-const PREREQ_MAP = {
+// C2（decision-core）：PREREQ_MAP 加法式导出——Decision Core 需要 per-dep 前置明细投影；
+// 值零改动，仅可导入性（tt-journey.mjs 不在 bridge pinned blobs 内）。
+export const PREREQ_MAP = {
   1: [{ step: 0 }],
   1.5: [{ step: 1, gate: 'concept-signed' }],
   2: [{ step: 1 }],
-  3: [{ step: 1, gate: 'concept-signed' }],
+  3: [{ step: 1, gate: 'concept-signed' }, { step: 1.5, gate: 'research-done' }],
   5: [{ step: 3 }],
   7: [{ step: 5, gate: 'contract-frozen' }],
   8: [{ step: 7, inProgressOk: true }],
@@ -419,9 +421,10 @@ async function runSelfTest() {
   // GWT2
   await reset();
   await writeJourneyFile(ws, newJourney());
-  // C1 防跳后 step5 依赖 step3 done（链式：0→1→3），先铺前置链再验幂等只增
+  // C1 防跳后 step5 依赖 step3 done（链式：0→1→1.5→3），先铺前置链再验幂等只增
   await updateJourney({ workspace: ws, step: 0 });
   await updateJourney({ workspace: ws, step: 1, gate: 'concept-signed' });
+  await updateJourney({ workspace: ws, step: 1.5, gate: 'research-done', artifact: 'docs/prior-art.md' });
   await updateJourney({ workspace: ws, step: 3, gate: 'premise-signed' });
   await updateJourney({ workspace: ws, step: 5, gate: 'contract-frozen' });
   j = await readJourney(ws);

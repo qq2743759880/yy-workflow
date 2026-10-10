@@ -1,0 +1,75 @@
+{
+  "schema": "yy/methodology-bindings@1",
+  "asset": "dev-planner",
+  "methodology_type": "MATT_COMPOSE",
+  "wrapper_policy": "YY_ROUTED",
+  "wrapper_source": {
+    "path": "dev-planner.md",
+    "scope": "asset",
+    "sha256": "ec66f00621d11b01eb6ab31fd2c17e56ddcafa42a66b5dece63c255ac81f9b8d"
+  },
+  "licenses": [
+    {
+      "path": "LICENSE",
+      "scope": "package",
+      "sha256": "39ad33402a909bc27000cde7ec17024209243db571dd7af7aed67a7f28a19883"
+    },
+    {
+      "path": "vendor/implementation/reference/matt/LICENSE",
+      "scope": "package",
+      "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5"
+    }
+  ],
+  "primary": "to-tickets",
+  "skills": {
+    "to-tickets": {
+      "path": "vendor/implementation/reference/matt/engineering_to-tickets/SKILL.md",
+      "scope": "package",
+      "sha256": "5c9fba69845c2519b9b35b9af42ae5142c21f8ca15ac2123dc2722002c8058ae",
+      "invocation_policy": "USER_EXPLICIT",
+      "dependencies": [
+        {
+          "id": "grilling",
+          "when": {
+            "unresolved_decisions": true
+          }
+        },
+        {
+          "id": "to-spec",
+          "when": {
+            "has_spec": false
+          }
+        }
+      ],
+      "resources": []
+    },
+    "to-spec": {
+      "path": "vendor/implementation/reference/matt/engineering_to-spec/SKILL.md",
+      "scope": "package",
+      "sha256": "43ad9cf318e5e7d3d1fa360253a37021796dc87a0c2e595ad262661a10f85088",
+      "invocation_policy": "USER_EXPLICIT",
+      "dependencies": [
+        {
+          "id": "grilling",
+          "when": {
+            "unresolved_decisions": true
+          }
+        }
+      ],
+      "resources": []
+    },
+    "grilling": {
+      "path": "vendor/implementation/reference/matt/productivity_grilling/SKILL.md",
+      "scope": "package",
+      "sha256": "10ff989e7498b23b5acb49d5048f11dcd906757d2f79c5cdf8a00001381296f2",
+      "invocation_policy": "MODEL_ELIGIBLE",
+      "dependencies": [],
+      "resources": []
+    }
+  },
+  "upstream_commit": "24fe0ef7737efae15c87225755e9f6f5965e4888",
+  "context_defaults": {
+    "has_spec": false,
+    "unresolved_decisions": false
+  }
+}

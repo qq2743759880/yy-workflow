@@ -1,8 +1,0 @@
- M contracts/asset-manifest-v2.md
- M contracts/asset-migration.md
- M test-reports/autopilot-work/HARDEN-1/s16-behavior-probe.json
- M test-reports/autopilot-work/HARDEN-1/s16-state-failed.json
- M test-reports/autopilot-work/HARDEN-1/s16-static-scan.json
-?? contracts/discrepancies/cr-20260926T000000Z-g0v3cons1.json
-?? handoffs/v3/amendments/
-?? test-reports/autopilot-work/REMEDIATION-2/

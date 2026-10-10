@@ -221,6 +221,7 @@ export async function buildManifestRows(options = {}) {
       if (!role) errors.push(invalid(`资产 ${id}: vendor ${vendor.rel} 首段正文首句提取为空（role fail-closed）`).message);
       if (errors.length === 0) {
         rows.push({
+          optional_profile: JSON.parse(await fs.readFile(path.join(root,'vendor',id,'METHODOLOGY.json'),'utf8')).optional_profile||null,
           id,
           name,
           role,

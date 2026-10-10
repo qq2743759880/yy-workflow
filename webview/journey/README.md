@@ -14,11 +14,11 @@ Journey 现状导航 v2（2026-09-21 Owner 三点定位定稿）：**面向使�
 
 ### B 阶段手册（数据源：`content.js` → `GUIDE_CONTENT.phases`，构建期静态产物）
 
-6 个阶段逐卡片：阶段号与名称、目标（一句话）、注入内容摘要（对应 `commands/yy-N.md` 的触发词与前置机验指令）、配套资产名（如有）、纪律要点、两颗复制按钮——**催办话术**（agent 未调资产时 owner 说什么）与**重走等效 Prompt**（整个阶段重来的指令模板）。
+7 个 command 入口逐卡片（`/yy 0` 至 `/yy 5`，含 `/yy research`）：命令编号与名称、目标、摘要、配套资产名、纪律指针及两颗复制按钮。摘要取当前 command 的 host-adapter 首行；**催办话术**与**重走等效 Prompt**返回同一 command 来源。手册不从 frontmatter prerequisites 计算准入；宿主须按 command 展示并消费 Core/V2 Decision Packet。
 
 ### C 资产手册（数据源：`content.js` → `GUIDE_CONTENT.assets`，构建期静态产物）
 
-16 个资产逐卡片：名称、域簇徽章（cluster，文字+色）、一句话功能（源自各 `vendor/<a>/SKILL.md` frontmatter description）、可能用到的阶段（stages，如有）、一颗复制按钮——**强制点名话术**，模板为「请你现在读取并应用 <资产名> 的方法论」（页面侧拼接）。
+9 个资产逐卡片：名称、域簇徽章（cluster，文字+色）、一句话功能（源自当前 vendor 入口 description）、可能用到的命令（stages，如有）、一颗复制按钮——**强制点名话术**，模板为「请你现在读取并应用 <资产名> 的方法论」（页面侧拼接）。资产范围来自 `matrix.mjs` 的 CLUSTERS candidates 并集。
 
 ### loadGuideContent 动态装载
 
@@ -44,7 +44,7 @@ Minimalism & Swiss Style，Design Read 定稿："developer utility handbook, gri
 |---|---|
 | index.html | 单页三区块（A 现状导航 + B 阶段手册 + C 资产手册）+ 告警条 + 内联入口脚本（消费 `__YY_JOURNEY__` 与 render-core 导出；loadGuideContent 动态装载 content.js） |
 | styles.css | 瑞士风格设计系统：显式轨道网格 / 留白与字阶 token / 六态扁平语义色（:root 定义，明暗双主题 4.5:1）/ 零装饰直角规则线（取代旧 journey.css 基线） |
-| content.js | B/C 手册静态数据（`GUIDE_CONTENT` = 6 phases + 16 assets），由 `scripts/build-guide-content.mjs` 构建期生成，可再生成、不手写 |
+| content.js | B/C 手册静态数据（`GUIDE_CONTENT` = 7 command entries + 9 assets），由 `scripts/build-guide-content.mjs` 构建期生成，可再生成、不手写 |
 | render-core.mjs | 纯视图模型（Node 可测，恢复 sha 锚 93a7652b…，未动）：bridge 检测、状态映射、最坏态 rollup、nextPrompt 快照回显、conflict 视图、NOT_FOUND 数据通道 |
 | host-bridge.mjs | 宿主侧注入器（恢复 sha 锚 b02cfd65…，未动）：跑既有 CLI、构建载荷、首个 script 标签前注入；可选 dev 静态服务器 |
 | journey.css | 旧版 51 行基线，已被 styles.css 整体取代，保留未引用（历史对照用） |

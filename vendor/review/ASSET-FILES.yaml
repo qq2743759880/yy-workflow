@@ -1,0 +1,46 @@
+schema: yy/asset-files@1
+asset: review
+iteration_protocol: reference/asset-iteration.md
+files:
+- match: .openclaw/source-origin.json
+  state: PROVENANCE
+  consumer: distribution
+- match: ASSET-FILES.yaml
+  state: PROVENANCE
+  consumer: distribution
+- match: LICENSES.md
+  state: PROVENANCE
+  consumer: distribution
+- match: SKILL.md
+  state: ACTIVE_ENTRY
+  consumer: activation
+  load: entry
+- match: agents/be-tester.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/review/METHODOLOGY.json
+  load: declared mode/phase/resource condition only
+- match: reference/critique.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/frontend-design/METHODOLOGY.json
+  load: frontend ux_review context explicitly requires critique
+- match: templates/finding-template.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/review/METHODOLOGY.json
+  load: declared mode/phase/resource condition only
+- match: METHODOLOGY.json
+  state: ACTIVE_RESOURCE
+  consumer: scripts/lib/methodology.mjs
+  load: selected asset declaration
+- match: UPSTREAM-REUSE.yaml
+  state: PROVENANCE
+  consumer: distribution
+- match: reference/existing-code-audit.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/review/METHODOLOGY.json
+  load: logical dependency selected by unified methodology resolver
+retired:
+- path: reference/polish.md
+  superseded_by: SKILL.md
+  reason: No current entry/runtime pointer; visual polish remains frontend scope;
+    review 3.1.0 defines bounded fix discipline
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json

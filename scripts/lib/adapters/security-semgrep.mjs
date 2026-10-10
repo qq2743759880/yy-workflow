@@ -59,6 +59,8 @@ export async function run(subtask, ctx, options = {}) {
   // 扫描，workspace 就是"被审的项目"；planner 自然语言 contract 不再必然 NO_SCAN_TARGET。
   const scanTarget = options.scanTarget || subtask.scanTarget || (subtask.contract && !subtask.contract.includes(' ') && /\.(py|js|ts|java|go|c|cpp|rb|php|cs)$/.test(subtask.contract) ? resolvePath(subtask.contract, workspace) : null) || workspace;
   const checkedAt = new Date().toISOString();
+  // Python on Windows otherwise decodes UTF-8 rulesets using the system GBK locale.
+  const scanEnv = process.platform === 'win32' ? { ...process.env, PYTHONUTF8: '1' } : undefined;
   const degrade = function (contract) { return emitResult(subtask, workspace, contract, true); };
   if (!scanTarget) {
     // fail-closed（第十审计 F-002 采纳，2026-09-25）：防御性保留——workspace 默认目标落地后本分支常规不可达
@@ -102,14 +104,14 @@ export async function run(subtask, ctx, options = {}) {
   }
   // 新引擎（semgrep）：探测可用性；不可达 → Gate-1 回滚决策点（无旗标拒绝，显式旗标回滚旧路径）
   const shim = resolveCommandShim('semgrep');
-  const probe = await runCommand(shim.command, shim.prefix.concat(['--version']), { workspace, timeoutMs: 30000, timeoutCode: 'TIMEOUT', notAvailableCode: 'SEMGREP_NOT_AVAILABLE', subtask });
+  const probe = await runCommand(shim.command, shim.prefix.concat(['--version']), { workspace, env: scanEnv, timeoutMs: 30000, timeoutCode: 'TIMEOUT', notAvailableCode: 'SEMGREP_NOT_AVAILABLE', subtask });
   if (!probe.ok) {
     if (compatAllowed(options)) return runLegacyPrompt(subtask, ctx, workspace, checkedAt, 'semgrep_not_available_rollback', options.assets);
     return { ok: false, artifactPath: null, contract: null, degraded: false, error: 'SEMGREP_NOT_AVAILABLE (legacy prompt path blocked: EXPLICIT_COMPAT_MODE flag required — Gate-1 asset-migration.md §三)' };
   }
   let version = 'unknown';
   if (probe.artifactPath) { try { version = (await fs.readFile(path.join(workspace, probe.artifactPath), 'utf8')).split('\n').filter(function (l) { return /^\d+\.\d+/.test(l.trim()); })[0]?.trim() || 'unknown'; } catch (error) { version = 'unknown'; } }
-  const result = await runCommand(shim.command, shim.prefix.concat(['--config', rulesetPath, '--json', scanTarget]), { workspace, timeoutMs: options.timeoutMs || 180000, timeoutCode: 'SECURITY_SCAN_TIMEOUT', notAvailableCode: 'SEMGREP_NOT_AVAILABLE', throwOnTimeout: true, subtask });
+  const result = await runCommand(shim.command, shim.prefix.concat(['--config', rulesetPath, '--json', scanTarget]), { workspace, env: scanEnv, timeoutMs: options.timeoutMs || 180000, timeoutCode: 'SECURITY_SCAN_TIMEOUT', notAvailableCode: 'SEMGREP_NOT_AVAILABLE', throwOnTimeout: true, subtask });
   // runCommand 语义：exit 0 → stdout 落 result.txt；非 0 → stdout 转入 error。findings JSON 解析后按 rc 语义硬校验。
   let rawOut = '';
   if (result.ok && result.artifactPath) { try { rawOut = await fs.readFile(path.join(workspace, result.artifactPath), 'utf8'); } catch (error) { rawOut = ''; } }

@@ -1,8 +1,0 @@
-{
-  "pass": null,
-  "diff": "contract file is JSON but not an OpenAPI spec (missing openapi/swagger field, e.g. a freeze file); real contract validation requires a valid OpenAPI document — recorded but not validated",
-  "checkedAt": "2026-09-27T09:11:37.617Z",
-  "tool": "spectral",
-  "version": "unknown",
-  "degraded": true
-}

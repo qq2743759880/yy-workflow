@@ -54,7 +54,7 @@ if (process.argv.includes("--json")) {
 } else {
   console.log(`[TT] 探测到 ${platforms.length} 个平台 (模式: ${result.mode})`);
   if (platforms.length === 0) {
-    console.log("  未探测到已知 AI 平台配置目录。请检查 $AIHUB_ROOT 配置或手工编辑 config.json 的 platforms 段。");
+    console.log("  未探测到已知 AI 平台配置目录。请检查本机平台配置目录或手工编辑 config.json 的 platforms 段。");
   } else {
     for (const p of platforms) console.log(`  - ${p.name} (${p.note})`);
     console.log(`  编排者建议: ${roles.orchestrator ?? "(无)"}`);

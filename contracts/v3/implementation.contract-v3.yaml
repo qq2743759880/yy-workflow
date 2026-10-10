@@ -1,0 +1,105 @@
+schema: yy/asset-contract@3
+id: implementation
+version: 3.0.0
+kind: implementation
+purpose:
+  plain_language: 需求与冻结契约齐备、要把任务落地为可运行后端代码并提交仓库
+routing:
+  capability_keys:
+  - code-implementation
+  clusters:
+  - T1_DATABASE
+  - T2_BACKEND
+  - T3_AI_RAG_MCP
+io:
+  required_inputs:
+  - name: frozen_contract
+    type: contract
+    description: Frozen contract from upstream task
+  - name: task_brief
+    type: text
+    description: Task description with GWT acceptance criteria
+  required_outputs:
+  - name: deliverable
+    type: artifact
+    description: implementation output per task spec
+methodology:
+  source: vendor/implementation/implementation.md
+  required_sections: []
+application:
+  assertions:
+  - id: implementation-A1
+    critical: true
+    verifier: deterministic
+    evidence_requirements:
+    - tool_output
+    - artifact_hash
+    failure_semantics: 'implementation failed at assertion 1: 需求与冻结契约齐备、要把任务落地为可运行后端代码并提交仓库（vendor
+      首段：turn requi'
+    description: 需求与冻结契约齐备、要把任务落地为可运行后端代码并提交仓库（vendor 首段：turn requirements and frozen
+      contracts i
+  - id: implementation-A2
+    critical: true
+    verifier: structural
+    evidence_requirements:
+    - tool_output
+    - artifact_hash
+    failure_semantics: implementation execution was not established by artifact evidence
+    description: 子任务要求真实实现并产出非空交付物，由当前宿主或显式选定的外部 provider 执行
+  pass_policy:
+    critical: all
+    optional_minimum: 0
+execution:
+  primary:
+    adapter: host-native
+    mode: HOST_NATIVE
+  compatibility:
+  - adapter: portable-host-bridge
+    mode: EXTERNAL_PROVIDER
+  degradation:
+    NO_EXECUTOR: BRIEF_ONLY + executed=false
+  supported_languages:
+  - python
+  - typescript
+  - rust
+  - go
+  unsupported_scopes:
+  - frontend-ui
+evidence:
+  required:
+  - implementation_output_hash
+  - implementation_execution_log
+  forbidden_claims:
+  - unverified completion
+  - fabricated test results
+critique:
+  claims:
+  - real host execution established by artifacts?
+  patterns:
+  - prompt-only fallback
+  - contract not frozen
+blind_tests:
+  hidden_suite_id: implementation-hidden-v1
+  hidden_suite_hash: PENDING_A_P0_03_HIDDEN_EVALUATOR
+  case_count: 0
+  coverage_categories:
+  - happy_path
+  - edge_case
+  - error_handling
+  required_pass_policy:
+    critical: all
+    optional_minimum: 0
+owner_view:
+  one_liner: 'implementation: 需求与冻结契约齐备、要把任务落地为可运行后端代码并提交仓库（vendor 首段：turn requirements
+    an'
+  what_it_does: 默认 HOST_NATIVE 消费有界执行包；外部 provider 仅显式选用；无执行器为 BRIEF_ONLY、executed=false，不宣称执行或方法应用成功。
+  why_it_matters: Core implementation capability in the YY VNext asset chain
+  what_owner_decides: Whether to enable implementation for a given task cluster
+lifecycle:
+  status: POPULATED_PENDING_ACCEPTANCE
+  authority: NON_CANONICAL
+  completeness: CANDIDATE_WORK_NOT_COUNTED
+  blind_store: BLIND_METADATA_STALE_R1
+  note: A-P0-03-REWORK1 裁定——早期 implementation 填充为 NON_CANONICAL candidate work，保留不删，但不计入
+    A-P0-03 关闭条件（正确批次=be-validator/security/skill-sentinel）；blind metadata 为 R1 旧形态
+    （PENDING hash + case_count 0），不得作为完成度证据。

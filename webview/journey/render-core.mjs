@@ -5,7 +5,19 @@
  * Consumes ONLY journey.read / journey.project unified shells {ok, code, data, evidence, warnings}.
  * No backend ops added; no error codes added; page never writes state/receipts/disk (frozen §3.2).
  */
+import {assertContract} from '../../scripts/lib/delegation-contract.mjs';
 export const DISPLAY_STATES = ['AUTHORIZED', 'OBSERVED', 'INFERRED', 'STALE', 'PARTIAL', 'ERROR'];
+/** Additive read-only block. Backend owns wording and task semantics; this validates and copies. */
+export function delegationView(payload) {
+ const shell=payload?.delegation;
+ if(shell===undefined)return {status:'MISSING',reason:'未提供人工交接状态；现有手册仍可查看。',tasks:[]};
+ if(shell?.ok!==true)return {status:'ERROR',reason:'读取人工交接状态失败：'+String(shell?.code||'UNKNOWN'),tasks:[]};
+ try {
+  if(!Array.isArray(shell.data?.tasks))throw Error('任务视图列表缺失');
+  for(const task of shell.data.tasks)assertContract('TaskView',task);
+  return {status:shell.data.tasks.length?'OBSERVED':'EMPTY',reason:shell.data.tasks.length?'':'当前没有人工交接记录。',tasks:structuredClone(shell.data.tasks)};
+ } catch(error){return {status:'ERROR',reason:'人工交接数据不受支持：'+error.message,tasks:[]};}
+}
 /** Never rendered as success (frozen §6 invariant; C-R5-journey OQ-R5-8). */
 export const NEGATIVE_STATES = ['FAILED', 'SKIPPED', 'UNRESOLVED'];
 /** Worst-state rank for group rollup (higher = worse). */

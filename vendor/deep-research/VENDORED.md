@@ -19,3 +19,5 @@
 ## 入库方式（2026-09-23 修订）
 - 初次提交曾被 git 识别为嵌套仓库（gitlink 指针，克隆者拿不到源码）——已剥除内嵌 .git 目录，按普通文件快照重新入库。
 - node_modules 不入库（package.json/package-lock.json 在场，`npm install` 可复原探针运行依赖）。
+
+本内核物理生命周期见 ASSET-FILES.yaml；它是 research-gate 的外部源码包，不属于九个治理资产。README 和许可/依赖身份作为出处资料随包；未被研究入口使用的 Docker、format、test、API/交互启动器已外部退役，生产研究只从 src/deep-research.ts 进入。

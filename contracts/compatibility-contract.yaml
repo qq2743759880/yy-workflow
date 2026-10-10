@@ -1,0 +1,23 @@
+schema: yy/compatibility-contract@1
+version: 1.0.0
+description: V3 canonical → compatibility generators → old consumers unchanged → gradual
+  migration → retire old read surfaces after acceptance.
+generators:
+- target: contracts/asset-manifest-v2.json
+  source: contracts/v3/*.contract-v3.yaml
+  consumer: prompt-composer, activation, eligible, preflight, ci
+- target: CAPABILITY_MAP
+  source: V3 routing.capability_keys projection
+  consumer: activation.mjs
+- target: CLUSTERS membership
+  source: V3 routing.clusters + Routing Contract
+  consumer: planner.mjs, matrix.mjs
+deprecation:
+- surface: contracts/manifest-sources/*.yaml
+  condition: V3 accepted as sole source + manifest-build retired
+  retirement: MIGRATE_TO_V3
+- surface: CAPABILITY_MAP hardcoded in activation.mjs
+  condition: generated CAPABILITY_MAP accepted + consumers migrated
+  retirement: RETIRE_AFTER_MIGRATION
+drift_detection: generated artifacts MUST be compared against hand-maintained in CI
+  (drift → FAIL)

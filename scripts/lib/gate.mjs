@@ -15,6 +15,8 @@ function resolveContractPath(contract, workspace) {
   return path.join(workspace || '.', contract);
 }
 export async function parseContract(subtask, workspace) { 
+  // Legacy tasks may omit a contract; frozen callers are rejected by before().
+  if (subtask.contract == null) return { mode: 'describe', value: '' };
   try { 
     const text = await fs.readFile(resolveContractPath(subtask.contract, workspace), 'utf8'); 
     return { mode: 'json', value: JSON.parse(text) }; 
@@ -41,7 +43,19 @@ export async function collectArtifacts(subtask, workspace) {
   try { return await fs.readdir(dir); } catch (error) { if (error.code === 'ENOENT') return []; throw error; } 
 } 
 export async function before(subtask, opts = {}) { 
-  const current = await snapshot(subtask, opts.workspace); 
+  // A failed new attempt must not reuse an earlier attempt's contract snapshot.
+  snapshots.delete(subtask.id);
+  let current;
+  try {
+    current = await snapshot(subtask, opts.workspace);
+  } catch (error) {
+    const violation = new ContractViolationError(subtask.id, 'contract unreadable before execution: ' + error.message);
+    violation.cause = error;
+    throw violation;
+  }
+  if (subtask.contractMode === 'frozen' && current.mode !== 'json') {
+    throw new ContractViolationError(subtask.id, 'frozen contract missing before execution: ' + subtask.contract);
+  }
   snapshots.set(subtask.id, current); 
   return { subtaskId: subtask.id, pass: true, diff: null, checkedAt: new Date().toISOString() }; 
 } 

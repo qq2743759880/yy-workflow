@@ -1,0 +1,54 @@
+schema: yy/asset-files@1
+asset: planning
+iteration_protocol: reference/asset-iteration.md
+files:
+- match: ASSET-FILES.yaml
+  state: PROVENANCE
+  consumer: distribution
+- match: LICENSES.md
+  state: PROVENANCE
+  consumer: distribution
+- match: SKILL.md
+  state: ACTIVE_ENTRY
+  consumer: activation
+  load: entry
+- match: reference/LICENSE
+  state: PROVENANCE
+  consumer: distribution
+- match: reference/formal-prd.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/planning/METHODOLOGY.json
+  load: declared mode/phase/resource condition only
+- match: METHODOLOGY.json
+  state: ACTIVE_RESOURCE
+  consumer: scripts/lib/methodology.mjs
+  load: selected asset declaration
+- match: UPSTREAM-REUSE.yaml
+  state: PROVENANCE
+  consumer: distribution
+retired:
+- path: reference/vibe-prd.md
+  superseded_by: reference/formal-prd.md
+  reason: 3.1.0 entry consumes formal-prd.md; old wrapper/template has no current
+    runtime or entry consumer
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/prd-template.md
+  superseded_by: reference/formal-prd.md
+  reason: 3.1.0 entry consumes formal-prd.md; old wrapper/template has no current
+    runtime or entry consumer
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/PROMPT.md
+  superseded_by: reference/formal-prd.md
+  reason: 3.1.0 entry consumes formal-prd.md; old wrapper/template has no current
+    runtime or entry consumer
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/README.md
+  superseded_by: reference/formal-prd.md
+  reason: 3.1.0 entry consumes formal-prd.md; old wrapper/template has no current
+    runtime or entry consumer
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: reference/agents/openai.yaml
+  superseded_by: reference/formal-prd.md
+  reason: 3.1.0 entry consumes formal-prd.md; old wrapper/template has no current
+    runtime or entry consumer
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json

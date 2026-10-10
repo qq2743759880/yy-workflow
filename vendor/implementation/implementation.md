@@ -1,23 +1,20 @@
-# implementation
+---
+name: implementation
+description: Thin implementation wrapper for an admitted task, spec or tickets; host-native execution by default.
+version: 3.2.0
+---
+# Implementation — thin host wrapper
 
-Unified implementation agent: turn requirements and frozen contracts into runnable backend code and land it in the repository.
+Receive an admitted task/spec/ticket and frozen contract, resolve pinned methodology dependencies, then carry artifacts and execution evidence back to YY.
 
-## Responsibilities
-Combine requirement-to-code generation with implementation and integration.
+## Methodology
+Matt implement owns the implementation methodology. [METHODOLOGY.json](METHODOLOGY.json) binds implement → tdd + code-review, with tdd → codebase-design. Original bytes and source licenses are preserved under reference/matt; no runtime auto-update.
+YY maps invocation to USER_EXPLICIT / MODEL_ELIGIBLE / YY_ROUTED. Upstream frontmatter and platform metadata are provenance, not cross-host authority. A supported logical skill invocation uses the host mechanism; otherwise its pinned methodology is included in the package. Missing or mismatched pins fail explicitly.
 
-## Input and output
-Input is task description, contract, repository context, and prior subtasks. Output is source code, tests, and artifacts under artifacts/<subtaskId>/ using relative paths.
+## Host execution
+HOST_NATIVE is the default: the current host receives the bounded task, methodology, resources, acceptance, contract and upstream artifacts. No external CLI is required. YY does not select a model or implement a coding tutorial.
+EXTERNAL_PROVIDER requires an explicit deployment selection. Read the [optional provider instructions](reference/opencode-usage.md) only when selecting that provider. [Execution contract](../../reference/host-execution.md) defines the portable package and embedded callback.
+Without an executable host capability, return BRIEF_ONLY with executed=false. A delivered brief is not execution success.
 
-## Constraints and failure handling
-Respect contract freeze, do not invent interfaces, keep paths portable, and report unavailable tools or execution failures explicitly.
-
-## Execution kernel (opencode)
-Kernel: opencode via scripts/lib/adapters/opencode.mjs. Status: integrated and dispatched by the orchestrator, not manually copied by users.
-
-- **Invocation (non-interactive)**: the adapter probes `opencode --version`; when available it spawns `opencode <task>` directly (capturing stdout to `result.txt`), with a degraded `OPENCODE_NOT_AVAILABLE` when the CLI is missing. Exact flags follow `opencode --help`.
-- **Note**: the `--exec` host channel (brief path as last argument) is a feature of the **prompt backend** (`scripts/lib/adapters/prompt.mjs`), not of this opencode adapter. The two execution paths are independent: opencode adapter = dedicated CLI; prompt backend + `--exec` = generic host pipe.
-- **Real-execution acceptance**: a subtask is `mode=exec` when the adapter really executes (CLI success or prompt host produced a non-empty deliverable under a recognized name). Empty output / missing CLI degrades honestly to `mode=prompt` (brief-only) or `mode=skipped`.
-- **Degradation**: `OPENCODE_NOT_AVAILABLE` marks the subtask skipped with an install hint; timeout terminates the child process after the configured timeout.
-
-## Phase 2 baseline (per ITERATION_PLAN)
-This asset's execution kernel is aligned to opencode (~95k★). Replacement target: content should mirror opencode's plan/implement loop for terminal software engineering. Regression gate: `scripts/regression-all.mjs` S3 keeps the `opencode` marker; update `PHASE2` there if the kernel changes.
+## Return boundary
+Return artifacts and evidence under artifacts/<subtaskId>/; preserve task acceptance and contract refs. YY checks real output and maps failure honestly. Execution/consumption evidence does not establish methodology_applied or Receipt v2 VERIFIED; C5 remains deferred.

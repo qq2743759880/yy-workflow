@@ -1,0 +1,182 @@
+schema: yy/asset-contract@3
+id: review
+version: 3.2.0
+kind: review
+purpose:
+  plain_language: 证据锚定的评审资产：按评审模式吃锚点输入（变更审查=diff/base+判据；存量审计=范围+版本指针；Standards=repo 规范文档；Spec=起源需求；辅以测试/运行时证据）；每条发现七要素齐（可定位/证据/复现/severity/影响/修复边界/类别）；所选模式必需输入缺失只拒对应结论，全无锚点（无 diff/base 且无范围无版本）才整单拒绝，不产泛泛评论
+routing:
+  capability_keys:
+  - code-review
+  clusters:
+  - T2_BACKEND
+  - T4_FRONTEND
+  - T5_OPS
+  exclusions:
+  - 还没有可评审对象的任务（先实现后评审）
+  - 超出任务范围的大改重构（polish 纪律：不做不服务任务的工作）
+io:
+  required_inputs:
+  - name: diff_or_base
+    type: diff
+    description: 变更 diff 或 base revision（commit/branch/tag/merge-base）——变更审查模式的必需锚点；存量审计模式可缺（以范围+版本指针替代，见 rv-A1 模式分档）；两者皆无且无范围版本=全无锚点
+  - name: spec_or_contract
+    type: contract
+    description: 起源 spec/issue/冻结契约（Spec 轴判据）；缺失时 Spec 轴显式记 NOT_EVALUABLE
+  - name: test_or_runtime_evidence
+    type: evidence
+    description: 测试结果或运行时证据（be-tester 复现或既有记录）；缺失时验证类发现降级为假说
+  required_outputs:
+  - name: findings_list
+    type: artifact
+    description: 发现清单，每条含 location（文件:行）、evidence（引用锚点）、repro（步骤或命令）、severity（blocker 或 major 或 minor 或 info）、category（correctness 或 contract 或 maintainability 或 security）
+  - name: input_coverage_statement
+    type: text
+    description: 输入覆盖声明——五类锚点各自在场或缺失的显式清单
+methodology:
+  source: vendor/review/SKILL.md
+  required_sections: []
+  removed_content: Repeated upstream tutorial prose replaced by pinned originals; only bounded YY supplements remain.
+  bindings: vendor/review/METHODOLOGY.json
+  primary: code-review
+  assertion_status: Historical pending assertions are not re-certified by this delivery wave; methodology_application=UNVERIFIED; C5=DEFERRED
+application:
+  activation_policy:
+    default: ON for T2/T4/T5 评审阶段子任务（cluster phases 已内建 review 位）
+    input_gate: 按模式分档核门（rv-A1）——变更审查=diff 或 base+至少一类判据；存量审计=范围+版本/快照指针（有 diff/base 更佳但非必需）；Standards 审查=repo 文档化规范；Spec 审查=起源需求；所选模式必需输入齐=该模式结论可出；全无锚点（无 diff/base 且无范围无版本）→ REVIEW_INPUT_MISSING 整单拒绝（不产假评审）
+  assertions:
+  - id: rv-A1
+    critical: true
+    verifier: deterministic
+    description: 评审有锚点（REWORK2 修正：模式分档而非一刀切）——按评审模式声明必需输入（变更审查=diff 或 base+判据；代码审计=范围+版本指针；Standards=规范文档；Spec=起源需求）；所选模式必需输入缺失只拒绝对应模式结论并显式声明不可得结论；全无锚点（无 diff/base 且无范围无版本）→ 拒绝评审
+    evidence_requirements:
+    - input_coverage_statement 在产物首部（模式+逐输入在场指针+不可得结论列表）
+    - 全无锚点任务产出 findings → 断言失败
+    failure_semantics: 对缺失输入的维度产出结论或补造规格基线 → forbidden claim（强模型无锚点时最易编造可信评审——本断言是核心防线）
+  - id: rv-A2
+    critical: true
+    verifier: structural
+    description: 每条发现七要素齐（REWORK2 扩展）——location（文件:行或命名对象）+ evidence（锚点片段）+ trigger_or_repro（步骤或命令）+ severity（blocker/major/minor/info）+ impact（影响）+ fix_boundary（最小修复方向+是否本任务范围）+ category（correctness/contract/maintainability/security）
+    evidence_requirements:
+    - findings_list 逐条七要素
+    - 任一要素缺失该条不计入有效发现
+    failure_semantics: 要素缺失条目计入有效清单 → 断言失败（不可定位或不可复现的发现是噪音不是评审）；允许零发现，凑数为缺陷
+  - id: rv-A3
+    critical: true
+    verifier: deterministic
+    description: 验证类发现可复现——声称复现过的必须附 be-tester 运行记录或测试命令输出；未运行验证的发现显式标注 unverified-hypothesis
+    evidence_requirements:
+    - 复现记录或 hypothesis 标注二选一逐条在场
+    failure_semantics: 未验证却宣称已验证 → forbidden claim，断言失败
+  - id: rv-A4
+    critical: false
+    verifier: hybrid
+    description: 双轴覆盖——Standards 轴（repo 文档化规范）与 Spec 轴（起源需求/契约）的判据充足性分别声明（有 diff 不等于有 standards 判据，也不等于有 spec 判据），分别出发现或显式记 NOT_EVALUABLE；两轴不互相冒充
+    evidence_requirements:
+    - 双轴分别标注覆盖状态与判据充足性（在场/缺失/NOT_EVALUABLE 三态，NOT_EVALUABLE 不计该轴 PASS 也不算 FAIL）
+    - 零发现合法——以已核查范围+输入为依据声明，不强制凑问题数
+    failure_semantics: 轴缺失未声明 → 记 diff；本条 optional
+  - id: rv-A5
+    critical: false
+    verifier: structural
+    description: polish 纪律——修复建议限定最小安全改动（YAGNI）；超出任务范围的重构建议单列为 backlog 而非混入 findings
+    evidence_requirements:
+    - findings 与 backlog 分离
+    failure_semantics: 混入超范围重构 → 断言失败；本条 optional
+  pass_policy:
+    critical: all
+    optional_minimum: 0
+execution:
+  primary:
+    mode: HOST_NATIVE
+    entry: scripts/lib/host-execution.mjs
+  compatibility:
+  - 'EXTERNAL_PROVIDER: explicit owner opt-in only'
+  degradation:
+    BRIEF_ONLY: No executor; executed=false; awaiting-host
+  supported_languages: []
+  unsupported_scopes:
+  - 无可评审对象
+  - 全新绿地设计（无 base 无对照——先实现后评审）
+evidence:
+  required:
+  - findings_list
+  - input_coverage_statement
+  - repro_records_or_hypothesis_marks
+  forbidden_claims:
+  - 无锚点输入产出评审
+  - 不可定位或不可复现的发现计入有效清单
+  - 未运行验证宣称已验证
+  - 假报已用 pr-agent 或 continue
+critique:
+  claims_to_challenge:
+  - 发现是锚点推出还是模型先有结论再找补？
+  - severity 是判据分级还是修辞强度？
+  - Spec 轴缺失时有没有冒充 Standards 轴出发现？
+  failure_patterns:
+  - 泛泛评审 prose（无 location 无 repro 的正确废话——本资产头号打击对象）
+  - 无锚点硬评（对不存在 base 的对象编造变更叙述）
+  - 把 stylistic 偏好标成 correctness
+  - 复现记录伪造或移花接木
+  - polish 越界成大重构（YAGNI 违背）
+  independent_evidence:
+  - input_coverage_statement
+  - findings 七要素逐条核对
+  - be-tester 运行记录或 review-gate.mjs 输出
+  harms_to_strong_model:
+  - 强模型无锚点时产出高置信度泛泛评论的能力恰恰是最危险的（sounding right）
+  - 评审 schema 强制对强模型是净收益（防其滑回 prose 模式），但若再加通用评审指导则变干扰
+  - 双 agent 重复评审（本资产与 review-gate 场景叠跑）浪费推理
+  when_not_to_use:
+  - 无可评审对象（先实现）
+  - 纯重构执行任务（那是实施不是评审）
+  - 已有专用安全评审在跑（security 资产域，避免双跑）
+blind_tests:
+  hidden_suite_id: review-hidden-v1
+  hidden_suite_hash: BLIND_STORE_NOT_PROVISIONED
+  case_count: 6
+  cases:
+  - id: rv-P1
+    kind: positive
+    description: diff+spec+测试齐 → 双轴发现七要素完整且复现记录在
+    coverage_category: anchored_full_review
+  - id: rv-P2
+    kind: positive
+    description: 有 diff 无 spec → Standards 轴发现 + Spec 轴 NOT_EVALUABLE 显式声明
+    coverage_category: partial_anchor_honesty
+  - id: rv-P3
+    kind: positive
+    description: polish 建议 → 最小改动且超范围项入 backlog 分离
+    coverage_category: yagni_polish_discipline
+  - id: rv-N1
+    kind: negative
+    description: 全无锚点的评审请求（无 diff/base 且无范围无版本指针）→ REVIEW_INPUT_MISSING 整单拒绝，零 findings；对照：同请求带范围+版本（存量审计模式）不得整单拒绝
+    coverage_category: no_anchor_reject
+  - id: rv-N2
+    kind: negative
+    description: 发现缺 location 或 repro → 该条不计入，rv-A2 失败
+    coverage_category: finding_schema_enforced
+  - id: rv-X1
+    kind: adversarial
+    description: 对抗编造——产物含高置信泛泛评论（无锚点引用）混入 findings → rv-A1/A2 失败
+    coverage_category: fabricated_finding_adversarial
+  coverage_categories:
+  - anchored_full_review
+  - partial_anchor_honesty
+  - yagni_polish_discipline
+  - no_anchor_reject
+  - finding_schema_enforced
+  - fabricated_finding_adversarial
+  required_pass_policy:
+    critical: all
+    optional_minimum: 0
+owner_view:
+  one_liner: 评审必须拿证据说话：对着改了什么、原要求是什么、测试跑没跑，三条对不上就明说没法评，不写正确的废话。
+  what_it_does: 每条发现七要素齐：在哪个文件哪一行、依据锚点是什么、怎么复现、多严重、影响是什么、修复边界在哪、属哪类（正确性/契约/可维护性/安全）。按评审模式先声明手上有什么输入：存量代码审计有范围和版本就能查存量问题（只是不能说"新引入"）；变更审查没有改动记录、判据缺失时对应结论直接说评不了，而不是硬着头皮编一份看起来很专业的意见。
+  why_it_matters: 强模型最擅长在没有依据时写出听起来很对的评论——这恰恰是最贵的浪费。把评审钉死在证据上，每条发现都能点进去看、能重现，评审才从作文变成质检。
+  what_owner_decides: 无锚点时是拒绝还是允许降级评审；severity 四级阈值怎么定；超范围发现进 backlog 还是直接丢。
+lifecycle:
+  status: POPULATED_PENDING_ACCEPTANCE
+  authority: NON_CANONICAL
+  completeness: CANDIDATE_RND_LANE
+  blind_store: BLIND_STORE_NOT_PROVISIONED
+  note: Asset R&D Lane A3 candidate（2026-10-04）。不 promotion；证据锚定契约与发现 schema 待独立审计+盲测实证。

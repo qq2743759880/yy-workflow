@@ -31,6 +31,11 @@
     <div class="journey-grid" id="journey-grid"></div>
   </section>
 
+  <section aria-labelledby="delegation-heading">
+    <h2 id="delegation-heading" class="section-title">人工交接</h2>
+    <div id="delegation-list"><p class="muted-note">正在读取人工交接状态...</p></div>
+  </section>
+
   <!-- 证据列表 -->
   <section aria-labelledby="evidence-heading" id="evidence-section" hidden>
     <h2 id="evidence-heading" class="section-title">证据</h2>
@@ -48,17 +53,17 @@
     </div>
   </section>
 
-  <!-- B 阶段手册：数据源 content.js.phases（构建期静态产物），6 阶段逐段 -->
+  <!-- B 阶段手册：数据源 content.js.phases（构建期静态产物），7 command 入口含研究门 -->
   <section aria-labelledby="phases-heading" id="phases-section">
     <h2 id="phases-heading" class="section-title">阶段手册</h2>
-    <p class="muted-note">6 个阶段逐段：目标、注入内容摘要、配套资产、催办话术与重走等效 Prompt。</p>
+    <p class="muted-note">7 个入口逐段：目标、注入内容摘要、配套资产、催办话术与重走等效 Prompt。</p>
     <div class="phase-list" id="phases-list"></div>
   </section>
 
-  <!-- C 资产手册：数据源 content.js.assets，16 资产卡片 -->
+  <!-- C 资产手册：数据源 content.js.assets，9 资产卡片 -->
   <section aria-labelledby="assets-heading" id="assets-section">
     <h2 id="assets-heading" class="section-title">资产手册</h2>
-    <p class="muted-note">16 个资产逐卡片：功能一句话、所属域簇、强制点名话术。</p>
+    <p class="muted-note">9 个资产逐卡片：功能一句话、所属域簇、强制点名话术。</p>
     <div class="asset-grid" id="asset-grid"></div>
   </section>
 
@@ -99,6 +104,28 @@
   }
 
   function stepFor(n) { return NODE_META[n] || { step: n, name: '节点 ' + n, gate: null }; }
+
+  function renderDelegation(core,payload) {
+    var list=document.getElementById('delegation-list'),view=core.delegationView(payload);list.textContent='';
+    if(view.reason)list.appendChild(el('p','muted-note',view.reason));
+    view.tasks.forEach(function(task) {
+      var card=el('article','next-prompt delegation-card');card.setAttribute('data-delegation-task',task.task_id);
+      card.appendChild(el('h3','node-name',task.task_id));
+      card.appendChild(el('p','badge state-'+(task.stale?'STALE':'OBSERVED'),task.handoff_status+(task.stale?' · 数据已过期':'')));
+      card.appendChild(el('p','muted-note','revision '+task.revision+' · state version '+task.state_version));
+      card.appendChild(el('p','',task.owner_summary));
+      card.appendChild(el('p','muted-note','委派：'+task.delegation_mode+' · 本地执行：'+(task.executed?'已观察':'未执行')+' · 验收：'+task.validation_status+' · 独立性：'+task.independence_status));
+      card.appendChild(el('p','muted-note','输入 '+task.input_bytes+' bytes · token '+(task.token_count===null?'未知':task.token_count)+' · 用量 '+task.usage_status+' · 下一步 '+task.next_action));
+      card.appendChild(el('p','muted-note',task.registered?'已登记，成果返回后须本地验收。':'预览未登记，须先在本地准备交接。'));
+      if(task.preview_text!==null) {
+        var text=el('textarea','delegation-preview');text.value=task.preview_text;text.readOnly=true;text.rows=6;text.setAttribute('data-delegation-preview','');text.setAttribute('aria-label','可选择的交接预览文本');card.appendChild(text);
+        var button=el('button','copy-button','复制交接预览');button.type='button';button.setAttribute('data-copy-delegation','');button.setAttribute('data-copy-label','复制交接预览');
+        var feedback=el('p','copy-feedback');feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');feedback.setAttribute('data-delegation-feedback','');
+        button.onclick=function(){copyText(task.preview_text,button,feedback);};card.appendChild(button);card.appendChild(feedback);
+      }
+      list.appendChild(card);
+    });
+  }
 
   function renderStepNodes(view, core) {
     var grid = document.getElementById('journey-grid');
@@ -209,7 +236,7 @@
     }
   }
 
-  // B 阶段手册：消费 GUIDE_CONTENT.phases（FE-0 构建产物），6 阶段逐段；
+  // B 阶段手册：消费 GUIDE_CONTENT.phases（构建产物），7 command 入口含研究门；
   // GUIDE_CONTENT 缺失时不静默：由 loadGuideContent 走告警条，此处只守卫 DOM
   function renderPhases() {
     var list = document.getElementById('phases-list');
@@ -259,7 +286,7 @@
     return true;
   }
 
-  // C 资产手册：消费 GUIDE_CONTENT.assets，16 资产卡片（守卫语义同 renderPhases）
+  // C 资产手册：消费 GUIDE_CONTENT.assets，9 资产卡片（守卫语义同 renderPhases）
   function renderAssets() {
     var grid = document.getElementById('asset-grid');
     if (!grid || typeof GUIDE_CONTENT === 'undefined' || !Array.isArray(GUIDE_CONTENT.assets)) return false;
@@ -354,6 +381,8 @@
     var view = core.deriveJourneyView(payload);
     document.getElementById('loading').hidden = true;
     renderAlert(view, core);
+    renderDelegation(core,payload);
+    loadGuideContent();
     if (view.degraded) {
       document.getElementById('journey-grid').textContent = '';
       return; // 降级：只有告警条，不伪造数据
@@ -364,7 +393,6 @@
     renderEvidence(view);
     // B/C 手册区块：content.js 构建产物，独立装载渲染（失败走告警条，不静默）；
     // 投影降级/notFound 时也照常装载（手册不依赖注入数据）
-    loadGuideContent();
     // 下一步提示区：deriveJourneyView 内部已走 nextPromptView 归一化（deriveJourneyView 内部调用
     // nextPromptView/conflictView 归一化 nextPrompt 与 conflict，页面消费其组合产物）；此处再过一遍幂等，
     // 归一化对象直接传 renderNextPrompt（np=null 时显式隐藏）

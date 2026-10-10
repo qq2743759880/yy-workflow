@@ -1,0 +1,16 @@
+C4Container
+ title YY execution system - Containers
+ Person(owner, "Owner", "Provides goals and sign-off")
+ System_Ext(host, "Current Agent host", "Displays decisions and executes tasks")
+ System_Ext(provider, "Optional execution party", "Explicit provider or manual handoff")
+ System_Boundary(yy, "YY tools") {
+ Container(cli, "YY CLI", "Node.js", "Local admission and execution entry")
+ Container(mcp, "Optional MCP service", "Node.js / MCP", "Read-only V2 and legacy M1 endpoints")
+ ContainerDb(files, "Project files", "Filesystem", "Contracts, checkpoint, artifacts and evidence")
+ }
+ Rel(owner, host, "Requests a task", "Host interaction")
+ Rel(host, cli, "Runs local commands", "CLI")
+ Rel(host, mcp, "Requests Decision", "MCP")
+ Rel(cli, files, "Reads and writes task evidence", "Filesystem")
+ Rel(cli, provider, "Explicitly hands off bounded task", "Bounded file package")
+ UpdateRelStyle(cli, provider, $offsetX="-135", $offsetY="-40")

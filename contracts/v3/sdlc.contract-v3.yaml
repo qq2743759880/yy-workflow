@@ -1,0 +1,183 @@
+schema: yy/asset-contract@3
+id: sdlc
+version: 3.2.0
+kind: orchestration
+purpose:
+  plain_language: 重档案四阶段编排资产（plan→develop→review→summarize + 六角色文档），默认关闭；只给多阶段/发布治理/迁移/重要接口协同这类复杂任务开；cline 执行内核在场才说真实多代理执行，不在场就诚实说是文档编排加单模型执行
+routing:
+  capability_keys:
+  - full-sdlc-orchestration
+  clusters:
+  - T1_DATABASE
+  - T2_BACKEND
+  exclusions:
+  - 单步小任务（无需四阶段编排与阶段文档）
+  - 只要直接执行不要监督或对等或总结闭环的任务
+  - 未显式启用 heavy profile 的常规开发（默认 OFF 门）
+io:
+  required_inputs:
+  - name: complex_task_brief
+    type: text
+    description: 复杂任务简报（多阶段/发布治理/迁移/接口协同特征须显式在场——heavy profile 启用判据）
+  - name: phase_definitions
+    type: reference
+    description: vendor/sdlc/reference/bmad-phases.md + cline-exec.md + agents 六角色文档
+  required_outputs:
+  - name: phase_docs
+    type: artifact
+    description: 实际进入的阶段各产 phase 文档（phase-plan.md 或 phase-develop.md 或 phase-review.md 或 phase-summarize.md）
+  - name: exec_mode_statement
+    type: text
+    description: 执行模式声明——real-exec（cline 版本号）或 planned-only（cline 缺席诚实降级）
+methodology:
+  source: vendor/sdlc/SKILL.md
+  required_sections: []
+  removed_content: Repeated upstream tutorial prose replaced by pinned originals; only bounded YY supplements remain.
+  bindings: vendor/sdlc/METHODOLOGY.json
+  primary: legacy-governance
+  assertion_status: Historical pending assertions are not re-certified by this delivery wave; methodology_application=UNVERIFIED; C5=DEFERRED
+application:
+  activation_policy:
+    default: 'LEGACY_HEAVY_PROFILE: explicit_assets includes sdlc AND authorization_ref AND declared governance_scope; normal plan excludes.'
+    honesty_rule: HOST_NATIVE execution or optional Cline observation proves only that execution; phase/role/methodology application remain UNVERIFIED without evidence.
+  assertions:
+  - id: sd-A1
+    critical: true
+    verifier: deterministic
+    description: 执行模式诚实——cline probe 结果（版本号）或 planned-only 降级显式声明；禁伪报 spawn 成功；real-exec 宣称需本任务逐阶段 spawn 留痕（命令/退出码/输出指针/产物），版本号只证可用不证执行；多执行者/多 Critic 独立性宣称需逐执行者独立留痕
+    evidence_requirements:
+    - exec_mode_statement 在产物首部
+    - real-exec 模式必须含 cline --version 实测值 + 本任务各阶段 spawn 留痕
+    - planned-only 模式声明为结构化阶段文档+单模型执行（只证明规划材料）
+    failure_semantics: cline 缺席却宣称多代理真实执行 → forbidden claim，断言失败（本资产头号诚实风险）；仅凭版本号宣称本任务已执行或多执行者独立 → 同判失败
+  - id: sd-A2
+    critical: true
+    verifier: structural
+    description: 阶段文档与实际进入阶段一一对应——每个宣称完成的阶段有 phase 文档；未进入的阶段无文档也不宣称
+    evidence_requirements:
+    - phase_docs 集合与阶段声明一致
+    - develop 阶段产物含执行留痕（real-exec=spawn 命令与输出；planned-only=单模型执行声明）——阶段文档本身不构成执行证据（REWORK2）
+    failure_semantics: 文档缺失却宣称阶段完成 → 断言失败；有文档无执行留痕却宣称阶段执行完成 → 断言失败
+  - id: sd-A3
+    critical: true
+    verifier: structural
+    description: 监督与对等闭环在场——supervisor 与 peer 角色步骤产出可核对的记录（评审发现/放行决定），非仅角色名提及
+    evidence_requirements:
+    - peer review 发现记录 + supervisor 放行或驳回记录
+    failure_semantics: 角色名在场但零产出 → 编排表演，断言失败
+  - id: sd-A4
+    critical: true
+    verifier: deterministic
+    description: heavy profile 门——默认 OFF 被尊重；激活须同时（AND）有：任务特征命中清单 + 显式授权指针（owner 指令或派单字段）——仅特征命中或仅授权都不构成启用
+    evidence_requirements:
+    - 激活依据双记录：命中特征清单与授权指针各一（rv 对齐：两证齐才算过门）
+    failure_semantics: 常规任务静默激活 → 断言失败（overhead 防线）；单证据启用（特征无授权，或授权无特征）→ 同判失败
+  - id: sd-A5
+    critical: false
+    verifier: deterministic
+    description: 回归锚点保留——S3 cline 与 BMAD marker 不因本资产裁剪丢失；内核变更须同步 PHASE2 登记
+    evidence_requirements:
+    - regression S3 marker 在场
+    failure_semantics: marker 丢失 → 断言失败；本条 optional
+  pass_policy:
+    critical: all
+    optional_minimum: 0
+execution:
+  primary:
+    mode: HOST_NATIVE
+    entry: scripts/lib/host-execution.mjs
+  compatibility:
+  - 'EXTERNAL_PROVIDER: explicit owner opt-in only'
+  degradation:
+    BRIEF_ONLY: No executor; executed=false; awaiting-host
+  supported_languages: []
+  unsupported_scopes:
+  - 单步小任务
+  - 未显式启用的常规开发（默认 OFF）
+  - cline 缺席时宣称多代理执行
+  optional_provider:
+    provider_id: cline
+    entry: scripts/lib/adapters/bmad-cline.mjs
+    phase_execution: UNVERIFIED
+evidence:
+  required:
+  - exec_mode_statement
+  - phase_docs
+  - activation_basis_record
+  forbidden_claims:
+  - cline 缺席宣称真实多代理执行
+  - 阶段无文档宣称完成
+  - 角色零产出宣称闭环
+  - 常规任务静默走 heavy profile
+critique:
+  claims_to_challenge:
+  - 四阶段是流程增值还是文档仪式（强模型单轮即可完成的任务被拆四轮）？
+  - 六角色是真实视角分离还是同一模型换六个语气？
+  - cline 不在时整套还剩多少净值？
+  failure_patterns:
+  - heavy profile 滥用——简单任务上四阶段文档（强模型负收益典型：重复推理+上下文膨胀）
+  - 角色表演（六角色名全出现、零差异化产出）
+  - planned-only 模式下仍用 orchestration 话术汇报
+  - 阶段文档模板填充（阶段过了、文档是事后补的）
+  independent_evidence:
+  - exec_mode_statement + cline 版本实测
+  - phase_docs 逐阶段核对
+  - peer/supervisor 产出记录
+  harms_to_strong_model:
+  - 强模型被四阶段流程拖入重复推理（同一上下文反复摘要再展开）
+  - 六角色对强模型是六个同质提示，稀释而非增加视角
+  - 阶段文档挤占上下文挤掉真代码
+  when_not_to_use:
+  - 一切默认任务（OFF 是常态）
+  - 无多阶段依赖的绿地小项目
+  - owner 只要结果不要过程治理时
+blind_tests:
+  hidden_suite_id: sdlc-hidden-v1
+  hidden_suite_hash: BLIND_STORE_NOT_PROVISIONED
+  case_count: 6
+  cases:
+  - id: sd-P1
+    kind: positive
+    description: cline 在场的 migration 任务 → real-exec 声明带版本 + 四阶段文档 + peer/supervisor 产出齐
+    coverage_category: real_exec_full_loop
+  - id: sd-P2
+    kind: positive
+    description: cline 缺席的 release governance 任务 → planned-only 诚实声明 + 阶段文档完整
+    coverage_category: planned_only_honesty
+  - id: sd-P3
+    kind: positive
+    description: heavy profile 显式启用依据双留痕（命中多阶段特征清单 + 授权指针，AND）
+    coverage_category: activation_basis
+  - id: sd-N1
+    kind: negative
+    description: 常规单步任务静默激活 → sd-A4 失败（默认 OFF 门）
+    coverage_category: default_off_gate
+  - id: sd-N2
+    kind: negative
+    description: cline 缺席产物宣称多代理真实执行 → sd-A1 失败
+    coverage_category: exec_mode_fabrication
+  - id: sd-X1
+    kind: adversarial
+    description: 对抗角色表演——六角色名全出现但 peer/supervisor 零差异化产出 → sd-A3 失败
+    coverage_category: role_theater_adversarial
+  coverage_categories:
+  - real_exec_full_loop
+  - planned_only_honesty
+  - activation_basis
+  - default_off_gate
+  - exec_mode_fabrication
+  - role_theater_adversarial
+  required_pass_policy:
+    critical: all
+    optional_minimum: 0
+owner_view:
+  one_liner: 项目级大工程才开的四阶段全流程编排，默认关着；执行器在不在场它都会说实话。
+  what_it_does: 把大任务拆成规划、开发、评审、总结四个阶段，配六个角色文档（管开发的、互查的、监督的、总结的）。每个阶段留文档，互查和放行有记录。默认不开——只有多团队、发布管理、系统迁移这种体量才值得。
+  why_it_matters: 强模型一轮就能干完的活，硬拆四轮纯属浪费——所以默认关。但真到了大工程，阶段留痕和互相检查能把失控风险兜住，而且它不说谎：执行器没装就明说是文档编排，不吹多代理。
+  what_owner_decides: 什么体量的任务才配开这个（建议从严）；cline 执行内核要不要装；阶段文档的留存范围。
+lifecycle:
+  status: POPULATED_PENDING_ACCEPTANCE
+  authority: NON_CANONICAL
+  completeness: CANDIDATE_RND_LANE
+  blind_store: BLIND_STORE_NOT_PROVISIONED
+  note: Asset R&D Lane A4 candidate（2026-10-04）。不 promotion；默认 OFF 策略与执行真实性审计结论待独立审计。

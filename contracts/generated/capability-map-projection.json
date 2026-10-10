@@ -1,0 +1,122 @@
+{
+  "schema": "yy/capability-map-projection@1",
+  "mode": "EXACT_PARITY_COMPATIBILITY_BASELINE",
+  "generated_from": {
+    "capability_map": "scripts/lib/activation.mjs CAPABILITY_MAP（受控映射，逐字精确保留）",
+    "clusters": "scripts/lib/matrix.mjs CLUSTERS（簇成员与序，逐字精确保留）"
+  },
+  "exact_parity_note": "本投影是兼容性 parity 权威产物：CAPABILITY_MAP 10 键 + CLUSTERS 5 簇逐字节等值。当前不存在 ACCEPTED+CANONICAL V3 契约，故语义内容不宣称来自已接受的 V3 真相；V3 契约字节/生命周期变化仅作为 gate 状态入账并传导 digest。",
+  "inputs": {
+    "module_hashes": {
+      "scripts/lib/activation.mjs": "35fff0a034d86e4ca86bd1027127da3b5ee6d06fb79c7bc39e0a26eb31c9a574",
+      "scripts/lib/matrix.mjs": "39a597a87ac47412a5361cb8386029940f3f803cf55e1e2b3b161125cab0b26a"
+    },
+    "v3_lifecycle_state": {
+      "be-validator": {
+        "file": "contracts/v3/be-validator.contract-v3.yaml",
+        "sha256": "6c6715e4f11796cef58d298f5b3ed2590acc02e11137fbc3eb40d7de9bc240e2",
+        "lifecycle_status": "POPULATED_PENDING_ACCEPTANCE"
+      },
+      "dev-planner": {
+        "file": "contracts/v3/dev-planner.contract-v3.yaml",
+        "sha256": "595724d164e27b2d83e99ed981b1efcdfd68cb9e19f5812c8d261c993c0cab6f",
+        "lifecycle_status": "POPULATED_PENDING_ACCEPTANCE"
+      },
+      "frontend-design": {
+        "file": "contracts/v3/frontend-design.contract-v3.yaml",
+        "sha256": "e47e0b787b4ad051b7d808c9be293114b98601fe8f219cd02000b52119fdec36",
+        "lifecycle_status": "POPULATED_PENDING_ACCEPTANCE"
+      },
+      "implementation": {
+        "file": "contracts/v3/implementation.contract-v3.yaml",
+        "sha256": "12b1561a7c6016078066e7c91ede603e3f3863d1ebcb46e212028bbb638ce12d",
+        "lifecycle_status": "POPULATED_PENDING_ACCEPTANCE"
+      },
+      "planning": {
+        "file": "contracts/v3/planning.contract-v3.yaml",
+        "sha256": "0af7f4f19dbc05ceb7496182309625fe5deaaa7ec5dcc6517840fd6e1cc2c4b0",
+        "lifecycle_status": "POPULATED_PENDING_ACCEPTANCE"
+      },
+      "review": {
+        "file": "contracts/v3/review.contract-v3.yaml",
+        "sha256": "060b7600375cf92a820e687273e55476fe163149d5fb85f07208f4178dfc1f07",
+        "lifecycle_status": "POPULATED_PENDING_ACCEPTANCE"
+      },
+      "sdlc": {
+        "file": "contracts/v3/sdlc.contract-v3.yaml",
+        "sha256": "182b23517a00bd32ab718ff558248c28a63b765f363f0357310fa051a75ca8d2",
+        "lifecycle_status": "POPULATED_PENDING_ACCEPTANCE"
+      },
+      "security": {
+        "file": "contracts/v3/security.contract-v3.yaml",
+        "sha256": "9e029784c9cef9d58dc0192cc8158e43aee107f014ff731c088d19100be231eb",
+        "lifecycle_status": "POPULATED_PENDING_ACCEPTANCE"
+      },
+      "skill-sentinel": {
+        "file": "contracts/v3/skill-sentinel.contract-v3.yaml",
+        "sha256": "55df909f23a5715f11e811737dc997c8d4b4ba99cb45bf2c5061436772047d03",
+        "lifecycle_status": "POPULATED_PENDING_ACCEPTANCE"
+      }
+    }
+  },
+  "map": {
+    "openapi-validation": "be-validator",
+    "backend-validation": "be-validator",
+    "security-audit": "security",
+    "skill-security-scan": "skill-sentinel",
+    "code-implementation": "implementation",
+    "frontend-design": "frontend-design",
+    "prd-planning": "planning",
+    "feature-breakdown": "dev-planner",
+    "code-review": "review",
+    "full-sdlc-orchestration": "sdlc"
+  },
+  "clusters": {
+    "T1_DATABASE": {
+      "candidates": [
+        "implementation",
+        "be-validator",
+        "sdlc"
+      ]
+    },
+    "T2_BACKEND": {
+      "candidates": [
+        "implementation",
+        "sdlc",
+        "security",
+        "review",
+        "be-validator"
+      ]
+    },
+    "T3_AI_RAG_MCP": {
+      "candidates": [
+        "implementation",
+        "be-validator",
+        "dev-planner"
+      ]
+    },
+    "T4_FRONTEND": {
+      "candidates": [
+        "frontend-design",
+        "planning",
+        "review",
+        "security"
+      ]
+    },
+    "T5_OPS": {
+      "candidates": [
+        "security",
+        "skill-sentinel",
+        "be-validator",
+        "review"
+      ]
+    }
+  },
+  "lifecycle": {
+    "status": "GENERATED",
+    "authority": "CANONICAL_PARITY_ARTIFACT",
+    "completeness": "EXACT_PARITY_COMPATIBILITY_BASELINE",
+    "note": "兼容基线纪元产物；v3 权威模式需全部契约 ACCEPTED+CANONICAL 且与基线零漂移（generate-projections.mjs --mode v3）。"
+  },
+  "projection_digest": "061248f9aebfe73313e4bff7158b5e832af4604803446f3ccb468db4d94ed061"
+}

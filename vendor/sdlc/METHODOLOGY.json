@@ -1,0 +1,96 @@
+{
+  "schema": "yy/methodology-bindings@1",
+  "asset": "sdlc",
+  "methodology_type": "LEGACY_HEAVY_PROFILE",
+  "wrapper_policy": "USER_EXPLICIT",
+  "wrapper_source": {
+    "path": "SKILL.md",
+    "scope": "asset",
+    "sha256": "05adc3850c4fbe247ce26e617ab63dc4f3e8fcc46efc61f76ecf91bb160ca084"
+  },
+  "licenses": [
+    {
+      "path": "LICENSE",
+      "scope": "package",
+      "sha256": "39ad33402a909bc27000cde7ec17024209243db571dd7af7aed67a7f28a19883"
+    }
+  ],
+  "primary": "legacy-governance",
+  "skills": {
+    "legacy-governance": {
+      "path": "SKILL.md",
+      "scope": "asset",
+      "sha256": "05adc3850c4fbe247ce26e617ab63dc4f3e8fcc46efc61f76ecf91bb160ca084",
+      "invocation_policy": "YY_ROUTED",
+      "dependencies": [],
+      "resources": [
+        {
+          "path": "reference/phase-templates.md",
+          "scope": "asset",
+          "sha256": "ad8952952a15e089b9d90abe5c233db038c4d315606aadaafc39fdde18d5e305"
+        },
+        {
+          "path": "reference/bmad-phases.md",
+          "scope": "asset",
+          "sha256": "8fe23c7456004ee799b488d44a64580608fb50c18aa2baaa08821298f7638893"
+        },
+        {
+          "path": "agents/control.md",
+          "scope": "asset",
+          "sha256": "504a464d22eec97b3818956ecf83954b38e3842c480727d79c829f319d50fae6",
+          "when": {
+            "roles": "control"
+          }
+        },
+        {
+          "path": "agents/developer.md",
+          "scope": "asset",
+          "sha256": "245f59a7b723a78fe1068082bfb5f347bcf0dea577424213efedac27d9675de7",
+          "when": {
+            "roles": "developer"
+          }
+        },
+        {
+          "path": "agents/peer.md",
+          "scope": "asset",
+          "sha256": "c06b3a47135fc668a077f4ff16074684d7db838463770baf1c5ad80b0c678be3",
+          "when": {
+            "roles": "peer"
+          }
+        },
+        {
+          "path": "agents/sprint.md",
+          "scope": "asset",
+          "sha256": "f3a06ac87a9d3d8855a4cce1debc76742a57dc178e997d3335f4a8db7c941563",
+          "when": {
+            "roles": "sprint"
+          }
+        },
+        {
+          "path": "agents/summary.md",
+          "scope": "asset",
+          "sha256": "3f051246c9ba9c8a4a8e6bd2d6ffc4f57391a4594f3dfda70b5244150dfc1134",
+          "when": {
+            "roles": "summary"
+          }
+        },
+        {
+          "path": "agents/supervisor.md",
+          "scope": "asset",
+          "sha256": "661b656f9f945028bb3346bbb027e7215e043c56cd1f4ea2066dc866aad2ca9a",
+          "when": {
+            "roles": "supervisor"
+          }
+        }
+      ]
+    }
+  },
+  "optional_profile": {
+    "asset": "sdlc",
+    "scopes": [
+      "release-governance",
+      "large-migration",
+      "multi-stage-governance"
+    ]
+  }
+}

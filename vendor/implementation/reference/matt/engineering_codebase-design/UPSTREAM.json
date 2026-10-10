@@ -1,0 +1,18 @@
+{
+  "repository": "mattpocock/skills",
+  "commit": "24fe0ef7737efae15c87225755e9f6f5965e4888",
+  "source_path": "skills/engineering/codebase-design",
+  "license": "MIT",
+  "license_ref": "../LICENSE",
+  "source_sha256": "2c20617f87ec8af6a434859f381b2f061a69b530444e74eb39e78bb016a6d1e2",
+  "vendored_sha256": "2c20617f87ec8af6a434859f381b2f061a69b530444e74eb39e78bb016a6d1e2",
+  "files": {
+    "DEEPENING.md": "f3dd099ce99289bd213914d8ee3e2429b78309c3957ca4583f7659551b1d53c1",
+    "DESIGN-IT-TWICE.md": "52b52e75655a27aea59c6966b410bac82448968ad46ef1ebb9f07c274e3ae010",
+    "SKILL.md": "2c20617f87ec8af6a434859f381b2f061a69b530444e74eb39e78bb016a6d1e2",
+    "agents/openai.yaml": "edebc9e4fcfe102114012575eaa9600b9b5fd08c311664f389c36e7bc717740f"
+  },
+  "fetched_at": "2026-10-05",
+  "reuse_mode": "COMPOSE_UPSTREAM",
+  "byte_verification": "every vendored file sha256 in files map == tar member at pin"
+}

@@ -1,0 +1,19 @@
+schema: yy/asset-files@1
+asset: dev-planner
+iteration_protocol: reference/asset-iteration.md
+files:
+- match: ASSET-FILES.yaml
+  state: PROVENANCE
+  consumer: distribution
+- match: dev-planner.md
+  state: ACTIVE_ENTRY
+  consumer: activation
+  load: entry
+- match: METHODOLOGY.json
+  state: ACTIVE_RESOURCE
+  consumer: scripts/lib/methodology.mjs
+  load: selected asset declaration
+- match: UPSTREAM-REUSE.yaml
+  state: PROVENANCE
+  consumer: distribution
+retired: []

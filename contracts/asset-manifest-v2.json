@@ -1,5 +1,6 @@
 [
   {
+    "optional_profile": null,
     "id": "be-validator",
     "name": "be-validator",
     "role": "You design and implement Zod schemas for request/response validation, generate OpenAPI specs, enforce RFC 9457 error responses, and handle input sanitization.",
@@ -24,136 +25,150 @@
     "drop_allowed": false
   },
   {
+    "optional_profile": null,
     "id": "dev-planner",
     "name": "dev-planner",
-    "role": "You are the planning agent for feature development.",
-    "capability": "Analyzes feature requirements, breaks them into frontend/backend tasks, defines acceptance criteria in Given/When/Then format, writes handoff specs. Challenges premises before decomposing (gstack office-hours pattern). Use at the start of any new feature development. Triggers: plan feature, feature breakdown, requirements analysis, 기능 기획, 요구사항 분석.",
+    "role": "[METHODOLOGY.json](METHODOLOGY.json) is the binding truth: grilling for unresolved decisions; to-spec for a missing spec; to-tickets for the work breakdown and blocking edges.",
+    "capability": "Thin Decision asset bridge to pinned grilling, to-spec and to-tickets. Deliver specs and tracer-bullet tickets with declared blocking edges.",
     "cluster": [
       "T3_AI_RAG_MCP"
     ],
     "when_to_use": [
-      "新功能开发起点：需求分析、前后端任务分解、Given/When/Then 验收标准、handoff spec（frontmatter 触发词：plan feature / feature breakdown / requirements analysis）",
-      "分解前需前提挑战（Premise Challenge：Why now/现状/最窄楔子/未来适配，PREMISES 确认表）"
+      "Feature breakdown into tracer-bullet tickets and blocking edges",
+      "Missing specification or unresolved design decisions require declared to-spec/grilling dependencies"
     ],
     "when_not_to_use": [
-      "需求已明确且已拆解、可直接派单执行的任务（无分解价值）",
-      "用户拒绝 premise 确认且按 vendor 纪律不得产出任务分解的场合（premises never skippable）"
+      "An already complete task breakdown ready for implementation"
     ],
-    "verification": "产物 spec（.claude/specs/dev-{slug}.md）含 GWT 验收标准 + premise 段 + plan-review 段（须过 `review-gate.mjs --plan`）；分解前设计文档先行检索（docs/designs grep）并声明 build-on/start-fresh；EA-1 基线：BW 4/4 工作区含「需求前提挑战（dev-planner Step 0）」署名，消费语义已实测",
+    "verification": "artifacts/specs/ and artifacts/tickets/ references plus requested plan-review report; delivery is not methodology application proof",
     "source": "vendor/dev-planner/dev-planner.md#L1-L5",
     "drop_pending": false,
     "drop_allowed": false
   },
   {
+    "optional_profile": null,
     "id": "frontend-design",
     "name": "frontend-design",
-    "role": "Single entry for five capabilities.",
-    "capability": "Unified frontend design cluster covering generation, taste, design data, component selection, and prototyping",
+    "role": "消费形态：frontmatter 由 manifest 扫描（扁平字段）；正文按 activation body 级投递；",
+    "capability": "分级前端设计资产（L0-L3）。有界面产物时按复杂度加载：小修只过机检门，标准页面走 Design Read+三拨盘+按主题查设计数据，全设计任务才进完整 taste 工作流与原型。纯后端与数据密集仪表盘不触发。",
     "cluster": [
       "T4_FRONTEND"
     ],
     "when_to_use": [
-      "前端界面生成与设计决策：Design Read→三拨盘（DESIGN_VARIANCE/MOTION_INTENSITY/VISUAL_DENSITY）→Pre-Flight Check 的 taste 工作流",
-      "需要真查设计数据再定风格/配色/字体/组件/动效（search.py 查 ux/style/color/typography/gsap/chart 目录）与组件选型、原型化"
+      "有界面产物的前端任务按 L0-L3 分级加载：L1 既有样式微调只跑 frontend-quality-gate 机检门；L2 标准页面/组件走 Design Read+三拨盘+按主题引用 reference（≤3 篇）+相关域数据查询；L3 全设计任务进完整 taste 工作流与显式请求的 PICKER 原型",
+      "需要真查设计数据再定风格/配色/字体/组件/动效（search.py 查 ux/style/color/typography/gsap/chart 目录）与组件选型"
     ],
     "when_not_to_use": [
-      "无前端/界面产物的任务（纯后端、脚本、文档）",
-      "无法走两步必做纪律的场合（vendor 原文：每个设计任务写码前 MUST 跑 taste 工作流 + search.py 真查，禁跳过）"
+      "L0 无界面产物任务（纯后端、脚本、文档）——不加载本资产",
+      "纯数据表格/仪表盘类产品 UI（taste 上游明示不适用域）；分级未接入运行时前由派单方声明级别（缺省 L2，候选政策见契约 tier_policy_status）"
     ],
-    "verification": "产物体现两步必做证据：taste-skill 工作流产出（Design Read 一行+三拨盘取值）+ search.py 真实查询行（python 缺失时读 CSV 或显式声明跳过，禁伪造查询结果）；Pre-Flight 50+ 项矩阵过检；S3 marker（shadcn/bolt.new）+消费锚点机验",
+    "verification": "分级语义下产物证据按级别适用：L1=仅机检门输出（frontend-quality-gate exit code+警告清单，主观项如实 N/A 不计 PASS）；L2+=Design Read 一行+三拨盘取值理由+search.py 真实查询行（python 缺失读 CSV 或显式声明跳过，禁伪造）+机检门；机检门只证代码静态项，不证审美/真实交互/可访问性全量/响应式实测；S3 marker（shadcn/bolt.new）+消费锚点机验",
     "source": "vendor/frontend-design/SKILL.md#L1-L5",
     "drop_pending": false,
     "drop_allowed": false
   },
   {
+    "optional_profile": null,
     "id": "implementation",
     "name": "implementation",
-    "role": "Unified implementation agent: turn requirements and frozen contracts into runnable backend code and land it in the repository.",
-    "capability": "Unified implementation agent: turn requirements and frozen contracts into runnable backend code and land it in the repository.",
+    "role": "Receive an admitted task/spec/ticket and frozen contract, resolve pinned methodology dependencies, then carry artifacts and execution evidence back to YY.",
+    "capability": "Thin implementation wrapper for an admitted task, spec or tickets; host-native execution by default.",
     "cluster": [
       "T1_DATABASE",
       "T2_BACKEND",
       "T3_AI_RAG_MCP"
     ],
     "when_to_use": [
-      "需求与冻结契约齐备、要把任务落地为可运行后端代码并提交仓库（vendor 首段：turn requirements and frozen contracts into runnable backend code）",
-      "子任务要求 mode=exec 真实执行（经 opencode 专用 adapter 或 prompt backend --exec 宿主通道产出非空交付物）"
+      "需求与冻结契约齐备、要把任务落地为可运行后端代码并提交仓库",
+      "子任务要求真实实现并产出非空交付物，由当前宿主或显式选定的外部 provider 执行"
     ],
     "when_not_to_use": [
       "契约尚未冻结（上游契约产物先行冻结，再进实现）",
       "纯规划/评审/调研类任务（无代码落地交付物）"
     ],
-    "verification": "产物为源代码+测试，落 artifacts/<subtaskId>/ 相对路径；执行内核=opencode adapter：probe `opencode --version` 可用则真实 spawn 执行，CLI 缺失诚实降级 OPENCODE_NOT_AVAILABLE（mode=skipped 附安装提示），禁伪报 exec 成功；regression S3 保留 opencode marker",
-    "source": "vendor/implementation/implementation.md#L1-L5",
+    "verification": "执行内核=host-native；默认 HOST_NATIVE 消费有界执行包；真实非空产物和 hash 留痕。外部 provider 仅显式选用；无执行器为 BRIEF_ONLY、executed=false，不宣称执行或方法应用成功。",
+    "source": "vendor/implementation/implementation.md#L7-L20",
     "drop_pending": false,
     "drop_allowed": false
   },
   {
+    "optional_profile": null,
     "id": "planning",
     "name": "planning",
-    "role": "For formal team review use reference/formal-prd.md.",
-    "capability": "Unified PRD and planning cluster for formal PRDs and Vibe Coding PRDs",
+    "role": "[METHODOLOGY.json](METHODOLOGY.json) binds the upstream methods.",
+    "capability": "Compose pinned grilling and to-spec; YY adds only formal/vibe owner governance and artifact delivery.",
     "cluster": [
       "T4_FRONTEND"
     ],
     "when_to_use": [
-      "需要正式 PRD 供团队评审（reference/formal-prd.md：产品上下文/目标/用户/功能/优先级/验收/风险）",
-      "需要 Vibe Coding PRD（四确认关卡顺序过：需求定义→功能优先级→技术栈→原型，禁跳门）"
+      "需要正式 PRD 供团队评审（formal 产物线：七节结构+实质判据+复用登记，不走四门）",
+      "owner 选择 vibe 流程（vibe 产物线：四确认关卡顺序过——需求定义→功能优先级→技术栈→原型，禁跳门，逐门留痕）；两条产物线独立，互不强加"
     ],
     "when_not_to_use": [
-      "已有 dev-planner handoff spec、无需 PRD 级评审的小步任务（EA-1：BW 规划由 dev-planner 承担，本资产零现——宁窄勿编）"
+      "简单局部修改、已有 dev-planner handoff spec 的任务（EA-1：BW 规划由 dev-planner 承担，本资产零现——宁窄勿编）",
+      "无评审对象的纯执行任务；验收节含 Given/When/Then 可观察示例不属越界（禁止的是完整任务拆分/依赖排期/实现级 handoff，按职责切分非词形）"
     ],
-    "verification": "产物为 formal-prd 或 vibe-prd 文档，四确认关卡逐门留痕（未过前门不得进后门）；执行内核按 vendor 头部（MetaGPT/crewAI 对标）——probe 可用则参考，缺失用内置流程并诚实标注；S3 marker（MetaGPT/crewAI）+消费锚点机验",
+    "verification": "产物按线分档——formal=七节实质判据核对表+复用登记（vibe 四门不适用）；vibe=四门逐门留痕（门名/确认人/时间或会话指针/产物指针，未过前门不得进后门）；owner 已确认信息直接引用来源登记复用，须真实授权的仅限关键目标变更/权限类/不可逆决策；pending 关卡显式登记禁自答；执行内核按 vendor 头部（MetaGPT/crewAI 对标）——probe 可用则参考，缺失用内置流程并诚实标注；S3 marker（MetaGPT/crewAI）+消费锚点机验",
     "source": "vendor/planning/SKILL.md#L1-L5",
     "drop_pending": false,
     "drop_allowed": false
   },
   {
+    "optional_profile": null,
     "id": "review",
     "name": "review",
-    "role": "Critique: discover UX, architecture, and quality problems using reference/critique.md.",
-    "capability": "Unified review cluster for critique, automated verification, and polish",
+    "role": "Use [METHODOLOGY.json](METHODOLOGY.json) as the sole methodology binding.",
+    "capability": "Matt change review plus YY existing-code audit, seven-element findings and backend evidence. Requires an explicit review mode and its evidence anchors.",
     "cluster": [
       "T2_BACKEND",
       "T4_FRONTEND",
       "T5_OPS"
     ],
     "when_to_use": [
-      "对已有产出做 critique：发现 UX/架构/质量问题（reference/critique.md）",
+      "对已有产出按评审模式评审：变更审查（diff/base+判据）、存量代码审计（范围+版本指针，无 diff 合法）、Standards 审查（repo 规范文档）、Spec 审查（起源需求）——按模式声明必需输入",
       "需要对发现做自动化验证（nested testing agent 产出可复现证据）与 polish（最小安全改动，YAGNI 纪律）"
     ],
     "when_not_to_use": [
-      "还没有可评审对象（产出未存在，先实现后评审）",
-      "超出任务范围的大改/重构（polish 纪律：不做不服务任务的工作）"
+      "还没有可评审对象（先实现后评审）；全无锚点（无 diff/base 且无范围无版本）整单拒绝",
+      "超出任务范围的大改/重构（polish 纪律：不做不服务任务的工作）；安全深扫走 security 资产"
     ],
-    "verification": "产物为评审 finding 清单，每条含证据与可复现步骤（agents/be-tester.md 验证记录）；执行内核按 vendor 头部（qodo-ai/pr-agent 行级批注 + continuedev/continue 规则即代码）——probe 可用则接入，缺失降级内置 critique.md+be-tester.md 流程并诚实标注；消费锚点+内核词机验",
+    "verification": "产物=输入覆盖声明（模式+逐输入在场指针+判据充足性按轴三态+不可得结论）+发现清单七要素（位置/证据/复现/严重度/影响/修复边界/类别，缺一不计入）；NOT_EVALUABLE 不计该轴 PASS；允许零发现不凑数；执行内核按 vendor 头部（qodo-ai/pr-agent 行级批注 + continuedev/continue 规则即代码）——probe 可用则接入，缺失降级内置 critique.md+be-tester.md 流程并诚实标注；消费锚点机验",
     "source": "vendor/review/SKILL.md#L1-L5",
     "drop_pending": false,
     "drop_allowed": false
   },
   {
+    "optional_profile": {
+      "asset": "sdlc",
+      "scopes": [
+        "release-governance",
+        "large-migration",
+        "multi-stage-governance"
+      ]
+    },
     "id": "sdlc",
     "name": "sdlc",
-    "role": "BMAD-METHOD is the methodology layer.",
-    "capability": "BMAD-METHOD phase orchestration with cline plan and exec execution",
+    "role": "Normal complex development uses Matt implement/tdd/code-review and the existing debugging discipline.",
+    "capability": "LEGACY_HEAVY_PROFILE for explicit release, large-migration or multi-stage governance. Never part of default development execution; providers are optional.",
     "cluster": [
       "T1_DATABASE",
       "T2_BACKEND"
     ],
     "when_to_use": [
-      "任务需要 plan→develop→review→summarize 四阶段全流程编排（BMAD-METHOD 方法论层 + cline 执行层）",
-      "需要六 agent（control/developer/peer/sprint/summary/supervisor）分角色的阶段文档产出"
+      "复杂任务显式启用 heavy profile：任务特征命中（多团队并行/多阶段依赖链/release governance/migration/重要接口协同）且 owner 或派单显式授权——两条件 AND 缺一不启用，启用依据双留痕",
+      "启用后按 plan→develop→review→summarize 四阶段产出阶段文档并交接；执行模式二选一诚实声明"
     ],
     "when_not_to_use": [
-      "单步小任务，无需四阶段全流程编排与阶段文档",
-      "只要直接执行、不要监督/对等/总结闭环的任务"
+      "常规/单步任务（默认 OFF——四阶段文档对强模型是负收益）；特征命中但无显式授权、或有授权但特征不命中均不启用",
+      "本资产是被派单执行单元，不自建 DAG/不重派其他资产/不写 journey（第二编排器禁止）"
     ],
-    "verification": "产物为 phase-plan/develop/review/summarize.md 阶段文档；执行内核=cline（scripts/lib/adapters/bmad-cline.mjs）：probe `cline --version` 可用则 spawn 真执行，缺失诚实降级 planned-only（--backend cli 模式为 SDLC_NOT_AVAILABLE），timeout 返回 TIMEOUT，禁伪报成功；S3 保留 cline/BMAD marker",
+    "verification": "执行内核=cline（scripts/lib/adapters/bmad-cline.mjs）。执行模式声明在产物首部：real-exec=cline 版本实测（只证可用）+本任务逐阶段 spawn 留痕（命令/退出码/输出指针），一个子进程不是多个独立 Agent；planned-only=只证规划材料与单模型执行，禁 orchestration 话术；阶段文档≠阶段完成（未进入阶段无文档不宣称）；S3 保留 cline/BMAD marker",
     "source": "vendor/sdlc/SKILL.md#L1-L5",
     "drop_pending": false,
     "drop_allowed": false
   },
   {
+    "optional_profile": null,
     "id": "security",
     "name": "security",
     "role": "Execute in three stages: audit discovery, hardening fixes, and backend specialist verification.",
@@ -177,6 +192,7 @@
     "drop_allowed": false
   },
   {
+    "optional_profile": null,
     "id": "skill-sentinel",
     "name": "skill-sentinel",
     "role": "Agent Skill 包安全扫描器（Python 工具）。",

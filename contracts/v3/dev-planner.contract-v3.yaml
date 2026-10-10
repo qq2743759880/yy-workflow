@@ -1,0 +1,94 @@
+schema: yy/asset-contract@3
+id: dev-planner
+version: 3.2.0
+kind: planner
+purpose:
+  plain_language: Pinned grilling for unresolved design, to-spec for missing specification, to-tickets for tracer-bullet tasks/blocking edges; YY adds artifact and Decision bridges.
+routing:
+  capability_keys:
+  - feature-breakdown
+  clusters:
+  - T3_AI_RAG_MCP
+io:
+  required_inputs:
+  - name: frozen_contract
+    type: contract
+    description: Frozen contract from upstream task
+  - name: task_brief
+    type: text
+    description: Task description with GWT acceptance criteria
+  required_outputs:
+  - name: deliverable
+    type: artifact
+    description: dev-planner output per task spec
+methodology:
+  source: vendor/dev-planner/dev-planner.md
+  required_sections: []
+  bindings: vendor/dev-planner/METHODOLOGY.json
+  primary: to-tickets
+  removed_content: Repeated upstream tutorial prose replaced by pinned originals; only bounded YY supplements remain.
+  assertion_status: Historical pending assertions are not re-certified by this delivery wave; methodology_application=UNVERIFIED; C5=DEFERRED
+application:
+  assertions:
+  - id: dev-planner-A1
+    critical: true
+    verifier: deterministic
+    evidence_requirements:
+    - tool_output
+    - artifact_hash
+    failure_semantics: 'dev-planner failed at assertion 1: 新功能开发起点：需求分析、前后端任务分解、Given/When/Then 验收标准、handoff '
+    description: 新功能开发起点：需求分析、前后端任务分解、Given/When/Then 验收标准、handoff spec（frontmatter 触发词：plan feat
+  - id: dev-planner-A2
+    critical: true
+    verifier: structural
+    evidence_requirements:
+    - tool_output
+    - artifact_hash
+    failure_semantics: 'dev-planner failed at assertion 2: 分解前需前提挑战（Premise Challenge：Why now/现状/最窄楔子/未来适配，PR'
+    description: 分解前需前提挑战（Premise Challenge：Why now/现状/最窄楔子/未来适配，PREMISES 确认表）
+  pass_policy:
+    critical: all
+    optional_minimum: 0
+execution:
+  primary:
+    mode: HOST_NATIVE
+    entry: scripts/lib/host-execution.mjs
+  compatibility:
+  - 'EXTERNAL_PROVIDER: explicit owner opt-in only'
+  degradation:
+    BRIEF_ONLY: No executor; executed=false; awaiting-host
+  supported_languages: []
+  unsupported_scopes: []
+evidence:
+  required:
+  - dev-planner_output_hash
+  - dev-planner_execution_log
+  forbidden_claims:
+  - unverified completion
+  - fabricated test results
+critique:
+  claims:
+  - Was an unresolved design decision silently invented?
+  - Were ticket dependencies and acceptance evidenced?
+blind_tests:
+  hidden_suite_id: dev-planner-hidden-v1
+  hidden_suite_hash: PENDING_A_P0_03_HIDDEN_EVALUATOR
+  case_count: 0
+  coverage_categories:
+  - happy_path
+  - edge_case
+  - error_handling
+  required_pass_policy:
+    critical: all
+    optional_minimum: 0
+owner_view:
+  one_liner: 'Dev planner: fixed upstream methods with declared task and artifact bridges.'
+  what_it_does: Writes local specs/tickets and plan-review evidence; no independent YY decomposition tutorial.
+  why_it_matters: Core planner capability in the YY VNext asset chain
+  what_owner_decides: Whether to enable dev-planner for a given task cluster
+lifecycle:
+  status: POPULATED_PENDING_ACCEPTANCE
+  authority: NON_CANONICAL
+  completeness: CANDIDATE_WORK_NOT_COUNTED
+  blind_store: BLIND_METADATA_STALE_R1
+  note: A-P0-03-REWORK1 裁定——早期 dev-planner 填充为 NON_CANONICAL candidate work，保留不删，但不计入 A-P0-03 关闭条件（正确批次=be-validator/security/skill-sentinel）；prd-planning 双主声明已修正 （CAPABILITY_MAP 受控映射中 prd-planning 唯一属主=planning，dev-planner 仅保留 feature-breakdown）； blind metadata 为 R1 旧形态（PENDING hash + case_count 0），不得作为完成度证据。

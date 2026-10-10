@@ -1,13 +1,13 @@
-# sidecar：sdlc（AV-2 批 1）——三字段方法论内容我方署责任，vendor 文件一字不改。
-# 内容依据：vendor/sdlc/SKILL.md 头部结构化区 + EA-1 BASELINE.md 消费语义。
+# sidecar：sdlc（AV-2 批 1；2026-10-04 r1 语义同步）——三字段方法论内容我方署责任。
+# 内容依据：vendor/sdlc/SKILL.md v3.1.0 r1 正文（默认 OFF+AND 启用门+执行模式诚实）；与契约/正文同步更新。
 id: sdlc
 when_to_use:
-  - 任务需要 plan→develop→review→summarize 四阶段全流程编排（BMAD-METHOD 方法论层 + cline 执行层）
-  - 需要六 agent（control/developer/peer/sprint/summary/supervisor）分角色的阶段文档产出
+  - 复杂任务显式启用 heavy profile：任务特征命中（多团队并行/多阶段依赖链/release governance/migration/重要接口协同）且 owner 或派单显式授权——两条件 AND 缺一不启用，启用依据双留痕
+  - 启用后按 plan→develop→review→summarize 四阶段产出阶段文档并交接；执行模式二选一诚实声明
 when_not_to_use:
-  - 单步小任务，无需四阶段全流程编排与阶段文档
-  - 只要直接执行、不要监督/对等/总结闭环的任务
-verification: 产物为 phase-plan/develop/review/summarize.md 阶段文档；执行内核=cline（scripts/lib/adapters/bmad-cline.mjs）：probe `cline --version` 可用则 spawn 真执行，缺失诚实降级 planned-only（--backend cli 模式为 SDLC_NOT_AVAILABLE），timeout 返回 TIMEOUT，禁伪报成功；S3 保留 cline/BMAD marker
+  - 常规/单步任务（默认 OFF——四阶段文档对强模型是负收益）；特征命中但无显式授权、或有授权但特征不命中均不启用
+  - 本资产是被派单执行单元，不自建 DAG/不重派其他资产/不写 journey（第二编排器禁止）
+verification: 执行内核=cline（scripts/lib/adapters/bmad-cline.mjs）。执行模式声明在产物首部：real-exec=cline 版本实测（只证可用）+本任务逐阶段 spawn 留痕（命令/退出码/输出指针），一个子进程不是多个独立 Agent；planned-only=只证规划材料与单模型执行，禁 orchestration 话术；阶段文档≠阶段完成（未进入阶段无文档不宣称）；S3 保留 cline/BMAD marker
 source: vendor/sdlc/SKILL.md#L1-L5
 drop_pending: false
 drop_allowed: false

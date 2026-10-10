@@ -1,51 +1,47 @@
-# TT Skill 上手指南（ONBOARDING）
+# YY Skill 上手指南
 
-> TT（Together Agent）= 多 Agent 平台编排闭环方法论。15 分钟上手。
-> 开源发布方案（定位/场景/差异/边界/贡献指南）见 `docs/OPENSOURCE-PLAN.md`；本文件只讲怎么跑起来。
+先让当前宿主消费一个 Decision Packet，再运行小任务。架构见 `README.md`；决策与 receipt 边界见 `reference/decision-interface.md`。
 
-## 前置条件
+## 1. 解析安装与项目路径
 
-- Node.js ≥ 18（脚本零依赖，无需 npm install）
-- 至少一个 AI 平台可用（opencode / claude / codex / cursor / trae / traework / openclaw 任一）
+`$SKILL_DIR` 是已安装 YY 的绝对路径，`$PROJECT_ROOT` 是用户项目根目录。解析规则见 `reference/variables-and-config.md`。将发行包解压到独立目录并让宿主加载其中的 `SKILL.md`；保留随包 contracts、scripts、commands、reference 和 vendor 的相对布局。
 
-## 三步上手
+Node.js ≥18 用于核心脚本；执行 Spectral、Semgrep 或 MCP 服务时使用其已声明依赖。`config.example.json` 可复制到用户项目并填写 `projectRoot`、`platforms`；凭据放环境变量或本机秘密存储。随包 vendor 是资产来源，环境变量不替换同名资产。
 
-### 第 1 步：配置资产中心
+## 2. 自检与查询
 
-```bash
-# 设置 AIHUB_ROOT（默认 ~/.ai-hub；如已有 AI-Hub 资产中心请指向它）
-export AIHUB_ROOT="$HOME/.ai-hub"
-# 复制配置模板并编辑
-cp skills/tt/config.example.json ./config.json
+```text
+node "$SKILL_DIR/scripts/validate-structure.mjs"
+node "$SKILL_DIR/scripts/detect-platforms.mjs" --json
+node "$SKILL_DIR/scripts/host-adapter.mjs" prepare --workspace "$PROJECT_ROOT" --intent "当前进度"
 ```
 
-`config.json` 必填项：`projectRoot`（当前项目根）、`platforms`（可先用第 2 步探测结果）。
+平台探测只读；结果供配置使用。进度 packet 的 `execution_permitted=false`，不能据此开工。新项目从 `/yy 0` 消费阶段 packet，完成立项后按 Decision 接口记录 journey；记录状态不代替下一次准入。
 
-### 第 2 步：探测平台 + 自检
+## 3. 按阶段消费 Decision
 
-```bash
-node skills/tt/scripts/detect-platforms.mjs        # 探测已装平台 + 角色分配建议
-node skills/tt/scripts/validate-structure.mjs      # 校验 skill 结构完整
-```
+Agent 加载 `SKILL.md`，按 `/yy 0..5` 或 `/yy research` 读取对应 command，再调用 `host-adapter.mjs prepare`。需要 task brief 的阶段传本次有界任务与 subtask id。`/yy 2` 必须先得到 stage admission，再得到 dev-planner brief。
 
-把探测结果（或手工分配）写入 `config.json` 的 `platforms` 段。
+完整展示 packet，最终 `ok=true` 且 `data.execution_permitted=true` 才允许继续。显式 `--save` 保存后，默认 HOST_NATIVE：先 `check` 重核，再由当前宿主消费包；嵌入接口自动复用相同复核。`execute --exec` 只用于显式外部路径。当前可信 session 必须贯穿调用；不从旧记录恢复 session。具体参数与真实执行 / 独立 checker 例子见 `reference/decision-interface.md`。
 
-### 第 3 步：读 SKILL.md 开工
+一个平台可以串行执行。缺少所需资产、analyzer、gate 或证据时，以 Decision blocker / UNVERIFIED 处理，不凭旧说明假设自动放行。
 
-```bash
-cat skills/tt/SKILL.md    # 或让 AI 平台加载本 skill
-```
+## MCP 宿主
 
-按 §0b 八步闭环推进。首次运行建议先做一次小任务冒烟，再上完整项目。
+用现有 lifecycle 启动同进程双挂载服务，再配置可信 workflow binding。阶段决策连接 `/mcp-v2`；`/mcp` 仅作旧版兼容读取。服务地址、认证与 ngrok 配置以 integration README 和本机 runtime 配置为准。
 
-## 常见问题
+MCP 三个 Decision 工具均只读；宿主负责实际展示、记录与执行。真实任务行为验收仍是 LEGACY_V1_ONLY，不表示 C5 / Receipt v2 methodology_applied 已完成。
 
-- **只有一个平台怎么办？** 自动进入单平台模式（N=1）：8 步框架不变，跳过并行派单，"跨平台切换返工"退化为换子 agent/换批判视角复验。
-- **增强资产（frontend-design、planning、review、security 等簇）没有？** 不影响核心闭环；§6.2/§2.1 有内置降级路径，缺失时自动走通用步骤。
-- **模型 key 怎么配？** 放环境变量或本机 `.env`，`config.example.json` 的 model 段只放 baseUrl/model 名，**勿提交 key**。
+## 维护时的检查
 
-## 自检清单（发布前/迁移后）
+运行 `validate-structure.mjs`，以及 `decision:authority:check`、`decision:transport:check`、`decision:ledger:check`。它们分别检查结构、实际组件身份、transport 与当前 handoff 投影；身份一致不替代行为验收。旧 token snapshot 的已知失败应保留，不为清理而改写基线。
 
-- [ ] `validate-structure.mjs` 通过
-- [ ] `detect-platforms.mjs` 输出与实际平台一致
-- [ ] 无本机绝对路径（盘符/用户目录/用户名）与 key 残留（`grep` 扫描）
+## 嵌入宿主默认执行
+
+默认 HOST_NATIVE 不要求任何外部 CLI。嵌入接入使用 reference/host-execution.md 的 executePreparedHost 接口，先消费 C4 packet，再绑定当前宿主 execute 回调。独立 CLI 无回调时返回完整 BRIEF_ONLY 包，不能算执行成功。--exec 或 --provider 是显式可选的外部路径，不以探测到安装为默认选择。
+
+## 人工交接与旧配置
+
+当前任务选择 MANUAL_HANDOFF 后，旧 command/provider/hosts 均不能自动执行。使用 `scripts/handoff.mjs preview|prepare --workspace "$PROJECT_ROOT" --plan-id <id> --task-id <id> --config <approved.json>`；preview 零业务写，prepare 经当前 C4 展示与本端登记后等待返回。旧 `executor-setup.mjs --handoff` 使用相同入口，并要求 `--handoff-config <approved.json>`。
+
+批准 JSON 必须完整给出预算、权限、固定 checker、允许项目输入与验收条目；不采用示例默认限额或返回者命令。返回经 import、确定性 checker validate、当前快照与版本 CAS accept 才接受原任务；远端过程/费用保持 UNKNOWN，C5 未完成。完整参数、digest 计算来源、单文件 patch 边界和 `--migration-preview <existing.json>` 零写迁移见 [人工交接](reference/manual-handoff.md)。

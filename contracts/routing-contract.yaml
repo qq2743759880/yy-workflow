@@ -1,0 +1,23 @@
+schema: yy/routing-contract@1
+version: 2.0.0
+description: Global routing contract for YY VNext. Cluster is a CONSTRAINT AXIS (task
+  determines cluster, then capability→asset must belong to that cluster), not a lower-ranked
+  fallback tier.
+semantic_model:
+  step_1_cluster_determination: task determines cluster (T1-T5)
+  step_2_capability_source_precedence: explicit > derived > absent
+  step_3_capability_to_asset: resolved capability maps to asset via controlled map
+  step_4_cluster_membership_constraint: resolved asset MUST belong to the selected
+    cluster; mismatch → fail-closed ROUTING_CLUSTER_MISMATCH
+  legacy_no_capability_behavior: no capability match → legacy keyword-scoring route
+    (compatibility semantics, preserved explicitly)
+fail_closed:
+  on_cluster_mismatch: ROUTING_CLUSTER_MISMATCH
+  on_unknown_capability: ROUTING_NO_MATCH
+compatibility_targets:
+- surface: CAPABILITY_MAP
+  generator: V3 routing.capability_keys projection
+  consumer: activation.mjs
+- surface: CLUSTERS
+  generator: V3 routing.clusters + this contract
+  consumer: planner.mjs, matrix.mjs

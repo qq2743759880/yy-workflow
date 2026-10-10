@@ -17,8 +17,8 @@
  *   node scripts/executor-setup.mjs --non-interactive [--executor <cli>] [--model <id>]
  *       [--isolate <v>] [--workspace <dir>] [--save]
  *       读取顺序：--executor 显式 > <workspace>/.tt-state/executor.json > exit 2（缺信息不猜）
- *   node scripts/executor-setup.mjs --handoff --plan-id <id> --task-id <id> [--task-desc <t>]
- *       [--workspace <dir>] [--force]      交接模式：生成 brief 骨架（schema tt/handoff-brief@1）
+ *   node scripts/executor-setup.mjs --handoff --plan-id <id> --task-id <id> --handoff-config <approved.json>
+ *       [--workspace <dir>]             C4 + formal package + trusted local registration
  *   node scripts/executor-setup.mjs --configure [--apply | --dry-run] [--workspace <dir>]
  *       [--subagentSource <v>] [--delegationMode <v>] [--critiqueSources <v>]
  *       [--reportStyle <v>] [--blindwalk <true|false>] [--mcpTools <a,b>]
@@ -78,7 +78,7 @@ const DEFAULT_CAPABILITIES = Object.freeze({
   write_files: true,
   run_cmd: true,
   network: true,
-  spawn_subagent: true,
+  spawn_subagent: false,
   mcp_client: false,
 });
 
@@ -348,70 +348,19 @@ function resolveNonInteractive(opts) {
     '  指引（三选一）：\n' +
     '    1. 显式旗标：node scripts/executor-setup.mjs --non-interactive --executor <' + TARGETS.join('|') + '> [--model <id>] [--save]\n' +
     '    2. 先在 TTY 会话跑交互模式完成一次选择（会落 executor.json）\n' +
-    '    3. 交接任务用 --handoff --plan-id <id> --task-id <id>');
+    '    3. 交接任务用 --handoff --plan-id <id> --task-id <id> --handoff-config <approved.json>（见 reference/manual-handoff.md）');
 }
 
 // ---------------------------------------------------------------------------
-// 交接模式（schema tt/handoff-brief@1）：brief 骨架 + 回填报告约定
+// 正式人工交接：复用 C4、唯一 HandoffPackage 构建器和 T03 登记。
 // ---------------------------------------------------------------------------
-
-function handoffBriefText(planId, taskId, taskDesc) {
-  return [
-    '# 交接 brief — ' + taskId + '（plan ' + planId + '）',
-    '',
-    '> 由 `scripts/executor-setup.mjs` 交接模式生成（schema ' + 'tt/handoff-brief@1' + '）。',
-    '> 回填报告约定路径：`artifacts/' + planId + '/reports/' + taskId + '/REPORT.md`。',
-    '',
-    '## 回填报告必填字段（机器校验：`node scripts/summary-read.mjs --validate-handoff artifacts/' + planId + '/reports/' + taskId + '`）',
-    '',
-    '缺任一字段校验 FAIL（缺字段不猜，不推断不补全）：',
-    '',
-    '- taskId: ' + taskId,
-    '- taskVerdict: <执行者自评结论，如 PASS / FAIL / PARTIAL；以项目维护者的复核为准>',
-    '- evidencePaths: <证据路径，逗号分隔一行，或空值后跟 - 列表逐条>',
-    '',
-    '## 本子任务',
-    '',
-    '- 说明: ' + (taskDesc || '<占位：任务说明，派单时补齐>'),
-    '',
-    '## 必读',
-    '',
-    '- <占位：必读材料清单，派单时补齐>',
-    '',
-    '## 交付物',
-    '',
-    '- <占位：交付物清单，派单时补齐>',
-    '',
-    '## 允许写入（白名单）',
-    '',
-    '- <占位：写入白名单；白名单外一律禁止>',
-    '',
-    '## 纪律',
-    '',
-    '- 零 npm；ESM；中文注释；fail-closed；不编造结论（实测/模拟/推断标注）。',
-    '- 禁止 git 操作；禁止读取/写入凭据文件。',
-  ].join('\n') + '\n';
-}
 
 async function runHandoff(opts) {
-  if (!opts.planId || !opts.taskId) {
-    fail(2, '交接模式缺信息：--plan-id 与 --task-id 必填（fail-closed 不猜）。\n  指引：node scripts/executor-setup.mjs --handoff --plan-id <planId> --task-id <taskId> [--task-desc <说明>]');
-  }
-  if (/[\\/]|\.\./.test(opts.planId) || /[\\/]|\.\./.test(opts.taskId)) {
-    fail(2, '--plan-id / --task-id 含路径分隔符或 ".."——拒绝（防目录穿越）');
-  }
-  const workspace = path.resolve(opts.workspace);
-  const briefPath = path.join(workspace, 'artifacts', opts.planId, 'briefs', opts.taskId + '.md');
-  if (fs.existsSync(briefPath) && !opts.force) {
-    fail(2, 'brief 已存在：' + briefPath + '\n  指引：不覆盖既有 brief；确认要重建时加 --force（fail-closed）');
-  }
-  await fsp.mkdir(path.dirname(briefPath), { recursive: true });
-  await fsp.writeFile(briefPath, handoffBriefText(opts.planId, opts.taskId, opts.taskDesc), 'utf8');
-  const reportDir = path.join('artifacts', opts.planId, 'reports', opts.taskId);
-  console.log('brief 骨架已生成: ' + briefPath);
-  console.log('回填报告约定路径: ' + path.join(workspace, reportDir, 'REPORT.md'));
-  console.log('回填后机验: node scripts/summary-read.mjs --validate-handoff ' + reportDir.replace(/\\/g, '/'));
-  return 0;
+  if (!opts.planId || !opts.taskId || !opts.handoffConfig) fail(2, 'Formal handoff requires --plan-id --task-id --handoff-config <approved local JSON>; no placeholder package is registered.');
+  if (opts.force || opts.taskDesc) fail(2, 'Edit the approved local plan and create a new revision; --force/--task-desc cannot overwrite formal handoff authority.');
+  const {runHandoff:prepare}=await import('./handoff.mjs');
+  const result=await prepare(['prepare','--workspace',opts.workspace,'--plan-id',opts.planId,'--task-id',opts.taskId,'--config',opts.handoffConfig],{present:async packet=>console.log(JSON.stringify(packet))});
+  console.log(JSON.stringify(result));return result.ok?0:1;
 }
 
 // ---------------------------------------------------------------------------
@@ -489,7 +438,7 @@ function parseArgs(argv) {
   const o = {
     probe: null, only: [], json: false, timeoutMs: 0,
     nonInteractive: false, executor: null, model: null, isolate: null, workspace: '.', save: false,
-    handoff: false, planId: null, taskId: null, taskDesc: null, force: false, help: false,
+    handoff: false, handoffConfig: null, planId: null, taskId: null, taskDesc: null, force: false, help: false,
     // ON-1：--configure 六字段编排配置向导（布尔模式旗标，不取值）；六组 CLI flag 可显式覆盖单字段
     configure: false, apply: false, dryRun: false,
     subagentSource: null, delegationMode: null, critiqueSources: null,
@@ -511,6 +460,7 @@ function parseArgs(argv) {
     else if (a === '--workspace') o.workspace = val();
     else if (a === '--save') o.save = true;
     else if (a === '--handoff') o.handoff = true;
+    else if (a === '--handoff-config') o.handoffConfig = val();
     else if (a === '--plan-id') o.planId = val();
     else if (a === '--task-id') o.taskId = val();
     else if (a === '--task-desc') o.taskDesc = val();
@@ -537,7 +487,9 @@ function printHelp() {
     '  --probe presence [--only a,b,c] [--json] [--timeout <ms>]      存在性 + 非交互形态档',
     '  --probe roundtrip --cli <name> [--timeout <ms>] [--json]       真实"回复 OK"往返档（默认必须显式指名）',
     '  --non-interactive [--executor <cli>] [--model <id>] [--isolate <v>] [--workspace <dir>] [--save]',
-    '  --handoff --plan-id <id> --task-id <id> [--task-desc <t>] [--workspace <dir>] [--force]',
+    '  --handoff --plan-id <id> --task-id <id> --handoff-config <approved.json> [--workspace <dir>]',
+    '  --migration-preview <existing.json>                    4 MiB 内本地 JSON 纯迁移预览，单 JSON、零落盘/探测',
+    '      人工交接、批准字段与旧模式映射：reference/manual-handoff.md',
     '  --configure [--apply | --dry-run] [--workspace <dir>]   ON-1 六字段编排配置向导 → orchestrator.config.yaml',
     '      可选覆盖 flag: --subagentSource <session|claude-cli|codex-cli>',
     '                     --delegationMode <self-dispatch|handoff-prompt>',
@@ -568,7 +520,7 @@ const CONFIG_FIELDS = Object.freeze([
     section: 'orchestrator',
     options: [['session', 'claude-cli', 'codex-cli']],
     default: 'session',
-    defaultReason: '子 agent 由本编排会话内建调度，无需额外 CLI（零依赖、最低门槛）。',
+    defaultReason: '使用当前会话偏好；是否能派子代理由真实 native binding 决定，session 名称不证明能力。',
     editable: true,
     note: '后续可在 orchestrator.config.yaml 直接改写；改后无需重装。',
   },
@@ -577,9 +529,9 @@ const CONFIG_FIELDS = Object.freeze([
     section: 'orchestrator',
     options: [['self-dispatch', 'handoff-prompt']],
     default: 'self-dispatch',
-    defaultReason: '编排者自己派单给子 agent，简单场景不经过用户交接；复杂决策再切 handoff-prompt。',
+    defaultReason: '保留旧 AUTO 偏好；只有真实 native binding 才可派子代理，缺能力明确阻断。未配置普通任务默认 DIRECT_HOST/HOST_NATIVE。',
     editable: true,
-    note: '切 handoff-prompt 后派单会变成“给用户一段交接 Prompt”，可后改。',
+    note: 'handoff-prompt 映射 MANUAL_HANDOFF，禁止自动执行；正式登记须完整批准配置与 C4，复制预览不授予批准。',
   },
   {
     key: 'critique.sources',
@@ -913,6 +865,14 @@ async function runConfigure(opts) {
 }
 
 export async function main(argv = process.argv.slice(2)) {
+  if(argv.includes('--migration-preview')){
+    try{
+      if(argv.length!==2||argv[0]!=='--migration-preview'||!argv[1]||argv[1].startsWith('--'))throw Object.assign(new Error('Migration preview accepts only --migration-preview <existing JSON>'),{code:'INPUT_INVALID'});
+      const file=path.resolve(argv[1]),{readPlainFile}=await import('./lib/return-intake.mjs'),{migrateDelegation}=await import('./lib/delegation-policy.mjs');
+      const bytes=await readPlainFile(path.dirname(file),path.basename(file),4*1024*1024),data=migrateDelegation(JSON.parse(bytes.toString('utf8')));
+      console.log(JSON.stringify({ok:true,code:null,data,evidence:{},warnings:[]}));return 0;
+    }catch(error){console.log(JSON.stringify({ok:false,code:error.code||'INPUT_INVALID',data:{reason:error.message},evidence:{},warnings:[]}));return 2;}
+  }
   const opts = parseArgs(argv);
   if (opts.help) { printHelp(); return 0; }
 

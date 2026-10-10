@@ -99,8 +99,7 @@ export async function retryAcrossHosts(fn, options = {}) {
     if (last && entryKey(last) === entryKey(h)) continue;
     chain.push(h);
   }
-  const empty = { result: await withRetry(function() { return fn(null); }, { maxRetries: options.maxRetries, backoffMs: options.backoffMs }), recovery: [] };
-  if (!chain.length) return empty;
+  if (!chain.length) return { result: await withRetry(function() { return fn(null); }, { maxRetries: options.maxRetries, backoffMs: options.backoffMs }), recovery: [] };
   let lastError = null;
   let result = null;
   const recovery = [];

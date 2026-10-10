@@ -11,6 +11,7 @@ import { buildManifest, loadManifest } from './lib/manifest.mjs';
 import { loadAssets } from './lib/asset.mjs';
 import { buildPlan, NoMatchError, isFrontendImplementation } from './lib/planner.mjs';
 import { executePlan } from './lib/runtime.mjs';
+import {checkpointExecution,executionPolicy} from './lib/host-execution.mjs';
 import { createStore } from './lib/store.mjs';
 import { writeReport } from './lib/report.mjs';
 import { runValidate } from './lib/regression.mjs';
@@ -52,7 +53,7 @@ const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_DIR = path.resolve(SCRIPT_DIR, '..');
 const VENDOR_DIR = path.join(SKILL_DIR, 'vendor');
 const EXIT_APPROVAL_ABORTED = 6;
-function usage() { console.log('Usage: node scripts/orchestrator.mjs --task TASK [--workspace PATH] [--backend auto|prompt|cli] [--exec PROG [ARGS...]] [--exec-timeout N] [--max-retries N] [--hosts "HOST1,HOST2..."] [--parallel [N]] [--contract OPENAPI.json] [--plan] [--draft DRAFT.json] [--tui] [--no-tui] [--dry-run] [--verbose] [--resume] [--validate]'); console.log('--plan: 自动拆解 + 逐 task 审批后冻结进编排（与 --resume 互斥；可组合 --exec 宿主拆解或 --draft 草案文件/手动粘贴）。--plan --dry-run 只打印草案与审批摘要，不写任何文件。'); console.log('--tui: 执行时叠加实时 DAG 视图（纯 ANSI 自绘，状态色 + 瓶颈反色；仅叠加渲染，不改变执行语义）。非 TTY 自动降级为一次性静态文本；TT_TUI=off 或 --no-tui 完全不渲染。独立复盘用 node scripts/tt-tui.mjs [--workspace PATH]。'); console.log('--exec 后的未知 --flag/值会原样透传给宿主（如 --model gpt-5.6-luna，供 exec-host-a6api.mjs 跨模型批判）；已知编排器参数（--task/--workspace 等）会结束透传段。'); console.log('--hosts: 逗号分隔的备选宿主命令（如 "node exec-host-openclaw.mjs,node exec-host-a6api.mjs --model gpt-5.6-luna"）；主宿主(--exec/config executor.command)失败时自动按序换宿主/换模型重试（失败自动恢复），全失败 → 诚实降级 degraded + warning。也可在 config.json 的 executor.hosts（数组，每项 command 数组）固化。'); }
+function usage() { console.log('Usage: node scripts/orchestrator.mjs --task TASK [--workspace PATH] [--backend auto|prompt|cli] [--execution-mode HOST_NATIVE|EXTERNAL_PROVIDER|BRIEF_ONLY] [--provider ID] [--exec PROG [ARGS...]] [--exec-timeout N] [--max-retries N] [--hosts "HOST1,HOST2..."] [--parallel [N]] [--contract OPENAPI.json] [--plan] [--draft DRAFT.json] [--tui] [--no-tui] [--dry-run] [--verbose] [--resume] [--validate]'); console.log('--plan: 自动拆解 + 逐 task 审批后冻结进编排（与 --resume 互斥；可组合 --exec 宿主拆解或 --draft 草案文件/手动粘贴）。--plan --dry-run 只打印草案与审批摘要，不写任何文件。'); console.log('--tui: 执行时叠加实时 DAG 视图（纯 ANSI 自绘，状态色 + 瓶颈反色；仅叠加渲染，不改变执行语义）。非 TTY 自动降级为一次性静态文本；TT_TUI=off 或 --no-tui 完全不渲染。独立复盘用 node scripts/tt-tui.mjs [--workspace PATH]。'); console.log('--exec 后的未知 --flag/值会原样透传给宿主（如 --model gpt-5.6-luna，供 exec-host-a6api.mjs 跨模型批判）；已知编排器参数（--task/--workspace 等）会结束透传段。'); console.log('--hosts: 逗号分隔的备选宿主命令（如 "node exec-host-openclaw.mjs,node exec-host-a6api.mjs --model gpt-5.6-luna"）；主宿主(--exec/config executor.command)失败时自动按序换宿主/换模型重试（失败自动恢复），全失败 → 诚实降级 degraded + warning。也可在 config.json 的 executor.hosts（数组，每项 command 数组）固化。'); }
 async function readConfig() {
   try { return JSON.parse(await fs.readFile(path.join(SKILL_DIR, 'config.json'), 'utf8')); } catch (error) { if (error.code === 'ENOENT') return null; throw error; }
 }
@@ -590,6 +591,9 @@ async function main() {
   // FIX-2：executor.json 接线。优先级（两个缺省槽各自成立）：显式命令行 > executor.json > config.json > 无。
   // executor.json 是「workspace 级」配置，按最终 workspace 读取；向导输出是新近用户意图，优先于 config 旧缺省。
   const ex = await readExecutorDefaults(workspace);
+  opts.delegationInput={legacy:cfg||{},...(ex.mode?{task:{delegation_mode:ex.mode,ref:'local:executor.json'}}:{})};
+  opts.present=async packet=>{console.log(JSON.stringify(packet));};
+  const manual=executionPolicy(opts).delegation_mode==='MANUAL_HANDOFF';
   // 能力接线（EX-1）：读取 executor.json 的 capabilities 块（Agent Card 式自描述）。
   // 文件缺失/损坏 → null（dispatch 无门控信息时按旧行为执行，不臆造能力）；JSON 可读但无 capabilities
   // 键 → 回落 DEFAULT_CAPABILITIES（executor-setup 单点导出；MCP 未探测 → false，不假报）。
@@ -622,6 +626,9 @@ async function main() {
     logger.info('executor defaults (--exec from executor.json): ' + ex.exec.join(' ') + (ex.model ? '（model=' + ex.model + '，仅登记不注入——模型偏好属宿主自身配置）' : ''));
   }
   if (!opts.exec && cfg && Array.isArray(cfg.executor && cfg.executor.command) && cfg.executor.command.length) opts.exec = cfg.executor.command;
+  if (!opts.provider && cfg?.executor?.provider) opts.provider=cfg.executor.provider;
+  if (!opts.executionMode && cfg?.executor?.executionMode) opts.executionMode=opts.provider||opts.exec?.length?'EXTERNAL_PROVIDER':cfg.executor.executionMode;
+  if (cfg?.executor?.providerCommand) opts.providerCommand=cfg.executor.providerCommand;
   if (opts.execTimeoutMs === undefined && cfg && cfg.executor && Number.isInteger(cfg.executor.timeoutMs) && cfg.executor.timeoutMs > 0) opts.execTimeoutMs = cfg.executor.timeoutMs;
   // P1 失败自动恢复：config.json executor.hosts 为备选宿主来源（优先级低于命令行 --hosts，dispatch 内 resolveHosts 裁决）
   if (cfg && Array.isArray(cfg.executor && cfg.executor.hosts) && cfg.executor.hosts.length) opts.configHosts = cfg.executor.hosts;
@@ -631,6 +638,16 @@ async function main() {
   if (ex.exec && (!opts.hosts || !String(opts.hosts).trim())) {
     opts.configHosts = [ex.exec.slice()];
     logger.info('executor defaults (--hosts from executor.json): ' + ex.exec.join(' ') + (exCaps ? ' capabilities=' + JSON.stringify(exCaps) : ''));
+  }
+  if(manual){opts.executionMode='BRIEF_ONLY';opts.exec=null;opts.provider=null;opts.hosts=null;opts.configHosts=null;}
+  if(!manual&&(opts.exec?.length||opts.provider)&&opts.executionMode!=='BRIEF_ONLY'){
+    opts.executionMode='EXTERNAL_PROVIDER';
+    // A per-run --exec/--provider is explicit approval; config fallback requires a stored approval.
+    const explicit=process.argv.includes('--exec')||process.argv.includes('--provider');
+    if(explicit||cfg?.executor?.approved===true){
+      opts.externalApproval={approved:true,command:opts.exec??cfg?.executor?.providerCommand??['explicit-provider:'+opts.provider]};
+      if(explicit)opts.delegationInput.run={delegation_mode:'DIRECT_HOST',ref:'cli:explicit-external'};
+    }
   }
   logger.info('state: idle');
   // --contract（绿地 OpenAPI）与 --contract-draft（棕地草案）互斥
@@ -663,7 +680,7 @@ async function main() {
     }
     // 全部子任务已完成：不重跑，直接出报告退出
     if (plan && plan.subtasks.every(function(subtask) { return subtask.status === 'done'; })) {
-      logger.info('state: done');
+      logger.info('state: '+plan.status);
       const report = await writeReport({ plan, context: {} }, workspace);
       logger.info('report: ' + report.markdown);
       // F1 resume 全部完成短路分支也补一次 journey 同步（task02：不滞留旧位置）
@@ -672,6 +689,7 @@ async function main() {
     }
   }
   if (!plan) {
+    if(opts.plan&&opts.exec?.length){console.error('HOST_INTEGRATION_BYPASS: automatic pre-plan decomposition has no approved plan quota. Use an admitted planning task, then --plan --draft with its returned draft.');return EXIT.ARGS;}
     if (opts.dryRun) manifest = await buildManifest({ vendorDir: VENDOR_DIR });
     else manifest = await loadManifest({ vendorDir: VENDOR_DIR, stateDir: path.join(workspace, '.tt-state'), refresh: false });
     logger.info('state: planning');
@@ -690,7 +708,6 @@ async function main() {
         console.log(printApprovalSummary(draftFlow.draft));
         console.log('--- 拆解草案（--plan --dry-run 不写任何文件，仅打印草案与审批摘要） ---');
         console.log(printDraft(draftFlow.draft));
-        logger.info('state: done');
         return EXIT.OK;
       }
       const assetNames = (manifest.entries || []).map(function(e) { return e.name; });
@@ -705,15 +722,18 @@ async function main() {
       plan = normalizeDraft(approval.draft, manifest);
       if (approval.draft.approvedAt) plan.approvedAt = approval.draft.approvedAt;
     } else {
-      plan = buildPlan(opts.task, manifest);
+      plan = buildPlan(opts.task, manifest, { capability: opts.capability });
     }
     // --capability 显式输入（W2-1 Ingress Mini-Contract D.1 rule 1）：buildPlan 后 applyCapabilityToPlan
-    // （lib/orchestrator.mjs 导出）重绑定子任务 asset——否则 --capability 走 parseArgs 后被静默丢弃（F-E2E-2 实锤）
+    // （lib/orchestrator.mjs 导出）仅绑定既有 primary owner；support 保留资产及职责。
     if (opts.capability) {
       applyCapabilityToPlan(plan, { capability: opts.capability });
       logger.info('capability override (--capability): ' + opts.capability + ' → ' + plan.subtasks.filter(s => s.capability).map(s => s.id + '(' + s.asset + ')').join(', '));
     }
-    for (const subtask of plan.subtasks) subtask.task = plan.task;
+    for (const subtask of plan.subtasks) {
+      subtask.parentTask = plan.task;
+      subtask.task = subtask.desc || subtask.task || plan.task;
+    }
     // --contract 提供 OpenAPI 契约：be-validator 子任务契约指向该文件（portman 真校验路径），其他子任务保持 cluster 描述不变
     if (opts.contract) {
       const applied = [];
@@ -747,9 +767,13 @@ async function main() {
       if (feGated) logger.info('FR-3 contract gate applied: ' + feGated + ' 个前端实现子任务按契约前置（' + (opts.contract ? '契约=' + opts.contract : opts.contractDraft ? '棕地草案=' + opts.contractDraft + '（可开工，待确认后升级）' : '无真实契约，缺契约将 CONTRACT_NOT_FROZEN skip，请提供 --contract') + '）');
     }
   } else {
-    for (const subtask of plan.subtasks) if (!subtask.task) subtask.task = plan.task;
+    for (const subtask of plan.subtasks) {
+      subtask.parentTask = plan.task;
+      subtask.task = subtask.desc || subtask.task || plan.task;
+    }
     if (!manifest) manifest = await loadManifest({ vendorDir: VENDOR_DIR, stateDir: path.join(workspace, '.tt-state'), refresh: false });
   }
+  if(!plan.budgetPolicy&&cfg?.budget_policy_approved===true)plan.budgetPolicy=structuredClone(cfg.budget_policy);
   // 只加载本计划路由到的资产（懒加载），正文缓存仅在非 dry-run 下启用（BE-15）
   const assets = await loadAssets({ vendorDir: VENDOR_DIR, assetsRoot: SKILL_DIR, workspace, manifest, only: plan.subtasks.map(function(s) { return s.asset; }), useCache: !opts.dryRun });
   // GW-1 接线点 A：按 plan 子任务角色把治理技能节追加进对应资产正文尾部（prompt 适配器从
@@ -785,7 +809,7 @@ async function main() {
     ? composeGovernedPlanAssets(finalReceiptAssets, plan.subtasks, { capabilityRows: capabilityRows.rows, plan, workspace })
     : finalReceiptAssets;
   // M2-3 --tui：执行时叠加实时 DAG 渲染（不改变执行语义，只挂 onStatus 钩子）。逃生舱：TT_TUI=off 或 --no-tui 完全不渲染。
-  const execOpts = { ...opts, workspace, logger, assets: composedAssets, assetsRoot: SKILL_DIR };
+  const execOpts = { ...opts, replacePlan:!opts.resume,workspace, logger, assets: composedAssets, assetsRoot: SKILL_DIR };
   let tui = null;
   if (opts.tui && !opts.noTui && process.env.TT_TUI !== 'off') {
     tui = createTui(plan, { stream: process.stdout });
@@ -801,7 +825,7 @@ async function main() {
   logger.info('state: executing');
   let result;
   try { result = await executePlan(plan, execOpts); } catch (error) { if (tui) tui.reset(); throw error; }
-  await store.save(result.plan);
+  await checkpointExecution(workspace,result.plan);
   // B7 旗标门钩子（phase 门/change.record/--evolve）：默认 no-op，best-effort 不阻断
   await maybeRunB7Hooks(result, opts, logger);
   logger.info('state: reviewing');
@@ -810,7 +834,7 @@ async function main() {
   logger.info('report: ' + report.markdown);
   if (result.plan.degraded) {
     const allSkip = result.plan.subtasks.every(function(s) { return s.status === 'skipped'; });
-    logger.warn('plan degraded: ' + (allSkip ? 'all subtasks skipped (external execution tools unavailable); only routing/state recorded' : 'requireExec 资产 brief-only 兜底或部分降级——需 --exec 宿主或装 CLI 工具'));
+    logger.warn('plan degraded: ' + (allSkip ? 'all subtasks skipped (external execution tools unavailable); only routing/state recorded' : 'requireExec 资产 brief-only 兜底或部分降级——需宿主执行能力；外部 provider 仅显式选用 工具'));
   }
   if (opts.validate) { const regression = await runValidate({ cwd: SKILL_DIR }); console.log(regression.raw.trim()); if (!regression.ok) { console.error('[tt] regression failed'); return EXIT.FAILED; } }
   if (result.plan.status === 'failed') {
@@ -846,20 +870,20 @@ async function main() {
     const fbPath = path.join(workspace, 'artifacts', result.plan.id, 'execution-feedback.md');
     const fbLines = ['# execution-feedback ' + result.plan.id, '', '## 逐子任务执行结果'];
     for (const s of subs) {
-      const suggest = s.mode === 'prompt' ? '需 --exec 宿主真实执行（当前 brief-only 兜底）' : s.mode === 'planned-only' ? '需装 CLI 工具（当前 planned-only 降级）' : s.mode === 'skipped' ? '需装执行工具（当前 skipped）' : (s.assetConsumed === true ? '已真实执行' : '');
+      const suggest = s.mode === 'prompt' ? '需当前宿主绑定原生执行回调，或显式选择外部 provider（当前 BRIEF_ONLY）' : s.mode === 'planned-only' ? '需装 CLI 工具（当前 planned-only 降级）' : s.mode === 'skipped' ? '需装执行工具（当前 skipped）' : (s.assetConsumed === true ? '已真实执行' : '');
       const recoveryNote = Array.isArray(s.recovery) && s.recovery.length ? ' | recovery: ' + s.recovery.map(function(r) { return r.stage + ' ' + r.from + '→' + r.to + '(attempt ' + r.attempt + ')'; }).join('; ') : '';
       fbLines.push('### ' + s.asset, '- mode: ' + s.mode + ' | consumed: ' + (s.assetConsumed === true) + ' | adapter: ' + (s.adapter || '?') + (suggest ? ' | 建议: ' + suggest : '') + recoveryNote);
     }
     if (result.plan.requireExec) {
       const briefOnly = subs.filter(function(s) { return s.mode === 'prompt' && s.assetConsumed !== true; });
-      if (briefOnly.length) { fbLines.push('', '## requireExec 违规', briefOnly.length + ' 个资产 brief-only 兜底（' + briefOnly.map(function(s) { return s.asset; }).join(', ') + '）——需 --exec 宿主或装 CLI'); }
+      if (briefOnly.length) { fbLines.push('', '## requireExec 违规', briefOnly.length + ' 个资产 brief-only 兜底（' + briefOnly.map(function(s) { return s.asset; }).join(', ') + '）——需宿主执行能力；外部 provider 仅显式选用'); }
     }
     fbLines.push('', '## 汇总', '- 真实执行: ' + consumed + '/' + subs.length + ' (' + callRate + '%)', '- 改进方向: ' + (warnings.length ? warnings.join('; ') : '无'));
     await fs.writeFile(fbPath, fbLines.join('\n'));
     // IMP-1 机器可读 state 摘要：与人类可读 md 并存，不互相替代
     const summaryRel = await writeStateSummary(result, workspace);
     logger.info('memory-snapshot: ' + snapshotPath + ' | execution-feedback: ' + fbPath + ' | state-summary: ' + summaryRel);  }
-  logger.info('state: done');
+  logger.info('state: '+result.plan.status);
   return EXIT.OK;
 }
 main().then(function(code) { process.exitCode = code; }).catch(function(error) {

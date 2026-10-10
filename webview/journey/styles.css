@@ -156,6 +156,8 @@ h1 {
 }
 
 .muted-note { color: var(--color-muted); font-size: var(--fs-note); }
+.delegation-card { margin-block: 1rem; }
+.delegation-preview { display:block; width:100%; box-sizing:border-box; resize:vertical; font:inherit; }
 
 /* 九节点网格：显式轨道，自动填充；小屏单列 */
 .journey-grid {

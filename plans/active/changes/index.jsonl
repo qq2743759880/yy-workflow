@@ -1,1 +1,0 @@
-{"event":"create","changeRecordId":"cr-20260920T112945Z-a6244b0c","impactClass":"CONTRACT","status":"active","recordedAt":"2026-09-20T11:29:45.899Z","recordedBy":"T7-closeout","idempotencyKey":"ba2749de4bd32cf647f3cbc3dd73a6f91ab5c3bd8ecaeb92a383aee4632f725f","invalidatedNodes":["S5"],"file":"contracts/discrepancies/cr-20260920T112945Z-a6244b0c.json"}

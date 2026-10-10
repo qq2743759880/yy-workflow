@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "YY 执行系统 · C4 Context",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "visual_preset": "signal-flow",
+    "output": "c4-context.html"
+  },
+  "components": [
+    {
+      "id": "owner",
+      "type": "external",
+      "label": "Owner · 人",
+      "sublabel": "提供目标、签收与授权",
+      "pos": [
+        40,
+        80
+      ],
+      "size": [
+        210,
+        82
+      ]
+    },
+    {
+      "id": "yy",
+      "type": "backend",
+      "label": "YY 执行系统 · 系统",
+      "sublabel": "准入、任务包与证据闭环",
+      "pos": [
+        355,
+        80
+      ],
+      "size": [
+        250,
+        82
+      ]
+    },
+    {
+      "id": "host",
+      "type": "external",
+      "label": "当前 Agent 宿主 · 外部系统",
+      "sublabel": "读取 Skill 并执行任务",
+      "pos": [
+        355,
+        260
+      ],
+      "size": [
+        250,
+        82
+      ]
+    },
+    {
+      "id": "provider",
+      "type": "external",
+      "label": "可选执行方 · 外部系统",
+      "sublabel": "显式 Provider 或人工交接",
+      "pos": [
+        40,
+        260
+      ],
+      "size": [
+        210,
+        82
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "owner-yy",
+      "from": "owner",
+      "to": "yy",
+      "label": "提出任务 / 签收"
+    },
+    {
+      "id": "yy-host",
+      "from": "yy",
+      "to": "host",
+      "label": "展示并复核执行包"
+    },
+    {
+      "id": "host-provider",
+      "from": "host",
+      "to": "provider",
+      "label": "仅显式选择时交接"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "边界",
+      "items": [
+        "YY 是随宿主调用的工具与方法包；不宣称跨宿主自动执行。",
+        "外部宿主与 Provider 保持黑盒；执行能力来自实际绑定。"
+      ]
+    }
+  ]
+}

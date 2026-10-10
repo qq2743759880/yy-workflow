@@ -1,1 +1,0 @@
-[{"id":"test","name":"Test","role":"Test role","capability":"Test capability","cluster":["T1_DATABASE"],"when_to_use":["test"],"when_not_to_use":["not test"],"verification":"Test verification","source":"vendor/test/test.md#L1-L5"}]

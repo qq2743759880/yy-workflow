@@ -1,8 +1,0 @@
-{
-  "planId": "plan-mujlm905",
-  "cluster": "T5_OPS",
-  "contract": "operations contract",
-  "task": "运维部署监控",
-  "frozenAt": "2026-09-27T09:10:47.575Z",
-  "contractSource": "D:\\.ai-hub\\skills\\yy\\test-reports\\autopilot-work\\E2E-v3\\s1b-derived-chain\\openapi.json"
-}

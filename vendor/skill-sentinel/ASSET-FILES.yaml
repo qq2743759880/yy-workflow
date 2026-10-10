@@ -1,0 +1,92 @@
+schema: yy/asset-files@1
+asset: skill-sentinel
+iteration_protocol: reference/asset-iteration.md
+files:
+- match: ASSET-FILES.yaml
+  state: PROVENANCE
+  consumer: distribution
+- match: LICENSE
+  state: PROVENANCE
+  consumer: distribution
+- match: SKILL.md
+  state: ACTIVE_ENTRY
+  consumer: activation
+  load: entry
+- match: METHODOLOGY.json
+  state: ACTIVE_RESOURCE
+  consumer: scripts/lib/methodology.mjs
+  load: selected asset declaration
+- match: UPSTREAM-REUSE.yaml
+  state: PROVENANCE
+  consumer: distribution
+retired:
+- path: pyproject.toml
+  superseded_by: SKILL.md
+  reason: Current skill-scanner adapter executes installed cisco-ai-skill-scanner;
+    never imports the old Enkrypt source tree
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: README.md
+  superseded_by: SKILL.md
+  reason: Current skill-scanner adapter executes installed cisco-ai-skill-scanner;
+    never imports the old Enkrypt source tree
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: src/skill_sentinel/__init__.py
+  superseded_by: SKILL.md
+  reason: Current skill-scanner adapter executes installed cisco-ai-skill-scanner;
+    never imports the old Enkrypt source tree
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: src/skill_sentinel/cli.py
+  superseded_by: SKILL.md
+  reason: Current skill-scanner adapter executes installed cisco-ai-skill-scanner;
+    never imports the old Enkrypt source tree
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: src/skill_sentinel/config/agents.yaml
+  superseded_by: SKILL.md
+  reason: Current skill-scanner adapter executes installed cisco-ai-skill-scanner;
+    never imports the old Enkrypt source tree
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: src/skill_sentinel/config/tasks.yaml
+  superseded_by: SKILL.md
+  reason: Current skill-scanner adapter executes installed cisco-ai-skill-scanner;
+    never imports the old Enkrypt source tree
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: src/skill_sentinel/crew.py
+  superseded_by: SKILL.md
+  reason: Current skill-scanner adapter executes installed cisco-ai-skill-scanner;
+    never imports the old Enkrypt source tree
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: src/skill_sentinel/data/report_schema.json
+  superseded_by: SKILL.md
+  reason: Current skill-scanner adapter executes installed cisco-ai-skill-scanner;
+    never imports the old Enkrypt source tree
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: src/skill_sentinel/data/threat_categories.md
+  superseded_by: SKILL.md
+  reason: Current skill-scanner adapter executes installed cisco-ai-skill-scanner;
+    never imports the old Enkrypt source tree
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: src/skill_sentinel/main.py
+  superseded_by: SKILL.md
+  reason: Current skill-scanner adapter executes installed cisco-ai-skill-scanner;
+    never imports the old Enkrypt source tree
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: src/skill_sentinel/tools/__init__.py
+  superseded_by: SKILL.md
+  reason: Current skill-scanner adapter executes installed cisco-ai-skill-scanner;
+    never imports the old Enkrypt source tree
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: src/skill_sentinel/tools/custom_tool.py
+  superseded_by: SKILL.md
+  reason: Current skill-scanner adapter executes installed cisco-ai-skill-scanner;
+    never imports the old Enkrypt source tree
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: src/skill_sentinel/tools/file_discovery.py
+  superseded_by: SKILL.md
+  reason: Current skill-scanner adapter executes installed cisco-ai-skill-scanner;
+    never imports the old Enkrypt source tree
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: src/skill_sentinel/tools/virustotal_tool.py
+  superseded_by: SKILL.md
+  reason: Current skill-scanner adapter executes installed cisco-ai-skill-scanner;
+    never imports the old Enkrypt source tree
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json

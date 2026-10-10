@@ -1,7 +1,0 @@
-{
-  "schema": "yy/r6-obs-status@1",
-  "generatedAt": "2026-09-18T09:58:00.0000000+08:00 // [PARTIAL: original dynamic timestamp not recorded]",
-  "OBS-01": { "status": "fixed", "evidence": "node scripts/tt-journey.mjs --self-test = 8/8 PASS, exits 0; R5b acceptance regression rerun (test-reports/R5b-implementation-20260917/REPORT.md) also PASS; sync fs usage replaced by fs/promises in tt-journey.mjs (per R5b acceptance note)", "selfTestPass": true },
-  "OBS-02": { "status": "fixed", "evidence": "same self-test (8/8 PASS); stageVerification block re-runs under fs/promises (per R5b acceptance note; GWT6 was the OBS-02 anchor)", "selfTestPass": true },
-  "blockingRelease": false
-}

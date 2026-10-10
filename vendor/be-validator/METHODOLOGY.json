@@ -1,0 +1,32 @@
+{
+  "schema": "yy/methodology-bindings@1",
+  "asset": "be-validator",
+  "methodology_type": "TOOL_BACKED",
+  "wrapper_policy": "YY_ROUTED",
+  "wrapper_source": {
+    "path": "be-validator.md",
+    "scope": "asset",
+    "sha256": "0eb185b2c3c57cae1d2802d975922509f73d310944c290a203032805e146aae7"
+  },
+  "licenses": [
+    {
+      "path": "LICENSE",
+      "scope": "package",
+      "sha256": "39ad33402a909bc27000cde7ec17024209243db571dd7af7aed67a7f28a19883"
+    }
+  ],
+  "primary": "contract-validation",
+  "skills": {
+    "contract-validation": {
+      "path": "be-validator.md",
+      "scope": "asset",
+      "sha256": "0eb185b2c3c57cae1d2802d975922509f73d310944c290a203032805e146aae7",
+      "invocation_policy": "YY_ROUTED",
+      "dependencies": [],
+      "resources": []
+    }
+  },
+  "tool_dependencies": [
+    "spectral"
+  ]
+}

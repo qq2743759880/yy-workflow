@@ -1,0 +1,206 @@
+{
+  "schema": "yy/decision-authority@1",
+  "digest": "1903a41af8f83759e64176426e5626d8671cd24ac635a2922926a5484ccdb745",
+  "components": [
+    {
+      "path": "scripts/lib/decision-core.mjs",
+      "sha256": "74742da8079330f335fdc935ebc948048abebbd9828ef0abe16f95c810ced544",
+      "role": "decision-core-semantics"
+    },
+    {
+      "path": "scripts/lib/decision-authority.mjs",
+      "sha256": "7308f55a0b402a8f83c0403ed506b2bb1a49dea2c1a961ab5820bce09628cb44",
+      "role": "authority-manifest"
+    },
+    {
+      "path": "scripts/lib/decision-plain.mjs",
+      "sha256": "026b43c793dd3ab1ba8b559f25f1b37f0291b31a017809d35b1e6f5e35fed554",
+      "role": "plain-projection-fn"
+    },
+    {
+      "path": "contracts/generated/decision-plain-projection.json",
+      "sha256": "deed802223beb7eff82ce88b0baff36524663ad4dd9d9700310a93034731aaad",
+      "role": "plain-projection-table"
+    },
+    {
+      "path": "scripts/tt-journey.mjs",
+      "sha256": "f9e786a1ea783c0767f2f9409c547000e0061b26b715b5379f03ad7a8a84fbc3",
+      "role": "journey-admission"
+    },
+    {
+      "path": "scripts/lib/journey.mjs",
+      "sha256": "9ed318572a6056e0ecfd183c0d381ed11912584af207ba5ca968232bc79d962d",
+      "role": "journey-projection"
+    },
+    {
+      "path": "scripts/lib/phase.mjs",
+      "sha256": "ab832e7cdce450513afd4f2f300d0cfd945ccba9d0782f4b7df73174ba517249",
+      "role": "execution-phase"
+    },
+    {
+      "path": "scripts/lib/planner.mjs",
+      "sha256": "27ba0181390a7bc27f153ef62436b504a5f158a7e1d53a46e84f4b57687a2764",
+      "role": "routing"
+    },
+    {
+      "path": "scripts/lib/capability-derivation.mjs",
+      "sha256": "7c74a6c5dc5b59b8005a8c6573b7665b03e07c5fdbbcb09dcd7bf1235fb69079",
+      "role": "capability-derivation"
+    },
+    {
+      "path": "scripts/lib/matrix.mjs",
+      "sha256": "39a597a87ac47412a5361cb8386029940f3f803cf55e1e2b3b161125cab0b26a",
+      "role": "clusters"
+    },
+    {
+      "path": "scripts/lib/activation.mjs",
+      "sha256": "35fff0a034d86e4ca86bd1027127da3b5ee6d06fb79c7bc39e0a26eb31c9a574",
+      "role": "capability-map-eligibility-activation-brief"
+    },
+    {
+      "path": "scripts/lib/receipt.mjs",
+      "sha256": "f274a0feacd85eb10be0ba26d9d347cce9277f2b8b7667cad9387ac075e411e6",
+      "role": "receipt-validation"
+    },
+    {
+      "path": "scripts/lib/manifest.mjs",
+      "sha256": "942eda26a6e302463a88ff648f8f5e4364ad6c85aaef4b796c27d5447208a2ce",
+      "role": "catalog-build"
+    },
+    {
+      "path": "scripts/lib/asset.mjs",
+      "sha256": "c8ec6e7ea012c41054fc3a8c11f1ded20008977be65a0cd9278d710e61a0258f",
+      "role": "manifest-read"
+    },
+    {
+      "path": "contracts/asset-manifest-v2.json",
+      "sha256": "47d24e0b5a427d6f00ae1c660a626b283ba7a3079033b97539a923ae8a08dfa8",
+      "role": "governance-manifest"
+    },
+    {
+      "path": "contracts/routing-contract.yaml",
+      "sha256": "f36e959258f6eebcdcca35295dd8d3ac8b5ecf07c93495e2440bd5925266c8b1",
+      "role": "routing-contract"
+    },
+    {
+      "path": "contracts/decision-contract-v1.yaml",
+      "sha256": "ece303847db592c46a49ab9497c940a607f63abbdbcd994818027cb18b9243bf",
+      "role": "decision-contract"
+    },
+    {
+      "path": "contracts/receipt-v2-contract.yaml",
+      "sha256": "54420bad60cb1c23e1b9969ee9341917836bf1e0b8dc2afff1c4151386a09732",
+      "role": "receipt-v2-contract"
+    },
+    {
+      "path": "scripts/lib/methodology.mjs",
+      "sha256": "a9fc15d50376b1ad5f0e3deb4f38dee558f27b777ffd4c3809c896f98bbd3f63",
+      "role": "methodology-policy-and-descriptor"
+    },
+    {
+      "path": "scripts/lib/delegation-contract.mjs",
+      "sha256": "b4f5813dc36dd506258b0ab1d6489050e9d52e6e74d1939e60f01973d6172475",
+      "role": "methodology-delivery-shared-validation"
+    },
+    {
+      "path": "contracts/delegation.schema.json",
+      "sha256": "0527acea4527b5c04c87d61895416fff186a0fd2ddbc1fc497ff55eaabbbe10b",
+      "role": "methodology-delivery-schema-source"
+    },
+    {
+      "path": "contracts/generated/delegation-schema.mjs",
+      "sha256": "e1e35c8b22c9ceaf05cb25ff654b07df4c29d9de340047976287e3034cca9b19",
+      "role": "methodology-delivery-generated-schema"
+    },
+    {
+      "path": "vendor/be-validator/METHODOLOGY.json",
+      "sha256": "9ad6c3dd24e0d3024f9eea38580e0b09587bf7588fa3b0aa41e754f5cb2f2ab2",
+      "role": "methodology-declaration:be-validator"
+    },
+    {
+      "path": "vendor/dev-planner/METHODOLOGY.json",
+      "sha256": "34654972faf97ced0a8de5f69da99ecd1a326f58e800796f85196dd7153aff57",
+      "role": "methodology-declaration:dev-planner"
+    },
+    {
+      "path": "vendor/frontend-design/METHODOLOGY.json",
+      "sha256": "6f37d1192917a60764359e7624977cb7c08a4814be1d1422aafcfbe288a578b9",
+      "role": "methodology-declaration:frontend-design"
+    },
+    {
+      "path": "vendor/implementation/METHODOLOGY.json",
+      "sha256": "f7a56067baee24ce3832e320c7a38f4fb92fd004fb9bd28603d560312063209a",
+      "role": "methodology-declaration:implementation"
+    },
+    {
+      "path": "vendor/planning/METHODOLOGY.json",
+      "sha256": "0fb6c18067a05ad22a74be82e188a48091a5ed5ce89cf3ff9fbd9c4633f99b35",
+      "role": "methodology-declaration:planning"
+    },
+    {
+      "path": "vendor/review/METHODOLOGY.json",
+      "sha256": "28421e12ce932f648c5526c2e7240a2dc2c6bf01bbb972394787afc3c6de002a",
+      "role": "methodology-declaration:review"
+    },
+    {
+      "path": "vendor/sdlc/METHODOLOGY.json",
+      "sha256": "d1b3432db8f54fd7002c93bbf73daa19b91334c6df668e3866cde60b7a2ce448",
+      "role": "methodology-declaration:sdlc"
+    },
+    {
+      "path": "vendor/security/METHODOLOGY.json",
+      "sha256": "f3cfa6fc37f40991eb60bcd38d34c2b21f44bc7532c2d2146e244ef9fcde9303",
+      "role": "methodology-declaration:security"
+    },
+    {
+      "path": "vendor/skill-sentinel/METHODOLOGY.json",
+      "sha256": "9dcf4cb8cf621c6bf65c92e29fa5a0fc3bdea2e8ea8d42505b0d4998997d0507",
+      "role": "methodology-declaration:skill-sentinel"
+    },
+    {
+      "path": "contracts/v3/be-validator.contract-v3.yaml",
+      "sha256": "6c6715e4f11796cef58d298f5b3ed2590acc02e11137fbc3eb40d7de9bc240e2",
+      "role": "asset-contract-v3:be-validator"
+    },
+    {
+      "path": "contracts/v3/dev-planner.contract-v3.yaml",
+      "sha256": "595724d164e27b2d83e99ed981b1efcdfd68cb9e19f5812c8d261c993c0cab6f",
+      "role": "asset-contract-v3:dev-planner"
+    },
+    {
+      "path": "contracts/v3/frontend-design.contract-v3.yaml",
+      "sha256": "e47e0b787b4ad051b7d808c9be293114b98601fe8f219cd02000b52119fdec36",
+      "role": "asset-contract-v3:frontend-design"
+    },
+    {
+      "path": "contracts/v3/implementation.contract-v3.yaml",
+      "sha256": "12b1561a7c6016078066e7c91ede603e3f3863d1ebcb46e212028bbb638ce12d",
+      "role": "asset-contract-v3:implementation"
+    },
+    {
+      "path": "contracts/v3/planning.contract-v3.yaml",
+      "sha256": "0af7f4f19dbc05ceb7496182309625fe5deaaa7ec5dcc6517840fd6e1cc2c4b0",
+      "role": "asset-contract-v3:planning"
+    },
+    {
+      "path": "contracts/v3/review.contract-v3.yaml",
+      "sha256": "060b7600375cf92a820e687273e55476fe163149d5fb85f07208f4178dfc1f07",
+      "role": "asset-contract-v3:review"
+    },
+    {
+      "path": "contracts/v3/sdlc.contract-v3.yaml",
+      "sha256": "182b23517a00bd32ab718ff558248c28a63b765f363f0357310fa051a75ca8d2",
+      "role": "asset-contract-v3:sdlc"
+    },
+    {
+      "path": "contracts/v3/security.contract-v3.yaml",
+      "sha256": "9e029784c9cef9d58dc0192cc8158e43aee107f014ff731c088d19100be231eb",
+      "role": "asset-contract-v3:security"
+    },
+    {
+      "path": "contracts/v3/skill-sentinel.contract-v3.yaml",
+      "sha256": "55df909f23a5715f11e811737dc997c8d4b4ba99cb45bf2c5061436772047d03",
+      "role": "asset-contract-v3:skill-sentinel"
+    }
+  ]
+}

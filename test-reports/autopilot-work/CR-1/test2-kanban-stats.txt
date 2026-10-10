@@ -1,4 +1,0 @@
-STATS total=5 registered=1 accepted=1 converted=1 done=1 rejected=1 conversionRate=40% noSource=2
-STATS-BLOCK {"total":"5","registered":"1","accepted":"1","converted":"1","done":"1","rejected":"1","conversion_rate":"40","no_source":"2"}
-[OK] v2 看板统计（收录 5 条 / 无 source 2 条）
-EXIT=0

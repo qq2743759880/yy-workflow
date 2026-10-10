@@ -5,18 +5,14 @@ journey-step: 7
 prereq-gates: [step5, contract-frozen]
 ---
 
-> 首行指令：先跑 `node scripts/tt-journey.mjs --workspace "$PROJECT_ROOT" --prereq-check --step 7` 机验前置。前置 step 5 未 done 或 gate contract-frozen 未过时 exit 1 输出原因并阻断注入，先回阶段 3/5。
+> 首行指令：先跑 `node "$SKILL_DIR/scripts/host-adapter.mjs" prepare --workspace "$PROJECT_ROOT" --session <session> --intent "/yy 4" --task-text "<本次有界子任务>" --subtask-id <id> --capability <子任务能力> --save` 展示原始 stage→task/brief 包，仅 `ok=true` 且 `data.execution_permitted=true` 继续。再跑 `host-adapter.mjs check` 重核展示，同 workspace/session/id；默认 HOST_NATIVE 消费执行包。只有显式选择外部 provider 才用 `execute --exec`；接入见 `reference/decision-interface.md`。
 
 ## 阶段 7 · 派单执行
 
-**目标**：按 C-01 派独立子 agent 执行（task/claude/codex/openclaw），你不得自写自验；每任务完工 = 你独立实证验收，不采信完工报告。
+**目标**：由当前宿主原生执行已准入子任务；实现与独立实证验收分开，不采信完工报告。缺执行或独立验收能力时明确返回未执行/未验证，不假报完成。
 
 **人工 gate 清单**：独立实证验收（跑测试/真实请求/git log）+ 前端 HTML 原型 APPROVED（Gate A）——验收口径与审美签收。
 
-**纪律钥匙词**：`独立子 agent`、`独立实证验收`、`不采信完工报告`、`HTML 原型先 APPROVED 才准写框架`、`验收断言逐个复现`。
+**产物路径**：`artifacts/<planId>/state-summary.json`（收尾派生）及每个子任务的真实产物、独立 checker 证据。每项派单消费本项 packet，状态摘要或其他任务的 brief 不授予本项许可。
 
-**产物路径**：`artifacts/<planId>/state-summary.json`（收尾派生）；验收通过 `node scripts/tt-journey.mjs --workspace "$PROJECT_ROOT" --update --step 7 --gate gate-a-approved`。
-
-**关键**：90% 翻车发生在验收偷懒——只信报告或只走形式。
-
-**指针**：`docs/TT-USER-PROMPT-GUIDE.md` §5 阶段 4（L96）；`SKILL.md` §5 多级派单与独立验收 / §6 前端 HTML 原型 gate。
+**指针**：派单和独立验收见 `reference/dispatch-and-acceptance.md`、`reference/frontend-gate.md`。

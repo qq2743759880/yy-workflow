@@ -1,0 +1,247 @@
+{
+  "schema": "yy/asset-invocation-matrix@1",
+  "rows": [
+    {
+      "asset": "be-validator",
+      "selection_source": "Decision capability/cluster + eligibility",
+      "methodology_type": "TOOL_BACKED",
+      "primary_methodology": "contract-validation",
+      "dependencies": {
+        "required": [],
+        "conditional": [],
+        "requested_only": [],
+        "modes": {}
+      },
+      "activation_source": "METHODOLOGY.json via scripts/lib/methodology.mjs",
+      "execution_mode": "DETERMINISTIC_TOOL",
+      "external_tool": [
+        "spectral"
+      ],
+      "tool_required": true,
+      "fallback": "NOT_EXECUTED: specific capability unavailable",
+      "portable": true
+    },
+    {
+      "asset": "dev-planner",
+      "selection_source": "Decision capability/cluster + eligibility",
+      "methodology_type": "MATT_COMPOSE",
+      "primary_methodology": "to-tickets",
+      "dependencies": {
+        "required": [],
+        "conditional": [
+          {
+            "id": "grilling",
+            "when": {
+              "unresolved_decisions": true
+            }
+          },
+          {
+            "id": "to-spec",
+            "when": {
+              "has_spec": false
+            }
+          },
+          {
+            "id": "grilling",
+            "when": {
+              "unresolved_decisions": true
+            }
+          }
+        ],
+        "requested_only": [],
+        "modes": {}
+      },
+      "activation_source": "METHODOLOGY.json via scripts/lib/methodology.mjs",
+      "execution_mode": "HOST_NATIVE (default); EXTERNAL_PROVIDER opt-in",
+      "external_tool": [],
+      "tool_required": false,
+      "fallback": "INLINE_METHODOLOGY / BRIEF_ONLY",
+      "portable": true
+    },
+    {
+      "asset": "frontend-design",
+      "selection_source": "Decision capability/cluster + eligibility",
+      "methodology_type": "LOCAL_COMPOSE",
+      "primary_methodology": "taste",
+      "dependencies": {
+        "required": [
+          "frontend-levels"
+        ],
+        "conditional": [],
+        "requested_only": [],
+        "modes": {
+          "L0": {
+            "primary": "frontend-levels"
+          },
+          "L1": {
+            "primary": "frontend-levels"
+          },
+          "L2": {
+            "primary": "taste"
+          },
+          "L3": {
+            "primary": "taste"
+          }
+        }
+      },
+      "activation_source": "METHODOLOGY.json via scripts/lib/methodology.mjs",
+      "execution_mode": "HOST_NATIVE (default); EXTERNAL_PROVIDER opt-in",
+      "external_tool": [],
+      "tool_required": false,
+      "fallback": "INLINE_METHODOLOGY / BRIEF_ONLY",
+      "portable": true
+    },
+    {
+      "asset": "implementation",
+      "selection_source": "Decision capability/cluster + eligibility",
+      "methodology_type": "MATT_COMPOSE",
+      "primary_methodology": "implement",
+      "dependencies": {
+        "required": [
+          "tdd",
+          "codebase-design",
+          "code-review"
+        ],
+        "conditional": [],
+        "requested_only": [
+          "grilling"
+        ],
+        "modes": {}
+      },
+      "activation_source": "METHODOLOGY.json via scripts/lib/methodology.mjs",
+      "execution_mode": "HOST_NATIVE (default); EXTERNAL_PROVIDER opt-in",
+      "external_tool": [],
+      "tool_required": false,
+      "fallback": "INLINE_METHODOLOGY / BRIEF_ONLY",
+      "portable": true
+    },
+    {
+      "asset": "planning",
+      "selection_source": "Decision capability/cluster + eligibility",
+      "methodology_type": "MATT_COMPOSE",
+      "primary_methodology": "to-spec",
+      "dependencies": {
+        "required": [],
+        "conditional": [
+          {
+            "id": "grilling",
+            "when": {
+              "unresolved_decisions": true
+            }
+          },
+          {
+            "id": "owner-governance",
+            "when": {
+              "owner_profile": [
+                "formal",
+                "vibe"
+              ]
+            }
+          }
+        ],
+        "requested_only": [],
+        "modes": {}
+      },
+      "activation_source": "METHODOLOGY.json via scripts/lib/methodology.mjs",
+      "execution_mode": "HOST_NATIVE (default); EXTERNAL_PROVIDER opt-in",
+      "external_tool": [],
+      "tool_required": false,
+      "fallback": "INLINE_METHODOLOGY / BRIEF_ONLY",
+      "portable": true
+    },
+    {
+      "asset": "review",
+      "selection_source": "Decision capability/cluster + eligibility",
+      "methodology_type": "MATT_COMPOSE",
+      "primary_methodology": "code-review",
+      "dependencies": {
+        "required": [
+          "finding-format"
+        ],
+        "conditional": [],
+        "requested_only": [
+          "existing-code-audit"
+        ],
+        "modes": {
+          "change_review": {
+            "primary": "code-review",
+            "required_context": [
+              "base"
+            ]
+          },
+          "existing_code_audit": {
+            "primary": "existing-code-audit",
+            "required_context": [
+              "scope",
+              "version"
+            ]
+          }
+        }
+      },
+      "activation_source": "METHODOLOGY.json via scripts/lib/methodology.mjs",
+      "execution_mode": "HOST_NATIVE (default); EXTERNAL_PROVIDER opt-in",
+      "external_tool": [],
+      "tool_required": false,
+      "fallback": "INLINE_METHODOLOGY / BRIEF_ONLY",
+      "portable": true
+    },
+    {
+      "asset": "sdlc",
+      "selection_source": "Decision eligibility + explicit Owner governance",
+      "methodology_type": "LEGACY_HEAVY_PROFILE",
+      "primary_methodology": "legacy-governance",
+      "dependencies": {
+        "required": [],
+        "conditional": [],
+        "requested_only": [],
+        "modes": {}
+      },
+      "activation_source": "METHODOLOGY.json via scripts/lib/methodology.mjs",
+      "execution_mode": "HOST_NATIVE (default); EXTERNAL_PROVIDER opt-in",
+      "external_tool": [],
+      "tool_required": false,
+      "fallback": "INLINE_METHODOLOGY / BRIEF_ONLY",
+      "portable": true
+    },
+    {
+      "asset": "security",
+      "selection_source": "Decision capability/cluster + eligibility",
+      "methodology_type": "TOOL_BACKED",
+      "primary_methodology": "security-boundary",
+      "dependencies": {
+        "required": [],
+        "conditional": [],
+        "requested_only": [],
+        "modes": {}
+      },
+      "activation_source": "METHODOLOGY.json via scripts/lib/methodology.mjs",
+      "execution_mode": "DETERMINISTIC_TOOL",
+      "external_tool": [
+        "semgrep"
+      ],
+      "tool_required": true,
+      "fallback": "NOT_EXECUTED: specific capability unavailable",
+      "portable": true
+    },
+    {
+      "asset": "skill-sentinel",
+      "selection_source": "Decision capability/cluster + eligibility",
+      "methodology_type": "TOOL_BACKED",
+      "primary_methodology": "skill-safety",
+      "dependencies": {
+        "required": [],
+        "conditional": [],
+        "requested_only": [],
+        "modes": {}
+      },
+      "activation_source": "METHODOLOGY.json via scripts/lib/methodology.mjs",
+      "execution_mode": "DETERMINISTIC_TOOL",
+      "external_tool": [
+        "cisco-skill-scanner"
+      ],
+      "tool_required": true,
+      "fallback": "NOT_EXECUTED: specific capability unavailable",
+      "portable": true
+    }
+  ]
+}

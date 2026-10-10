@@ -1,0 +1,11 @@
+C4Context
+ title YY execution system - Context
+ Person(owner, "Owner", "Provides goals and sign-off")
+ System(yy, "YY execution system", "Admission, bounded task packages and evidence")
+ System_Ext(host, "Current Agent host", "Displays decisions and executes admitted tasks")
+ System_Ext(provider, "Optional execution party", "Explicit provider or manual handoff")
+ Rel(owner, yy, "Requests tasks and signs off", "Host interaction")
+ Rel(yy, host, "Presents and rechecks task package", "CLI / MCP")
+ Rel(host, provider, "Hands off only when explicitly selected", "Bounded package")
+ UpdateRelStyle(owner, yy, $offsetY="-120", $offsetX="-45")
+ UpdateRelStyle(host, provider, $offsetY="75", $offsetX="-20")

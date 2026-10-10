@@ -1,7 +1,0 @@
-{
-  "selected_asset": "security",
-  "eligible": true,
-  "reason": [
-    "无正向依据：未提供 requirements/constraints 提示——如实标注，不否决（无负向命中）"
-  ]
-}

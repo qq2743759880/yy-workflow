@@ -1,1 +1,0 @@
-python.exe C:\Python314\Scripts\skill-scanner 2.1.0

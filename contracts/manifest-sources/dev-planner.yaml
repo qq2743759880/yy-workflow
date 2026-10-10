@@ -1,13 +1,10 @@
-# sidecar：dev-planner（AV-2 批 1）——三字段方法论内容我方署责任，vendor 文件一字不改。
-# 内容依据：vendor/dev-planner/dev-planner.md 头部结构化区（frontmatter 触发词）+ EA-1 BASELINE.md 消费语义（BW 4/4 署名消费）。
 id: dev-planner
 when_to_use:
-  - 新功能开发起点：需求分析、前后端任务分解、Given/When/Then 验收标准、handoff spec（frontmatter 触发词：plan feature / feature breakdown / requirements analysis）
-  - 分解前需前提挑战（Premise Challenge：Why now/现状/最窄楔子/未来适配，PREMISES 确认表）
+  - Feature breakdown into tracer-bullet tickets and blocking edges
+  - Missing specification or unresolved design decisions require declared to-spec/grilling dependencies
 when_not_to_use:
-  - 需求已明确且已拆解、可直接派单执行的任务（无分解价值）
-  - 用户拒绝 premise 确认且按 vendor 纪律不得产出任务分解的场合（premises never skippable）
-verification: 产物 spec（.claude/specs/dev-{slug}.md）含 GWT 验收标准 + premise 段 + plan-review 段（须过 `review-gate.mjs --plan`）；分解前设计文档先行检索（docs/designs grep）并声明 build-on/start-fresh；EA-1 基线：BW 4/4 工作区含「需求前提挑战（dev-planner Step 0）」署名，消费语义已实测
+  - An already complete task breakdown ready for implementation
+verification: artifacts/specs/ and artifacts/tickets/ references plus requested plan-review report; delivery is not methodology application proof
 source: vendor/dev-planner/dev-planner.md#L1-L5
 drop_pending: false
 drop_allowed: false

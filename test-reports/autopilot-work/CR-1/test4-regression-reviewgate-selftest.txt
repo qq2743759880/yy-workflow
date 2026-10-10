@@ -1,3 +1,0 @@
-PASS review-gate 核心断言 self-test（格式/规划闸门/登记解析/阶段机验核对）
-PASS review-gate URL 真验 self-test（真 URL PASS / 假 URL FAIL / 断网 SKIPPED 三态）
-SELFTEST_EXIT=0

@@ -1,0 +1,85 @@
+schema: yy/asset-files@1
+asset: sdlc
+iteration_protocol: reference/asset-iteration.md
+files:
+- match: ASSET-FILES.yaml
+  state: PROVENANCE
+  consumer: distribution
+- match: SKILL.md
+  state: ACTIVE_ENTRY
+  consumer: activation
+  load: entry
+- match: agents/control.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/sdlc/METHODOLOGY.json
+  load: declared mode/phase/resource condition only
+- match: agents/developer.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/sdlc/METHODOLOGY.json
+  load: declared mode/phase/resource condition only
+- match: agents/peer.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/sdlc/METHODOLOGY.json
+  load: declared mode/phase/resource condition only
+- match: agents/sprint.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/sdlc/METHODOLOGY.json
+  load: declared mode/phase/resource condition only
+- match: agents/summary.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/sdlc/METHODOLOGY.json
+  load: declared mode/phase/resource condition only
+- match: agents/supervisor.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/sdlc/METHODOLOGY.json
+  load: declared mode/phase/resource condition only
+- match: reference/bmad-phases.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/sdlc/METHODOLOGY.json
+  load: declared mode/phase/resource condition only
+- match: reference/cline-exec.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/sdlc/SKILL.md
+  load: matching asset section/task requires the resource
+- match: reference/phase-templates.md
+  state: ACTIVE_RESOURCE
+  consumer: vendor/sdlc/METHODOLOGY.json
+  load: declared mode/phase/resource condition only
+- match: METHODOLOGY.json
+  state: ACTIVE_RESOURCE
+  consumer: scripts/lib/methodology.mjs
+  load: selected asset declaration
+- match: UPSTREAM-REUSE.yaml
+  state: PROVENANCE
+  consumer: distribution
+retired:
+- path: skills/plan/SKILL.md
+  superseded_by: SKILL.md
+  reason: bmad-cline adapter consumes task and writes phase docs; no read/execute
+    of upstream plugin wrapper
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: skills/develop/SKILL.md
+  superseded_by: SKILL.md
+  reason: bmad-cline adapter consumes task and writes phase docs; no read/execute
+    of upstream plugin wrapper
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: skills/review/SKILL.md
+  superseded_by: SKILL.md
+  reason: bmad-cline adapter consumes task and writes phase docs; no read/execute
+    of upstream plugin wrapper
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: skills/summarize/SKILL.md
+  superseded_by: SKILL.md
+  reason: bmad-cline adapter consumes task and writes phase docs; no read/execute
+    of upstream plugin wrapper
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: scripts/collect-summaries.sh
+  superseded_by: SKILL.md
+  reason: bmad-cline adapter consumes task and writes phase docs; no read/execute
+    of upstream plugin wrapper
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json
+- path: README.md
+  superseded_by: SKILL.md
+  reason: bmad-cline adapter consumes task and writes phase docs; no read/execute
+    of upstream plugin wrapper
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json

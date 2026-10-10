@@ -1,0 +1,28 @@
+schema: yy/asset-files@1
+asset: be-validator
+iteration_protocol: reference/asset-iteration.md
+files:
+- match: ASSET-FILES.yaml
+  state: PROVENANCE
+  consumer: distribution
+- match: be-validator.md
+  state: ACTIVE_ENTRY
+  consumer: activation
+  load: entry
+- match: rulesets/spectral-oas.yaml
+  state: EXECUTABLE
+  consumer: scripts/lib/adapters/portman.mjs
+  load: backend adapter real OpenAPI validation
+- match: METHODOLOGY.json
+  state: ACTIVE_RESOURCE
+  consumer: scripts/lib/methodology.mjs
+  load: selected asset declaration
+- match: UPSTREAM-REUSE.yaml
+  state: PROVENANCE
+  consumer: distribution
+retired:
+- path: reference/contract-testing.md
+  superseded_by: be-validator.md
+  reason: Old portman/contracteer guidance superseded by current Spectral adapter
+    and frozen explicit compatibility flag
+  archive_ref: <private-backup-root>/20261005-asset-file-reconciliation/manifest.json

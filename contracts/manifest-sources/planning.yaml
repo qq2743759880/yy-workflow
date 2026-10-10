@@ -1,12 +1,13 @@
-# sidecar：planning（AV-2 批 1）——三字段方法论内容我方署责任，vendor 文件一字不改。
-# 内容依据：vendor/planning/SKILL.md 头部结构化区（四确认关卡）+ EA-1 BASELINE.md 消费语义（零现）。
+# sidecar：planning（AV-2 批 1；2026-10-04 r1 语义同步）——三字段方法论内容我方署责任。
+# 内容依据：vendor/planning/SKILL.md v3.1.0 r1 正文（formal/vibe 双轨分离）；与契约/正文同步更新。
 id: planning
 when_to_use:
-  - 需要正式 PRD 供团队评审（reference/formal-prd.md：产品上下文/目标/用户/功能/优先级/验收/风险）
-  - 需要 Vibe Coding PRD（四确认关卡顺序过：需求定义→功能优先级→技术栈→原型，禁跳门）
+  - 需要正式 PRD 供团队评审（formal 产物线：七节结构+实质判据+复用登记，不走四门）
+  - owner 选择 vibe 流程（vibe 产物线：四确认关卡顺序过——需求定义→功能优先级→技术栈→原型，禁跳门，逐门留痕）；两条产物线独立，互不强加
 when_not_to_use:
-  - 已有 dev-planner handoff spec、无需 PRD 级评审的小步任务（EA-1：BW 规划由 dev-planner 承担，本资产零现——宁窄勿编）
-verification: 产物为 formal-prd 或 vibe-prd 文档，四确认关卡逐门留痕（未过前门不得进后门）；执行内核按 vendor 头部（MetaGPT/crewAI 对标）——probe 可用则参考，缺失用内置流程并诚实标注；S3 marker（MetaGPT/crewAI）+消费锚点机验
+  - 简单局部修改、已有 dev-planner handoff spec 的任务（EA-1：BW 规划由 dev-planner 承担，本资产零现——宁窄勿编）
+  - 无评审对象的纯执行任务；验收节含 Given/When/Then 可观察示例不属越界（禁止的是完整任务拆分/依赖排期/实现级 handoff，按职责切分非词形）
+verification: 产物按线分档——formal=七节实质判据核对表+复用登记（vibe 四门不适用）；vibe=四门逐门留痕（门名/确认人/时间或会话指针/产物指针，未过前门不得进后门）；owner 已确认信息直接引用来源登记复用，须真实授权的仅限关键目标变更/权限类/不可逆决策；pending 关卡显式登记禁自答；执行内核按 vendor 头部（MetaGPT/crewAI 对标）——probe 可用则参考，缺失用内置流程并诚实标注；S3 marker（MetaGPT/crewAI）+消费锚点机验
 source: vendor/planning/SKILL.md#L1-L5
 drop_pending: false
 drop_allowed: false

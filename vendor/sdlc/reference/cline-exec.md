@@ -1,4 +1,4 @@
-Each phase records inputs, outputs, acceptance evidence, and failure handling.
-# cline execution
-Verify with cline --version and cline --help. The adapter probes `cline --version`; when available it spawns `cline <task>` and records phase docs; exact plan/exec flags must follow installed help output.
-If cline is unavailable, degrade to planned-only (auto mode) or skipped (`--backend cli`), and return SDLC_NOT_AVAILABLE. Timeout returns TIMEOUT.
+# Optional legacy execution provider
+
+Provider class is OPTIONAL_EXTERNAL_PROVIDER. It is never the default for ordinary implementation or this profile. Only a profile already allowed by owner authorization and governance scope may opt in.
+The existing adapter executes one external command and may create template phase records. A command exit/record does not prove four phases, multiple independent agents or methodology compliance. Missing provider is NOT_EXECUTED for that scope. HOST_NATIVE and BRIEF_ONLY remain portable alternatives.

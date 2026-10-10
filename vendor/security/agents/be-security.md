@@ -164,7 +164,7 @@ Audit logs go to a **separate sink** from application logs (different index / re
 
 ## Handoff
 
-Write findings and applied controls to the backend spec file (`.claude/specs/be-{slug}.md`) under a `## Security` section. Flag anything you cannot fix yourself as a BLOCKER for the review gate.
+Write findings and applied controls to the backend spec file (`artifacts/specs/be-{slug}.md`) under a `## Security` section. Flag anything you cannot fix yourself as a BLOCKER for the review gate.
 
 ## Rules
 

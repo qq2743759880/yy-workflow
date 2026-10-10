@@ -1,0 +1,37 @@
+schema: yy/upstream-reuse@1
+asset: planning
+decision: COMPOSE
+matt_checked:
+  commit: 24fe0ef7737efae15c87225755e9f6f5965e4888
+  evidence: Owner function-freeze scope and the pinned upstream inventory
+approved_mature_checked:
+  evidence: Current production sources and real adapters inspected before migration
+rejected_lower_modes:
+  DIRECT_VENDOR: YY admission/artifact/owner boundaries are absent upstream
+  THIN_WRAPPER: Multiple declared upstream methods and conditional YY supplements require composition, not a single-source pointer.
+gap:
+  status: REAL_GAP
+  evidence: YY-specific admission, local artifact sink, evidence and declared owner governance; no replacement of upstream methods
+wrapper_responsibilities:
+- decision_bridge
+- activation_pointer
+- dependency_resolution
+- artifact_bridge
+- evidence_bridge
+- portable_execution
+no_runtime_auto_update: true
+source_refs:
+- path: vendor/planning/SKILL.md
+  sha256: b636288d641af8897688b3383840b729eabbde3bf179390f432b26247a3ce960
+- path: LICENSE
+  sha256: 39ad33402a909bc27000cde7ec17024209243db571dd7af7aed67a7f28a19883
+- path: vendor/implementation/reference/matt/LICENSE
+  sha256: 0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5
+primary_upstream:
+  kind: MATT
+  repository: mattpocock/skills
+  commit: 24fe0ef7737efae15c87225755e9f6f5965e4888
+  license: MIT
+  paths:
+  - vendor/implementation/reference/matt/engineering_to-spec/SKILL.md
+  - vendor/implementation/reference/matt/productivity_grilling/SKILL.md

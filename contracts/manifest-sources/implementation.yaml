@@ -1,13 +1,12 @@
-# sidecar：implementation（AV-2 批 1）——三字段方法论内容我方署责任，vendor 文件一字不改。
-# 内容依据：vendor/implementation/implementation.md 头部（无 frontmatter，取首段）+ EA-1 BASELINE.md 消费语义。
+# Thin wrapper execution bridge; methodology is byte-pinned Matt implement.
 id: implementation
 when_to_use:
-  - 需求与冻结契约齐备、要把任务落地为可运行后端代码并提交仓库（vendor 首段：turn requirements and frozen contracts into runnable backend code）
-  - 子任务要求 mode=exec 真实执行（经 opencode 专用 adapter 或 prompt backend --exec 宿主通道产出非空交付物）
+  - 需求与冻结契约齐备、要把任务落地为可运行后端代码并提交仓库
+  - 子任务要求真实实现并产出非空交付物，由当前宿主或显式选定的外部 provider 执行
 when_not_to_use:
   - 契约尚未冻结（上游契约产物先行冻结，再进实现）
   - 纯规划/评审/调研类任务（无代码落地交付物）
-verification: 产物为源代码+测试，落 artifacts/<subtaskId>/ 相对路径；执行内核=opencode adapter：probe `opencode --version` 可用则真实 spawn 执行，CLI 缺失诚实降级 OPENCODE_NOT_AVAILABLE（mode=skipped 附安装提示），禁伪报 exec 成功；regression S3 保留 opencode marker
-source: vendor/implementation/implementation.md#L1-L5
+verification: 执行内核=host-native；默认 HOST_NATIVE 消费有界执行包；真实非空产物和 hash 留痕。外部 provider 仅显式选用；无执行器为 BRIEF_ONLY、executed=false，不宣称执行或方法应用成功。
+source: vendor/implementation/implementation.md#L7-L20
 drop_pending: false
 drop_allowed: false

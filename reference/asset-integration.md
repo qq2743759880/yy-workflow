@@ -2,6 +2,8 @@
 
 > 本文件是 YY 资产整合阶段的权威说明（原 SKILL.md §1/§1c 迁移至此）。阶段 0（立项/资产整合）或组装 kickoff prompt 时读取。
 
+手动调度、竞品直用或方法论降级仍须先消费 `decision-interface.md` 的 Core/V2 Decision Packet；不能以本说明或工具可用性替代阶段准入。缺失必需资源按当前 blocker 处理。
+
 ## 资产整合红线（第 0 步，前置）
 
 - **资产清单以实际部署为准**：引用任何 skill/mcp 前先确认存在（`scripts/detect-platforms.mjs` 或 `Test-Path`），**不引用不存在的资产**。
@@ -23,12 +25,12 @@
 | 安全扫描 | skill-sentinel | `$SKILL_DIR/vendor/skill-sentinel/SKILL.md` |
 | 后端工程 | sdlc（BMAD-METHOD 四阶段 + cline 执行） | `$SKILL_DIR/vendor/sdlc/SKILL.md` |
 | 后端 agent | be-validator（提示词，无 SKILL.md） | `$SKILL_DIR/vendor/be-validator/be-validator.md` |
-| 实现簇 | implementation（dev-backend + be-implementer 合并，执行内核接 opencode） | `$SKILL_DIR/vendor/implementation/implementation.md` |
+| 实现簇 | implementation（Matt implement 薄包装，默认 HOST_NATIVE；外部 provider 显式选用） | `$SKILL_DIR/vendor/implementation/implementation.md` |
 
 ## 竞品整合与直用策略
 
-> 引用任何增强资产前先确认存在；增强资产均随包内置，故默认存在。若用户自设 `$AIHUB_ROOT`，可改为引用 `$AIHUB_ROOT/skills/<name>/SKILL.md` 的同名外部版本。后端任务链（T1/T2/T5）的 agent×skill 调度见 `templates/task-agent-matrix.md` 与 `templates/orchestration-frontend-backend.md`。
+> 引用任何增强资产前先确认存在；增强资产均随包内置，故默认存在。编排器固定读取随包 vendor；`$AIHUB_ROOT` 仅可作外部资料目录，不能自动覆盖资产。后端任务链（T1/T2/T5）的 agent×skill 调度见 `templates/task-agent-matrix.md` 与 `templates/orchestration-frontend-backend.md`。
 >
-> **竞品整合内核**：每个增强资产正文含 `## Execution kernel` 段——声明对标竞品（frontend-design→shadcn-ui/bolt.new、be-validator→portman、security→semgrep+gitleaks、skill-sentinel→SkillSpector 等）+ probe + 降级；`regression-all` S3 漂移门机器校验。资产名保留原名（方法论身份 + AIHUB_ROOT 同名替换），竞品以执行内核整合。完整内核表见 README「随包内置资产」。
+> **方法论与 provider 分离**：YY 持有 Decision、路由、激活、依赖解析和证据，宿主持有执行。工具依赖属于具体 capability，不构成宿主平台要求。implementation 的正常可用性不依赖外部 CLI。
 >
-> **竞品直用策略（Competitor-first，2026-09-01）**：当某任务所需竞品**已部署且可用**（清单见 `$SKILL_DIR/docs/history/COMPETITOR-DEPLOYMENT.md`：opencode/portman/semgrep+gitleaks/gpt-researcher 等），允许直接调用竞品（CLI/库/venv），TT 9 资产保留为方法论兜底。判断：**竞品可用 → 直用竞品；不可用或 TT 资产有明确差异化优势 → 用 TT 资产**（如 dev-planner 前提挑战/GWT 评审、review 批判滞后闭环）。本策略不删资产、不改内核，仅放宽规划阶段的调用选择。
+> **执行选择**：默认由当前宿主使用原生模型/工具消费方法论包。外部 provider 只有在用户或部署配置显式选用时调用；已安装不等于应自动选择。无自动执行能力时交付 BRIEF_ONLY、executed=false。接入约定见 [平台中立执行](host-execution.md)；历史部署 inventory 不作为当前选择权威。

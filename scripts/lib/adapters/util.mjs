@@ -32,14 +32,13 @@ export function runCommand(command, args, options) {
   return new Promise(function(resolve, reject) {
     let output = '';
     let errOutput = '';
-    let done = false;
-    const child = spawn(command, args, { cwd: workspace, stdio: ['ignore', 'pipe', 'pipe'] });
+    let done = false,timedOut=false;
+    const child = spawn(command, args, { cwd: workspace, env: options.env, stdio: ['ignore', 'pipe', 'pipe'] });
     // 超时解耦（P2）：默认 resolve 失败对象（探测/降级语义）；throwOnTimeout:true 时超时 throw TimeoutError，
     // 供 withRetry 捕获重试——真实执行调用的超时从此可重试，探测调用不受影响。
     let timer = setTimeout(function() {
+      timedOut=true;
       child.kill();
-      if (options.throwOnTimeout) fail(new TimeoutError(String(options.timeoutCode)));
-      else finish({ ok: false, error: options.timeoutCode });
     }, timeoutMs);
     if (timer.unref) timer.unref();
     function finish(result) { if (done) return; done = true; clearTimeout(timer); resolve(result); }
@@ -49,12 +48,19 @@ export function runCommand(command, args, options) {
     child.stderr.on('data', function(chunk) { errOutput += chunk.toString(); });
     child.on('error', function(error) { if (error.code === 'ENOENT') finish({ ok: false, error: options.notAvailableCode }); else finish({ ok: false, error: error.message }); });
     child.on('close', async function(code) {
-      if (code !== 0) { if (!output && !errOutput) output = 'external command failed'; else if (!output) output = errOutput.trim(); finish({ ok: false, error: output.trim() }); return; }
+      if(timedOut){
+        const settlement={child_closed:true,child_pid:child.pid,exit_code:code,timed_out:true};
+        if(options.throwOnTimeout){const error=new TimeoutError(String(options.timeoutCode));error.settlement=settlement;fail(error);}
+        else finish({ok:false,error:options.timeoutCode,exitCode:code,stdout:output,stderr:errOutput,settlement});
+        return;
+      }
+      const stdout = output;
+      if (code !== 0) { if (!output && !errOutput) output = 'external command failed'; else if (!output) output = errOutput.trim(); finish({ ok: false, error: output.trim(), exitCode: code, stdout, stderr: errOutput }); return; }
       if (!output) output = 'completed';
       const dir = path.join(workspace, 'artifacts', options.subtask.id);
       await fs.mkdir(dir, { recursive: true });
       await fs.writeFile(path.join(dir, 'result.txt'), output);
-      finish({ ok: true, artifactPath: path.join('artifacts', options.subtask.id, 'result.txt') });
+      finish({ ok: true, artifactPath: path.join('artifacts', options.subtask.id, 'result.txt'), exitCode: code, stdout, stderr: errOutput });
     });
   });
 }

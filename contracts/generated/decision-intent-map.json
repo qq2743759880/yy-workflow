@@ -1,0 +1,32 @@
+{
+  "schema": "yy/decision-intent-map@1",
+  "version": "1.0.0",
+  "note": "C4.1 唯一 intent 映射数据源（宿主触发 → journey step + Decision 操作 + 有界参数）。/yy N 与 journey step 的历史错位在此显式编码（/yy 2→step3 等，来源=commands/*.md frontmatter journey-step，drift 由 test-decision-intent-map.mjs 机验）。本 lane 不修改 SKILL.md / commands/** / 宿主执行流。",
+  "command_to_step": {
+    "/yy 0": 0,
+    "/yy 1": 1,
+    "/yy 2": 3,
+    "/yy 3": 5,
+    "/yy 4": 7,
+    "/yy 5": 8
+  },
+  "triggers": [
+    { "phrases": ["立项", "资产整合", "项目启动"], "step": 0, "op": "stage" },
+    { "phrases": ["需求", "需求挖掘", "挖掘需求", "需求分析"], "step": 1, "op": "stage" },
+    { "phrases": ["拆任务", "任务拆分", "任务拆解", "进入任务拆分", "任务分解", "前提挑战"], "step": 3, "op": "stage" },
+    { "phrases": ["契约冻结", "冻结契约", "规划", "规划阶段"], "step": 5, "op": "stage" },
+    { "phrases": ["派单", "派单执行", "执行阶段", "并行派单", "进入执行"], "step": 7, "op": "stage" },
+    { "phrases": ["验收", "验收批判", "批判", "批判反哺", "复盘"], "step": 8, "op": "stage" },
+    { "phrases": ["当前进度", "进度图", "检查当前阶段", "现在在哪一步", "当前阶段"], "step": null, "op": "stage", "mode": "current" }
+  ],
+  "stage_entry_defaults": {
+    "3": { "follow_up": { "op": "task", "mode": "brief", "capability_hint": "feature-breakdown" } },
+    "5": { "follow_up": null },
+    "7": { "follow_up": { "op": "task", "mode": "brief", "note": "capability 按子任务资产显式给定；执行默认 Host Native Codex（asset=methodology，不外包执行器）" } }
+  },
+  "notes": [
+    "step=null + mode=current 表示只查询当前位置（stageDecision 不带 requested 语义的展示态），不推动阶段",
+    "trigger 匹配为确定性包含判定（同 planner.route 风格，禁语义模糊）；无命中不猜——回落为 stage/current 查询并提示 Owner 用 /yy N",
+    "本表不是第二权威：step 语义仍由 tt-journey STEPS 持有，映射正确性以 commands frontmatter 为准绳机验"
+  ]
+}

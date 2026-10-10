@@ -15,6 +15,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { createStore } from './store.mjs';
+import {executionPolicy,checkpointExecution} from './host-execution.mjs';
 
 // ---------------------------------------------------------------------------
 // B5（T6 接线）：adapter resolver 依赖注入（A0 修正案）+ activation.prepare 三级激活路由
@@ -30,8 +32,8 @@ export function setAdapterResolver(fn) {
   return prev;
 }
 function resolveAdapterDI(asset, backend, opts) {
-  if (opts && typeof opts.resolveAdapter === 'function') return opts.resolveAdapter(asset, backend);
-  return _adapterResolver(asset, backend);
+  if (opts && typeof opts.resolveAdapter === 'function') return opts.resolveAdapter(asset, backend, opts);
+  return _adapterResolver(asset, backend, opts);
 }
 
 // ---------------------------------------------------------------------------
@@ -85,6 +87,22 @@ export function createContextBus() {
   const values = new Map();
   return { set(key, value) { JSON.stringify(value); values.set(key, value); }, get(key) { return values.get(key); }, has(key) { return values.has(key); }, dump() { return Object.fromEntries(values); } };
 }
+const isManualHandoffTask=task=>Boolean(task?.handoff||task?.delegationContext?.delegation_mode==='MANUAL_HANDOFF');
+/** Rehydrate completed dependencies; manual evidence stays owned by the readonly receiver API. */
+async function restoreCompletedContext(plan,ctx,opts) {
+ const accepted=new Set();
+ for(const task of plan.subtasks){
+  if(isManualHandoffTask(task)&&(task.status==='done'||task.handoff?.handoff_status==='ACCEPTED')){
+   const receiver=await import('../handoff.mjs');
+   if(typeof receiver.verifyAcceptedHandoff!=='function')throw Object.assign(new Error('HANDOFF_ACCEPTANCE_UNVERIFIED'),{code:'HANDOFF_ACCEPTANCE_UNVERIFIED'});
+   const proof=await receiver.verifyAcceptedHandoff(opts.workspace,task,{repoRoot:opts.assetsRoot});
+   accepted.add(task.id);task.status='done';task.executed=false;task.executionMode='BRIEF_ONLY';
+   const primary=proof.artifact_refs[0];task.artifactPath=primary.path;
+   ctx.set('artifact:'+task.id,primary.path);ctx.set('artifact_refs:'+task.id,proof.artifact_refs);ctx.set('parent_summary:'+task.id,proof.parent_summary);
+  } else if(task.status==='done'&&task.artifactPath)ctx.set('artifact:'+task.id,task.artifactPath);
+ }
+ return accepted;
+}
 /** M2-1 状态事件钩子：opts.onStatus(subtask, phaseInfo) 在子任务状态变化（running/done/skipped/failed）时调用。
  *  - dry-run 不上报（无真实状态变化）；回调异常一律吞掉，保证「TUI 失败不改变执行语义」（回归面为零）。
  *  - phaseInfo 含 status/mode/degraded/attempts/elapsedMs，供 TUI 渲染；state.json 全量写语义不变。 */
@@ -109,9 +127,6 @@ function emitStatus(plan, subtask, status, opts, extra) {
 // 映射是静态保守声明——探测失败/缺能力 → dispatch 内诚实降级，不静默改用弱能力。
 export function getRequiredCapabilities(asset) {
   switch (asset) {
-    case 'implementation':
-    case 'dev-backend':
-    case 'be-implementer':
     case 'sdlc':
     case 'be-validator':
     case 'portman':
@@ -124,9 +139,18 @@ export function getRequiredCapabilities(asset) {
 }
 
 export async function dispatch(subtask, ctx, opts = {}) {
+  // Per-task activation must never mutate the shared parallel execution options.
+  opts = { ...opts };
+  if (typeof subtask.desc === 'string' && subtask.desc.trim()) {
+    subtask.parentTask ||= subtask.task || null;
+    subtask.task = subtask.desc;
+  }
   let logger = opts.logger;
   if (!logger) logger = createLogger(opts.verbose);
   if (opts.dryRun) { console.log('[dry-run] 将执行 ' + subtask.asset); return { ok: true, dryRun: true, artifactPath: null, error: null }; }
+  if(subtask.handoff?.package?.registered===true||subtask.delegationContext?.delegation_mode==='MANUAL_HANDOFF')opts={...opts,delegationInput:{...opts.delegationInput,task:{delegation_mode:'MANUAL_HANDOFF',automatic_dispatch_allowed:false,ref:'local:handoff-task'}}};
+  const mode=executionPolicy(opts);subtask.delegationContext=mode;
+  if(mode.delegation_mode==='MANUAL_HANDOFF'||opts.executionMode==='BRIEF_ONLY')opts={...opts,backend:'prompt',executionMode:'BRIEF_ONLY',exec:null,provider:null,host:null,hosts:null,configHosts:null};
   // CD-1（批 2，v3.2 capability dispatch 完整形态）：subtask.capability 在场 = capability 输入模式——
   // asset name 降为内部解析产物：capability → resolver（CAPABILITY_MAP 受控映射，activation.mjs 头
   // 注释声明；禁模糊语义匹配——v3.4 裁定）→ manifest id → 资格判定 → subtask.asset 内部绑定 → adapter。
@@ -225,6 +249,31 @@ export async function dispatch(subtask, ctx, opts = {}) {
   }
   const adapter = resolveAdapterDI(subtask.asset, opts.backend, opts);
   if (!adapter) { subtask.status = 'skipped'; subtask.mode = 'skipped'; subtask.adapter = 'none'; logger.warn('asset adapter unavailable: ' + subtask.asset); return { ok: true, skipped: true, artifactPath: null, error: 'ADAPTER_NOT_AVAILABLE' }; }
+  if(adapter===PROMPT_ADAPTER&&!opts.methodologyAdmission&&opts.workspace){
+    try{
+      const {safeHostFile,verifyHostDecision,createCoreTransport,prepareHostDecision,hostRecord}=await import('./host-adapter.mjs');
+      let record=opts.decisionRecord,created=false;
+      if(record===undefined){try{record=JSON.parse(await fs.readFile(safeHostFile(opts.workspace,subtask.id),'utf8'));}catch(error){if(error.code!=='ENOENT')throw error;}}
+      const transport=opts.transport||createCoreTransport({workspace:opts.workspace,session:record?.host_binding?.session,repoRoot:opts.assetsRoot});
+      if(!record&&opts.renewPlanDecision&&typeof opts.present==='function'){
+        const plan=await createStore(opts.workspace).load(),task=plan?.subtasks?.find(t=>t.id===subtask.id);
+        if(plan?.id===opts.planId&&task?.asset===subtask.asset&&task?.desc===subtask.desc){
+          const {CAPABILITY_MAP}=await import('./activation.mjs');
+          const capability=Object.keys(CAPABILITY_MAP).find(key=>CAPABILITY_MAP[key]===subtask.asset);
+          const input={intent:plan.decisionIntent||'/yy 4',taskText:plan.task,subtaskId:subtask.id,plan_id:plan.id,execution_task:task.desc,capability};
+          const current=await prepareHostDecision(input,{transport,present:opts.present});if(current.ok&&current.data.execution_permitted){record=hostRecord(input,current);created=true;}
+        }
+      }
+      if(!created&&opts.renewPlanDecision&&record?.schema==='yy/host-decision@1'&&record.presented===true&&typeof opts.present==='function'){
+        const current=await prepareHostDecision(record.input,{transport,present:opts.present});if(current.ok&&current.data.execution_permitted)record=hostRecord(record.input,current);
+      }
+      const admitted=await verifyHostDecision(record,record?.input,{transport}),packet=admitted.data?.decisions?.find(p=>p.data?.brief);
+      if(!admitted.ok&&opts.renewPlanDecision)return {ok:false,status:'FAILED',executed:false,error:admitted.code};
+      if(admitted.ok&&packet?.data.assets[0]?.id===subtask.asset&&packet.data.receipt_context?.subtask_id===subtask.id){
+        opts={...opts,decisionRecord:record,transport,methodologyAdmission:{stage:true,task:true,asset:subtask.asset},ownerIntent:{...subtask.ownerIntent,explicit_asset_task:true},methodologyContext:subtask.methodologyContext||{}};
+      }
+    }catch(error){if(error.code!=='ENOENT')throw error;}
+  }
   // B5: activation.prepare 三级激活（仅 YY_ACTIVATION=lib 且 prompt 后端时）；
   // 任何失败/无 budget 字段均降级 legacy + warning，绝不 BLOCK 旧流程。
   if (adapter === PROMPT_ADAPTER) {
@@ -235,7 +284,9 @@ export async function dispatch(subtask, ctx, opts = {}) {
         const { activationPrepare } = await import('./activation.mjs');
         const prep = await activationPrepare({
           asset: subtask.asset,
-          subtask: { id: subtask.id, task: subtask.task, contract: subtask.contract, preconditions: subtask.preconditions || [] },
+          subtask: { id: subtask.id, task: subtask.task, desc: subtask.desc, parentTask: subtask.parentTask,
+            role: subtask.role, acceptanceCriteria: subtask.acceptanceCriteria,
+            contract: subtask.contract, preconditions: subtask.preconditions || [] },
           activationLevel: opts.activationLevel || 'body',
           opts: { vendorDir: opts.vendorDir || DEFAULT_VENDOR_DIR, workspace: opts.workspace, useCache: false },
         });
@@ -246,10 +297,17 @@ export async function dispatch(subtask, ctx, opts = {}) {
       }
     }
   }
-  try { await gate.before(subtask, opts); } catch (error) { logger.warn('gate.before skipped: ' + error.message); }
+  // A contract snapshot is an execution prerequisite, not an optional warning.
+  await gate.before(subtask, opts);
   // 能力门控（EX-1）：检查子任务所需能力 vs 执行器实际能力，缺能力 → 诚实降级（不静默用弱能力）。
   // 门控在 gate.before 之后、真实执行之前——dry-run/skipped 短路已在前，无副作用。
-  const requiredCaps = getRequiredCapabilities(subtask.asset);
+  const embedded = opts.executionMode!=='EXTERNAL_PROVIDER'&&opts.executionMode!=='BRIEF_ONLY'&&!opts.provider&&
+    (opts.executionMode==='HOST_NATIVE'||!opts.exec?.length)&&typeof opts.host?.execute==='function';
+  const external = opts.executionMode!=='HOST_NATIVE'&&opts.executionMode!=='BRIEF_ONLY'&&
+    !!(opts.exec?.length||opts.provider||opts.hosts||opts.configHosts?.length);
+  const requiredCaps = adapter === PROMPT_ADAPTER
+    ? (embedded?['write_files']:external?['write_files','run_cmd']:[])
+    : getRequiredCapabilities(subtask.asset);
   const actualCaps = (opts.executorDefaults && opts.executorDefaults.capabilities) || null;
   if (actualCaps) {
     const missingCaps = requiredCaps.filter(function(cap) { return !actualCaps[cap]; });
@@ -267,14 +325,19 @@ export async function dispatch(subtask, ctx, opts = {}) {
       return { ok: true, skipped: true, artifactPath: null, error: 'CAPABILITY_MISSING' };
     }
   }
-  let result;
+  let result,methodologyInput;
   try {
+    if(adapter!==PROMPT_ADAPTER && opts.assetsRoot) {
+      const {prepareHostInput}=await import('./host-execution.mjs');
+      methodologyInput=await prepareHostInput(subtask,opts.assets?.get(subtask.asset)?.body||'',subtask.upstreamRefs||[],opts);
+      opts={...opts,executionInput:methodologyInput};
+    }
     // P1 失败自动恢复：prompt 后端 + 存在宿主（--exec 主宿主或 --hosts 备选宿主）→ 跨宿主/跨视角重试链。
     // 主宿主(--exec)失败（诚实降级 brief-only executor）→ 自动按序尝试备选宿主；全失败 → 保持诚实降级语义。
     // 无 --hosts 时 chain 仅含主宿主，行为与 2.5.0 完全一致（宿主失败 → brief-only 降级）。
     const hosts = resolveHosts(opts);
     const hasExecHost = Array.isArray(opts.exec) && opts.exec.length > 0;
-    if (adapter === PROMPT_ADAPTER && (hasExecHost || hosts.length > 0)) {
+    if (adapter === PROMPT_ADAPTER && external && (hasExecHost || hosts.length > 0)) {
       const outcome = await retryAcrossHosts(
         function(entry) {
           const hostOpts = entry ? Object.assign({}, opts, { exec: entry.command, execModel: entry.model || null }) : opts;
@@ -294,13 +357,22 @@ export async function dispatch(subtask, ctx, opts = {}) {
   } catch (error) {
     result = { ok: false, error: error.message, artifactPath: null };
   }
+  if(methodologyInput) {
+    const {methodologyDelivery}=await import('./host-execution.mjs');
+    const unavailable=!result.ok&&/NOT_AVAILABLE|NO_SCAN_TARGET|SCOPE_LANGUAGE_UNSUPPORTED|CONTRACT_TOOL_NOT_AVAILABLE/.test(result.error||'');
+    result={...result,status:unavailable?'NOT_EXECUTED':result.ok?'EXECUTED':'FAILED',executed:result.ok===true,artifacts:result.artifactPath?[result.artifactPath]:[],provider:null,methodology_application:'UNVERIFIED',
+      evidence:{...(result.evidence||{}),methodology_delivery:methodologyDelivery(methodologyInput,result.ok===true)}};
+  }
   if (result.ok && result.artifactPath) { ctx.set('artifact:' + subtask.id, result.artifactPath); subtask.artifactPath = result.artifactPath; }
   // 先置状态再跑 gate：只有成功且非 dry-run/skipped 才算真实 done（杜绝假成功）
-  if (result.ok && !result.dryRun && !result.skipped) subtask.status = 'done';
+  if (result.status === 'BRIEF_ONLY') subtask.status = 'skipped';
+  else if (result.ok && !result.dryRun && !result.skipped) subtask.status = 'done';
+  if (result.executionMode) {subtask.executionMode=result.executionMode;subtask.executed=result.executed===true;subtask.provider=result.provider;}
   // 执行模式标注（诚实性核心）：任何真实执行（prompt 宿主 or 专用 CLI）统一归 exec 桶；
   // prompt 无宿主/exec 失败 → prompt（brief-only 指令包）；专用 CLI 降级 → planned-only；
   // adapter 名保留在 subtask.adapter 供报告明细。
   if (result.skipped || result.error === 'ADAPTER_NOT_AVAILABLE' || result.error === 'OPENCODE_NOT_AVAILABLE' || result.error === 'CONTRACT_TOOL_NOT_AVAILABLE') subtask.mode = 'skipped';
+  else if (result.status === 'BRIEF_ONLY') subtask.mode = 'prompt';
   else if (subtask.status === 'done') subtask.mode = (adapter === PROMPT_ADAPTER) ? (result.executed ? 'exec' : 'prompt') : (result.degraded ? 'planned-only' : 'exec');
   subtask.adapter = adapter.name;
   if (typeof result.assetConsumed === 'boolean') subtask.assetConsumed = result.assetConsumed;
@@ -313,6 +385,33 @@ export async function dispatch(subtask, ctx, opts = {}) {
   return result;
 }
 export async function executePlan(plan, opts = {}) {
+  for (const s of plan.subtasks) {
+    s.parentTask ||= plan.task || null;
+    if (typeof s.desc === 'string' && s.desc.trim()) s.task = s.desc;
+  }
+  const context=opts.context||createContextBus();
+  const acceptedManualTaskIds=!opts.dryRun?await restoreCompletedContext(plan,context,opts):new Set();
+  opts={...opts,context,acceptedManualTaskIds};
+  const store = !opts.dryRun && opts.workspace ? createStore(opts.workspace) : null;
+  const priorCheckpoint=opts.checkpoint,checkpointWorkspace=opts.workspace;
+  const previousPlan=opts.replacePlan&&store?await store.load():null;
+  let replacementDigest=previousPlan?crypto.createHash('sha256').update(JSON.stringify(previousPlan)).digest('hex'):null;
+  const persist = !opts.dryRun ? (store ? async p => {const result=await checkpointExecution(checkpointWorkspace,p,priorCheckpoint,{replacementDigest});replacementDigest=null;return result;} : priorCheckpoint) : null;
+  const inFlight = new Set();
+  const checkpoint = persist ? async p => {
+    const snapshot = structuredClone(p);
+    // dispatch sets provisional status before its post-execution gate settles.
+    // A peer's checkpoint must never make that provisional done resumable as done.
+    for (const s of snapshot.subtasks) if (inFlight.has(s.id)) s.status = 'running';
+    await persist(snapshot);
+  } : null;
+  opts = { ...opts, renewPlanDecision:true,planId:plan.id,budgetPolicy:plan.budgetPolicy??opts.budgetPolicy,checkpoint, inFlight };
+  if (!opts.dryRun) {
+    const prior = plan.executionEvidence;
+    plan.executionEvidence = { failFast: true, attempt: (prior?.attempt || 0) + 1,
+      cancellation: prior?.cancellation || [], settlement: prior?.settlement || [] };
+    if (checkpoint) await checkpoint(plan);
+  }
   let logger = opts.logger;
   if (!logger) logger = createLogger(opts.verbose);
   let ctx = opts.context;
@@ -325,22 +424,37 @@ export async function executePlan(plan, opts = {}) {
   // 并发上限：--parallel N；不传 = 1（串行，向后兼容）；--parallel 缺省 = Infinity（phase 内全部并行）
   const parallel = opts.parallel === undefined ? 1 : opts.parallel;
   const maxPhase = subtasks.reduce(function(m, s) { return Math.max(m, s.phase); }, 0);
-  for (let p = 0; p <= maxPhase; p += 1) {
-    const group = subtasks.filter(function(s) { return s.phase === p; });
-    await runGroup(group, plan, ctx, opts, logger, parallel);
-    if (plan.status === 'failed') break;
+  let executionError;
+  try {
+    for (let p = 0; p <= maxPhase; p += 1) {
+      const group = subtasks.filter(function(s) { return s.phase === p; });
+      await runGroup(group, plan, ctx, opts, logger, parallel);
+      if (plan.status === 'failed') break;
+    }
+  } catch (error) { executionError = error; plan.status = 'failed'; }
+  if (!opts.dryRun && plan.status === 'failed') {
+    const evidence = plan.executionEvidence;
+    const settled = new Set(evidence.settlement.filter(x => x.attempt === evidence.attempt).map(x => x.subtaskId));
+    for (const s of subtasks) {
+      if (s.status !== 'done' && !settled.has(s.id)) evidence.cancellation.push({
+        attempt: evidence.attempt, subtaskId: s.id, phase: s.phase, reason: 'FAIL_FAST_UNSTARTED', status: s.status });
+    }
+    if (checkpoint) await checkpoint(plan);
   }
+  if (executionError) throw executionError;
   if (plan.status !== 'failed' && !opts.dryRun) {
     if (plan._contractMissing) {
       // 契约缺失导致子任务被跳过：计划不得伪装成功（诚实性，独立验收 P1）
       plan.status = 'failed';
       plan.degraded = true;
       plan.warnings = ['契约未冻结（CONTRACT_NOT_FROZEN）：存在子任务因契约缺失被跳过，任务未完整执行——先重冻结再 --resume'];
+      if (checkpoint) await checkpoint(plan);
       return { plan, context: ctx.dump() };
     }
-    plan.status = 'done';
+    const awaitingHost=plan.subtasks.some(s=>s.executionMode==='BRIEF_ONLY'&&!(s.status==='done'&&acceptedManualTaskIds.has(s.id)));
+    plan.status = awaitingHost?'awaiting-host':'done';
     const skipped = plan.subtasks.filter(function(s) { return s.status === 'skipped'; }).length;
-    plan.degraded = plan.subtasks.length > 0 && skipped === plan.subtasks.length;
+    plan.degraded = awaitingHost || (plan.subtasks.length > 0 && skipped === plan.subtasks.length);
     plan.modes = {};
     for (const s of plan.subtasks) { if (s.mode) plan.modes[s.mode] = (plan.modes[s.mode] || 0) + 1; }
     // 机器可读警告：prompt/planned-only 兜底未真实执行
@@ -349,16 +463,17 @@ export async function executePlan(plan, opts = {}) {
     if (depPrecondition) {
       plan.warnings.push(depPrecondition + ' 个子任务因上游未满足资产消费前置被跳过（DEP_PRECONDITION）——上游须真实执行并产出资产消费证据后再 --resume 续跑下游');
     }
-    if (plan.modes.prompt) plan.warnings.push(plan.modes.prompt + ' 个子任务为 prompt 兜底（仅指令包，需宿主消费）');
+    const pendingPrompts=plan.subtasks.filter(s=>s.mode==='prompt'&&!acceptedManualTaskIds.has(s.id)).length;
+    if (pendingPrompts) plan.warnings.push(pendingPrompts + ' 个子任务为 prompt 兜底（仅指令包，需宿主消费）');
     if (plan.modes['planned-only']) plan.warnings.push(plan.modes['planned-only'] + ' 个子任务为 planned-only 降级（外部 CLI 缺失）');
     const notConsumed = plan.subtasks.filter(function(s) { return s.assetConsumed === false; }).length;
     if (notConsumed) plan.warnings.push(notConsumed + ' 个子任务产物未含资产消费标记（资产标题锚点，宿主自声明、可伪造，仅作弱证据——不代表资产方法论被真实采用）');
     // F2 7 资产强制机制（requireExec）：T2 不可纯 prompt 兜底，brief-only 须标记 degraded
     if (plan.requireExec) {
-      const briefOnly = plan.subtasks.filter(function(s) { return s.mode === 'prompt' && s.assetConsumed !== true; });
+      const briefOnly = plan.subtasks.filter(function(s) { return s.mode === 'prompt' && s.assetConsumed !== true && !acceptedManualTaskIds.has(s.id); });
       if (briefOnly.length) {
         plan.degraded = true;
-        plan.warnings.push('⚠ requireExec 强制：' + briefOnly.length + ' 个子任务 brief-only 兜底（' + briefOnly.map(function(s) { return s.asset; }).join(', ') + '）——T2 资产需 --exec 宿主真实执行，不可纯 prompt 兜底');
+        plan.warnings.push('⚠ requireExec 强制：' + briefOnly.length + ' 个子任务 brief-only 兜底（' + briefOnly.map(function(s) { return s.asset; }).join(', ') + '）——T2 资产需宿主真实执行，不可将 BRIEF_ONLY 当完成');
       }
     }
     // 能力门控汇总警告：CAPABILITY_MISSING 降级留痕（诚实性——缺能力不假报执行）
@@ -383,11 +498,12 @@ export async function executePlan(plan, opts = {}) {
       }
     }
   }
+  if (checkpoint) await checkpoint(plan);
   return { plan, context: ctx.dump() };
 }
 // 单 phase 执行：受并发上限约束并行 dispatch（limit<=1 时与旧串行行为一致）
 async function runGroup(group, plan, ctx, opts, logger, limit) {
-  const runOne = async function(subtask) {
+  const runAttempt = async function(subtask) {
     const started = Date.now();
     logger.info('start subtask ' + subtask.id + ' [' + subtask.asset + ']');
     // resume 语义：已完成的子任务直接跳过（attempts 不累加）
@@ -405,12 +521,15 @@ async function runGroup(group, plan, ctx, opts, logger, limit) {
     // 前置条件 gate（T2 硬约束）：requireExec 计划带 plan.preconditions 时，子任务开工前校验
     // 上游依赖子任务是否「done 且 assetConsumed=true」。不满足 → skipped DEP_PRECONDITION（诚实降级，
     // 不静默开工），计划记 warning；旧 state/无 preconditions 的计划行为不变（向后兼容）。
-    if (!opts.dryRun && plan.requireExec && Array.isArray(plan.preconditions) && plan.preconditions.length) {
-      const upstream = Array.isArray(subtask.dependsOn) ? subtask.dependsOn : [];
+    const upstream = Array.isArray(subtask.dependsOn) ? subtask.dependsOn : [];
+    const legacyConsumptionRequired=plan.requireExec&&Array.isArray(plan.preconditions)&&plan.preconditions.length;
+    const hasManualDependency=upstream.some(id=>isManualHandoffTask(plan.subtasks.find(s=>s.id===id)));
+    if (!opts.dryRun && (legacyConsumptionRequired||hasManualDependency)) {
       const unsatisfied = [];
       for (const depId of upstream) {
         const dep = plan.subtasks.find(function(s) { return s.id === depId; });
-        if (!dep || dep.status !== 'done' || dep.assetConsumed !== true) unsatisfied.push(dep ? dep.asset + '(' + dep.status + '/' + dep.assetConsumed + ')' : depId);
+        const satisfied=dep&&(isManualHandoffTask(dep)?dep.status==='done'&&opts.acceptedManualTaskIds.has(dep.id):!legacyConsumptionRequired||dep.status==='done'&&dep.assetConsumed===true);
+        if (!satisfied) unsatisfied.push(dep ? dep.asset + '(' + dep.status + '/' + dep.assetConsumed + ')' : depId);
       }
       if (unsatisfied.length) {
         subtask.status = 'skipped'; subtask.mode = 'skipped'; subtask.error = 'DEP_PRECONDITION';
@@ -421,6 +540,9 @@ async function runGroup(group, plan, ctx, opts, logger, limit) {
         return;
       }
     }
+    // Trusted current refs feed the existing prepareHostInput seam; no second file verifier.
+    const restoredRefs=upstream.flatMap(id=>ctx.get('artifact_refs:'+id)||[]);
+    if(restoredRefs.length)subtask.upstreamRefs=[...(subtask.upstreamRefs||[]).filter(existing=>!restoredRefs.some(ref=>ref.path===existing?.path)),...restoredRefs];
     // 契约先行硬校验（task01）：冻结契约（contractMode:'frozen'）必须文件存在才执行；缺失 → skipped 且计划失败（防跳过契约/静默降级）
     if (!opts.dryRun && subtask.contractMode === 'frozen') {
       const contractFile = path.isAbsolute(subtask.contract) ? subtask.contract : path.join(opts.workspace || '.', subtask.contract);
@@ -433,18 +555,22 @@ async function runGroup(group, plan, ctx, opts, logger, limit) {
       }
     }
     if (!opts.dryRun) subtask.attempts += 1;
-    // M2-1 执行中瞬时态（仅 TUI 消费；state.json 收尾全量写不受影响）
+    // Running is transient; terminal states are persisted before another task is claimed.
     if (!opts.dryRun) subtask.status = 'running';
     emitStatus(plan, subtask, 'running', opts, { elapsedMs: 0 });
     let result;
     try { result = await dispatch(subtask, ctx, opts); } catch (error) {
-      if (error instanceof ContractViolationError) throw error;
+      if (error instanceof ContractViolationError) {
+        subtask.status = 'failed'; subtask.error = error.message; plan.status = 'failed';
+        emitStatus(plan, subtask, 'failed', opts, { elapsedMs: Date.now() - started });
+        throw error;
+      }
       result = { ok: false, error: error.message, artifactPath: null };
     }
     const unavailable = ['OPENCODE_NOT_AVAILABLE', 'SDLC_NOT_AVAILABLE', 'CONTRACT_TOOL_NOT_AVAILABLE', 'ADAPTER_NOT_AVAILABLE'].includes(result.error);
     if (unavailable) { subtask.status = 'skipped'; subtask.mode = 'skipped'; logger.warn('subtask skipped: ' + result.error); }
     else if (!result.ok) { subtask.status = 'failed'; plan.status = 'failed'; logger.error('subtask failed ' + subtask.id + ': ' + result.error); }
-    else if (!opts.dryRun) subtask.status = 'done';
+    else if (!opts.dryRun && subtask.status !== 'skipped' && result.status !== 'BRIEF_ONLY') subtask.status = 'done';
     // GW-1 治理接线（接线点 B）：gate/adapter 失败路径 GOVERNANCE 指路行（systematic-debugging）。
     // EX-1 能力门控段 / AV-3 资格门段零改动——全部失败码统一在 dispatch 返回后的本观察点消费。
     // F-030 真实传参：具名失败码经 governance.mjs 头注释声明的映射表（GOV_FAILURE_EVENT_MAP 语义）
@@ -471,10 +597,33 @@ async function runGroup(group, plan, ctx, opts, logger, limit) {
     emitStatus(plan, subtask, subtask.status, opts, { elapsedMs: Date.now() - started });
     logger.info('finish subtask ' + subtask.id + ' (' + (Date.now() - started) + 'ms)');
   };
-  if (limit <= 1) { for (const s of group) await runOne(s); return; }
+  const runOne = async function(subtask) {
+    if (!opts.dryRun && subtask.status === 'done') return;
+    if (!opts.dryRun) opts.inFlight.add(subtask.id);
+    const previousAttempts = subtask.attempts || 0;
+    try { await runAttempt(subtask); }
+    catch (error) {
+      if (!opts.dryRun) { subtask.status = 'failed'; subtask.error = error.message; plan.status = 'failed'; }
+      throw error;
+    } finally {
+      if (!opts.dryRun) opts.inFlight.delete(subtask.id);
+      if (!opts.dryRun && ['done', 'skipped', 'failed'].includes(subtask.status)) {
+        plan.executionEvidence.settlement.push({ attempt: plan.executionEvidence.attempt, subtaskId: subtask.id,
+          phase: subtask.phase, status: subtask.status, started: (subtask.attempts || 0) > previousAttempts });
+        try { if (opts.checkpoint) await opts.checkpoint(plan); }
+        catch (error) { plan.status = 'failed'; throw error; }
+      }
+    }
+  };
   let idx = 0;
-  const workers = Array.from({ length: Math.min(limit, group.length) }, async function() {
-    while (idx < group.length) { const i = idx; idx += 1; await runOne(group[i]); }
+  let firstError;
+  const workers = Array.from({ length: Math.min(Math.max(1, limit), group.length) }, async function() {
+    while (idx < group.length && plan.status !== 'failed') {
+      const i = idx; idx += 1;
+      try { await runOne(group[i]); }
+      catch (error) { firstError ||= error; break; }
+    }
   });
-  await Promise.all(workers);
+  await Promise.allSettled(workers);
+  if (firstError) throw firstError;
 }

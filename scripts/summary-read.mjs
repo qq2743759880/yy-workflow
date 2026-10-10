@@ -25,6 +25,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {createHash} from 'node:crypto';
+import {createStore} from './lib/store.mjs';
+import {projectDelegationViews} from './lib/delegation-summary.mjs';
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_DIR = path.resolve(SCRIPT_DIR, '..');
@@ -95,14 +98,17 @@ function ensureBacklog(data) {
   return data;
 }
 function parseArgs(args) {
-  const out = { workspace: '.', latest: false, all: false, help: false, validateHandoff: null };
+  const out = { workspace: '.', latest: false, all: false, help: false, validateHandoff: null, delegation:false, session:null, unknown:[] };
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i];
     if (a === '--workspace') { const v = args[i + 1]; if (v !== undefined && !v.startsWith('--')) { out.workspace = v; i += 1; } else out.help = true; }
     else if (a === '--latest') out.latest = true;
     else if (a === '--all') out.all = true;
+    else if (a === '--delegation') out.delegation = true;
+    else if (a === '--session') {const v=args[i+1];if(v!==undefined&&!v.startsWith('--')){out.session=v;i++;}else out.help=true;}
     else if (a === '--validate-handoff') { const v = args[i + 1]; if (v !== undefined && !v.startsWith('--')) { out.validateHandoff = v; i += 1; } else out.help = true; }
     else if (a === '--help' || a === '-h') out.help = true;
+    else out.unknown.push(a);
   }
   return out;
 }
@@ -215,6 +221,7 @@ function usage() {
   console.log('  --latest           打印最新一个摘要全文（JSON，供新会话恢复断点）');
   console.log('  --all              合并所有摘要为精简清单（JSON 数组）');
   console.log('  --validate-handoff <dir>  校验 <dir>/REPORT.md 回填必填字段（T9 追加；缺字段 FAIL exit 1）');
+  console.log('  --delegation [--session <id>]  从当前 Store 只读投影人工交接 TaskView（单 JSON envelope）');
   console.log('  默认: 列出该 workspace 所有摘要（按时间倒序），一行一项');
 }
 /** T9 仅追加：--validate-handoff 入口。返回进程退出码，不触碰既有摘要读取路径。 */
@@ -233,8 +240,27 @@ function runValidateHandoff(dir) {
   console.log(JSON.stringify({ taskId: r.fields.taskId, taskVerdict: r.fields.taskVerdict, evidencePaths: r.fields.evidencePaths }, null, 2));
   return 0;
 }
+/** Pure read producer for host injection; no refresh, transition or acceptance. */
+export async function readDelegationSummary(workspace,session=null) {
+ try {
+  if(session!==null&&!/^[A-Za-z0-9_-]+$/.test(session))throw Object.assign(new Error('session invalid'),{code:'INPUT_INVALID'});
+  const root=path.resolve(workspace),control=path.join(root,'.tt-state'),file=path.join(control,session||'','state.json');
+  for(const entry of [control,...(session?[path.dirname(file)]:[]),file]){try{if(fs.lstatSync(entry).isSymbolicLink())throw Object.assign(new Error('state link refused'),{code:'SOURCE_NOT_AUTHORIZED'});}catch(error){if(error.code!=='ENOENT')throw error;}}
+  let plan;
+  if(session){try{plan=JSON.parse(await fs.promises.readFile(file,'utf8'));}catch(error){if(error.code!=='ENOENT')throw error;plan=null;}}
+  else plan=await createStore(root).load();
+  if(plan?.stateVersion!=null&&plan.stateVersion!==1)throw Object.assign(new Error('STATE_VERSION_UNSUPPORTED'),{code:'STATE_VERSION_UNSUPPORTED'});
+  const observedAt=new Date().toISOString(),identityRef='state:'+createHash('sha256').update(JSON.stringify(plan)).digest('hex');
+  const tasks=projectDelegationViews(plan,{observedAt,identityRef});
+  return {ok:true,code:null,data:{tasks},evidence:{identity_ref:identityRef,observed_at:observedAt},warnings:[]};
+ } catch(error){return {ok:false,code:error.code||'INPUT_INVALID',data:{tasks:[],reason:/^(?:PROJECTION_STATE_INVALID|DELEGATION_CONTRACT_INVALID|STATE_VERSION_UNSUPPORTED)/.test(error.message)?error.message:'人工交接视图读取失败'},evidence:{},warnings:[]};}
+}
 export function main(args = process.argv.slice(2)) {
   const opts = parseArgs(args);
+  if(opts.delegation){
+    if(opts.help||opts.latest||opts.all||opts.validateHandoff||opts.unknown.length){console.log(JSON.stringify({ok:false,code:'INPUT_INVALID',data:{tasks:[],reason:'delegation 仅接受 workspace/session 只读参数'},evidence:{},warnings:[]}));return 1;}
+    return readDelegationSummary(opts.workspace,opts.session).then(result=>{console.log(JSON.stringify(result));return result.ok?0:1;});
+  }
   if (opts.help) { usage(); return 0; }
   if (opts.validateHandoff) return runValidateHandoff(opts.validateHandoff); // T9 仅追加分支
   const workspace = path.resolve(opts.workspace);
@@ -284,4 +310,4 @@ export function main(args = process.argv.slice(2)) {
   for (const it of its) console.log(listRow(it));
   return 0;
 }
-process.exitCode = main();
+process.exitCode = await main();

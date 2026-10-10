@@ -5,22 +5,20 @@ journey-step: 5
 prereq-gates: [step3]
 ---
 
-> 首行指令：先跑 `node scripts/tt-journey.mjs --workspace "$PROJECT_ROOT" --prereq-check --step 5` 机验前置。前置 step 3 未 done 时 exit 1 输出原因并阻断注入，先回阶段 3。
+> 首行指令：先跑 `node "$SKILL_DIR/scripts/host-adapter.mjs" prepare --workspace "$PROJECT_ROOT" --session <session> --intent "/yy 3" --subtask-id <id> --save` 展示包，仅 `ok=true` 且 `data.execution_permitted=true` 继续。再跑 `node "$SKILL_DIR/scripts/host-adapter.mjs" check --workspace "$PROJECT_ROOT" --session <session> --subtask-id <id>`，通过后做原生工作。session 边界见接口指针。
 
 ## 阶段 5 · 规划 + 契约冻结
 
-**目标**：任务×agent×skill×workflow×MCP 矩阵 + 执行排序 + 契约冻结时序 + 开工 prompt；契约冻结前列接口清单/schema/错误码/响应壳，逐条审完才冻结。
+**目标**：执行矩阵与排序、契约冻结时序；接口/schema/错误码逐条审完才冻结。
 
 **人工 gate 清单**：契约审阅（用真实业务场景逐条审接口/错误码）——你业务知识最值钱的地方。
 
-**纪律钥匙词**：`契约先冻结`、`冻结后执行期禁止改契约`、`要改走变更单 + 重验收`、`前端缺契约就停下不要臆造接口`。
+**产物路径**：`contracts/<planId>.json`（冻结契约）；只凭实际审阅证据记录 `contract-frozen`。冻结后变更走变更单和重验收，下次阶段仍由 adapter 准入。
 
-**产物路径**：`contracts/<planId>.json`（冻结契约）；审完跑 `--update --step 5 --gate contract-frozen`（`--workspace` 必带）。
+**owner 审阅**：按 `templates/owner-review/contract-review.md` 呈现审阅要点。
 
-**owner 审阅**：产出 gate 产物后，读取 templates/owner-review/contract-review.md，按其四段结构向 owner 呈现审阅要点（审什么/看哪几字段/PASS-FAIL/常见坑）——owner 不懂术语也能做判断。
+**棕地补充**：老系统无 OpenAPI 可用 contract-reverse 反推草案，由后端确认后冻结；草案不授予实现许可，前端仍需契约和 HTML APPROVED gate。
 
-**棕地补充**：老系统无 OpenAPI 用 contract-reverse 反推草案 → 后端确认 → 冻结；前端可凭草案先开工（--contract-draft）。
+**变更**：只重验影响层，保留已实施产物。
 
-**回跳指针**：改需求（guide 阶段 6）只跑影响层 + 变更单，已实施产物不回退。
-
-**指针**：`docs/TT-USER-PROMPT-GUIDE.md` §4 阶段 3（L77）+ §7 阶段 6（L127）；`SKILL.md` §4 规划 / §5.4 契约冻结 gate。
+**指针**：宿主准入见 `reference/decision-interface.md`；规划、契约与变更方法见 `reference/planning.md`、`reference/frontend-gate.md`。

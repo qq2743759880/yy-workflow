@@ -1,3 +1,0 @@
-07c75a8d41b30c0f43bc2e23dc0969474cf40502e98f3a9dd14fd0da5c793ec6 *package.json
-3d451ee2d960fa70ee1708848ced5d3b63be512165ee56c89eb324ee87cadd9a *package-lock.json
-188eb01ae0d88d1cdf2750d5bbfa24165ac8b8d84deac45ab61fb39fa031f1c9 *contracts/asset-manifest-v2.json

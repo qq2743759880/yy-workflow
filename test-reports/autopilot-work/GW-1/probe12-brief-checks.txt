@@ -1,3 +1,0 @@
-implementation done tdd= True verify= False truncated= True
-be-validator done tdd= False verify= True truncated= False
-sdlc done tdd= False verify= True truncated= False

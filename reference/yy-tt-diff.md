@@ -1,6 +1,6 @@
 # 附 A10：YY 与 TT 的差异段 + TTHP 关系（来源：SKILL.md 附 B + 附 C，自包含可读）
 
-> 本文件是 YY fork 差异登记与外部协议关系的权威说明（原 SKILL.md 附 B/附 C 迁移至此）。校验协议边界或对照上游 TT 时读取。
+> 本文件保留 YY fork 差异意图与外部协议关系（原 SKILL.md 附 B/附 C）。对照上游时读取；当前架构见根 README，实际准入见 `decision-interface.md`，实现与验收状态见 `../plans/project-handoff.md`。
 
 ## 与 TTHP 协议包的关系（附 B）
 
@@ -10,7 +10,7 @@
 
 ## YY 与 TT 的差异段（附 C，YY 专有，TT 上游无）
 
-> 本段是 YY fork 的差异登记处：上游 TT 2.9.1 之外的全部 YY 意图。内核（0b~9 步闭环 + scripts + vendor 16 资产）与 TT 2.9.1 相同。
+> 下表是相对 TT 2.9.1 的早期设计意图，原“规划中”属于历史设计状态。当前 scripts 已有 YY Decision/C4 与 deterministic 修复，vendor 为 9 个资产，不能再假定内核与 TT 完全相同。表格不重新认证 F1–F5 的交付状态。
 
 | FR | 名称 | YY 差异（相对 TT 2.9.1） | 落点 |
 |----|------|------------------------|------|

@@ -1,0 +1,46 @@
+{
+  "schema": "yy/decision-transport@1",
+  "digest": "fca16a68d50827b9e25e6b08e9592c26bf2a4fd20d09d6efbd82518de88387f7",
+  "components": [
+    {
+      "path": "scripts/decision-bridge.mjs",
+      "sha256": "f050657d44b3b28958f87ae93b2f497b72cb12ecb9f75622e4001b71f49e2cac",
+      "role": "node-transport-entry"
+    },
+    {
+      "path": "scripts/lib/methodology-source-read.mjs",
+      "sha256": "0b2468216a1e17e37bb0980a1c7b3d860614aeb03bbba7a4df6f67bb808f1149",
+      "role": "controlled-methodology-source-transport"
+    },
+    {
+      "path": "integrations/yy-web-mcp/decision_bridge.py",
+      "sha256": "6c5c94012599f76c3b2de8aeb174aa58f1a3914c7e49955de03d9cc50f28c094",
+      "role": "python-bounded-client"
+    },
+    {
+      "path": "integrations/yy-web-mcp/binding_boundary.py",
+      "sha256": "1b95206a5f4ea5947b2411df43abc68c3a68f2107e279fd8d0e9f82432cb0652",
+      "role": "workspace-authorization-boundary"
+    },
+    {
+      "path": "integrations/yy-web-mcp/auth.py",
+      "sha256": "3d6b5c515d497a3b730181b02ceeb00f60675e8f813827bf65101d48c34df4de",
+      "role": "oauth-resource-authorization"
+    },
+    {
+      "path": "integrations/yy-web-mcp/mcp_envelope.py",
+      "sha256": "51d82f950babceb29d1fc975f342bcdcb9556606136b895d58da3aa6ec638f68",
+      "role": "typed-mcp-envelope"
+    },
+    {
+      "path": "integrations/yy-web-mcp/tools_v2.py",
+      "sha256": "8d743a798f441e220a07a612e41cb5addb0f7c50c0b4e5f3120019363b06f658",
+      "role": "v2-tool-registry"
+    },
+    {
+      "path": "integrations/yy-web-mcp/server.py",
+      "sha256": "5cf546d8fe25baee0373e74fef481cd3314b9a6157ba6dd47e101e5592dba73f",
+      "role": "dual-mount-assembly"
+    }
+  ]
+}

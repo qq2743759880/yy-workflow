@@ -1,0 +1,417 @@
+{
+  "schema": "yy/mcp-web-contract@1",
+  "planId": "yy-web-mcp-ngrok-20260928",
+  "status": "FROZEN",
+  "basedOn": {
+    "ownerRoute": "Local-clone-first + ngrok-first",
+    "existingToolAdapter": "<legacy-worktree>/integrations/yy-readonly-mcp/server.py",
+    "existingAuthorityBridge": "integrations/yy-readonly-mcp/bridge.mjs",
+    "note": "Existing adapter is stdio-only; this draft freezes the Web transport/tool contract, not a claim of current HTTP implementation. Pin current YY authority revision in W5-01 before coding."
+  },
+  "transport": {
+    "protocol": "MCP Streamable HTTP",
+    "path": "/mcp",
+    "bindHost": "127.0.0.1",
+    "portPolicy": "YY-owned free port, distinct from Local; 8178 is a candidate, not a fixed value",
+    "publicRoutePolicy": "YY-only endpoint; ngrok primary; Cloudflare then Secure MCP Tunnel fallback for YY only",
+    "authenticationPrecondition": "No private workspace data may be exposed until the chosen ChatGPT-compatible access boundary is proven; server-side workflow binding is always required."
+  },
+  "toolInventory": [
+    "yy_open_workflow",
+    "yy_get_snapshot",
+    "yy_get_stage",
+    "yy_list_assets",
+    "yy_read_asset",
+    "yy_read_evidence"
+  ],
+  "toolInventoryPolicy": {
+    "mode": "EXACT_ALLOWLIST",
+    "exposureInvariant": "MCP tools/list exposes exactly toolInventory; no other tools are registered for @yy.",
+    "forbiddenTools": [
+      "write_file",
+      "apply_workspace_edit",
+      "shell",
+      "run_command",
+      "read_file",
+      "search_code",
+      "generic LSP"
+    ]
+  },
+  "readOnlySemantics": {
+    "allTools": "Calls do not mutate YY business state, create execution jobs, dispatch work, or write workspace files.",
+    "yy_open_workflow": "Only resolves workflow_id through the trusted registry and opens/returns a read-only snapshot session or binding. It never creates a business task, advances a journey, reopens CLOSED, or creates an execution job.",
+    "allowedNonBusinessEffect": "An ephemeral read-session/binding may be established; it has no business-state side effect."
+  },
+  "tools": [
+    {
+      "name": "yy_open_workflow",
+      "operation": "open_workflow",
+      "readOnly": true,
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workflow_id"
+        ],
+        "properties": {
+          "workflow_id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Identifier resolved by the server-side trusted workflow registry; never a filesystem path."
+          }
+        }
+      },
+      "resultData": "Snapshot page as produced by the pinned YY authority; includes snapshot_id, source/payload digests, evidence_refs page, complete, omitted_sections, next_cursor."
+    },
+    {
+      "name": "yy_get_snapshot",
+      "operation": "get_snapshot",
+      "readOnly": true,
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workflow_id"
+        ],
+        "properties": {
+          "workflow_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "snapshot_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "resultData": "Same authority snapshot page contract; supplied snapshot_id/cursor must match the current or pinned source version."
+    },
+    {
+      "name": "yy_get_stage",
+      "operation": "get_stage",
+      "readOnly": true,
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workflow_id"
+        ],
+        "properties": {
+          "workflow_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "step": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Canonical YY step; only the values accepted by the existing authority are valid."
+          }
+        }
+      },
+      "resultData": "Canonical stage identity/status/prerequisite projection from YY authority, with snapshot_id and source_digest evidence."
+    },
+    {
+      "name": "yy_list_assets",
+      "operation": "list_assets",
+      "readOnly": true,
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workflow_id"
+        ],
+        "properties": {
+          "workflow_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "page_size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 20
+          }
+        }
+      },
+      "resultData": "assets[], complete, omitted_sections[], next_cursor, catalog_digest."
+    },
+    {
+      "name": "yy_read_asset",
+      "operation": "read_asset",
+      "readOnly": true,
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workflow_id",
+          "read_ref"
+        ],
+        "properties": {
+          "workflow_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "read_ref": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._-]{1,100}$"
+          },
+          "section_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "max_bytes": {
+            "type": "integer",
+            "minimum": 64,
+            "maximum": 64000,
+            "default": 12000
+          }
+        }
+      },
+      "resultData": "asset_id, section_id, content, complete, toc_complete/content_complete when applicable, omitted_sections[], next_cursor, source_version{path,bytes,sha256}, range when paged. Critical sections must be complete or return a named error."
+    },
+    {
+      "name": "yy_read_evidence",
+      "operation": "read_evidence",
+      "readOnly": true,
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workflow_id",
+          "evidence_ref",
+          "snapshot_id"
+        ],
+        "properties": {
+          "workflow_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "snapshot_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "max_bytes": {
+            "type": "integer",
+            "minimum": 64,
+            "maximum": 64000,
+            "default": 12000
+          }
+        }
+      },
+      "resultData": "evidence_ref, source_kind, inferred, content, complete, omitted_sections[], next_cursor, source_version{path,bytes,sha256}, range; evidence includes snapshot_id and source_digest."
+    }
+  ],
+  "resultEnvelope": {
+    "type": "object",
+    "required": [
+      "ok",
+      "code",
+      "data",
+      "evidence",
+      "warnings"
+    ],
+    "properties": {
+      "ok": {
+        "type": "boolean"
+      },
+      "code": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Stable error code; null on success."
+      },
+      "data": {
+        "type": "object"
+      },
+      "evidence": {
+        "type": "object"
+      },
+      "warnings": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "successInvariant": "ok=true and code=null; preserve authority-defined data/evidence fields and additive fields without Python semantic rewrites.",
+    "failureInvariant": "ok=false, stable code, data/evidence are empty objects, warnings are safe messages; no stack trace, secret, private absolute path, or raw stderr reaches Web."
+  },
+  "stableErrorCodes": [
+    "ASSET_DISCOVERY_FAILED",
+    "ASSET_MANIFEST_INVALID",
+    "ASSET_NOT_FOUND",
+    "AUTHORITY_REVISION_MISMATCH",
+    "BRIDGE_DIAGNOSTIC_TOO_LARGE",
+    "BRIDGE_INVALID_RESPONSE",
+    "BRIDGE_OUTPUT_TOO_LARGE",
+    "BRIDGE_TIMEOUT",
+    "BRIDGE_UNAVAILABLE",
+    "BUDGET_EXHAUSTED",
+    "CONFIGURATION_ERROR",
+    "CORE_CONTEXT_TOO_LARGE",
+    "EVIDENCE_REF_INVALID",
+    "FILE_NOT_FOUND",
+    "FILE_NOT_VISIBLE",
+    "INPUT_INVALID",
+    "INPUT_TOO_LARGE",
+    "INVALID_STEP",
+    "MCP_DISABLED",
+    "OPERATION_NOT_ALLOWED",
+    "READ_FAILED",
+    "RESOURCE_LIMIT",
+    "SECTION_NOT_FOUND",
+    "SNAPSHOT_INCONSISTENT",
+    "SOURCE_CHANGED",
+    "STAGE_UNKNOWN",
+    "STALE_VERSION",
+    "WORKFLOW_NOT_FOUND",
+    "WORKSPACE_NOT_AUTHORIZED"
+  ],
+  "errorSemantics": {
+    "invalidArgument": [
+      "INPUT_INVALID",
+      "INVALID_STEP",
+      "INPUT_TOO_LARGE"
+    ],
+    "unknownOrUnauthorizedBinding": [
+      "WORKFLOW_NOT_FOUND",
+      "WORKSPACE_NOT_AUTHORIZED"
+    ],
+    "staleCursorOrSourceChanged": [
+      "STALE_VERSION",
+      "SOURCE_CHANGED",
+      "SNAPSHOT_INCONSISTENT"
+    ],
+    "yyAuthorityUnavailable": "BRIDGE_UNAVAILABLE",
+    "bridgeTimeout": "BRIDGE_TIMEOUT",
+    "schemaMismatch": "BRIDGE_INVALID_RESPONSE",
+    "pinnedAuthorityRevisionMismatch": "AUTHORITY_REVISION_MISMATCH",
+    "criticalResultIncomplete": "CORE_CONTEXT_TOO_LARGE",
+    "internalFailure": "READ_FAILED"
+  },
+  "bridgeProtocol": {
+    "request": {
+      "type": "object",
+      "required": [
+        "operation",
+        "arguments"
+      ],
+      "properties": {
+        "operation": {
+          "type": "string",
+          "enum": [
+            "open_workflow",
+            "get_snapshot",
+            "get_stage",
+            "list_assets",
+            "read_asset",
+            "read_evidence"
+          ]
+        },
+        "arguments": {
+          "type": "object"
+        }
+      }
+    },
+    "response": "One UTF-8 JSON object matching resultEnvelope on stdout; diagnostics only on stderr.",
+    "limitsFromExistingAdapter": {
+      "timeoutSeconds": 20,
+      "requestBytes": 65536,
+      "stdoutBytes": 256000,
+      "stderrBytes": 65536
+    },
+    "authority": "Pin exactly one existing YY Node read-only authority/revision in W5-01; Python transports/adapts only.",
+    "authorityBoundary": "MCP/Bridge is not YY authority. It may validate, adapt protocol, normalize transport envelopes, page, timeout, and report errors; it must not redefine journey stages, GATE_VOCAB, CAPABILITY_MAP, asset eligibility, governance, supersedes, CLOSED semantics, or validation rules."
+  },
+  "contextAndAccessInvariants": {
+    "workflowBinding": "workflow_id -> server-side trusted registry -> canonical workspace root; no model-supplied disk path input",
+    "unknownBinding": "Unknown workflow/workspace fails closed without returning another workspace path, workflow data, evidence, or private metadata.",
+    "pagination": "Cursor binds workflow + snapshot/source digest + resource ref; source drift returns STALE_VERSION or SOURCE_CHANGED, never mixed revisions.",
+    "requiredContextFields": [
+      "snapshot_id",
+      "source_digest",
+      "payload_digest",
+      "complete",
+      "omitted_sections",
+      "next_cursor"
+    ],
+    "criticalSections": [
+      "status",
+      "gate",
+      "blocker",
+      "authorization",
+      "allowed actions",
+      "CLOSED semantics"
+    ],
+    "criticalContextCompleteness": "Critical sections are never silently truncated. If any required critical section cannot be returned in full, return an explicit incomplete state or fail with CORE_CONTEXT_TOO_LARGE; do not return a plausible partial authorization/action/CLOSED statement.",
+    "criticalTextPreservation": "Preserve complete authorization and allowed-action statements; never truncate a qualification such as 'before execution' while presenting the result as complete.",
+    "closedRead": "Before/after state hash, journey hash, task count, workspace fingerprint must match; read calls have no write/dispatch operations.",
+    "supersedes": "Historical evidence remains superseded exactly as the YY authority reports."
+  },
+  "runtimeOwnershipInvariants": {
+    "localEndpoint": "Read-only comparator; never modify its source/config/domain/token/connector/process.",
+    "yyEndpoint": "Own server.pid, tunnel.pid, config, logs, selected free port and endpoint lifecycle.",
+    "stopIdentity": [
+      "pid",
+      "executable",
+      "command line or instance identity"
+    ],
+    "watchdogScope": "YY watchdog and stop operations may target only a verified YY-owned process identity; they never stop or restart Local.",
+    "foreignPid": "Return PID_OWNER_MISMATCH; do not kill.",
+    "stalePid": "If process is absent, clear stale YY PID record and continue startup."
+  },
+  "deploymentGate": {
+    "beforePrivateData": "Prove a ChatGPT-compatible access boundary plus server-side allowlist; otherwise do not publish private workspace data.",
+    "routeMapping": "@local endpoint -> local port; @yy endpoint -> YY port and six-tool build identity; never route @yy to 8168.",
+    "ngrokProbe": "Must prove simultaneous endpoint, correct route markers, YY stop/restart isolation before formal deployment."
+  },
+  "ownerReviewStatus": "APPROVED",
+  "unverifiedItems": [
+    "Production Local source root and health are not yet established; 8168 had no listener at planning-time check.",
+    "Current YY authority revision must be pinned before W5 implementation.",
+    "ngrok second endpoint/domain/agent capability is UNKNOWN until W2 probe.",
+    "ChatGPT-compatible access boundary must be proven in W8 before private data use.",
+    "Selected YY port is not fixed; 8178 is a candidate only."
+  ],
+  "freezeMetadata": {
+    "frozenAt": "2026-09-28T04:31:08.619Z",
+    "ownerConfirmation": "我已确认“契约冻结”；解锁 W0 派单",
+    "boundedReview": "C1-C8 P0/P1 review; C1,C2,C4,C6,C7,C8 clarified; no unresolved P0/P1",
+    "sourceDraft": "contracts/drafts/yy-web-mcp-ngrok-20260928.contract.json"
+  }
+}

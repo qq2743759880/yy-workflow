@@ -163,6 +163,7 @@ function renderVerifyCommand(constraints) {
  * @param {object} input
  *   - body: string — vendor 资产正文（组合前缀，字节级不动）
  *   - task: string — 子任务任务一句话
+ *   - externalTask: boolean — host frame already owns the executable task; Mission references it without repeating it
  *   - capability: object|null — manifest v2 行（id/role/name/capability/when_to_use/when_not_to_use/verification）
  *   - project_context: string|Array|object — Context 段内容（workspace 现状/上一子任务产物引用）
  *   - constraints: string|Array|object — Output Contract 段内容（产出落点/格式）；可含
@@ -199,7 +200,7 @@ export function composeBrief(input) {
   // 2. Mission：task 一句话 + when_to_use 摘要（为何选你）
   sections['Mission'] = [
     '# Mission',
-    '- task: ' + (task || '(无)'),
+    '- task: ' + (input.externalTask ? '仅执行宿主包「执行任务（唯一）」；本段只说明方法论职责。' : (task || '(无)')),
     '- why-this-asset（manifest.when_to_use 摘要）:',
     renderList(toLines(cap.when_to_use)),
   ].join('\n');
@@ -337,7 +338,8 @@ export function composePlanAssets(assets, subtasks, opts) {
     const extra = inputs ? inputs.get(s.asset) : null;
     const result = composeBrief({
       body: a.body,
-      task: s.task || plan.task || '',
+      task: s.desc || s.task || '',
+      externalTask: true,
       capability: row,
       project_context: (extra && extra.project_context) || defaultProjectContext(s, plan, a),
       constraints: (extra && extra.constraints) || defaultConstraints(s, plan),
@@ -397,7 +399,8 @@ export function composeGovernedPlanAssets(assets, subtasks, opts) {
       || null;
     const result = composeBrief({
       body: a.body,
-      task: s.task || plan.task || '',
+      task: s.desc || s.task || '',
+      externalTask: true,
       capability: row,
       project_context: (extra && extra.project_context) || defaultProjectContext(s, plan, a),
       constraints: (extra && extra.constraints) || defaultConstraints(s, plan),

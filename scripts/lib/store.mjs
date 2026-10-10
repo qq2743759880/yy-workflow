@@ -1,11 +1,43 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { randomUUID } from 'node:crypto';
+import { hostname } from 'node:os';
 export function createStore(workspace = '.') {
   const dir = path.join(workspace, '.tt-state');
   const file = path.join(dir, 'state.json');
+  let pending = Promise.resolve();
   return {
-    async save(plan) { await fs.mkdir(dir, { recursive: true }); await fs.writeFile(file, JSON.stringify(plan, null, 2)); return plan; },
-    async load() { try { return JSON.parse(await fs.readFile(file, 'utf8')); } catch (error) { if (error.code === 'ENOENT') return null; throw error; } },
+    save(plan) {
+      // Capture at the transition, then serialize writes. Readers see old or new complete JSON.
+      const snapshot = JSON.stringify(plan, null, 2);
+      const operation = pending.then(async () => {
+        await fs.mkdir(dir, { recursive: true });
+        const tmp = path.join(dir, 'state.' + randomUUID() + '.tmp');
+        let handle;
+        try {
+          handle = await fs.open(tmp, 'wx');
+          await handle.writeFile(snapshot, 'utf8');
+          await handle.sync();
+          await handle.close(); handle = null;
+          // Windows readers/antivirus can briefly hold the destination open.
+          // Retry replacement; never unlink the last durable checkpoint.
+          for (let attempt = 0; ; attempt += 1) {
+            try { await fs.rename(tmp, file); break; }
+            catch (error) {
+              if (!['EPERM', 'EACCES', 'EBUSY'].includes(error.code) || attempt >= 7) throw error;
+              await new Promise(resolve => setTimeout(resolve, 10 * (attempt + 1)));
+            }
+          }
+        } finally {
+          if (handle) await handle.close();
+          await fs.rm(tmp, { force: true });
+        }
+        return plan;
+      });
+      pending = operation.catch(() => {});
+      return operation;
+    },
+    async load() { await pending; try { return JSON.parse(await fs.readFile(file, 'utf8')); } catch (error) { if (error.code === 'ENOENT') return null; throw error; } },
     async clear() { try { await fs.unlink(file); } catch (error) { if (error.code !== 'ENOENT') throw error; } },
   };
 }
@@ -14,13 +46,10 @@ export default createStore;
 // ---------------------------------------------------------------------------
 // B2 additive：withLock — 按资源路径键控的排他锁（P3 阶段 B）
 //
-// 与 journey.mjs withJourneyLock 同一锁原语（open(path,'wx') O_EXCL 独占创建 + 重试 +
-// stale 自愈），但语义不同：**fail-closed**（C-R4 §2.3：锁耗尽必须失败、返回显式安全结果、
-// 不得在锁外继续执行）。journey 锁现状是 fail-open（WARN 后继续），本层面向 state/命名空间
-// 写入面，不沿用其 fail-open 行为。
+// wx exclusive create, bounded retry and owner-aware recovery; always fail closed.
 //
 // 数值沿用现状常量（C-R4 OQ-R4-3=A）：retries=5 / delayMs=400 / staleMs=30000。
-// 既有 createStore 不改动。
+// createStore 的原子快照写入与此资源锁各自负责持久化和命名空间互斥。
 // ---------------------------------------------------------------------------
 
 /** 锁忙错误（fail-closed：重试耗尽仍未拿到锁 → 抛出，绝不无锁执行）。 */
@@ -37,59 +66,88 @@ export const LOCK_DEFAULTS = Object.freeze({ retries: 5, delayMs: 400, staleMs: 
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-/** 尝试独占创建锁文件；成功 true，已存在 false（其他错误上抛）。 */
-async function tryAcquire(lockFile) {
+/** Guard is never reaped: an interrupted guard requires offline recovery. */
+async function guarded(lockFile, fn) {
+  const guard = lockFile + '.guard';
+  let handle;
   try {
-    const handle = await fs.open(lockFile, 'wx');
-    await handle.close();
-    return true;
+    handle = await fs.open(guard, 'wx');
   } catch (error) {
-    if (error.code === 'EEXIST') return false;
+    if (error.code === 'EEXIST') return { busy: true };
     throw error;
   }
+  try { return { value: await fn() }; }
+  finally { await handle.close(); await fs.unlink(guard); }
 }
 
-/** stale 自愈：锁文件 mtime 早于 staleMs 前 → 视为持锁进程已死，删除残留并可重试。 */
-async function reapIfStale(lockFile, staleMs) {
-  try {
-    const st = await fs.stat(lockFile);
-    if (Date.now() - st.mtimeMs > staleMs) {
-      await fs.rm(lockFile, { force: true });
-      return true;
-    }
-  } catch (error) {
-    if (error.code !== 'ENOENT') throw error;
-    // 锁已被他人释放，下轮直接重试
-  }
-  return false;
+async function readOwner(lockFile) {
+  try { return JSON.parse(await fs.readFile(lockFile, 'utf8')); }
+  catch (error) { if (error.code === 'ENOENT' || error instanceof SyntaxError) return null; throw error; }
 }
+
+function ownerDead(owner) {
+  if (owner?.schema !== 'yy/store-lock@1' || owner.host !== hostname() ||
+      !Number.isSafeInteger(owner.pid) || owner.pid <= 0 || typeof owner.token !== 'string') return false;
+  try { process.kill(owner.pid, 0); return false; }
+  catch (error) { return error.code === 'ESRCH'; }
+}
+
+/** Main-lock recovery and acquisition are one guard-protected operation. */
+async function tryAcquire(lockFile, owner) {
+  return guarded(lockFile, async () => {
+    const current = await readOwner(lockFile);
+    if (ownerDead(current)) await fs.unlink(lockFile);
+    let handle;
+    try { handle = await fs.open(lockFile, 'wx'); }
+    catch (error) { if (error.code === 'EEXIST') return false; throw error; }
+    try { await handle.writeFile(JSON.stringify(owner), 'utf8'); await handle.sync(); }
+    finally { await handle.close(); }
+    return true;
+  });
+}
+
+async function release(lockFile, owner, retries, delayMs) {
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    if (attempt) await sleep(delayMs);
+    const result = await guarded(lockFile, async () => {
+      if ((await readOwner(lockFile))?.token === owner.token) await fs.unlink(lockFile);
+    });
+    if (!result.busy) return;
+  }
+  throw new LockBusyError(lockFile + '.guard', retries, delayMs);
+}
+
+/* Lock ownership cannot be inferred from mtime; PID reuse conservatively blocks recovery.
+ * All protocol participants use the guard. Unknown/legacy main locks and abandoned guards
+ * fail closed; offline recovery requires stopping every writer before deleting residuals.
+ */
 
 /**
  * withLock(resourcePath, fn, opts?) — 在排他锁保护下执行 fn。
  * @param {string} resourcePath - 被保护资源路径；锁文件 = resourcePath + '.lock'
  * @param {function} fn - 持锁期间执行的异步函数
- * @param {object} [opts] - { retries?, delayMs?, staleMs? }（缺省 LOCK_DEFAULTS）
+ * @param {object} [opts] - { retries?, delayMs? }; legacy staleMs is ignored.
  * @returns {Promise<*>} fn 的返回值
  * @throws {LockBusyError} 重试耗尽仍未拿到锁（fail-closed）
  */
 export async function withLock(resourcePath, fn, opts = {}) {
   const retries = Number.isInteger(opts.retries) ? opts.retries : LOCK_DEFAULTS.retries;
   const delayMs = Number.isInteger(opts.delayMs) ? opts.delayMs : LOCK_DEFAULTS.delayMs;
-  const staleMs = Number.isInteger(opts.staleMs) ? opts.staleMs : LOCK_DEFAULTS.staleMs;
+  if (retries < 0 || delayMs < 0) throw new RangeError('Lock options must be nonnegative');
   const lockFile = resourcePath + '.lock';
+  const owner = { schema: 'yy/store-lock@1', host: hostname(), pid: process.pid, token: randomUUID() };
   await fs.mkdir(path.dirname(lockFile), { recursive: true });
 
   for (let attempt = 0; attempt <= retries; attempt += 1) {
     if (attempt > 0) await sleep(delayMs);
-    if (await tryAcquire(lockFile)) {
+    const acquired = await tryAcquire(lockFile, owner);
+    if (acquired.value === true) {
       try {
         return await fn();
       } finally {
-        await fs.rm(lockFile, { force: true });
+        await release(lockFile, owner, retries, delayMs);
       }
     }
-    // 未拿到锁：尝试回收 stale 残留后下一轮重试
-    await reapIfStale(lockFile, staleMs);
   }
   throw new LockBusyError(lockFile, retries, delayMs);
 }
