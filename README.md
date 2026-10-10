@@ -102,10 +102,15 @@ Core 的核心运行与 CLI 使用 **Node.js / ES modules**，Journey、计划�
 npm ci --ignore-scripts
 node scripts/validate-structure.mjs
 node scripts/build-decision-authority.mjs --check
+```
+
+预期：结构与 Decision 身份检查成功。**只有 MCP 包**额外运行：
+
+```sh
 node scripts/build-decision-transport.mjs --check
 ```
 
-预期：结构与身份检查成功。Python MCP、Semgrep 和 Cisco Scanner 按各自声明单独安装；缺少必要工具时保留拒绝或未验证结果，不能把依赖缺失当成通过。本批搬迁安装实测为 Windows 带空格路径，其他操作系统未实测。
+Core 包保留 Transport 身份作为来源信息，但没有 Python MCP 文件，不能重算完整 Transport 身份。Python MCP、Semgrep 和 Cisco Scanner 按各自声明单独安装；缺少必要工具时保留拒绝或未验证结果，不能把依赖缺失当成通过。本批搬迁安装实测为 Windows 带空格路径，其他操作系统未实测。
 
 MCP 使用随包 lifecycle 和启动说明，认证值只放环境变量或受控本机配置。V2 连接 `/mcp-v2`，M1 连接 `/mcp`；真实服务还需要可信 workflow 绑定和认证，不能直接套用别人的公网地址。
 
